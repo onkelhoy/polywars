@@ -26,13 +26,13 @@ in vec3 vWorld;
 uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye, lampPosition, lampColor;
 uniform float fogDensity, toon, ambient, sunStrength, lampStrength, lampRange;
 uniform vec4 tint;
-uniform bool unlit;
+uniform bool unlit, mirrored;
 out vec4 outColor;
 void main() {
     vec4 base = vColor * tint;
     // canvases composite premultiplied alpha
     if (unlit) { vec3 c = pow(base.rgb, vec3(1.0 / 2.2)); outColor = vec4(c * base.a, base.a); return; }
-    vec3 n = normalize(gl_FrontFacing ? vNormal : -vNormal);
+    vec3 n = normalize(gl_FrontFacing != mirrored ? vNormal : -vNormal);
     float sun = max(dot(n, normalize(sunDirection)), 0.0);
     // point lamp, smooth falloff to 0 at lampRange
     vec3 toLamp = lampPosition - vWorld;

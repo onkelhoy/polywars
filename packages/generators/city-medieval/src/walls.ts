@@ -20,6 +20,9 @@ export function plan(ctx: Ctx) {
     ctx.door = { face: front, i: Math.max(1, Math.min(front.length - 3, rng.int(1, front.length - 2))) };
 }
 
+/** timber variant: _1 is plain, _2/_3 (nail notches) now and then */
+export const timber = (rng: { chance(p: number): boolean; int(a: number, b: number): number }) => rng.chance(.12) ? rng.int(2, 4) : 1;
+
 /** a window bay piece name */
 export const windowPiece = (ctx: Ctx, bay: number, tall: boolean) => `Stucco_Window_${ctx.family}_${bay === 2 ? "Wide" : "Narrow"}${tall ? "_Tall" : ""}` as PieceName;
 
@@ -80,14 +83,14 @@ export function walls(ctx: Ctx) {
 
                 if (!ctx.timber || bare.has(key(cx, y, cz)) || bare.has(key(cx, y + 1, cz))) continue;
                 // beams on the storey lines, posts at the corners and beside the windows
-                for (const by of s === 0 ? (ctx.stone ? [1, STOREY] : [STOREY]) : [y + STOREY]) put(`Stucco_Prop_Support_Beam_${rng.int(1, 4)}` as PieceName, ox, by, oz, face.deg);
+                for (const by of s === 0 ? (ctx.stone ? [1, STOREY] : [STOREY]) : [y + STOREY]) put(`Stucco_Prop_Support_Beam_${timber(rng)}` as PieceName, ox, by, oz, face.deg);
                 const post = i === face.length - 1 || !!face.bays[i] !== !!face.bays[i + 1] || (face.bays[i] === 1 && face.bays[i + 1] > 0);
                 // a jetty on the next / previous face: posts and beams reach its corner
                 const end = s > 0 && i === face.length - 1 ? next.shift : 0, start = s > 0 && i === 0 ? prev.shift : 0;
-                if (post && face.bays[i] !== 2) for (let py = s === 0 && ctx.stone ? 1 : y; py < y + STOREY; py++) put(`Stucco_Prop_Support_Pillar_${rng.int(1, 4)}` as PieceName, ox + face.run[0] * end, py, oz + face.run[1] * end, face.deg);
+                if (post && face.bays[i] !== 2) for (let py = s === 0 && ctx.stone ? 1 : y; py < y + STOREY; py++) put(`Stucco_Prop_Support_Pillar_${timber(rng)}` as PieceName, ox + face.run[0] * end, py, oz + face.run[1] * end, face.deg);
                 for (const d of [end, -start]) if (d)
                 {
-                    const m = put(`Stucco_Prop_Support_Beam_${rng.int(1, 4)}` as PieceName, ox + face.run[0] * (d / 2 + Math.sign(d) * .5), y + STOREY, oz + face.run[1] * (d / 2 + Math.sign(d) * .5), face.deg).matrix;
+                    const m = put(`Stucco_Prop_Support_Beam_${timber(rng)}` as PieceName, ox + face.run[0] * (d / 2 + Math.sign(d) * .5), y + STOREY, oz + face.run[1] * (d / 2 + Math.sign(d) * .5), face.deg).matrix;
                     for (let c = 8; c < 11; c++) m[c] *= Math.abs(d);
                 }
             }

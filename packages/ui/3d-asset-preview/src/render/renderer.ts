@@ -52,7 +52,7 @@ export type DrawOptions = { joints?: Float32Array; tint?: [number, number, numbe
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
-    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit"];
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored"];
 
 /** Draws `@papit/game-mesh` GPU meshes, plain or skinned, with one light. */
 export class Renderer {
@@ -90,6 +90,9 @@ export class Renderer {
         if (options.joints) gl.uniformMatrix4fv(p.uniforms.jointMatrices, false, options.joints);
         gl.uniform4fv(p.uniforms.tint, options.tint ?? [1, 1, 1, 1]);
         gl.uniform1i(p.uniforms.unlit, options.unlit ? 1 : 0);
+        // a mirroring matrix (negative determinant) flips the triangle winding: front faces then read as back faces
+        const m = this.f32.model, det = m[0] * (m[5] * m[10] - m[6] * m[9]) - m[4] * (m[1] * m[10] - m[2] * m[9]) + m[8] * (m[1] * m[6] - m[2] * m[5]);
+        gl.uniform1i(p.uniforms.mirrored, det < 0 ? 1 : 0);
         if (mode === undefined) return mesh.draw();
         gl.bindVertexArray(mesh.vao);
         gl.drawArrays(mode, 0, mesh.count);
