@@ -3,6 +3,8 @@ import { CustomElement, html, property } from "@papit/web-component";
 import { GameEngine, GameObject } from "@papit/game-engine";
 import type { GLTF } from "@papit/game-mesh";
 import "@papit/button";
+import "@papit/dialog";
+import type { Dialog } from "@papit/dialog";
 import "@polywar/3d-asset-preview";
 import { Model, Renderer, fromTRS, gltfFromMesh, mat4, multiply, type AssetPreview3D } from "@polywar/3d-asset-preview";
 
@@ -12,7 +14,7 @@ import type { Asset, AssetKind, Assets, GalleryItem, OpenEvent } from "./types";
 
 type Tile = { item: GalleryItem; stage?: HTMLElement; model?: Model; loading?: boolean; yaw: number; drag: number | null };
 
-const KINDS: AssetKind[] = ["model", "audio", "image", "source", "other"];
+const KINDS: AssetKind[] = ["model", "audio", "image", "video", "source", "other"];
 
 /**
  * A gallery of assets, grouped under headings.
@@ -32,7 +34,7 @@ export class Gallery extends CustomElement {
     @property({ after: function (this: Gallery) { this.load(); } }) location: string = "/assets";
     @property({ type: Object, attribute: false, after: function (this: Gallery) { this.sync(); } }) tree: Assets | null = null;
     @property({ type: Array, attribute: false, after: function (this: Gallery) { this.sync(); } }) items: GalleryItem[] = [];
-    @property({ type: Array, attribute: false, rerender: true }) kinds: AssetKind[] = ["model", "audio", "image"];
+    @property({ type: Array, attribute: false, rerender: true }) kinds: AssetKind[] = ["model", "audio", "image", "video"];
     @property({ rerender: true }) search: string = "";
 
     private manifestItems: GalleryItem[] = [];
@@ -178,31 +180,47 @@ export class Gallery extends CustomElement {
 
     /** The preview dialog lives outside the template, so re-renders never replace the preview (and its `gltf`). */
     private get dialog() {
-        let dialog = this.shadowRoot!.querySelector<HTMLDialogElement>("dialog");
+        let dialog = this.shadowRoot!.querySelector<Dialog>("pap-dialog");
         if (dialog) return dialog;
-        dialog = document.createElement("dialog");
-        dialog.innerHTML = `<header><strong></strong><pap-button variant="filled" aria-label="close preview">close ✕</pap-button></header>`;
-        dialog.querySelector("pap-button")!.addEventListener("click", () => this.close());
-        dialog.addEventListener("close", () => { dialog!.querySelector("pw-3d-asset-preview")?.remove(); this.opened = undefined; });
+        dialog = document.createElement("pap-dialog") as Dialog;
+        dialog.setAttribute("close-outside-click", "");
+        dialog.addEventListener("close", () => { dialog!.replaceChildren(); this.opened = undefined; });
         this.shadowRoot!.append(dialog);
         return dialog;
     }
 
-    /** open an item in the preview dialog */
+    /** open an item: 3D in pw-3d-asset-preview (near full screen), image/video as a large preview */
     open(item: GalleryItem) {
+        if (!["model", "image", "video"].includes(item.kind)) return;
         this.opened = item;
         const dialog = this.dialog;
-        dialog.querySelector("strong")!.textContent = `${item.group ? item.group + "/" : ""}${item.name}`;
-        dialog.querySelector("pw-3d-asset-preview")?.remove();
-        const preview = document.createElement("pw-3d-asset-preview") as AssetPreview3D;
-        preview.setAttribute("controls", "");
-        preview.setAttribute("grid", "");
-        preview.setAttribute("mode", "orbit");
-        const gltf = toGLTF(item);
-        if (gltf) preview.gltf = gltf;
-        else if (item.src) preview.setAttribute("src", item.src);
-        dialog.append(preview);
-        dialog.showModal();
+        dialog.header = `${item.group ? item.group + "/" : ""}${item.name}`;
+        dialog.className = item.kind;
+        let content: HTMLElement;
+        if (item.kind === "model")
+        {
+            const preview = content = document.createElement("pw-3d-asset-preview") as AssetPreview3D;
+            preview.setAttribute("controls", "");
+            preview.setAttribute("grid", "");
+            preview.setAttribute("mode", "orbit");
+            const gltf = toGLTF(item);
+            if (gltf) preview.gltf = gltf;
+            else if (item.src) preview.setAttribute("src", item.src);
+        }
+        else if (item.kind === "image")
+        {
+            const img = content = document.createElement("img");
+            img.src = item.src ?? "";
+            img.alt = item.name;
+        }
+        else
+        {
+            const video = content = document.createElement("video");
+            video.src = item.src ?? "";
+            video.controls = video.autoplay = video.loop = true;
+        }
+        dialog.replaceChildren(content);
+        dialog.open = true;
         this.dispatchEvent(new CustomEvent<OpenEvent>("open", { detail: { item } }));
     }
 
@@ -210,6 +228,7 @@ export class Gallery extends CustomElement {
         this.dialog.close();
     }
 
+    private handleopen = (item: GalleryItem) => () => this.open(item);
     private handlesearch = (e: Event) => { this.search = (e.target as HTMLInputElement).value; };
     private handlekind = (kind: AssetKind) => () => {
         this.kinds = this.kinds.includes(kind) ? this.kinds.filter(k => k !== kind) : [...this.kinds, kind];
@@ -254,7 +273,8 @@ export class Gallery extends CustomElement {
             </figure>`;
         }
         if (item.kind === "audio") return html`<figure class="audio">${caption}<audio controls preload="none" src="${item.src}"></audio></figure>`;
-        if (item.kind === "image") return html`<figure class="image"><img loading="lazy" src="${item.src}" alt="${item.name}" />${caption}</figure>`;
+        if (item.kind === "image") return html`<figure class="image"><img loading="lazy" src="${item.src}" alt="${item.name}" @click="${this.handleopen(item)}" />${caption}</figure>`;
+        if (item.kind === "video") return html`<figure class="video"><video muted loop playsinline preload="metadata" src="${item.src}" @click="${this.handleopen(item)}" @pointerenter="${playpreview}" @pointerleave="${stoppreview}"></video>${caption}</figure>`;
         return html`<figure class="file">${item.src ? html`<a href="${item.src}">${caption}</a>` : caption}</figure>`;
     }
 
@@ -289,6 +309,7 @@ const EXTENSIONS: Record<AssetKind, string[]> = {
     model: [".glb", ".gltf"],
     source: [".blend", ".fbx", ".obj", ".mtl"],
     audio: [".mp3", ".wav", ".ogg", ".m4a", ".flac"],
+    video: [".mp4", ".webm", ".mov", ".m4v"],
     image: [".png", ".jpg", ".jpeg", ".webp", ".svg", ".gif", ".avif"],
     other: [],
 };
@@ -310,6 +331,9 @@ function toGLTF(item: GalleryItem): GLTF | null {
     if (item.mesh) return gltfFromMesh(...(Array.isArray(item.mesh) ? item.mesh : [item.mesh]));
     return null;
 }
+
+function playpreview(e: Event) { (e.currentTarget as HTMLVideoElement).play().catch(() => {}); }
+function stoppreview(e: Event) { (e.currentTarget as HTMLVideoElement).pause(); }
 
 function size(bytes: number) {
     return bytes > 1e6 ? `${(bytes / 1e6).toFixed(1)} MB` : `${Math.ceil(bytes / 1e3)} KB`;

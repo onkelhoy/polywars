@@ -10,6 +10,7 @@ export const KINDS = {
     model: [".glb", ".gltf"],
     source: [".blend", ".fbx", ".obj", ".mtl"],
     audio: [".mp3", ".wav", ".ogg", ".m4a", ".flac"],
+    video: [".mp4", ".webm", ".mov", ".m4v"],
     image: [".png", ".jpg", ".jpeg", ".webp", ".svg", ".gif", ".avif"],
 };
 

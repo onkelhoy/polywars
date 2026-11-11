@@ -1,6 +1,6 @@
 import type { GLTF, Mesh } from "@papit/game-mesh";
 
-export type AssetKind = "model" | "source" | "audio" | "image" | "other";
+export type AssetKind = "model" | "source" | "audio" | "image" | "video" | "other";
 
 /** A file. `file` is its url. */
 export type Asset = { name: string; file: string; size?: number };

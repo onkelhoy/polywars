@@ -59,6 +59,7 @@
     "@papit/web-component": "*",
     "@papit/game-engine": "*",
     "@papit/button": "*",
+    "@papit/dialog": "*",
     "@polywar/3d-asset-preview": "*",
     "@papit/game-mesh": "*"
   },

@@ -108,7 +108,7 @@ figcaption small {
     touch-action: none;
 }
 
-.image img {
+.image img, .video video {
     width: 100%;
     aspect-ratio: 1;
     object-fit: contain;
@@ -128,31 +128,32 @@ canvas.models {
     z-index: 1;
 }
 
-/* the preview opens as a full screen page; Esc or close leaves it */
-dialog {
-    width: 100vw;
-    height: 100dvh;
+/* preview: 3D takes 95% of the screen, image/video a large preview sized to the media */
+pap-dialog.model::part(dialog) {
+    width: 95vw;
+    height: 95dvh;
     max-width: none;
     max-height: none;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: var(--background, Canvas);
-    color: inherit;
 }
 
-dialog[open] {
-    display: grid;
-    grid-template-rows: auto 1fr;
-}
-
-dialog > header {
-    position: static;
-    justify-content: space-between;
-    border-bottom: 1px solid currentColor;
-}
-
-dialog pw-3d-asset-preview {
+pap-dialog.model pw-3d-asset-preview {
+    display: block;
     height: 100%;
     min-height: 0;
+}
+
+pap-dialog::part(main) {
+    min-height: 0;
+}
+
+pap-dialog:is(.image, .video) :is(img, video) {
+    display: block;
+    max-width: 85vw;
+    max-height: 80dvh;
+    min-width: min(60vw, 480px);
+    object-fit: contain;
+}
+
+figure.image img, figure.video video {
+    cursor: zoom-in;
 }
