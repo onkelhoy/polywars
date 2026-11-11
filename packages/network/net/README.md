@@ -6,7 +6,7 @@ lobby, games by code, resume after reload, host hand-off, retries. Adds one stat
 ```ts
 import { connect } from "@polywar/net";
 
-const net = connect();                  // app "polywar", ?signal= or the default server
+const net = connect();                  // app "polywar", signal server picked as below
 net.on("status", s => {});             // connecting | waking | ready | failed | reconnecting
 net.on("game", game => {});            // Game | null: swap lobby ↔ room
 net.on("error", e => e.reason);        // a failed invite join / resume
@@ -23,11 +23,17 @@ net.game.broadcast("move", { x: 1 });   // the papit Game, see game-network
 net.game.onMessage("move", (data, from) => {});
 ```
 
-Local: `npm run signal` (root, port 3599), then open any view with `?signal=ws://localhost:3599`.
+Signal server, first match wins: `?signal=` in the address (kept for the tab) → localhost / LAN: `ws://<host>:3599` → `DEFAULT_SIGNAL` (arrow-warfare's, used on GitHub Pages).
+
+```bash
+npm start                                                         # dev server + local signal server on 3599
+SIGNAL=wss://render-webrtc-signal-server.onrender.com npm start   # no local one, opens the page with ?signal=
+SIGNAL_PORT=4000 npm start
+```
 
 | Option | Default |
 | --- | --- |
-| `signal` | `?signal=` or `DEFAULT_SIGNAL` |
+| `signal` | see above |
 | `app` / `version` | `polywar` / `1` |
 | `lobby` | `true` |
 | `profile` | saved or `Soldier <n>` |

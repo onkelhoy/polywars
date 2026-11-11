@@ -1,7 +1,7 @@
 import { connect } from "@polywar/net";
 import "@polywar/lobby";
 
-// npm run signal, then ?signal=ws://localhost:3599
+// npm start, then two tabs
 const net = window.net = connect();
 const lobby = document.querySelector("pw-lobby");
 lobby.net = net;
