@@ -227,8 +227,19 @@ export class Gallery extends CustomElement {
         addEventListener("pointerup", up);
     };
 
+    // copies the name (e.g. a generator seed); stays inside the tile, no dialog/link
+    private handlecopy = (text: string) => (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const button = e.currentTarget as HTMLElement;
+        navigator.clipboard?.writeText(text).then(() => {
+            button.classList.add("copied");
+            setTimeout(() => button.classList.remove("copied"), 900);
+        });
+    };
+
     private figure(item: GalleryItem) {
-        const caption = html`<figcaption>${item.name}<small>${item.note ?? (item.size ? size(item.size) : "")}</small></figcaption>`;
+        const caption = html`<figcaption><button class="name" title="copy: ${item.name}" @click="${this.handlecopy(item.name)}">${item.name}</button><small>${item.note ?? (item.size ? size(item.size) : "")}</small></figcaption>`;
         if (item.kind === "model")
         {
             const tile = this.tiles.get(item);

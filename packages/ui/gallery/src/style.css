@@ -60,17 +60,46 @@ figure {
     background: color-mix(in oklch, currentColor 5%, transparent);
 }
 
+/* name takes all free width and truncates; a long note wraps onto its own line */
 figcaption {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 8px;
+    align-items: baseline;
+    gap: 2px 8px;
     font-size: .85rem;
-    overflow-wrap: anywhere;
+    min-width: 0;
+}
+
+figcaption .name {
+    flex: 1 1 6em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: copy;
+}
+
+figcaption .name:hover {
+    text-decoration: underline;
+}
+
+figcaption .name.copied {
+    color: oklch(70% .17 150);
 }
 
 figcaption small {
+    flex: 0 1 auto;
+    min-width: 0;
     opacity: .6;
-    white-space: nowrap;
+    text-align: end;
+    margin-inline-start: auto;
 }
 
 .stage {
