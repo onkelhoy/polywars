@@ -39,7 +39,7 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 - b3. [ ] `packages/material/textured`: albedo + normal + spec + ao, maps optional, own view.
 - b3a. [x] `packages/tools/mesh-bake` (moves to papit later: no `@polywar/*` runtime deps, no village specifics): core (node + browser), CLI (`npm run bake`), ao as own map. `tools/bake.mjs` removed, `tools/bake-village.mjs` stays (game's piece list).
 - b3b. [ ] mesh-bake GUI view: drop glb, live maps + lit preview, settings, download.
-- b4. [ ] Preview + gallery draw maps.
+- b4. [x] Preview + gallery draw maps (`Model` reads glb maps, `compose` passes them).
 - b5. [ ] Generator massing: main volume, wing, lean-to, jetty.
 - b6. [ ] Generator roofs: gable default, cross-gable, dormers, ridge/rake.
 - b7. [ ] Generator facades: bays, aligned windows, timber frame rules.
