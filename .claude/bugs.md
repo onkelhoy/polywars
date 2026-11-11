@@ -8,3 +8,4 @@ For a stronger model to pick up. Check loop: `node tools/blender/render-house.mj
 - Tunnel: rarely appears with "on" (`fits`: floors >= 2, width >= 6, back cells free of the wing). `Stone_Arch_Outer` brings a stone wall block above the arch: owner wants a clean stucco wall + timber with only the arch.
 - Waterwheel: flume supports stand on nothing, wheel cuts into the awning side (00.09.55).
 - Preview: mirrored pieces now lit right (`mirrored` uniform in 3d-asset-preview); the game renderer (papit) needs the same rule.
+- papit: `@papit/game-mesh` has no glTF/GLB writer; `writeGLB` lives in `city-medieval/src/glb.ts` until it moves there.

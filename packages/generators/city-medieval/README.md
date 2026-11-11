@@ -30,6 +30,10 @@ Same settings + seed = same house. Pieces are Modular Village kit names with a c
 Cells are 1 m, Y up, main box at x 0..w-1, z 0..d-1, ridge along x, front door on +Z.
 Pipeline (`building.ts`): `massing` (boxes) -> `walls.plan` (faces, bays, door) -> feature `plan` -> `walls` -> `roof` per box -> feature `build`. Each feature lives in `src/features/` as `{ name, key, fits, plan, build }` with its own `rng.fork`, so toggling one does not reshuffle the others.
 
+## export
+
+View: **export all .glb** writes every variant shown as `<build code>.glb` into a folder you pick (`writeGLB(gltf)`, colours as materials, baked maps embedded). Blender: `node tools/blender/export-house.mjs <build code> out.blend` (or `--city '{...}'`). Kit library for modelling by hand: `assets/models/buildings/modular-village/modular-village-kit.blend` (`tools/blender/kit-library.py`).
+
 ## settings
 
 | key | values | effect |

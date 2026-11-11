@@ -1,5 +1,5 @@
 import '@polywar/gallery';
-import { DEFAULTS, ROOFS, SHAPES, TRI_KEYS, WINDOWS, building, compose, decode, encode, kitSource, randomSeed, variant } from '@polywar/city-medieval';
+import { DEFAULTS, ROOFS, SHAPES, TRI_KEYS, WINDOWS, building, compose, decode, encode, kitSource, randomSeed, variant, writeGLB } from '@polywar/city-medieval';
 
 const $ = s => document.querySelector(s);
 const gallery = $('pw-gallery');
@@ -40,14 +40,30 @@ async function generate() {
 
 $('#dice').onclick = () => { $('#seed').value = randomSeed(); generate(); };
 $('#generate').onclick = generate;
-// pieces of the house in the build code field, for tools/blender/export-house.mjs
-$('#export').onclick = () => {
-    const parsed = decode($('#code').value);
-    if (!parsed) return;
-    const blob = new Blob([JSON.stringify({ code: $('#code').value, pieces: building(parsed.settings, parsed.seed).pieces })], { type: 'application/json' });
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${$('#code').value}.json` });
-    a.click();
-    URL.revokeObjectURL(a.href);
+// every variant shown -> <build code>.glb in a folder the user picks (Chromium), else one download per file
+$('#export').onclick = async () => {
+    const list = gallery.items ?? [];
+    if (!list.length) return;
+    const dir = window.showDirectoryPicker ? await window.showDirectoryPicker({ mode: 'readwrite' }).catch(() => null) : null;
+    if (window.showDirectoryPicker && !dir) return;
+    let done = 0;
+    for (const item of list)
+    {
+        const name = item.name.split(' · ')[1] + '.glb', data = await writeGLB(item.gltf);
+        if (dir)
+        {
+            const file = await (await dir.getFileHandle(name, { create: true })).createWritable();
+            await file.write(data);
+            await file.close();
+        }
+        else
+        {
+            const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([data], { type: 'model/gltf-binary' })), download: name });
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        $('#info').value = `exported ${++done}/${list.length}`;
+    }
 };
 form.onchange = generate;
 $('#count').onchange = generate;
