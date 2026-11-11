@@ -8,6 +8,7 @@ import { chimney } from "./chimney";
 import { dormer } from "./dormer";
 import { gableWindow } from "./gable";
 import { jetty } from "./jetty";
+import { props } from "./props";
 import { tunnel } from "./tunnel";
 import { waterwheel } from "./waterwheel";
 import { windmill } from "./windmill";
@@ -22,4 +23,4 @@ export type Feature = {
     build?(ctx: Ctx, rng: Random): void;
 };
 
-export const FEATURES: Feature[] = [tunnel, windmill, jetty, balcony, gableWindow, dormer, chimney, braces, waterwheel, awning];
+export const FEATURES: Feature[] = [tunnel, windmill, jetty, balcony, gableWindow, dormer, chimney, braces, waterwheel, awning, props];

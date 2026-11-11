@@ -1,10 +1,12 @@
 import { hidden, top } from "../core";
+import { roofOf } from "../roof";
 import type { Feature } from "./index";
 
 /** dormers (`bay`): little gabled window fronts on the eave row of the main roof's long sides, above window bays */
 export const dormer: Feature = {
     name: "dormer", key: "bay",
-    fits: ctx => ctx.boxes[0].w >= 5,
+    // the dormer is 2.7-3.2 m tall: only under a roof high enough to take it
+    fits: ctx => { const r = roofOf(ctx, ctx.boxes[0]); return ctx.boxes[0].w >= 5 && r.peak - r.base >= (ctx.profile === "Straight" ? 3.2 : 2.7); },
     plan(ctx, rng) {
         const box = ctx.boxes[0], y = top(box);
         for (const face of ctx.faces.filter(f => f.box === box && !f.gable))
