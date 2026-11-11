@@ -13,7 +13,8 @@
         "start": "npx @papit/server --serve --info",
         "version:reset": "npx @papit/version --reset",
         "version:sync": "npx @papit/version --sync",
-        "assets": "node bin/assets.mjs"
+        "assets": "node bin/assets.mjs",
+        "signal": "npx papit-signal-server --port 3599"
     },
     "keywords": [
         "typescript",
@@ -47,7 +48,8 @@
         "@papit/create": "*",
         "@papit/version": "*",
         "@papit/analyse": "*",
-        "@papit/react": "*"
+        "@papit/react": "*",
+        "@papit/signal-server": "*"
     },
     "papit": {}
 }

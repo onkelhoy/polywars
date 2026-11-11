@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Net | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <h1>Net | experiment</h1>
+    <section>
+        <p>Local signal: <code>npm run signal</code>, then open with <code>?signal=ws://localhost:3599</code>. Open two tabs.</p>
+        <p>Status: <b id="status">-</b> · Game: <b id="game">-</b></p>
+        <p>
+            <input id="name" placeholder="name">
+            <button id="host">Host</button>
+            <input id="code" placeholder="code">
+            <button id="join">Join</button>
+            <button id="leave">Leave</button>
+            <button id="list">List games</button>
+            <button id="hello">Broadcast hello</button>
+        </p>
+        <pre id="log"></pre>
+    </section>
+</body>
+
+</html>

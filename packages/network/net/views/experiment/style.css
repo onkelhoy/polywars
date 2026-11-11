@@ -1,0 +1,14 @@
+@import "@papit/theme";
+
+body {
+    font-family: system-ui, sans-serif;
+    max-width: 1000px;
+    margin: 2rem auto;
+}
+
+pre {
+    background: light-dark(#eee, #222);
+    padding: 1rem;
+    max-height: 60vh;
+    overflow: auto;
+}
