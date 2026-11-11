@@ -5,11 +5,11 @@ import type { Placement } from "./types";
 
 /** where the kit glb files live, `<base>/<Piece>.glb` */
 export type PieceSource = (piece: PieceName) => string;
-/** flat stone pieces that exist as one quad + maps (`<baked>/<Piece>/model.glb`, see tools/bake-village.mjs) */
+/** flat stone pieces that exist as one quad + maps (`<kit>/baked/<Piece>/model.glb`, see tools/bake-village.mjs) */
 export const BAKED: ReadonlySet<string> = new Set(["Cobblestone_Floor_1", "Stone_Floor_1", "Stone_Floor_2", ...[1, 2, 3, 4].map(n => `Cobblestone_Dirt_Transition_${n}`), ...[1, 2, 3, 4, 5].map(n => `Stone_Wall_${n}`)]);
 const trim = (s: string) => s.replace(/\/$/, "");
-/** `baked`: folder of the baked pieces, used instead of the mesh for every piece in `BAKED` */
-export const kitSource = (base: string, baked?: string): PieceSource => piece => baked && BAKED.has(piece) ? `${trim(baked)}/${piece}/model.glb` : `${trim(base)}/${piece}.glb`;
+/** kit folder `base` (`<base>/<Piece>.glb`); pieces in `BAKED` come from `<base>/baked/<Piece>/model.glb` unless `baked` is false */
+export const kitSource = (base: string, baked = true): PieceSource => piece => baked && BAKED.has(piece) ? `${trim(base)}/baked/${piece}/model.glb` : `${trim(base)}/${piece}.glb`;
 
 type Maps = (MapUrls | undefined)[][];
 const cache = new Map<string, Promise<(GLTF & { maps: Maps }) | null>>();

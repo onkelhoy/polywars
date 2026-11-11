@@ -1,7 +1,7 @@
 """Render generator output to a PNG, to check assemblies without a browser.
 blender -b -P tools/blender/render_pieces.py -- pieces.json out.png [yaw=35] [pitch=30] [width=900] [height=600]
 pieces.json: [{ "piece": name, "matrix": 16 numbers (glTF, column-major), "file"?: path to glb }]
-Default file: assets/models/modular-village/<piece>.glb
+Default file: assets/models/buildings/modular-village/<piece>.glb
 """
 import bpy, json, sys, math, os
 from mathutils import Matrix, Vector
@@ -12,7 +12,7 @@ opt = dict(a.split("=") for a in args[2:])
 yaw, pitch = math.radians(float(opt.get("yaw", 35))), math.radians(float(opt.get("pitch", 30)))
 W, H = int(opt.get("width", 900)), int(opt.get("height", 600))
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-KIT = os.path.join(ROOT, "assets/models/modular-village")
+KIT = os.path.join(ROOT, "assets/models/buildings/modular-village")
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 C = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))  # glTF Y up -> Blender Z up

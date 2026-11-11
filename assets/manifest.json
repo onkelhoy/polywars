@@ -60,186 +60,6 @@
    "name": "models",
    "assets": [
     {
-     "name": "ammo",
-     "assets": [
-      {
-       "name": "30-06-springfield",
-       "assets": [
-        {
-         "name": "bullet.blend",
-         "file": "/assets/models/ammo/30-06-springfield/bullet.blend",
-         "size": 93366
-        },
-        {
-         "name": "bullet.glb",
-         "file": "/assets/models/ammo/30-06-springfield/bullet.glb",
-         "size": 9200
-        },
-        {
-         "name": "case.blend",
-         "file": "/assets/models/ammo/30-06-springfield/case.blend",
-         "size": 93886
-        },
-        {
-         "name": "case.glb",
-         "file": "/assets/models/ammo/30-06-springfield/case.glb",
-         "size": 11620
-        },
-        {
-         "name": "round.blend",
-         "file": "/assets/models/ammo/30-06-springfield/round.blend",
-         "size": 97685
-        },
-        {
-         "name": "round.glb",
-         "file": "/assets/models/ammo/30-06-springfield/round.glb",
-         "size": 14168
-        }
-       ]
-      },
-      {
-       "name": "45-acp",
-       "assets": [
-        {
-         "name": "bullet.blend",
-         "file": "/assets/models/ammo/45-acp/bullet.blend",
-         "size": 92128
-        },
-        {
-         "name": "bullet.glb",
-         "file": "/assets/models/ammo/45-acp/bullet.glb",
-         "size": 5988
-        },
-        {
-         "name": "case.blend",
-         "file": "/assets/models/ammo/45-acp/case.blend",
-         "size": 93931
-        },
-        {
-         "name": "case.glb",
-         "file": "/assets/models/ammo/45-acp/case.glb",
-         "size": 11060
-        },
-        {
-         "name": "round.blend",
-         "file": "/assets/models/ammo/45-acp/round.blend",
-         "size": 97836
-        },
-        {
-         "name": "round.glb",
-         "file": "/assets/models/ammo/45-acp/round.glb",
-         "size": 13616
-        }
-       ]
-      },
-      {
-       "name": "762x25-tokarev",
-       "assets": [
-        {
-         "name": "bullet.blend",
-         "file": "/assets/models/ammo/762x25-tokarev/bullet.blend",
-         "size": 92245
-        },
-        {
-         "name": "bullet.glb",
-         "file": "/assets/models/ammo/762x25-tokarev/bullet.glb",
-         "size": 6008
-        },
-        {
-         "name": "case.blend",
-         "file": "/assets/models/ammo/762x25-tokarev/case.blend",
-         "size": 95459
-        },
-        {
-         "name": "case.glb",
-         "file": "/assets/models/ammo/762x25-tokarev/case.glb",
-         "size": 16060
-        },
-        {
-         "name": "round.blend",
-         "file": "/assets/models/ammo/762x25-tokarev/round.blend",
-         "size": 99126
-        },
-        {
-         "name": "round.glb",
-         "file": "/assets/models/ammo/762x25-tokarev/round.glb",
-         "size": 17496
-        }
-       ]
-      },
-      {
-       "name": "792x33-kurz",
-       "assets": [
-        {
-         "name": "bullet.blend",
-         "file": "/assets/models/ammo/792x33-kurz/bullet.blend",
-         "size": 92833
-        },
-        {
-         "name": "bullet.glb",
-         "file": "/assets/models/ammo/792x33-kurz/bullet.glb",
-         "size": 7120
-        },
-        {
-         "name": "case.blend",
-         "file": "/assets/models/ammo/792x33-kurz/case.blend",
-         "size": 94898
-        },
-        {
-         "name": "case.glb",
-         "file": "/assets/models/ammo/792x33-kurz/case.glb",
-         "size": 14028
-        },
-        {
-         "name": "round.blend",
-         "file": "/assets/models/ammo/792x33-kurz/round.blend",
-         "size": 99498
-        },
-        {
-         "name": "round.glb",
-         "file": "/assets/models/ammo/792x33-kurz/round.glb",
-         "size": 17476
-        }
-       ]
-      },
-      {
-       "name": "9x19-parabellum",
-       "assets": [
-        {
-         "name": "bullet.blend",
-         "file": "/assets/models/ammo/9x19-parabellum/bullet.blend",
-         "size": 91846
-        },
-        {
-         "name": "bullet.glb",
-         "file": "/assets/models/ammo/9x19-parabellum/bullet.glb",
-         "size": 6020
-        },
-        {
-         "name": "case.blend",
-         "file": "/assets/models/ammo/9x19-parabellum/case.blend",
-         "size": 95493
-        },
-        {
-         "name": "case.glb",
-         "file": "/assets/models/ammo/9x19-parabellum/case.glb",
-         "size": 16060
-        },
-        {
-         "name": "round.blend",
-         "file": "/assets/models/ammo/9x19-parabellum/round.blend",
-         "size": 99154
-        },
-        {
-         "name": "round.glb",
-         "file": "/assets/models/ammo/9x19-parabellum/round.glb",
-         "size": 17696
-        }
-       ]
-      }
-     ]
-    },
-    {
      "name": "animals",
      "assets": [
       {
@@ -1231,1921 +1051,1946 @@
          "size": 73212
         }
        ]
-      }
-     ]
-    },
-    {
-     "name": "grenades",
-     "assets": [
+      },
       {
-       "name": "f1",
+       "name": "modular-village",
        "assets": [
         {
-         "name": "model.blend",
-         "file": "/assets/models/grenades/f1/model.blend",
-         "size": 119047
+         "name": "baked",
+         "assets": [
+          {
+           "name": "Cobblestone_Dirt_Transition_1",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_1/ao.png",
+             "size": 20633
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_1/color.png",
+             "size": 8671
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_1/model.glb",
+             "size": 1660
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_1/normal.png",
+             "size": 21659
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_1/spec.png",
+             "size": 13114
+            }
+           ]
+          },
+          {
+           "name": "Cobblestone_Dirt_Transition_2",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_2/ao.png",
+             "size": 20896
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_2/color.png",
+             "size": 8580
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_2/model.glb",
+             "size": 1660
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_2/normal.png",
+             "size": 23262
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_2/spec.png",
+             "size": 13284
+            }
+           ]
+          },
+          {
+           "name": "Cobblestone_Dirt_Transition_3",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_3/ao.png",
+             "size": 19777
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_3/color.png",
+             "size": 8653
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_3/model.glb",
+             "size": 1660
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_3/normal.png",
+             "size": 21312
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_3/spec.png",
+             "size": 12539
+            }
+           ]
+          },
+          {
+           "name": "Cobblestone_Dirt_Transition_4",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_4/ao.png",
+             "size": 20263
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_4/color.png",
+             "size": 8758
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_4/model.glb",
+             "size": 1660
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_4/normal.png",
+             "size": 22695
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Dirt_Transition_4/spec.png",
+             "size": 12883
+            }
+           ]
+          },
+          {
+           "name": "Cobblestone_Floor_1",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Floor_1/ao.png",
+             "size": 54929
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Floor_1/color.png",
+             "size": 19733
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Floor_1/model.glb",
+             "size": 1632
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Floor_1/normal.png",
+             "size": 45922
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Cobblestone_Floor_1/spec.png",
+             "size": 32547
+            }
+           ]
+          },
+          {
+           "name": "Stone_Floor_1",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_1/ao.png",
+             "size": 6672
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_1/color.png",
+             "size": 2305
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_1/model.glb",
+             "size": 1612
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_1/normal.png",
+             "size": 6108
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_1/spec.png",
+             "size": 6672
+            }
+           ]
+          },
+          {
+           "name": "Stone_Floor_2",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_2/ao.png",
+             "size": 5751
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_2/color.png",
+             "size": 2142
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_2/model.glb",
+             "size": 1612
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_2/normal.png",
+             "size": 5725
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Floor_2/spec.png",
+             "size": 5751
+            }
+           ]
+          },
+          {
+           "name": "Stone_Wall_1",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_1/ao.png",
+             "size": 2335
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_1/color.png",
+             "size": 1132
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_1/model.glb",
+             "size": 1604
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_1/normal.png",
+             "size": 2703
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_1/spec.png",
+             "size": 2335
+            }
+           ]
+          },
+          {
+           "name": "Stone_Wall_2",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_2/ao.png",
+             "size": 2782
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_2/color.png",
+             "size": 1220
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_2/model.glb",
+             "size": 1604
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_2/normal.png",
+             "size": 2857
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_2/spec.png",
+             "size": 2782
+            }
+           ]
+          },
+          {
+           "name": "Stone_Wall_3",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_3/ao.png",
+             "size": 2949
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_3/color.png",
+             "size": 1405
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_3/model.glb",
+             "size": 1604
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_3/normal.png",
+             "size": 2823
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_3/spec.png",
+             "size": 2949
+            }
+           ]
+          },
+          {
+           "name": "Stone_Wall_4",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_4/ao.png",
+             "size": 3614
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_4/color.png",
+             "size": 1456
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_4/model.glb",
+             "size": 1604
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_4/normal.png",
+             "size": 3212
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_4/spec.png",
+             "size": 3614
+            }
+           ]
+          },
+          {
+           "name": "Stone_Wall_5",
+           "assets": [
+            {
+             "name": "ao.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_5/ao.png",
+             "size": 2603
+            },
+            {
+             "name": "color.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_5/color.png",
+             "size": 1159
+            },
+            {
+             "name": "model.glb",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_5/model.glb",
+             "size": 1604
+            },
+            {
+             "name": "normal.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_5/normal.png",
+             "size": 2688
+            },
+            {
+             "name": "spec.png",
+             "file": "/assets/models/buildings/modular-village/baked/Stone_Wall_5/spec.png",
+             "size": 2603
+            }
+           ]
+          }
+         ]
         },
         {
-         "name": "model.glb",
-         "file": "/assets/models/grenades/f1/model.glb",
-         "size": 76876
+         "name": "source",
+         "assets": [
+          {
+           "name": "Canopy_Beam.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Beam.obj",
+           "size": 2164
+          },
+          {
+           "name": "Canopy_Beam_Short.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Beam_Short.obj",
+           "size": 2174
+          },
+          {
+           "name": "Canopy_Corner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Corner.obj",
+           "size": 14359
+          },
+          {
+           "name": "Canopy_Full.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Full.obj",
+           "size": 20018
+          },
+          {
+           "name": "Canopy_Ramp_Corner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Ramp_Corner.obj",
+           "size": 14813
+          },
+          {
+           "name": "Canopy_Ramp_Full.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Ramp_Full.obj",
+           "size": 20544
+          },
+          {
+           "name": "Canopy_Ramp_Mid.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Ramp_Mid.obj",
+           "size": 8996
+          },
+          {
+           "name": "Canopy_Side.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Side.obj",
+           "size": 8690
+          },
+          {
+           "name": "Canopy_Sides_Opposite.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Sides_Opposite.obj",
+           "size": 15448
+          },
+          {
+           "name": "Canopy_Top.obj",
+           "file": "/assets/models/buildings/modular-village/source/Canopy_Top.obj",
+           "size": 2167
+          },
+          {
+           "name": "Cobblestone_Dirt_Transition_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Cobblestone_Dirt_Transition_1.obj",
+           "size": 71872
+          },
+          {
+           "name": "Cobblestone_Dirt_Transition_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Cobblestone_Dirt_Transition_2.obj",
+           "size": 64770
+          },
+          {
+           "name": "Cobblestone_Dirt_Transition_3.obj",
+           "file": "/assets/models/buildings/modular-village/source/Cobblestone_Dirt_Transition_3.obj",
+           "size": 67293
+          },
+          {
+           "name": "Cobblestone_Dirt_Transition_4.obj",
+           "file": "/assets/models/buildings/modular-village/source/Cobblestone_Dirt_Transition_4.obj",
+           "size": 64099
+          },
+          {
+           "name": "Cobblestone_Floor_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Cobblestone_Floor_1.obj",
+           "size": 203443
+          },
+          {
+           "name": "Dirt_Fading.obj",
+           "file": "/assets/models/buildings/modular-village/source/Dirt_Fading.obj",
+           "size": 2161
+          },
+          {
+           "name": "Dirt_Fading_from_Gathered.obj",
+           "file": "/assets/models/buildings/modular-village/source/Dirt_Fading_from_Gathered.obj",
+           "size": 2161
+          },
+          {
+           "name": "Dirt_Gathered_Corner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Dirt_Gathered_Corner.obj",
+           "size": 5933
+          },
+          {
+           "name": "Dirt_Gathered_Straight.obj",
+           "file": "/assets/models/buildings/modular-village/source/Dirt_Gathered_Straight.obj",
+           "size": 2720
+          },
+          {
+           "name": "Kit_Window_Upper_Convex.obj",
+           "file": "/assets/models/buildings/modular-village/source/Kit_Window_Upper_Convex.obj",
+           "size": 90960
+          },
+          {
+           "name": "Kit_Window_Upper_Straight.obj",
+           "file": "/assets/models/buildings/modular-village/source/Kit_Window_Upper_Straight.obj",
+           "size": 77530
+          },
+          {
+           "name": "Materials_Modular_Village.mtl",
+           "file": "/assets/models/buildings/modular-village/source/Materials_Modular_Village.mtl",
+           "size": 2854
+          },
+          {
+           "name": "Prop_Barrel_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Barrel_1.obj",
+           "size": 66861
+          },
+          {
+           "name": "Prop_Barrel_1_Open.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Barrel_1_Open.obj",
+           "size": 100748
+          },
+          {
+           "name": "Prop_Barrel_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Barrel_2.obj",
+           "size": 72583
+          },
+          {
+           "name": "Prop_Boat_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Boat_1.obj",
+           "size": 30939
+          },
+          {
+           "name": "Prop_Boat_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Boat_2.obj",
+           "size": 33229
+          },
+          {
+           "name": "Prop_Boat_Oars_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Boat_Oars_1.obj",
+           "size": 21260
+          },
+          {
+           "name": "Prop_Boat_Oars_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Boat_Oars_2.obj",
+           "size": 21300
+          },
+          {
+           "name": "Prop_Broom.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Broom.obj",
+           "size": 38171
+          },
+          {
+           "name": "Prop_Cart_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Cart_1.obj",
+           "size": 174926
+          },
+          {
+           "name": "Prop_Cart_1_Barrels.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Cart_1_Barrels.obj",
+           "size": 481141
+          },
+          {
+           "name": "Prop_Cart_1_Hay.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Cart_1_Hay.obj",
+           "size": 409320
+          },
+          {
+           "name": "Prop_Crate_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Crate_1.obj",
+           "size": 63797
+          },
+          {
+           "name": "Prop_Crate_1_Open.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Crate_1_Open.obj",
+           "size": 72377
+          },
+          {
+           "name": "Prop_Hay_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Hay_1.obj",
+           "size": 110823
+          },
+          {
+           "name": "Prop_Ladder_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Ladder_1.obj",
+           "size": 52350
+          },
+          {
+           "name": "Prop_Lamp_Street.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Lamp_Street.obj",
+           "size": 71777
+          },
+          {
+           "name": "Prop_Well_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Well_1.obj",
+           "size": 222021
+          },
+          {
+           "name": "Prop_Well_Cobblestone.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Well_Cobblestone.obj",
+           "size": 42716
+          },
+          {
+           "name": "Prop_Well_Dirt.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Well_Dirt.obj",
+           "size": 8495
+          },
+          {
+           "name": "Prop_Well_Grass.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Well_Grass.obj",
+           "size": 8483
+          },
+          {
+           "name": "Prop_Well_Inside.obj",
+           "file": "/assets/models/buildings/modular-village/source/Prop_Well_Inside.obj",
+           "size": 10806
+          },
+          {
+           "name": "Roof_Accent_Rake_Concave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Accent_Rake_Concave.obj",
+           "size": 5545
+          },
+          {
+           "name": "Roof_Accent_Rake_Convex.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Accent_Rake_Convex.obj",
+           "size": 5541
+          },
+          {
+           "name": "Roof_Accent_Rake_Eave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Accent_Rake_Eave.obj",
+           "size": 2174
+          },
+          {
+           "name": "Roof_Accent_Rake_Straight.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Accent_Rake_Straight.obj",
+           "size": 2160
+          },
+          {
+           "name": "Roof_Accent_Ridge.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Accent_Ridge.obj",
+           "size": 2172
+          },
+          {
+           "name": "Roof_Accent_Ridge_End.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Accent_Ridge_End.obj",
+           "size": 3896
+          },
+          {
+           "name": "Roof_Concave_Corner_Inner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Concave_Corner_Inner.obj",
+           "size": 17097
+          },
+          {
+           "name": "Roof_Concave_Corner_Outer.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Concave_Corner_Outer.obj",
+           "size": 16039
+          },
+          {
+           "name": "Roof_Concave_Corner_Outer_Eave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Concave_Corner_Outer_Eave.obj",
+           "size": 38527
+          },
+          {
+           "name": "Roof_Concave_Side.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Concave_Side.obj",
+           "size": 15139
+          },
+          {
+           "name": "Roof_Concave_Side_Eave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Concave_Side_Eave.obj",
+           "size": 20182
+          },
+          {
+           "name": "Roof_Concave_Side_Eave_Edge.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Concave_Side_Eave_Edge.obj",
+           "size": 29459
+          },
+          {
+           "name": "Roof_Concave_Side_Edge.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Concave_Side_Edge.obj",
+           "size": 24537
+          },
+          {
+           "name": "Roof_Convex_Corner_Inner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Convex_Corner_Inner.obj",
+           "size": 16857
+          },
+          {
+           "name": "Roof_Convex_Corner_Outer.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Convex_Corner_Outer.obj",
+           "size": 14927
+          },
+          {
+           "name": "Roof_Convex_Corner_Outer_Eave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Convex_Corner_Outer_Eave.obj",
+           "size": 35578
+          },
+          {
+           "name": "Roof_Convex_Side.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Convex_Side.obj",
+           "size": 15186
+          },
+          {
+           "name": "Roof_Convex_Side_Eave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Convex_Side_Eave.obj",
+           "size": 20288
+          },
+          {
+           "name": "Roof_Convex_Side_Eave_Edge.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Convex_Side_Eave_Edge.obj",
+           "size": 29542
+          },
+          {
+           "name": "Roof_Convex_Side_Edge.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Convex_Side_Edge.obj",
+           "size": 24428
+          },
+          {
+           "name": "Roof_Prop_Chimney_Pipe.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Prop_Chimney_Pipe.obj",
+           "size": 37776
+          },
+          {
+           "name": "Roof_Prop_Chimney_Stone.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Prop_Chimney_Stone.obj",
+           "size": 16009
+          },
+          {
+           "name": "Roof_Straight_Corner_Inner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Straight_Corner_Inner.obj",
+           "size": 17380
+          },
+          {
+           "name": "Roof_Straight_Corner_Outer.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Straight_Corner_Outer.obj",
+           "size": 14368
+          },
+          {
+           "name": "Roof_Straight_Corner_Outer_Eave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Straight_Corner_Outer_Eave.obj",
+           "size": 29877
+          },
+          {
+           "name": "Roof_Straight_Side.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Straight_Side.obj",
+           "size": 15159
+          },
+          {
+           "name": "Roof_Straight_Side_Eave.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Straight_Side_Eave.obj",
+           "size": 20264
+          },
+          {
+           "name": "Roof_Straight_Side_Eave_Edge.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Straight_Side_Eave_Edge.obj",
+           "size": 25553
+          },
+          {
+           "name": "Roof_Straight_Side_Edge.obj",
+           "file": "/assets/models/buildings/modular-village/source/Roof_Straight_Side_Edge.obj",
+           "size": 20764
+          },
+          {
+           "name": "Stone_Arch.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Arch.obj",
+           "size": 6692
+          },
+          {
+           "name": "Stone_Arch_Outer.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Arch_Outer.obj",
+           "size": 221950
+          },
+          {
+           "name": "Stone_Curb_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Curb_1.obj",
+           "size": 55092
+          },
+          {
+           "name": "Stone_Curb_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Curb_2.obj",
+           "size": 47147
+          },
+          {
+           "name": "Stone_Curb_3.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Curb_3.obj",
+           "size": 55108
+          },
+          {
+           "name": "Stone_Curb_4.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Curb_4.obj",
+           "size": 54888
+          },
+          {
+           "name": "Stone_Doorway_Narrow_Tall_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Doorway_Narrow_Tall_1.obj",
+           "size": 16625
+          },
+          {
+           "name": "Stone_Doorway_Narrow_Tall_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Doorway_Narrow_Tall_2.obj",
+           "size": 21191
+          },
+          {
+           "name": "Stone_Doorway_Wide_Tall_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Doorway_Wide_Tall_1.obj",
+           "size": 144559
+          },
+          {
+           "name": "Stone_Doorway_Wide_Tall_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Doorway_Wide_Tall_2.obj",
+           "size": 149297
+          },
+          {
+           "name": "Stone_Floor_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Floor_1.obj",
+           "size": 65144
+          },
+          {
+           "name": "Stone_Floor_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Floor_2.obj",
+           "size": 56689
+          },
+          {
+           "name": "Stone_Pillar.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Pillar.obj",
+           "size": 15953
+          },
+          {
+           "name": "Stone_Pillar_Base.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Pillar_Base.obj",
+           "size": 8259
+          },
+          {
+           "name": "Stone_Sewer_Grate_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Sewer_Grate_1.obj",
+           "size": 56188
+          },
+          {
+           "name": "Stone_Sewer_Grate_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Sewer_Grate_2.obj",
+           "size": 58366
+          },
+          {
+           "name": "Stone_Stairs_Railing.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Stairs_Railing.obj",
+           "size": 42429
+          },
+          {
+           "name": "Stone_Steps.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Steps.obj",
+           "size": 9492
+          },
+          {
+           "name": "Stone_Steps_Side_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Steps_Side_1.obj",
+           "size": 56474
+          },
+          {
+           "name": "Stone_Steps_Side_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Steps_Side_2.obj",
+           "size": 61335
+          },
+          {
+           "name": "Stone_Wall_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Wall_1.obj",
+           "size": 16333
+          },
+          {
+           "name": "Stone_Wall_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Wall_2.obj",
+           "size": 20307
+          },
+          {
+           "name": "Stone_Wall_3.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Wall_3.obj",
+           "size": 20250
+          },
+          {
+           "name": "Stone_Wall_4.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Wall_4.obj",
+           "size": 25122
+          },
+          {
+           "name": "Stone_Wall_5.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_Wall_5.obj",
+           "size": 18342
+          },
+          {
+           "name": "Stone_to_Stucco_Doorway_Wide_Tall_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_to_Stucco_Doorway_Wide_Tall_1.obj",
+           "size": 117889
+          },
+          {
+           "name": "Stone_to_Stucco_Doorway_Wide_Tall_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stone_to_Stucco_Doorway_Wide_Tall_2.obj",
+           "size": 124640
+          },
+          {
+           "name": "Stucco_Arch_Half.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Arch_Half.obj",
+           "size": 2717
+          },
+          {
+           "name": "Stucco_Arch_Half_Outer.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Arch_Half_Outer.obj",
+           "size": 8867
+          },
+          {
+           "name": "Stucco_Block.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Block.obj",
+           "size": 2145
+          },
+          {
+           "name": "Stucco_Doorway_Narrow_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Doorway_Narrow_Tall.obj",
+           "size": 9311
+          },
+          {
+           "name": "Stucco_Doorway_Wide_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Doorway_Wide_Tall.obj",
+           "size": 11641
+          },
+          {
+           "name": "Stucco_Prop_Support_Angled_Large.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Angled_Large.obj",
+           "size": 2714
+          },
+          {
+           "name": "Stucco_Prop_Support_Angled_Low.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Angled_Low.obj",
+           "size": 2158
+          },
+          {
+           "name": "Stucco_Prop_Support_Angled_Small.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Angled_Small.obj",
+           "size": 2157
+          },
+          {
+           "name": "Stucco_Prop_Support_Beam_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Beam_1.obj",
+           "size": 2164
+          },
+          {
+           "name": "Stucco_Prop_Support_Beam_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Beam_2.obj",
+           "size": 3321
+          },
+          {
+           "name": "Stucco_Prop_Support_Beam_3.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Beam_3.obj",
+           "size": 3307
+          },
+          {
+           "name": "Stucco_Prop_Support_Pillar_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Pillar_1.obj",
+           "size": 2150
+          },
+          {
+           "name": "Stucco_Prop_Support_Pillar_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Pillar_2.obj",
+           "size": 3300
+          },
+          {
+           "name": "Stucco_Prop_Support_Pillar_3.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Prop_Support_Pillar_3.obj",
+           "size": 3340
+          },
+          {
+           "name": "Stucco_Window_Double_Narrow.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Double_Narrow.obj",
+           "size": 32052
+          },
+          {
+           "name": "Stucco_Window_Double_Narrow_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Double_Narrow_Tall.obj",
+           "size": 32014
+          },
+          {
+           "name": "Stucco_Window_Double_Wide.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Double_Wide.obj",
+           "size": 32865
+          },
+          {
+           "name": "Stucco_Window_Double_Wide_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Double_Wide_Tall.obj",
+           "size": 32895
+          },
+          {
+           "name": "Stucco_Window_Rounded_Narrow.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Rounded_Narrow.obj",
+           "size": 26957
+          },
+          {
+           "name": "Stucco_Window_Rounded_Narrow_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Rounded_Narrow_Tall.obj",
+           "size": 26917
+          },
+          {
+           "name": "Stucco_Window_Rounded_Wide.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Rounded_Wide.obj",
+           "size": 27159
+          },
+          {
+           "name": "Stucco_Window_Rounded_Wide_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Rounded_Wide_Tall.obj",
+           "size": 27099
+          },
+          {
+           "name": "Stucco_Window_Single_Narrow.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Single_Narrow.obj",
+           "size": 21943
+          },
+          {
+           "name": "Stucco_Window_Single_Narrow_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Single_Narrow_Tall.obj",
+           "size": 21922
+          },
+          {
+           "name": "Stucco_Window_Single_Wide.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Single_Wide.obj",
+           "size": 21913
+          },
+          {
+           "name": "Stucco_Window_Single_Wide_Tall.obj",
+           "file": "/assets/models/buildings/modular-village/source/Stucco_Window_Single_Wide_Tall.obj",
+           "size": 21879
+          },
+          {
+           "name": "Wall_Prop_Bell_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wall_Prop_Bell_1.obj",
+           "size": 69701
+          },
+          {
+           "name": "Wall_Prop_Door_Ornate.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wall_Prop_Door_Ornate.obj",
+           "size": 68843
+          },
+          {
+           "name": "Wall_Prop_Door_Simple.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wall_Prop_Door_Simple.obj",
+           "size": 40587
+          },
+          {
+           "name": "Wall_Prop_Lamp.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wall_Prop_Lamp.obj",
+           "size": 67011
+          },
+          {
+           "name": "Wall_Prop_Sign_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wall_Prop_Sign_1.obj",
+           "size": 110280
+          },
+          {
+           "name": "Wall_Prop_Windmill_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wall_Prop_Windmill_1.obj",
+           "size": 119784
+          },
+          {
+           "name": "Waterwheel_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_1.obj",
+           "size": 241122
+          },
+          {
+           "name": "Waterwheel_Flume_Curved.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_Curved.obj",
+           "size": 11823
+          },
+          {
+           "name": "Waterwheel_Flume_End.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_End.obj",
+           "size": 8107
+          },
+          {
+           "name": "Waterwheel_Flume_Ramp.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_Ramp.obj",
+           "size": 6662
+          },
+          {
+           "name": "Waterwheel_Flume_Ramp_Supported.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_Ramp_Supported.obj",
+           "size": 8857
+          },
+          {
+           "name": "Waterwheel_Flume_Straight.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_Straight.obj",
+           "size": 6643
+          },
+          {
+           "name": "Waterwheel_Flume_Support_Brace.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_Support_Brace.obj",
+           "size": 2178
+          },
+          {
+           "name": "Waterwheel_Flume_Support_Brace_Double.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_Support_Brace_Double.obj",
+           "size": 4333
+          },
+          {
+           "name": "Waterwheel_Flume_Support_Pillar.obj",
+           "file": "/assets/models/buildings/modular-village/source/Waterwheel_Flume_Support_Pillar.obj",
+           "size": 2176
+          },
+          {
+           "name": "Wood_Baseboard.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Baseboard.obj",
+           "size": 2174
+          },
+          {
+           "name": "Wood_Floor_Corner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Floor_Corner.obj",
+           "size": 18228
+          },
+          {
+           "name": "Wood_Floor_Straight_1.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Floor_Straight_1.obj",
+           "size": 14202
+          },
+          {
+           "name": "Wood_Floor_Straight_2.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Floor_Straight_2.obj",
+           "size": 16299
+          },
+          {
+           "name": "Wood_Floor_Straight_3.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Floor_Straight_3.obj",
+           "size": 14315
+          },
+          {
+           "name": "Wood_Floor_Straight_4.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Floor_Straight_4.obj",
+           "size": 16274
+          },
+          {
+           "name": "Wood_Post_Large.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Post_Large.obj",
+           "size": 4951
+          },
+          {
+           "name": "Wood_Post_Small.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Post_Small.obj",
+           "size": 3533
+          },
+          {
+           "name": "Wood_Railing_Corner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Railing_Corner.obj",
+           "size": 26414
+          },
+          {
+           "name": "Wood_Railing_Stairs.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Railing_Stairs.obj",
+           "size": 23319
+          },
+          {
+           "name": "Wood_Railing_Straight.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Railing_Straight.obj",
+           "size": 14323
+          },
+          {
+           "name": "Wood_Rope_Corner.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Rope_Corner.obj",
+           "size": 30057
+          },
+          {
+           "name": "Wood_Rope_Stairs.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Rope_Stairs.obj",
+           "size": 26633
+          },
+          {
+           "name": "Wood_Rope_Straight.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Rope_Straight.obj",
+           "size": 12989
+          },
+          {
+           "name": "Wood_Steps.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Steps.obj",
+           "size": 22299
+          },
+          {
+           "name": "Wood_Steps_Stucco.obj",
+           "file": "/assets/models/buildings/modular-village/source/Wood_Steps_Stucco.obj",
+           "size": 21587
+          }
+         ]
+        },
+        {
+         "name": "Canopy_Beam.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Beam.glb",
+         "size": 2180
+        },
+        {
+         "name": "Canopy_Beam_Short.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Beam_Short.glb",
+         "size": 2188
+        },
+        {
+         "name": "Canopy_Corner.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Corner.glb",
+         "size": 8264
+        },
+        {
+         "name": "Canopy_Full.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Full.glb",
+         "size": 10640
+        },
+        {
+         "name": "Canopy_Ramp_Corner.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Ramp_Corner.glb",
+         "size": 8324
+        },
+        {
+         "name": "Canopy_Ramp_Full.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Ramp_Full.glb",
+         "size": 10728
+        },
+        {
+         "name": "Canopy_Ramp_Mid.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Ramp_Mid.glb",
+         "size": 5916
+        },
+        {
+         "name": "Canopy_Side.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Side.glb",
+         "size": 5892
+        },
+        {
+         "name": "Canopy_Sides_Opposite.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Sides_Opposite.glb",
+         "size": 9448
+        },
+        {
+         "name": "Canopy_Top.glb",
+         "file": "/assets/models/buildings/modular-village/Canopy_Top.glb",
+         "size": 2144
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_1.glb",
+         "file": "/assets/models/buildings/modular-village/Cobblestone_Dirt_Transition_1.glb",
+         "size": 30440
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_2.glb",
+         "file": "/assets/models/buildings/modular-village/Cobblestone_Dirt_Transition_2.glb",
+         "size": 27912
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_3.glb",
+         "file": "/assets/models/buildings/modular-village/Cobblestone_Dirt_Transition_3.glb",
+         "size": 28776
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_4.glb",
+         "file": "/assets/models/buildings/modular-village/Cobblestone_Dirt_Transition_4.glb",
+         "size": 27668
+        },
+        {
+         "name": "Cobblestone_Floor_1.glb",
+         "file": "/assets/models/buildings/modular-village/Cobblestone_Floor_1.glb",
+         "size": 76552
+        },
+        {
+         "name": "Dirt_Fading.glb",
+         "file": "/assets/models/buildings/modular-village/Dirt_Fading.glb",
+         "size": 2128
+        },
+        {
+         "name": "Dirt_Fading_from_Gathered.glb",
+         "file": "/assets/models/buildings/modular-village/Dirt_Fading_from_Gathered.glb",
+         "size": 2140
+        },
+        {
+         "name": "Dirt_Gathered_Corner.glb",
+         "file": "/assets/models/buildings/modular-village/Dirt_Gathered_Corner.glb",
+         "size": 3644
+        },
+        {
+         "name": "Dirt_Gathered_Straight.glb",
+         "file": "/assets/models/buildings/modular-village/Dirt_Gathered_Straight.glb",
+         "size": 2372
+        },
+        {
+         "name": "Kit_Window_Upper_Convex.glb",
+         "file": "/assets/models/buildings/modular-village/Kit_Window_Upper_Convex.glb",
+         "size": 41324
+        },
+        {
+         "name": "Kit_Window_Upper_Straight.glb",
+         "file": "/assets/models/buildings/modular-village/Kit_Window_Upper_Straight.glb",
+         "size": 37544
+        },
+        {
+         "name": "Prop_Barrel_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Barrel_1.glb",
+         "size": 27524
+        },
+        {
+         "name": "Prop_Barrel_1_Open.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Barrel_1_Open.glb",
+         "size": 42712
+        },
+        {
+         "name": "Prop_Barrel_2.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Barrel_2.glb",
+         "size": 28672
+        },
+        {
+         "name": "Prop_Boat_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Boat_1.glb",
+         "size": 15276
+        },
+        {
+         "name": "Prop_Boat_2.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Boat_2.glb",
+         "size": 16864
+        },
+        {
+         "name": "Prop_Boat_Oars_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Boat_Oars_1.glb",
+         "size": 10608
+        },
+        {
+         "name": "Prop_Boat_Oars_2.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Boat_Oars_2.glb",
+         "size": 10608
+        },
+        {
+         "name": "Prop_Broom.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Broom.glb",
+         "size": 17668
+        },
+        {
+         "name": "Prop_Cart_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Cart_1.glb",
+         "size": 95672
+        },
+        {
+         "name": "Prop_Cart_1_Barrels.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Cart_1_Barrels.glb",
+         "size": 208352
+        },
+        {
+         "name": "Prop_Cart_1_Hay.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Cart_1_Hay.glb",
+         "size": 183240
+        },
+        {
+         "name": "Prop_Crate_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Crate_1.glb",
+         "size": 34788
+        },
+        {
+         "name": "Prop_Crate_1_Open.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Crate_1_Open.glb",
+         "size": 36564
+        },
+        {
+         "name": "Prop_Hay_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Hay_1.glb",
+         "size": 43236
+        },
+        {
+         "name": "Prop_Ladder_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Ladder_1.glb",
+         "size": 20500
+        },
+        {
+         "name": "Prop_Lamp_Street.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Lamp_Street.glb",
+         "size": 36844
+        },
+        {
+         "name": "Prop_Well_1.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Well_1.glb",
+         "size": 104824
+        },
+        {
+         "name": "Prop_Well_Cobblestone.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Well_Cobblestone.glb",
+         "size": 19976
+        },
+        {
+         "name": "Prop_Well_Dirt.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Well_Dirt.glb",
+         "size": 4496
+        },
+        {
+         "name": "Prop_Well_Grass.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Well_Grass.glb",
+         "size": 4504
+        },
+        {
+         "name": "Prop_Well_Inside.glb",
+         "file": "/assets/models/buildings/modular-village/Prop_Well_Inside.glb",
+         "size": 5432
+        },
+        {
+         "name": "Roof_Accent_Rake_Concave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Accent_Rake_Concave.glb",
+         "size": 3500
+        },
+        {
+         "name": "Roof_Accent_Rake_Convex.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Accent_Rake_Convex.glb",
+         "size": 3496
+        },
+        {
+         "name": "Roof_Accent_Rake_Eave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Accent_Rake_Eave.glb",
+         "size": 2212
+        },
+        {
+         "name": "Roof_Accent_Rake_Straight.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Accent_Rake_Straight.glb",
+         "size": 2200
+        },
+        {
+         "name": "Roof_Accent_Ridge.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Accent_Ridge.glb",
+         "size": 2192
+        },
+        {
+         "name": "Roof_Accent_Ridge_End.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Accent_Ridge_End.glb",
+         "size": 3984
+        },
+        {
+         "name": "Roof_Concave_Corner_Inner.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Concave_Corner_Inner.glb",
+         "size": 9824
+        },
+        {
+         "name": "Roof_Concave_Corner_Outer.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Concave_Corner_Outer.glb",
+         "size": 9444
+        },
+        {
+         "name": "Roof_Concave_Corner_Outer_Eave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Concave_Corner_Outer_Eave.glb",
+         "size": 13608
+        },
+        {
+         "name": "Roof_Concave_Side.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Concave_Side.glb",
+         "size": 9112
+        },
+        {
+         "name": "Roof_Concave_Side_Eave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Concave_Side_Eave.glb",
+         "size": 11172
+        },
+        {
+         "name": "Roof_Concave_Side_Eave_Edge.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Concave_Side_Eave_Edge.glb",
+         "size": 15660
+        },
+        {
+         "name": "Roof_Concave_Side_Edge.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Concave_Side_Edge.glb",
+         "size": 13644
+        },
+        {
+         "name": "Roof_Convex_Corner_Inner.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Convex_Corner_Inner.glb",
+         "size": 9764
+        },
+        {
+         "name": "Roof_Convex_Corner_Outer.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Convex_Corner_Outer.glb",
+         "size": 9008
+        },
+        {
+         "name": "Roof_Convex_Corner_Outer_Eave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Convex_Corner_Outer_Eave.glb",
+         "size": 12936
+        },
+        {
+         "name": "Roof_Convex_Side.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Convex_Side.glb",
+         "size": 9112
+        },
+        {
+         "name": "Roof_Convex_Side_Eave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Convex_Side_Eave.glb",
+         "size": 11172
+        },
+        {
+         "name": "Roof_Convex_Side_Eave_Edge.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Convex_Side_Eave_Edge.glb",
+         "size": 15676
+        },
+        {
+         "name": "Roof_Convex_Side_Edge.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Convex_Side_Edge.glb",
+         "size": 13644
+        },
+        {
+         "name": "Roof_Prop_Chimney_Pipe.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Prop_Chimney_Pipe.glb",
+         "size": 15916
+        },
+        {
+         "name": "Roof_Prop_Chimney_Stone.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Prop_Chimney_Stone.glb",
+         "size": 8096
+        },
+        {
+         "name": "Roof_Straight_Corner_Inner.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Straight_Corner_Inner.glb",
+         "size": 9944
+        },
+        {
+         "name": "Roof_Straight_Corner_Outer.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Straight_Corner_Outer.glb",
+         "size": 8820
+        },
+        {
+         "name": "Roof_Straight_Corner_Outer_Eave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Straight_Corner_Outer_Eave.glb",
+         "size": 12604
+        },
+        {
+         "name": "Roof_Straight_Side.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Straight_Side.glb",
+         "size": 9116
+        },
+        {
+         "name": "Roof_Straight_Side_Eave.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Straight_Side_Eave.glb",
+         "size": 11176
+        },
+        {
+         "name": "Roof_Straight_Side_Eave_Edge.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Straight_Side_Eave_Edge.glb",
+         "size": 14316
+        },
+        {
+         "name": "Roof_Straight_Side_Edge.glb",
+         "file": "/assets/models/buildings/modular-village/Roof_Straight_Side_Edge.glb",
+         "size": 12356
+        },
+        {
+         "name": "Stone_Arch.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Arch.glb",
+         "size": 3868
+        },
+        {
+         "name": "Stone_Arch_Outer.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Arch_Outer.glb",
+         "size": 91864
+        },
+        {
+         "name": "Stone_Curb_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Curb_1.glb",
+         "size": 23760
+        },
+        {
+         "name": "Stone_Curb_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Curb_2.glb",
+         "size": 20688
+        },
+        {
+         "name": "Stone_Curb_3.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Curb_3.glb",
+         "size": 23756
+        },
+        {
+         "name": "Stone_Curb_4.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Curb_4.glb",
+         "size": 23696
+        },
+        {
+         "name": "Stone_Doorway_Narrow_Tall_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Doorway_Narrow_Tall_1.glb",
+         "size": 9868
+        },
+        {
+         "name": "Stone_Doorway_Narrow_Tall_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Doorway_Narrow_Tall_2.glb",
+         "size": 11544
+        },
+        {
+         "name": "Stone_Doorway_Wide_Tall_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Doorway_Wide_Tall_1.glb",
+         "size": 62836
+        },
+        {
+         "name": "Stone_Doorway_Wide_Tall_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Doorway_Wide_Tall_2.glb",
+         "size": 64636
+        },
+        {
+         "name": "Stone_Floor_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Floor_1.glb",
+         "size": 27180
+        },
+        {
+         "name": "Stone_Floor_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Floor_2.glb",
+         "size": 24076
+        },
+        {
+         "name": "Stone_Pillar.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Pillar.glb",
+         "size": 7728
+        },
+        {
+         "name": "Stone_Pillar_Base.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Pillar_Base.glb",
+         "size": 4732
+        },
+        {
+         "name": "Stone_Sewer_Grate_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Sewer_Grate_1.glb",
+         "size": 29248
+        },
+        {
+         "name": "Stone_Sewer_Grate_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Sewer_Grate_2.glb",
+         "size": 30032
+        },
+        {
+         "name": "Stone_Stairs_Railing.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Stairs_Railing.glb",
+         "size": 21476
+        },
+        {
+         "name": "Stone_Steps.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Steps.glb",
+         "size": 4972
+        },
+        {
+         "name": "Stone_Steps_Side_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Steps_Side_1.glb",
+         "size": 23616
+        },
+        {
+         "name": "Stone_Steps_Side_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Steps_Side_2.glb",
+         "size": 25456
+        },
+        {
+         "name": "Stone_Wall_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Wall_1.glb",
+         "size": 8628
+        },
+        {
+         "name": "Stone_Wall_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Wall_2.glb",
+         "size": 10188
+        },
+        {
+         "name": "Stone_Wall_3.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Wall_3.glb",
+         "size": 10156
+        },
+        {
+         "name": "Stone_Wall_4.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Wall_4.glb",
+         "size": 12068
+        },
+        {
+         "name": "Stone_Wall_5.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_Wall_5.glb",
+         "size": 9376
+        },
+        {
+         "name": "Stone_to_Stucco_Doorway_Wide_Tall_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_to_Stucco_Doorway_Wide_Tall_1.glb",
+         "size": 57156
+        },
+        {
+         "name": "Stone_to_Stucco_Doorway_Wide_Tall_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stone_to_Stucco_Doorway_Wide_Tall_2.glb",
+         "size": 59656
+        },
+        {
+         "name": "Stucco_Arch_Half.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Arch_Half.glb",
+         "size": 2348
+        },
+        {
+         "name": "Stucco_Arch_Half_Outer.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Arch_Half_Outer.glb",
+         "size": 5792
+        },
+        {
+         "name": "Stucco_Block.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Block.glb",
+         "size": 2108
+        },
+        {
+         "name": "Stucco_Doorway_Narrow_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Doorway_Narrow_Tall.glb",
+         "size": 6064
+        },
+        {
+         "name": "Stucco_Doorway_Wide_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Doorway_Wide_Tall.glb",
+         "size": 6928
+        },
+        {
+         "name": "Stucco_Prop_Support_Angled_Large.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Angled_Large.glb",
+         "size": 2420
+        },
+        {
+         "name": "Stucco_Prop_Support_Angled_Low.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Angled_Low.glb",
+         "size": 2200
+        },
+        {
+         "name": "Stucco_Prop_Support_Angled_Small.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Angled_Small.glb",
+         "size": 2200
+        },
+        {
+         "name": "Stucco_Prop_Support_Beam_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Beam_1.glb",
+         "size": 2200
+        },
+        {
+         "name": "Stucco_Prop_Support_Beam_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Beam_2.glb",
+         "size": 3596
+        },
+        {
+         "name": "Stucco_Prop_Support_Beam_3.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Beam_3.glb",
+         "size": 3600
+        },
+        {
+         "name": "Stucco_Prop_Support_Pillar_1.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Pillar_1.glb",
+         "size": 2196
+        },
+        {
+         "name": "Stucco_Prop_Support_Pillar_2.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Pillar_2.glb",
+         "size": 3588
+        },
+        {
+         "name": "Stucco_Prop_Support_Pillar_3.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Prop_Support_Pillar_3.glb",
+         "size": 3592
+        },
+        {
+         "name": "Stucco_Window_Double_Narrow.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Double_Narrow.glb",
+         "size": 16144
+        },
+        {
+         "name": "Stucco_Window_Double_Narrow_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Double_Narrow_Tall.glb",
+         "size": 16128
+        },
+        {
+         "name": "Stucco_Window_Double_Wide.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Double_Wide.glb",
+         "size": 16440
+        },
+        {
+         "name": "Stucco_Window_Double_Wide_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Double_Wide_Tall.glb",
+         "size": 16432
+        },
+        {
+         "name": "Stucco_Window_Rounded_Narrow.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Rounded_Narrow.glb",
+         "size": 14272
+        },
+        {
+         "name": "Stucco_Window_Rounded_Narrow_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Rounded_Narrow_Tall.glb",
+         "size": 14256
+        },
+        {
+         "name": "Stucco_Window_Rounded_Wide.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Rounded_Wide.glb",
+         "size": 14336
+        },
+        {
+         "name": "Stucco_Window_Rounded_Wide_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Rounded_Wide_Tall.glb",
+         "size": 14320
+        },
+        {
+         "name": "Stucco_Window_Single_Narrow.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Single_Narrow.glb",
+         "size": 12336
+        },
+        {
+         "name": "Stucco_Window_Single_Narrow_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Single_Narrow_Tall.glb",
+         "size": 12320
+        },
+        {
+         "name": "Stucco_Window_Single_Wide.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Single_Wide.glb",
+         "size": 12324
+        },
+        {
+         "name": "Stucco_Window_Single_Wide_Tall.glb",
+         "file": "/assets/models/buildings/modular-village/Stucco_Window_Single_Wide_Tall.glb",
+         "size": 12308
+        },
+        {
+         "name": "Wall_Prop_Bell_1.glb",
+         "file": "/assets/models/buildings/modular-village/Wall_Prop_Bell_1.glb",
+         "size": 34400
+        },
+        {
+         "name": "Wall_Prop_Door_Ornate.glb",
+         "file": "/assets/models/buildings/modular-village/Wall_Prop_Door_Ornate.glb",
+         "size": 30220
+        },
+        {
+         "name": "Wall_Prop_Door_Simple.glb",
+         "file": "/assets/models/buildings/modular-village/Wall_Prop_Door_Simple.glb",
+         "size": 21080
+        },
+        {
+         "name": "Wall_Prop_Lamp.glb",
+         "file": "/assets/models/buildings/modular-village/Wall_Prop_Lamp.glb",
+         "size": 33456
+        },
+        {
+         "name": "Wall_Prop_Sign_1.glb",
+         "file": "/assets/models/buildings/modular-village/Wall_Prop_Sign_1.glb",
+         "size": 52112
+        },
+        {
+         "name": "Wall_Prop_Windmill_1.glb",
+         "file": "/assets/models/buildings/modular-village/Wall_Prop_Windmill_1.glb",
+         "size": 48244
+        },
+        {
+         "name": "Waterwheel_1.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_1.glb",
+         "size": 88688
+        },
+        {
+         "name": "Waterwheel_Flume_Curved.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_Curved.glb",
+         "size": 6768
+        },
+        {
+         "name": "Waterwheel_Flume_End.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_End.glb",
+         "size": 5396
+        },
+        {
+         "name": "Waterwheel_Flume_Ramp.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_Ramp.glb",
+         "size": 4768
+        },
+        {
+         "name": "Waterwheel_Flume_Ramp_Supported.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_Ramp_Supported.glb",
+         "size": 6584
+        },
+        {
+         "name": "Waterwheel_Flume_Straight.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_Straight.glb",
+         "size": 4776
+        },
+        {
+         "name": "Waterwheel_Flume_Support_Brace.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_Support_Brace.glb",
+         "size": 2156
+        },
+        {
+         "name": "Waterwheel_Flume_Support_Brace_Double.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_Support_Brace_Double.glb",
+         "size": 3028
+        },
+        {
+         "name": "Waterwheel_Flume_Support_Pillar.glb",
+         "file": "/assets/models/buildings/modular-village/Waterwheel_Flume_Support_Pillar.glb",
+         "size": 2216
+        },
+        {
+         "name": "Wood_Baseboard.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Baseboard.glb",
+         "size": 2188
+        },
+        {
+         "name": "Wood_Floor_Corner.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Floor_Corner.glb",
+         "size": 9244
+        },
+        {
+         "name": "Wood_Floor_Straight_1.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Floor_Straight_1.glb",
+         "size": 7632
+        },
+        {
+         "name": "Wood_Floor_Straight_2.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Floor_Straight_2.glb",
+         "size": 8408
+        },
+        {
+         "name": "Wood_Floor_Straight_3.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Floor_Straight_3.glb",
+         "size": 7632
+        },
+        {
+         "name": "Wood_Floor_Straight_4.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Floor_Straight_4.glb",
+         "size": 8408
+        },
+        {
+         "name": "Wood_Post_Large.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Post_Large.glb",
+         "size": 3344
+        },
+        {
+         "name": "Wood_Post_Small.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Post_Small.glb",
+         "size": 2764
+        },
+        {
+         "name": "Wood_Railing_Corner.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Railing_Corner.glb",
+         "size": 19288
+        },
+        {
+         "name": "Wood_Railing_Stairs.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Railing_Stairs.glb",
+         "size": 17324
+        },
+        {
+         "name": "Wood_Railing_Straight.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Railing_Straight.glb",
+         "size": 10944
+        },
+        {
+         "name": "Wood_Rope_Corner.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Rope_Corner.glb",
+         "size": 15708
+        },
+        {
+         "name": "Wood_Rope_Stairs.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Rope_Stairs.glb",
+         "size": 14380
+        },
+        {
+         "name": "Wood_Rope_Straight.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Rope_Straight.glb",
+         "size": 7520
+        },
+        {
+         "name": "Wood_Steps.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Steps.glb",
+         "size": 10412
+        },
+        {
+         "name": "Wood_Steps_Stucco.glb",
+         "file": "/assets/models/buildings/modular-village/Wood_Steps_Stucco.glb",
+         "size": 11100
+        },
+        {
+         "name": "modular-village-kit.blend",
+         "file": "/assets/models/buildings/modular-village/modular-village-kit.blend",
+         "size": 2435306
+        },
+        {
+         "name": "modular-village-kit.glb",
+         "file": "/assets/models/buildings/modular-village/modular-village-kit.glb",
+         "size": 3129588
         }
        ]
-      },
-      {
-       "name": "mk2",
-       "assets": [
-        {
-         "name": "model.blend",
-         "file": "/assets/models/grenades/mk2/model.blend",
-         "size": 116940
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/grenades/mk2/model.glb",
-         "size": 70560
-        }
-       ]
-      },
-      {
-       "name": "stick-grenade",
-       "assets": [
-        {
-         "name": "model.blend",
-         "file": "/assets/models/grenades/stick-grenade/model.blend",
-         "size": 100692
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/grenades/stick-grenade/model.glb",
-         "size": 22188
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "name": "guns",
-     "assets": [
-      {
-       "name": "m1-garand",
-       "assets": [
-        {
-         "name": "gun.blend",
-         "file": "/assets/models/guns/m1-garand/gun.blend",
-         "size": 144950
-        },
-        {
-         "name": "gun.glb",
-         "file": "/assets/models/guns/m1-garand/gun.glb",
-         "size": 166564
-        },
-        {
-         "name": "mag.blend",
-         "file": "/assets/models/guns/m1-garand/mag.blend",
-         "size": 92042
-        },
-        {
-         "name": "mag.glb",
-         "file": "/assets/models/guns/m1-garand/mag.glb",
-         "size": 7616
-        },
-        {
-         "name": "model.blend",
-         "file": "/assets/models/guns/m1-garand/model.blend",
-         "size": 92108
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/guns/m1-garand/model.glb",
-         "size": 335844
-        }
-       ]
-      },
-      {
-       "name": "m1911",
-       "assets": [
-        {
-         "name": "gun.blend",
-         "file": "/assets/models/guns/m1911/gun.blend",
-         "size": 124216
-        },
-        {
-         "name": "gun.glb",
-         "file": "/assets/models/guns/m1911/gun.glb",
-         "size": 82460
-        },
-        {
-         "name": "mag.blend",
-         "file": "/assets/models/guns/m1911/mag.blend",
-         "size": 95350
-        },
-        {
-         "name": "mag.glb",
-         "file": "/assets/models/guns/m1911/mag.glb",
-         "size": 5248
-        },
-        {
-         "name": "model.blend",
-         "file": "/assets/models/guns/m1911/model.blend",
-         "size": 92749
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/guns/m1911/model.glb",
-         "size": 211184
-        }
-       ]
-      },
-      {
-       "name": "mauser-c96",
-       "assets": [
-        {
-         "name": "gun.blend",
-         "file": "/assets/models/guns/mauser-c96/gun.blend",
-         "size": 127516
-        },
-        {
-         "name": "gun.glb",
-         "file": "/assets/models/guns/mauser-c96/gun.glb",
-         "size": 87864
-        },
-        {
-         "name": "mag.blend",
-         "file": "/assets/models/guns/mauser-c96/mag.blend",
-         "size": 97171
-        },
-        {
-         "name": "mag.glb",
-         "file": "/assets/models/guns/mauser-c96/mag.glb",
-         "size": 4344
-        },
-        {
-         "name": "model.blend",
-         "file": "/assets/models/guns/mauser-c96/model.blend",
-         "size": 92498
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/guns/mauser-c96/model.glb",
-         "size": 218172
-        }
-       ]
-      },
-      {
-       "name": "ppsh-41",
-       "assets": [
-        {
-         "name": "gun.blend",
-         "file": "/assets/models/guns/ppsh-41/gun.blend",
-         "size": 135965
-        },
-        {
-         "name": "gun.glb",
-         "file": "/assets/models/guns/ppsh-41/gun.glb",
-         "size": 116744
-        },
-        {
-         "name": "mag.blend",
-         "file": "/assets/models/guns/ppsh-41/mag.blend",
-         "size": 112110
-        },
-        {
-         "name": "mag.glb",
-         "file": "/assets/models/guns/ppsh-41/mag.glb",
-         "size": 51308
-        },
-        {
-         "name": "model.blend",
-         "file": "/assets/models/guns/ppsh-41/model.blend",
-         "size": 92468
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/guns/ppsh-41/model.glb",
-         "size": 340792
-        }
-       ]
-      },
-      {
-       "name": "stg-44",
-       "assets": [
-        {
-         "name": "gun.blend",
-         "file": "/assets/models/guns/stg-44/gun.blend",
-         "size": 151275
-        },
-        {
-         "name": "gun.glb",
-         "file": "/assets/models/guns/stg-44/gun.glb",
-         "size": 158260
-        },
-        {
-         "name": "mag.blend",
-         "file": "/assets/models/guns/stg-44/mag.blend",
-         "size": 99550
-        },
-        {
-         "name": "mag.glb",
-         "file": "/assets/models/guns/stg-44/mag.glb",
-         "size": 10800
-        },
-        {
-         "name": "model.blend",
-         "file": "/assets/models/guns/stg-44/model.blend",
-         "size": 92626
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/guns/stg-44/model.glb",
-         "size": 343212
-        }
-       ]
-      },
-      {
-       "name": "thompson-m1",
-       "assets": [
-        {
-         "name": "gun.blend",
-         "file": "/assets/models/guns/thompson-m1/gun.blend",
-         "size": 128423
-        },
-        {
-         "name": "gun.glb",
-         "file": "/assets/models/guns/thompson-m1/gun.glb",
-         "size": 99772
-        },
-        {
-         "name": "mag.blend",
-         "file": "/assets/models/guns/thompson-m1/mag.blend",
-         "size": 95020
-        },
-        {
-         "name": "mag.glb",
-         "file": "/assets/models/guns/thompson-m1/mag.glb",
-         "size": 7092
-        },
-        {
-         "name": "model.blend",
-         "file": "/assets/models/guns/thompson-m1/model.blend",
-         "size": 92604
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/guns/thompson-m1/model.glb",
-         "size": 239872
-        }
-       ]
-      },
-      {
-       "name": "tt-pistol",
-       "assets": [
-        {
-         "name": "gun.blend",
-         "file": "/assets/models/guns/tt-pistol/gun.blend",
-         "size": 123324
-        },
-        {
-         "name": "gun.glb",
-         "file": "/assets/models/guns/tt-pistol/gun.glb",
-         "size": 77644
-        },
-        {
-         "name": "mag.blend",
-         "file": "/assets/models/guns/tt-pistol/mag.blend",
-         "size": 95321
-        },
-        {
-         "name": "mag.glb",
-         "file": "/assets/models/guns/tt-pistol/mag.glb",
-         "size": 8120
-        },
-        {
-         "name": "model.blend",
-         "file": "/assets/models/guns/tt-pistol/model.blend",
-         "size": 92771
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/guns/tt-pistol/model.glb",
-         "size": 214460
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "name": "knives",
-     "assets": [
-      {
-       "name": "german-knife",
-       "assets": [
-        {
-         "name": "model.blend",
-         "file": "/assets/models/knives/german-knife/model.blend",
-         "size": 102302
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/knives/german-knife/model.glb",
-         "size": 26240
-        }
-       ]
-      },
-      {
-       "name": "ka-bar",
-       "assets": [
-        {
-         "name": "model.blend",
-         "file": "/assets/models/knives/ka-bar/model.blend",
-         "size": 109060
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/knives/ka-bar/model.glb",
-         "size": 42076
-        }
-       ]
-      },
-      {
-       "name": "nr-40",
-       "assets": [
-        {
-         "name": "model.blend",
-         "file": "/assets/models/knives/nr-40/model.blend",
-         "size": 97645
-        },
-        {
-         "name": "model.glb",
-         "file": "/assets/models/knives/nr-40/model.glb",
-         "size": 14140
-        }
-       ]
-      }
-     ]
-    },
-    {
-     "name": "modular-village",
-     "assets": [
-      {
-       "name": "source",
-       "assets": [
-        {
-         "name": "Canopy_Beam.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Beam.obj",
-         "size": 2164
-        },
-        {
-         "name": "Canopy_Beam_Short.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Beam_Short.obj",
-         "size": 2174
-        },
-        {
-         "name": "Canopy_Corner.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Corner.obj",
-         "size": 14359
-        },
-        {
-         "name": "Canopy_Full.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Full.obj",
-         "size": 20018
-        },
-        {
-         "name": "Canopy_Ramp_Corner.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Ramp_Corner.obj",
-         "size": 14813
-        },
-        {
-         "name": "Canopy_Ramp_Full.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Ramp_Full.obj",
-         "size": 20544
-        },
-        {
-         "name": "Canopy_Ramp_Mid.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Ramp_Mid.obj",
-         "size": 8996
-        },
-        {
-         "name": "Canopy_Side.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Side.obj",
-         "size": 8690
-        },
-        {
-         "name": "Canopy_Sides_Opposite.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Sides_Opposite.obj",
-         "size": 15448
-        },
-        {
-         "name": "Canopy_Top.obj",
-         "file": "/assets/models/modular-village/source/Canopy_Top.obj",
-         "size": 2167
-        },
-        {
-         "name": "Cobblestone_Dirt_Transition_1.obj",
-         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_1.obj",
-         "size": 71872
-        },
-        {
-         "name": "Cobblestone_Dirt_Transition_2.obj",
-         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_2.obj",
-         "size": 64770
-        },
-        {
-         "name": "Cobblestone_Dirt_Transition_3.obj",
-         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_3.obj",
-         "size": 67293
-        },
-        {
-         "name": "Cobblestone_Dirt_Transition_4.obj",
-         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_4.obj",
-         "size": 64099
-        },
-        {
-         "name": "Cobblestone_Floor_1.obj",
-         "file": "/assets/models/modular-village/source/Cobblestone_Floor_1.obj",
-         "size": 203443
-        },
-        {
-         "name": "Dirt_Fading.obj",
-         "file": "/assets/models/modular-village/source/Dirt_Fading.obj",
-         "size": 2161
-        },
-        {
-         "name": "Dirt_Fading_from_Gathered.obj",
-         "file": "/assets/models/modular-village/source/Dirt_Fading_from_Gathered.obj",
-         "size": 2161
-        },
-        {
-         "name": "Dirt_Gathered_Corner.obj",
-         "file": "/assets/models/modular-village/source/Dirt_Gathered_Corner.obj",
-         "size": 5933
-        },
-        {
-         "name": "Dirt_Gathered_Straight.obj",
-         "file": "/assets/models/modular-village/source/Dirt_Gathered_Straight.obj",
-         "size": 2720
-        },
-        {
-         "name": "Kit_Window_Upper_Convex.obj",
-         "file": "/assets/models/modular-village/source/Kit_Window_Upper_Convex.obj",
-         "size": 90960
-        },
-        {
-         "name": "Kit_Window_Upper_Straight.obj",
-         "file": "/assets/models/modular-village/source/Kit_Window_Upper_Straight.obj",
-         "size": 77530
-        },
-        {
-         "name": "Materials_Modular_Village.mtl",
-         "file": "/assets/models/modular-village/source/Materials_Modular_Village.mtl",
-         "size": 2854
-        },
-        {
-         "name": "Prop_Barrel_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Barrel_1.obj",
-         "size": 66861
-        },
-        {
-         "name": "Prop_Barrel_1_Open.obj",
-         "file": "/assets/models/modular-village/source/Prop_Barrel_1_Open.obj",
-         "size": 100748
-        },
-        {
-         "name": "Prop_Barrel_2.obj",
-         "file": "/assets/models/modular-village/source/Prop_Barrel_2.obj",
-         "size": 72583
-        },
-        {
-         "name": "Prop_Boat_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Boat_1.obj",
-         "size": 30939
-        },
-        {
-         "name": "Prop_Boat_2.obj",
-         "file": "/assets/models/modular-village/source/Prop_Boat_2.obj",
-         "size": 33229
-        },
-        {
-         "name": "Prop_Boat_Oars_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Boat_Oars_1.obj",
-         "size": 21260
-        },
-        {
-         "name": "Prop_Boat_Oars_2.obj",
-         "file": "/assets/models/modular-village/source/Prop_Boat_Oars_2.obj",
-         "size": 21300
-        },
-        {
-         "name": "Prop_Broom.obj",
-         "file": "/assets/models/modular-village/source/Prop_Broom.obj",
-         "size": 38171
-        },
-        {
-         "name": "Prop_Cart_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Cart_1.obj",
-         "size": 174926
-        },
-        {
-         "name": "Prop_Cart_1_Barrels.obj",
-         "file": "/assets/models/modular-village/source/Prop_Cart_1_Barrels.obj",
-         "size": 481141
-        },
-        {
-         "name": "Prop_Cart_1_Hay.obj",
-         "file": "/assets/models/modular-village/source/Prop_Cart_1_Hay.obj",
-         "size": 409320
-        },
-        {
-         "name": "Prop_Crate_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Crate_1.obj",
-         "size": 63797
-        },
-        {
-         "name": "Prop_Crate_1_Open.obj",
-         "file": "/assets/models/modular-village/source/Prop_Crate_1_Open.obj",
-         "size": 72377
-        },
-        {
-         "name": "Prop_Hay_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Hay_1.obj",
-         "size": 110823
-        },
-        {
-         "name": "Prop_Ladder_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Ladder_1.obj",
-         "size": 52350
-        },
-        {
-         "name": "Prop_Lamp_Street.obj",
-         "file": "/assets/models/modular-village/source/Prop_Lamp_Street.obj",
-         "size": 71777
-        },
-        {
-         "name": "Prop_Well_1.obj",
-         "file": "/assets/models/modular-village/source/Prop_Well_1.obj",
-         "size": 222021
-        },
-        {
-         "name": "Prop_Well_Cobblestone.obj",
-         "file": "/assets/models/modular-village/source/Prop_Well_Cobblestone.obj",
-         "size": 42716
-        },
-        {
-         "name": "Prop_Well_Dirt.obj",
-         "file": "/assets/models/modular-village/source/Prop_Well_Dirt.obj",
-         "size": 8495
-        },
-        {
-         "name": "Prop_Well_Grass.obj",
-         "file": "/assets/models/modular-village/source/Prop_Well_Grass.obj",
-         "size": 8483
-        },
-        {
-         "name": "Prop_Well_Inside.obj",
-         "file": "/assets/models/modular-village/source/Prop_Well_Inside.obj",
-         "size": 10806
-        },
-        {
-         "name": "Roof_Accent_Rake_Concave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Concave.obj",
-         "size": 5545
-        },
-        {
-         "name": "Roof_Accent_Rake_Convex.obj",
-         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Convex.obj",
-         "size": 5541
-        },
-        {
-         "name": "Roof_Accent_Rake_Eave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Eave.obj",
-         "size": 2174
-        },
-        {
-         "name": "Roof_Accent_Rake_Straight.obj",
-         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Straight.obj",
-         "size": 2160
-        },
-        {
-         "name": "Roof_Accent_Ridge.obj",
-         "file": "/assets/models/modular-village/source/Roof_Accent_Ridge.obj",
-         "size": 2172
-        },
-        {
-         "name": "Roof_Accent_Ridge_End.obj",
-         "file": "/assets/models/modular-village/source/Roof_Accent_Ridge_End.obj",
-         "size": 3896
-        },
-        {
-         "name": "Roof_Concave_Corner_Inner.obj",
-         "file": "/assets/models/modular-village/source/Roof_Concave_Corner_Inner.obj",
-         "size": 17097
-        },
-        {
-         "name": "Roof_Concave_Corner_Outer.obj",
-         "file": "/assets/models/modular-village/source/Roof_Concave_Corner_Outer.obj",
-         "size": 16039
-        },
-        {
-         "name": "Roof_Concave_Corner_Outer_Eave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Concave_Corner_Outer_Eave.obj",
-         "size": 38527
-        },
-        {
-         "name": "Roof_Concave_Side.obj",
-         "file": "/assets/models/modular-village/source/Roof_Concave_Side.obj",
-         "size": 15139
-        },
-        {
-         "name": "Roof_Concave_Side_Eave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Concave_Side_Eave.obj",
-         "size": 20182
-        },
-        {
-         "name": "Roof_Concave_Side_Eave_Edge.obj",
-         "file": "/assets/models/modular-village/source/Roof_Concave_Side_Eave_Edge.obj",
-         "size": 29459
-        },
-        {
-         "name": "Roof_Concave_Side_Edge.obj",
-         "file": "/assets/models/modular-village/source/Roof_Concave_Side_Edge.obj",
-         "size": 24537
-        },
-        {
-         "name": "Roof_Convex_Corner_Inner.obj",
-         "file": "/assets/models/modular-village/source/Roof_Convex_Corner_Inner.obj",
-         "size": 16857
-        },
-        {
-         "name": "Roof_Convex_Corner_Outer.obj",
-         "file": "/assets/models/modular-village/source/Roof_Convex_Corner_Outer.obj",
-         "size": 14927
-        },
-        {
-         "name": "Roof_Convex_Corner_Outer_Eave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Convex_Corner_Outer_Eave.obj",
-         "size": 35578
-        },
-        {
-         "name": "Roof_Convex_Side.obj",
-         "file": "/assets/models/modular-village/source/Roof_Convex_Side.obj",
-         "size": 15186
-        },
-        {
-         "name": "Roof_Convex_Side_Eave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Convex_Side_Eave.obj",
-         "size": 20288
-        },
-        {
-         "name": "Roof_Convex_Side_Eave_Edge.obj",
-         "file": "/assets/models/modular-village/source/Roof_Convex_Side_Eave_Edge.obj",
-         "size": 29542
-        },
-        {
-         "name": "Roof_Convex_Side_Edge.obj",
-         "file": "/assets/models/modular-village/source/Roof_Convex_Side_Edge.obj",
-         "size": 24428
-        },
-        {
-         "name": "Roof_Prop_Chimney_Pipe.obj",
-         "file": "/assets/models/modular-village/source/Roof_Prop_Chimney_Pipe.obj",
-         "size": 37776
-        },
-        {
-         "name": "Roof_Prop_Chimney_Stone.obj",
-         "file": "/assets/models/modular-village/source/Roof_Prop_Chimney_Stone.obj",
-         "size": 16009
-        },
-        {
-         "name": "Roof_Straight_Corner_Inner.obj",
-         "file": "/assets/models/modular-village/source/Roof_Straight_Corner_Inner.obj",
-         "size": 17380
-        },
-        {
-         "name": "Roof_Straight_Corner_Outer.obj",
-         "file": "/assets/models/modular-village/source/Roof_Straight_Corner_Outer.obj",
-         "size": 14368
-        },
-        {
-         "name": "Roof_Straight_Corner_Outer_Eave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Straight_Corner_Outer_Eave.obj",
-         "size": 29877
-        },
-        {
-         "name": "Roof_Straight_Side.obj",
-         "file": "/assets/models/modular-village/source/Roof_Straight_Side.obj",
-         "size": 15159
-        },
-        {
-         "name": "Roof_Straight_Side_Eave.obj",
-         "file": "/assets/models/modular-village/source/Roof_Straight_Side_Eave.obj",
-         "size": 20264
-        },
-        {
-         "name": "Roof_Straight_Side_Eave_Edge.obj",
-         "file": "/assets/models/modular-village/source/Roof_Straight_Side_Eave_Edge.obj",
-         "size": 25553
-        },
-        {
-         "name": "Roof_Straight_Side_Edge.obj",
-         "file": "/assets/models/modular-village/source/Roof_Straight_Side_Edge.obj",
-         "size": 20764
-        },
-        {
-         "name": "Stone_Arch.obj",
-         "file": "/assets/models/modular-village/source/Stone_Arch.obj",
-         "size": 6692
-        },
-        {
-         "name": "Stone_Arch_Outer.obj",
-         "file": "/assets/models/modular-village/source/Stone_Arch_Outer.obj",
-         "size": 221950
-        },
-        {
-         "name": "Stone_Curb_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_Curb_1.obj",
-         "size": 55092
-        },
-        {
-         "name": "Stone_Curb_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_Curb_2.obj",
-         "size": 47147
-        },
-        {
-         "name": "Stone_Curb_3.obj",
-         "file": "/assets/models/modular-village/source/Stone_Curb_3.obj",
-         "size": 55108
-        },
-        {
-         "name": "Stone_Curb_4.obj",
-         "file": "/assets/models/modular-village/source/Stone_Curb_4.obj",
-         "size": 54888
-        },
-        {
-         "name": "Stone_Doorway_Narrow_Tall_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_Doorway_Narrow_Tall_1.obj",
-         "size": 16625
-        },
-        {
-         "name": "Stone_Doorway_Narrow_Tall_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_Doorway_Narrow_Tall_2.obj",
-         "size": 21191
-        },
-        {
-         "name": "Stone_Doorway_Wide_Tall_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_Doorway_Wide_Tall_1.obj",
-         "size": 144559
-        },
-        {
-         "name": "Stone_Doorway_Wide_Tall_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_Doorway_Wide_Tall_2.obj",
-         "size": 149297
-        },
-        {
-         "name": "Stone_Floor_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_Floor_1.obj",
-         "size": 65144
-        },
-        {
-         "name": "Stone_Floor_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_Floor_2.obj",
-         "size": 56689
-        },
-        {
-         "name": "Stone_Pillar.obj",
-         "file": "/assets/models/modular-village/source/Stone_Pillar.obj",
-         "size": 15953
-        },
-        {
-         "name": "Stone_Pillar_Base.obj",
-         "file": "/assets/models/modular-village/source/Stone_Pillar_Base.obj",
-         "size": 8259
-        },
-        {
-         "name": "Stone_Sewer_Grate_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_Sewer_Grate_1.obj",
-         "size": 56188
-        },
-        {
-         "name": "Stone_Sewer_Grate_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_Sewer_Grate_2.obj",
-         "size": 58366
-        },
-        {
-         "name": "Stone_Stairs_Railing.obj",
-         "file": "/assets/models/modular-village/source/Stone_Stairs_Railing.obj",
-         "size": 42429
-        },
-        {
-         "name": "Stone_Steps.obj",
-         "file": "/assets/models/modular-village/source/Stone_Steps.obj",
-         "size": 9492
-        },
-        {
-         "name": "Stone_Steps_Side_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_Steps_Side_1.obj",
-         "size": 56474
-        },
-        {
-         "name": "Stone_Steps_Side_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_Steps_Side_2.obj",
-         "size": 61335
-        },
-        {
-         "name": "Stone_Wall_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_Wall_1.obj",
-         "size": 16333
-        },
-        {
-         "name": "Stone_Wall_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_Wall_2.obj",
-         "size": 20307
-        },
-        {
-         "name": "Stone_Wall_3.obj",
-         "file": "/assets/models/modular-village/source/Stone_Wall_3.obj",
-         "size": 20250
-        },
-        {
-         "name": "Stone_Wall_4.obj",
-         "file": "/assets/models/modular-village/source/Stone_Wall_4.obj",
-         "size": 25122
-        },
-        {
-         "name": "Stone_Wall_5.obj",
-         "file": "/assets/models/modular-village/source/Stone_Wall_5.obj",
-         "size": 18342
-        },
-        {
-         "name": "Stone_to_Stucco_Doorway_Wide_Tall_1.obj",
-         "file": "/assets/models/modular-village/source/Stone_to_Stucco_Doorway_Wide_Tall_1.obj",
-         "size": 117889
-        },
-        {
-         "name": "Stone_to_Stucco_Doorway_Wide_Tall_2.obj",
-         "file": "/assets/models/modular-village/source/Stone_to_Stucco_Doorway_Wide_Tall_2.obj",
-         "size": 124640
-        },
-        {
-         "name": "Stucco_Arch_Half.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Arch_Half.obj",
-         "size": 2717
-        },
-        {
-         "name": "Stucco_Arch_Half_Outer.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Arch_Half_Outer.obj",
-         "size": 8867
-        },
-        {
-         "name": "Stucco_Block.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Block.obj",
-         "size": 2145
-        },
-        {
-         "name": "Stucco_Doorway_Narrow_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Doorway_Narrow_Tall.obj",
-         "size": 9311
-        },
-        {
-         "name": "Stucco_Doorway_Wide_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Doorway_Wide_Tall.obj",
-         "size": 11641
-        },
-        {
-         "name": "Stucco_Prop_Support_Angled_Large.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Angled_Large.obj",
-         "size": 2714
-        },
-        {
-         "name": "Stucco_Prop_Support_Angled_Low.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Angled_Low.obj",
-         "size": 2158
-        },
-        {
-         "name": "Stucco_Prop_Support_Angled_Small.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Angled_Small.obj",
-         "size": 2157
-        },
-        {
-         "name": "Stucco_Prop_Support_Beam_1.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Beam_1.obj",
-         "size": 2164
-        },
-        {
-         "name": "Stucco_Prop_Support_Beam_2.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Beam_2.obj",
-         "size": 3321
-        },
-        {
-         "name": "Stucco_Prop_Support_Beam_3.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Beam_3.obj",
-         "size": 3307
-        },
-        {
-         "name": "Stucco_Prop_Support_Pillar_1.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Pillar_1.obj",
-         "size": 2150
-        },
-        {
-         "name": "Stucco_Prop_Support_Pillar_2.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Pillar_2.obj",
-         "size": 3300
-        },
-        {
-         "name": "Stucco_Prop_Support_Pillar_3.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Pillar_3.obj",
-         "size": 3340
-        },
-        {
-         "name": "Stucco_Window_Double_Narrow.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Narrow.obj",
-         "size": 32052
-        },
-        {
-         "name": "Stucco_Window_Double_Narrow_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Narrow_Tall.obj",
-         "size": 32014
-        },
-        {
-         "name": "Stucco_Window_Double_Wide.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Wide.obj",
-         "size": 32865
-        },
-        {
-         "name": "Stucco_Window_Double_Wide_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Wide_Tall.obj",
-         "size": 32895
-        },
-        {
-         "name": "Stucco_Window_Rounded_Narrow.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Narrow.obj",
-         "size": 26957
-        },
-        {
-         "name": "Stucco_Window_Rounded_Narrow_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Narrow_Tall.obj",
-         "size": 26917
-        },
-        {
-         "name": "Stucco_Window_Rounded_Wide.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Wide.obj",
-         "size": 27159
-        },
-        {
-         "name": "Stucco_Window_Rounded_Wide_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Wide_Tall.obj",
-         "size": 27099
-        },
-        {
-         "name": "Stucco_Window_Single_Narrow.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Narrow.obj",
-         "size": 21943
-        },
-        {
-         "name": "Stucco_Window_Single_Narrow_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Narrow_Tall.obj",
-         "size": 21922
-        },
-        {
-         "name": "Stucco_Window_Single_Wide.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Wide.obj",
-         "size": 21913
-        },
-        {
-         "name": "Stucco_Window_Single_Wide_Tall.obj",
-         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Wide_Tall.obj",
-         "size": 21879
-        },
-        {
-         "name": "Wall_Prop_Bell_1.obj",
-         "file": "/assets/models/modular-village/source/Wall_Prop_Bell_1.obj",
-         "size": 69701
-        },
-        {
-         "name": "Wall_Prop_Door_Ornate.obj",
-         "file": "/assets/models/modular-village/source/Wall_Prop_Door_Ornate.obj",
-         "size": 68843
-        },
-        {
-         "name": "Wall_Prop_Door_Simple.obj",
-         "file": "/assets/models/modular-village/source/Wall_Prop_Door_Simple.obj",
-         "size": 40587
-        },
-        {
-         "name": "Wall_Prop_Lamp.obj",
-         "file": "/assets/models/modular-village/source/Wall_Prop_Lamp.obj",
-         "size": 67011
-        },
-        {
-         "name": "Wall_Prop_Sign_1.obj",
-         "file": "/assets/models/modular-village/source/Wall_Prop_Sign_1.obj",
-         "size": 110280
-        },
-        {
-         "name": "Wall_Prop_Windmill_1.obj",
-         "file": "/assets/models/modular-village/source/Wall_Prop_Windmill_1.obj",
-         "size": 119784
-        },
-        {
-         "name": "Waterwheel_1.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_1.obj",
-         "size": 241122
-        },
-        {
-         "name": "Waterwheel_Flume_Curved.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Curved.obj",
-         "size": 11823
-        },
-        {
-         "name": "Waterwheel_Flume_End.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_End.obj",
-         "size": 8107
-        },
-        {
-         "name": "Waterwheel_Flume_Ramp.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Ramp.obj",
-         "size": 6662
-        },
-        {
-         "name": "Waterwheel_Flume_Ramp_Supported.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Ramp_Supported.obj",
-         "size": 8857
-        },
-        {
-         "name": "Waterwheel_Flume_Straight.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Straight.obj",
-         "size": 6643
-        },
-        {
-         "name": "Waterwheel_Flume_Support_Brace.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Support_Brace.obj",
-         "size": 2178
-        },
-        {
-         "name": "Waterwheel_Flume_Support_Brace_Double.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Support_Brace_Double.obj",
-         "size": 4333
-        },
-        {
-         "name": "Waterwheel_Flume_Support_Pillar.obj",
-         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Support_Pillar.obj",
-         "size": 2176
-        },
-        {
-         "name": "Wood_Baseboard.obj",
-         "file": "/assets/models/modular-village/source/Wood_Baseboard.obj",
-         "size": 2174
-        },
-        {
-         "name": "Wood_Floor_Corner.obj",
-         "file": "/assets/models/modular-village/source/Wood_Floor_Corner.obj",
-         "size": 18228
-        },
-        {
-         "name": "Wood_Floor_Straight_1.obj",
-         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_1.obj",
-         "size": 14202
-        },
-        {
-         "name": "Wood_Floor_Straight_2.obj",
-         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_2.obj",
-         "size": 16299
-        },
-        {
-         "name": "Wood_Floor_Straight_3.obj",
-         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_3.obj",
-         "size": 14315
-        },
-        {
-         "name": "Wood_Floor_Straight_4.obj",
-         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_4.obj",
-         "size": 16274
-        },
-        {
-         "name": "Wood_Post_Large.obj",
-         "file": "/assets/models/modular-village/source/Wood_Post_Large.obj",
-         "size": 4951
-        },
-        {
-         "name": "Wood_Post_Small.obj",
-         "file": "/assets/models/modular-village/source/Wood_Post_Small.obj",
-         "size": 3533
-        },
-        {
-         "name": "Wood_Railing_Corner.obj",
-         "file": "/assets/models/modular-village/source/Wood_Railing_Corner.obj",
-         "size": 26414
-        },
-        {
-         "name": "Wood_Railing_Stairs.obj",
-         "file": "/assets/models/modular-village/source/Wood_Railing_Stairs.obj",
-         "size": 23319
-        },
-        {
-         "name": "Wood_Railing_Straight.obj",
-         "file": "/assets/models/modular-village/source/Wood_Railing_Straight.obj",
-         "size": 14323
-        },
-        {
-         "name": "Wood_Rope_Corner.obj",
-         "file": "/assets/models/modular-village/source/Wood_Rope_Corner.obj",
-         "size": 30057
-        },
-        {
-         "name": "Wood_Rope_Stairs.obj",
-         "file": "/assets/models/modular-village/source/Wood_Rope_Stairs.obj",
-         "size": 26633
-        },
-        {
-         "name": "Wood_Rope_Straight.obj",
-         "file": "/assets/models/modular-village/source/Wood_Rope_Straight.obj",
-         "size": 12989
-        },
-        {
-         "name": "Wood_Steps.obj",
-         "file": "/assets/models/modular-village/source/Wood_Steps.obj",
-         "size": 22299
-        },
-        {
-         "name": "Wood_Steps_Stucco.obj",
-         "file": "/assets/models/modular-village/source/Wood_Steps_Stucco.obj",
-         "size": 21587
-        }
-       ]
-      },
-      {
-       "name": "Canopy_Beam.glb",
-       "file": "/assets/models/modular-village/Canopy_Beam.glb",
-       "size": 2180
-      },
-      {
-       "name": "Canopy_Beam_Short.glb",
-       "file": "/assets/models/modular-village/Canopy_Beam_Short.glb",
-       "size": 2188
-      },
-      {
-       "name": "Canopy_Corner.glb",
-       "file": "/assets/models/modular-village/Canopy_Corner.glb",
-       "size": 8264
-      },
-      {
-       "name": "Canopy_Full.glb",
-       "file": "/assets/models/modular-village/Canopy_Full.glb",
-       "size": 10640
-      },
-      {
-       "name": "Canopy_Ramp_Corner.glb",
-       "file": "/assets/models/modular-village/Canopy_Ramp_Corner.glb",
-       "size": 8324
-      },
-      {
-       "name": "Canopy_Ramp_Full.glb",
-       "file": "/assets/models/modular-village/Canopy_Ramp_Full.glb",
-       "size": 10728
-      },
-      {
-       "name": "Canopy_Ramp_Mid.glb",
-       "file": "/assets/models/modular-village/Canopy_Ramp_Mid.glb",
-       "size": 5916
-      },
-      {
-       "name": "Canopy_Side.glb",
-       "file": "/assets/models/modular-village/Canopy_Side.glb",
-       "size": 5892
-      },
-      {
-       "name": "Canopy_Sides_Opposite.glb",
-       "file": "/assets/models/modular-village/Canopy_Sides_Opposite.glb",
-       "size": 9448
-      },
-      {
-       "name": "Canopy_Top.glb",
-       "file": "/assets/models/modular-village/Canopy_Top.glb",
-       "size": 2144
-      },
-      {
-       "name": "Cobblestone_Dirt_Transition_1.glb",
-       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_1.glb",
-       "size": 30440
-      },
-      {
-       "name": "Cobblestone_Dirt_Transition_2.glb",
-       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_2.glb",
-       "size": 27912
-      },
-      {
-       "name": "Cobblestone_Dirt_Transition_3.glb",
-       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_3.glb",
-       "size": 28776
-      },
-      {
-       "name": "Cobblestone_Dirt_Transition_4.glb",
-       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_4.glb",
-       "size": 27668
-      },
-      {
-       "name": "Cobblestone_Floor_1.glb",
-       "file": "/assets/models/modular-village/Cobblestone_Floor_1.glb",
-       "size": 76552
-      },
-      {
-       "name": "Dirt_Fading.glb",
-       "file": "/assets/models/modular-village/Dirt_Fading.glb",
-       "size": 2128
-      },
-      {
-       "name": "Dirt_Fading_from_Gathered.glb",
-       "file": "/assets/models/modular-village/Dirt_Fading_from_Gathered.glb",
-       "size": 2140
-      },
-      {
-       "name": "Dirt_Gathered_Corner.glb",
-       "file": "/assets/models/modular-village/Dirt_Gathered_Corner.glb",
-       "size": 3644
-      },
-      {
-       "name": "Dirt_Gathered_Straight.glb",
-       "file": "/assets/models/modular-village/Dirt_Gathered_Straight.glb",
-       "size": 2372
-      },
-      {
-       "name": "Kit_Window_Upper_Convex.glb",
-       "file": "/assets/models/modular-village/Kit_Window_Upper_Convex.glb",
-       "size": 41324
-      },
-      {
-       "name": "Kit_Window_Upper_Straight.glb",
-       "file": "/assets/models/modular-village/Kit_Window_Upper_Straight.glb",
-       "size": 37544
-      },
-      {
-       "name": "Prop_Barrel_1.glb",
-       "file": "/assets/models/modular-village/Prop_Barrel_1.glb",
-       "size": 27524
-      },
-      {
-       "name": "Prop_Barrel_1_Open.glb",
-       "file": "/assets/models/modular-village/Prop_Barrel_1_Open.glb",
-       "size": 42712
-      },
-      {
-       "name": "Prop_Barrel_2.glb",
-       "file": "/assets/models/modular-village/Prop_Barrel_2.glb",
-       "size": 28672
-      },
-      {
-       "name": "Prop_Boat_1.glb",
-       "file": "/assets/models/modular-village/Prop_Boat_1.glb",
-       "size": 15276
-      },
-      {
-       "name": "Prop_Boat_2.glb",
-       "file": "/assets/models/modular-village/Prop_Boat_2.glb",
-       "size": 16864
-      },
-      {
-       "name": "Prop_Boat_Oars_1.glb",
-       "file": "/assets/models/modular-village/Prop_Boat_Oars_1.glb",
-       "size": 10608
-      },
-      {
-       "name": "Prop_Boat_Oars_2.glb",
-       "file": "/assets/models/modular-village/Prop_Boat_Oars_2.glb",
-       "size": 10608
-      },
-      {
-       "name": "Prop_Broom.glb",
-       "file": "/assets/models/modular-village/Prop_Broom.glb",
-       "size": 17668
-      },
-      {
-       "name": "Prop_Cart_1.glb",
-       "file": "/assets/models/modular-village/Prop_Cart_1.glb",
-       "size": 95672
-      },
-      {
-       "name": "Prop_Cart_1_Barrels.glb",
-       "file": "/assets/models/modular-village/Prop_Cart_1_Barrels.glb",
-       "size": 208352
-      },
-      {
-       "name": "Prop_Cart_1_Hay.glb",
-       "file": "/assets/models/modular-village/Prop_Cart_1_Hay.glb",
-       "size": 183240
-      },
-      {
-       "name": "Prop_Crate_1.glb",
-       "file": "/assets/models/modular-village/Prop_Crate_1.glb",
-       "size": 34788
-      },
-      {
-       "name": "Prop_Crate_1_Open.glb",
-       "file": "/assets/models/modular-village/Prop_Crate_1_Open.glb",
-       "size": 36564
-      },
-      {
-       "name": "Prop_Hay_1.glb",
-       "file": "/assets/models/modular-village/Prop_Hay_1.glb",
-       "size": 43236
-      },
-      {
-       "name": "Prop_Ladder_1.glb",
-       "file": "/assets/models/modular-village/Prop_Ladder_1.glb",
-       "size": 20500
-      },
-      {
-       "name": "Prop_Lamp_Street.glb",
-       "file": "/assets/models/modular-village/Prop_Lamp_Street.glb",
-       "size": 36844
-      },
-      {
-       "name": "Prop_Well_1.glb",
-       "file": "/assets/models/modular-village/Prop_Well_1.glb",
-       "size": 104824
-      },
-      {
-       "name": "Prop_Well_Cobblestone.glb",
-       "file": "/assets/models/modular-village/Prop_Well_Cobblestone.glb",
-       "size": 19976
-      },
-      {
-       "name": "Prop_Well_Dirt.glb",
-       "file": "/assets/models/modular-village/Prop_Well_Dirt.glb",
-       "size": 4496
-      },
-      {
-       "name": "Prop_Well_Grass.glb",
-       "file": "/assets/models/modular-village/Prop_Well_Grass.glb",
-       "size": 4504
-      },
-      {
-       "name": "Prop_Well_Inside.glb",
-       "file": "/assets/models/modular-village/Prop_Well_Inside.glb",
-       "size": 5432
-      },
-      {
-       "name": "Roof_Accent_Rake_Concave.glb",
-       "file": "/assets/models/modular-village/Roof_Accent_Rake_Concave.glb",
-       "size": 3500
-      },
-      {
-       "name": "Roof_Accent_Rake_Convex.glb",
-       "file": "/assets/models/modular-village/Roof_Accent_Rake_Convex.glb",
-       "size": 3496
-      },
-      {
-       "name": "Roof_Accent_Rake_Eave.glb",
-       "file": "/assets/models/modular-village/Roof_Accent_Rake_Eave.glb",
-       "size": 2212
-      },
-      {
-       "name": "Roof_Accent_Rake_Straight.glb",
-       "file": "/assets/models/modular-village/Roof_Accent_Rake_Straight.glb",
-       "size": 2200
-      },
-      {
-       "name": "Roof_Accent_Ridge.glb",
-       "file": "/assets/models/modular-village/Roof_Accent_Ridge.glb",
-       "size": 2192
-      },
-      {
-       "name": "Roof_Accent_Ridge_End.glb",
-       "file": "/assets/models/modular-village/Roof_Accent_Ridge_End.glb",
-       "size": 3984
-      },
-      {
-       "name": "Roof_Concave_Corner_Inner.glb",
-       "file": "/assets/models/modular-village/Roof_Concave_Corner_Inner.glb",
-       "size": 9824
-      },
-      {
-       "name": "Roof_Concave_Corner_Outer.glb",
-       "file": "/assets/models/modular-village/Roof_Concave_Corner_Outer.glb",
-       "size": 9444
-      },
-      {
-       "name": "Roof_Concave_Corner_Outer_Eave.glb",
-       "file": "/assets/models/modular-village/Roof_Concave_Corner_Outer_Eave.glb",
-       "size": 13608
-      },
-      {
-       "name": "Roof_Concave_Side.glb",
-       "file": "/assets/models/modular-village/Roof_Concave_Side.glb",
-       "size": 9112
-      },
-      {
-       "name": "Roof_Concave_Side_Eave.glb",
-       "file": "/assets/models/modular-village/Roof_Concave_Side_Eave.glb",
-       "size": 11172
-      },
-      {
-       "name": "Roof_Concave_Side_Eave_Edge.glb",
-       "file": "/assets/models/modular-village/Roof_Concave_Side_Eave_Edge.glb",
-       "size": 15660
-      },
-      {
-       "name": "Roof_Concave_Side_Edge.glb",
-       "file": "/assets/models/modular-village/Roof_Concave_Side_Edge.glb",
-       "size": 13644
-      },
-      {
-       "name": "Roof_Convex_Corner_Inner.glb",
-       "file": "/assets/models/modular-village/Roof_Convex_Corner_Inner.glb",
-       "size": 9764
-      },
-      {
-       "name": "Roof_Convex_Corner_Outer.glb",
-       "file": "/assets/models/modular-village/Roof_Convex_Corner_Outer.glb",
-       "size": 9008
-      },
-      {
-       "name": "Roof_Convex_Corner_Outer_Eave.glb",
-       "file": "/assets/models/modular-village/Roof_Convex_Corner_Outer_Eave.glb",
-       "size": 12936
-      },
-      {
-       "name": "Roof_Convex_Side.glb",
-       "file": "/assets/models/modular-village/Roof_Convex_Side.glb",
-       "size": 9112
-      },
-      {
-       "name": "Roof_Convex_Side_Eave.glb",
-       "file": "/assets/models/modular-village/Roof_Convex_Side_Eave.glb",
-       "size": 11172
-      },
-      {
-       "name": "Roof_Convex_Side_Eave_Edge.glb",
-       "file": "/assets/models/modular-village/Roof_Convex_Side_Eave_Edge.glb",
-       "size": 15676
-      },
-      {
-       "name": "Roof_Convex_Side_Edge.glb",
-       "file": "/assets/models/modular-village/Roof_Convex_Side_Edge.glb",
-       "size": 13644
-      },
-      {
-       "name": "Roof_Prop_Chimney_Pipe.glb",
-       "file": "/assets/models/modular-village/Roof_Prop_Chimney_Pipe.glb",
-       "size": 15916
-      },
-      {
-       "name": "Roof_Prop_Chimney_Stone.glb",
-       "file": "/assets/models/modular-village/Roof_Prop_Chimney_Stone.glb",
-       "size": 8096
-      },
-      {
-       "name": "Roof_Straight_Corner_Inner.glb",
-       "file": "/assets/models/modular-village/Roof_Straight_Corner_Inner.glb",
-       "size": 9944
-      },
-      {
-       "name": "Roof_Straight_Corner_Outer.glb",
-       "file": "/assets/models/modular-village/Roof_Straight_Corner_Outer.glb",
-       "size": 8820
-      },
-      {
-       "name": "Roof_Straight_Corner_Outer_Eave.glb",
-       "file": "/assets/models/modular-village/Roof_Straight_Corner_Outer_Eave.glb",
-       "size": 12604
-      },
-      {
-       "name": "Roof_Straight_Side.glb",
-       "file": "/assets/models/modular-village/Roof_Straight_Side.glb",
-       "size": 9116
-      },
-      {
-       "name": "Roof_Straight_Side_Eave.glb",
-       "file": "/assets/models/modular-village/Roof_Straight_Side_Eave.glb",
-       "size": 11176
-      },
-      {
-       "name": "Roof_Straight_Side_Eave_Edge.glb",
-       "file": "/assets/models/modular-village/Roof_Straight_Side_Eave_Edge.glb",
-       "size": 14316
-      },
-      {
-       "name": "Roof_Straight_Side_Edge.glb",
-       "file": "/assets/models/modular-village/Roof_Straight_Side_Edge.glb",
-       "size": 12356
-      },
-      {
-       "name": "Stone_Arch.glb",
-       "file": "/assets/models/modular-village/Stone_Arch.glb",
-       "size": 3868
-      },
-      {
-       "name": "Stone_Arch_Outer.glb",
-       "file": "/assets/models/modular-village/Stone_Arch_Outer.glb",
-       "size": 91864
-      },
-      {
-       "name": "Stone_Curb_1.glb",
-       "file": "/assets/models/modular-village/Stone_Curb_1.glb",
-       "size": 23760
-      },
-      {
-       "name": "Stone_Curb_2.glb",
-       "file": "/assets/models/modular-village/Stone_Curb_2.glb",
-       "size": 20688
-      },
-      {
-       "name": "Stone_Curb_3.glb",
-       "file": "/assets/models/modular-village/Stone_Curb_3.glb",
-       "size": 23756
-      },
-      {
-       "name": "Stone_Curb_4.glb",
-       "file": "/assets/models/modular-village/Stone_Curb_4.glb",
-       "size": 23696
-      },
-      {
-       "name": "Stone_Doorway_Narrow_Tall_1.glb",
-       "file": "/assets/models/modular-village/Stone_Doorway_Narrow_Tall_1.glb",
-       "size": 9868
-      },
-      {
-       "name": "Stone_Doorway_Narrow_Tall_2.glb",
-       "file": "/assets/models/modular-village/Stone_Doorway_Narrow_Tall_2.glb",
-       "size": 11544
-      },
-      {
-       "name": "Stone_Doorway_Wide_Tall_1.glb",
-       "file": "/assets/models/modular-village/Stone_Doorway_Wide_Tall_1.glb",
-       "size": 62836
-      },
-      {
-       "name": "Stone_Doorway_Wide_Tall_2.glb",
-       "file": "/assets/models/modular-village/Stone_Doorway_Wide_Tall_2.glb",
-       "size": 64636
-      },
-      {
-       "name": "Stone_Floor_1.glb",
-       "file": "/assets/models/modular-village/Stone_Floor_1.glb",
-       "size": 27180
-      },
-      {
-       "name": "Stone_Floor_2.glb",
-       "file": "/assets/models/modular-village/Stone_Floor_2.glb",
-       "size": 24076
-      },
-      {
-       "name": "Stone_Pillar.glb",
-       "file": "/assets/models/modular-village/Stone_Pillar.glb",
-       "size": 7728
-      },
-      {
-       "name": "Stone_Pillar_Base.glb",
-       "file": "/assets/models/modular-village/Stone_Pillar_Base.glb",
-       "size": 4732
-      },
-      {
-       "name": "Stone_Sewer_Grate_1.glb",
-       "file": "/assets/models/modular-village/Stone_Sewer_Grate_1.glb",
-       "size": 29248
-      },
-      {
-       "name": "Stone_Sewer_Grate_2.glb",
-       "file": "/assets/models/modular-village/Stone_Sewer_Grate_2.glb",
-       "size": 30032
-      },
-      {
-       "name": "Stone_Stairs_Railing.glb",
-       "file": "/assets/models/modular-village/Stone_Stairs_Railing.glb",
-       "size": 21476
-      },
-      {
-       "name": "Stone_Steps.glb",
-       "file": "/assets/models/modular-village/Stone_Steps.glb",
-       "size": 4972
-      },
-      {
-       "name": "Stone_Steps_Side_1.glb",
-       "file": "/assets/models/modular-village/Stone_Steps_Side_1.glb",
-       "size": 23616
-      },
-      {
-       "name": "Stone_Steps_Side_2.glb",
-       "file": "/assets/models/modular-village/Stone_Steps_Side_2.glb",
-       "size": 25456
-      },
-      {
-       "name": "Stone_Wall_1.glb",
-       "file": "/assets/models/modular-village/Stone_Wall_1.glb",
-       "size": 8628
-      },
-      {
-       "name": "Stone_Wall_2.glb",
-       "file": "/assets/models/modular-village/Stone_Wall_2.glb",
-       "size": 10188
-      },
-      {
-       "name": "Stone_Wall_3.glb",
-       "file": "/assets/models/modular-village/Stone_Wall_3.glb",
-       "size": 10156
-      },
-      {
-       "name": "Stone_Wall_4.glb",
-       "file": "/assets/models/modular-village/Stone_Wall_4.glb",
-       "size": 12068
-      },
-      {
-       "name": "Stone_Wall_5.glb",
-       "file": "/assets/models/modular-village/Stone_Wall_5.glb",
-       "size": 9376
-      },
-      {
-       "name": "Stone_to_Stucco_Doorway_Wide_Tall_1.glb",
-       "file": "/assets/models/modular-village/Stone_to_Stucco_Doorway_Wide_Tall_1.glb",
-       "size": 57156
-      },
-      {
-       "name": "Stone_to_Stucco_Doorway_Wide_Tall_2.glb",
-       "file": "/assets/models/modular-village/Stone_to_Stucco_Doorway_Wide_Tall_2.glb",
-       "size": 59656
-      },
-      {
-       "name": "Stucco_Arch_Half.glb",
-       "file": "/assets/models/modular-village/Stucco_Arch_Half.glb",
-       "size": 2348
-      },
-      {
-       "name": "Stucco_Arch_Half_Outer.glb",
-       "file": "/assets/models/modular-village/Stucco_Arch_Half_Outer.glb",
-       "size": 5792
-      },
-      {
-       "name": "Stucco_Block.glb",
-       "file": "/assets/models/modular-village/Stucco_Block.glb",
-       "size": 2108
-      },
-      {
-       "name": "Stucco_Doorway_Narrow_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Doorway_Narrow_Tall.glb",
-       "size": 6064
-      },
-      {
-       "name": "Stucco_Doorway_Wide_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Doorway_Wide_Tall.glb",
-       "size": 6928
-      },
-      {
-       "name": "Stucco_Prop_Support_Angled_Large.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Angled_Large.glb",
-       "size": 2420
-      },
-      {
-       "name": "Stucco_Prop_Support_Angled_Low.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Angled_Low.glb",
-       "size": 2200
-      },
-      {
-       "name": "Stucco_Prop_Support_Angled_Small.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Angled_Small.glb",
-       "size": 2200
-      },
-      {
-       "name": "Stucco_Prop_Support_Beam_1.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Beam_1.glb",
-       "size": 2200
-      },
-      {
-       "name": "Stucco_Prop_Support_Beam_2.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Beam_2.glb",
-       "size": 3596
-      },
-      {
-       "name": "Stucco_Prop_Support_Beam_3.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Beam_3.glb",
-       "size": 3600
-      },
-      {
-       "name": "Stucco_Prop_Support_Pillar_1.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Pillar_1.glb",
-       "size": 2196
-      },
-      {
-       "name": "Stucco_Prop_Support_Pillar_2.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Pillar_2.glb",
-       "size": 3588
-      },
-      {
-       "name": "Stucco_Prop_Support_Pillar_3.glb",
-       "file": "/assets/models/modular-village/Stucco_Prop_Support_Pillar_3.glb",
-       "size": 3592
-      },
-      {
-       "name": "Stucco_Window_Double_Narrow.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Double_Narrow.glb",
-       "size": 16144
-      },
-      {
-       "name": "Stucco_Window_Double_Narrow_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Double_Narrow_Tall.glb",
-       "size": 16128
-      },
-      {
-       "name": "Stucco_Window_Double_Wide.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Double_Wide.glb",
-       "size": 16440
-      },
-      {
-       "name": "Stucco_Window_Double_Wide_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Double_Wide_Tall.glb",
-       "size": 16432
-      },
-      {
-       "name": "Stucco_Window_Rounded_Narrow.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Narrow.glb",
-       "size": 14272
-      },
-      {
-       "name": "Stucco_Window_Rounded_Narrow_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Narrow_Tall.glb",
-       "size": 14256
-      },
-      {
-       "name": "Stucco_Window_Rounded_Wide.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Wide.glb",
-       "size": 14336
-      },
-      {
-       "name": "Stucco_Window_Rounded_Wide_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Wide_Tall.glb",
-       "size": 14320
-      },
-      {
-       "name": "Stucco_Window_Single_Narrow.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Single_Narrow.glb",
-       "size": 12336
-      },
-      {
-       "name": "Stucco_Window_Single_Narrow_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Single_Narrow_Tall.glb",
-       "size": 12320
-      },
-      {
-       "name": "Stucco_Window_Single_Wide.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Single_Wide.glb",
-       "size": 12324
-      },
-      {
-       "name": "Stucco_Window_Single_Wide_Tall.glb",
-       "file": "/assets/models/modular-village/Stucco_Window_Single_Wide_Tall.glb",
-       "size": 12308
-      },
-      {
-       "name": "Wall_Prop_Bell_1.glb",
-       "file": "/assets/models/modular-village/Wall_Prop_Bell_1.glb",
-       "size": 34400
-      },
-      {
-       "name": "Wall_Prop_Door_Ornate.glb",
-       "file": "/assets/models/modular-village/Wall_Prop_Door_Ornate.glb",
-       "size": 30220
-      },
-      {
-       "name": "Wall_Prop_Door_Simple.glb",
-       "file": "/assets/models/modular-village/Wall_Prop_Door_Simple.glb",
-       "size": 21080
-      },
-      {
-       "name": "Wall_Prop_Lamp.glb",
-       "file": "/assets/models/modular-village/Wall_Prop_Lamp.glb",
-       "size": 33456
-      },
-      {
-       "name": "Wall_Prop_Sign_1.glb",
-       "file": "/assets/models/modular-village/Wall_Prop_Sign_1.glb",
-       "size": 52112
-      },
-      {
-       "name": "Wall_Prop_Windmill_1.glb",
-       "file": "/assets/models/modular-village/Wall_Prop_Windmill_1.glb",
-       "size": 48244
-      },
-      {
-       "name": "Waterwheel_1.glb",
-       "file": "/assets/models/modular-village/Waterwheel_1.glb",
-       "size": 88688
-      },
-      {
-       "name": "Waterwheel_Flume_Curved.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_Curved.glb",
-       "size": 6768
-      },
-      {
-       "name": "Waterwheel_Flume_End.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_End.glb",
-       "size": 5396
-      },
-      {
-       "name": "Waterwheel_Flume_Ramp.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_Ramp.glb",
-       "size": 4768
-      },
-      {
-       "name": "Waterwheel_Flume_Ramp_Supported.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_Ramp_Supported.glb",
-       "size": 6584
-      },
-      {
-       "name": "Waterwheel_Flume_Straight.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_Straight.glb",
-       "size": 4776
-      },
-      {
-       "name": "Waterwheel_Flume_Support_Brace.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_Support_Brace.glb",
-       "size": 2156
-      },
-      {
-       "name": "Waterwheel_Flume_Support_Brace_Double.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_Support_Brace_Double.glb",
-       "size": 3028
-      },
-      {
-       "name": "Waterwheel_Flume_Support_Pillar.glb",
-       "file": "/assets/models/modular-village/Waterwheel_Flume_Support_Pillar.glb",
-       "size": 2216
-      },
-      {
-       "name": "Wood_Baseboard.glb",
-       "file": "/assets/models/modular-village/Wood_Baseboard.glb",
-       "size": 2188
-      },
-      {
-       "name": "Wood_Floor_Corner.glb",
-       "file": "/assets/models/modular-village/Wood_Floor_Corner.glb",
-       "size": 9244
-      },
-      {
-       "name": "Wood_Floor_Straight_1.glb",
-       "file": "/assets/models/modular-village/Wood_Floor_Straight_1.glb",
-       "size": 7632
-      },
-      {
-       "name": "Wood_Floor_Straight_2.glb",
-       "file": "/assets/models/modular-village/Wood_Floor_Straight_2.glb",
-       "size": 8408
-      },
-      {
-       "name": "Wood_Floor_Straight_3.glb",
-       "file": "/assets/models/modular-village/Wood_Floor_Straight_3.glb",
-       "size": 7632
-      },
-      {
-       "name": "Wood_Floor_Straight_4.glb",
-       "file": "/assets/models/modular-village/Wood_Floor_Straight_4.glb",
-       "size": 8408
-      },
-      {
-       "name": "Wood_Post_Large.glb",
-       "file": "/assets/models/modular-village/Wood_Post_Large.glb",
-       "size": 3344
-      },
-      {
-       "name": "Wood_Post_Small.glb",
-       "file": "/assets/models/modular-village/Wood_Post_Small.glb",
-       "size": 2764
-      },
-      {
-       "name": "Wood_Railing_Corner.glb",
-       "file": "/assets/models/modular-village/Wood_Railing_Corner.glb",
-       "size": 19288
-      },
-      {
-       "name": "Wood_Railing_Stairs.glb",
-       "file": "/assets/models/modular-village/Wood_Railing_Stairs.glb",
-       "size": 17324
-      },
-      {
-       "name": "Wood_Railing_Straight.glb",
-       "file": "/assets/models/modular-village/Wood_Railing_Straight.glb",
-       "size": 10944
-      },
-      {
-       "name": "Wood_Rope_Corner.glb",
-       "file": "/assets/models/modular-village/Wood_Rope_Corner.glb",
-       "size": 15708
-      },
-      {
-       "name": "Wood_Rope_Stairs.glb",
-       "file": "/assets/models/modular-village/Wood_Rope_Stairs.glb",
-       "size": 14380
-      },
-      {
-       "name": "Wood_Rope_Straight.glb",
-       "file": "/assets/models/modular-village/Wood_Rope_Straight.glb",
-       "size": 7520
-      },
-      {
-       "name": "Wood_Steps.glb",
-       "file": "/assets/models/modular-village/Wood_Steps.glb",
-       "size": 10412
-      },
-      {
-       "name": "Wood_Steps_Stucco.glb",
-       "file": "/assets/models/modular-village/Wood_Steps_Stucco.glb",
-       "size": 11100
       }
      ]
     },
@@ -4929,6 +4774,541 @@
          "name": "model.glb",
          "file": "/assets/models/vehicles/ww2-truck/model.glb",
          "size": 205088
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "weapons",
+     "assets": [
+      {
+       "name": "ammo",
+       "assets": [
+        {
+         "name": "30-06-springfield",
+         "assets": [
+          {
+           "name": "bullet.blend",
+           "file": "/assets/models/weapons/ammo/30-06-springfield/bullet.blend",
+           "size": 93366
+          },
+          {
+           "name": "bullet.glb",
+           "file": "/assets/models/weapons/ammo/30-06-springfield/bullet.glb",
+           "size": 9200
+          },
+          {
+           "name": "case.blend",
+           "file": "/assets/models/weapons/ammo/30-06-springfield/case.blend",
+           "size": 93886
+          },
+          {
+           "name": "case.glb",
+           "file": "/assets/models/weapons/ammo/30-06-springfield/case.glb",
+           "size": 11620
+          },
+          {
+           "name": "round.blend",
+           "file": "/assets/models/weapons/ammo/30-06-springfield/round.blend",
+           "size": 97685
+          },
+          {
+           "name": "round.glb",
+           "file": "/assets/models/weapons/ammo/30-06-springfield/round.glb",
+           "size": 14168
+          }
+         ]
+        },
+        {
+         "name": "45-acp",
+         "assets": [
+          {
+           "name": "bullet.blend",
+           "file": "/assets/models/weapons/ammo/45-acp/bullet.blend",
+           "size": 92128
+          },
+          {
+           "name": "bullet.glb",
+           "file": "/assets/models/weapons/ammo/45-acp/bullet.glb",
+           "size": 5988
+          },
+          {
+           "name": "case.blend",
+           "file": "/assets/models/weapons/ammo/45-acp/case.blend",
+           "size": 93931
+          },
+          {
+           "name": "case.glb",
+           "file": "/assets/models/weapons/ammo/45-acp/case.glb",
+           "size": 11060
+          },
+          {
+           "name": "round.blend",
+           "file": "/assets/models/weapons/ammo/45-acp/round.blend",
+           "size": 97836
+          },
+          {
+           "name": "round.glb",
+           "file": "/assets/models/weapons/ammo/45-acp/round.glb",
+           "size": 13616
+          }
+         ]
+        },
+        {
+         "name": "762x25-tokarev",
+         "assets": [
+          {
+           "name": "bullet.blend",
+           "file": "/assets/models/weapons/ammo/762x25-tokarev/bullet.blend",
+           "size": 92245
+          },
+          {
+           "name": "bullet.glb",
+           "file": "/assets/models/weapons/ammo/762x25-tokarev/bullet.glb",
+           "size": 6008
+          },
+          {
+           "name": "case.blend",
+           "file": "/assets/models/weapons/ammo/762x25-tokarev/case.blend",
+           "size": 95459
+          },
+          {
+           "name": "case.glb",
+           "file": "/assets/models/weapons/ammo/762x25-tokarev/case.glb",
+           "size": 16060
+          },
+          {
+           "name": "round.blend",
+           "file": "/assets/models/weapons/ammo/762x25-tokarev/round.blend",
+           "size": 99126
+          },
+          {
+           "name": "round.glb",
+           "file": "/assets/models/weapons/ammo/762x25-tokarev/round.glb",
+           "size": 17496
+          }
+         ]
+        },
+        {
+         "name": "792x33-kurz",
+         "assets": [
+          {
+           "name": "bullet.blend",
+           "file": "/assets/models/weapons/ammo/792x33-kurz/bullet.blend",
+           "size": 92833
+          },
+          {
+           "name": "bullet.glb",
+           "file": "/assets/models/weapons/ammo/792x33-kurz/bullet.glb",
+           "size": 7120
+          },
+          {
+           "name": "case.blend",
+           "file": "/assets/models/weapons/ammo/792x33-kurz/case.blend",
+           "size": 94898
+          },
+          {
+           "name": "case.glb",
+           "file": "/assets/models/weapons/ammo/792x33-kurz/case.glb",
+           "size": 14028
+          },
+          {
+           "name": "round.blend",
+           "file": "/assets/models/weapons/ammo/792x33-kurz/round.blend",
+           "size": 99498
+          },
+          {
+           "name": "round.glb",
+           "file": "/assets/models/weapons/ammo/792x33-kurz/round.glb",
+           "size": 17476
+          }
+         ]
+        },
+        {
+         "name": "9x19-parabellum",
+         "assets": [
+          {
+           "name": "bullet.blend",
+           "file": "/assets/models/weapons/ammo/9x19-parabellum/bullet.blend",
+           "size": 91846
+          },
+          {
+           "name": "bullet.glb",
+           "file": "/assets/models/weapons/ammo/9x19-parabellum/bullet.glb",
+           "size": 6020
+          },
+          {
+           "name": "case.blend",
+           "file": "/assets/models/weapons/ammo/9x19-parabellum/case.blend",
+           "size": 95493
+          },
+          {
+           "name": "case.glb",
+           "file": "/assets/models/weapons/ammo/9x19-parabellum/case.glb",
+           "size": 16060
+          },
+          {
+           "name": "round.blend",
+           "file": "/assets/models/weapons/ammo/9x19-parabellum/round.blend",
+           "size": 99154
+          },
+          {
+           "name": "round.glb",
+           "file": "/assets/models/weapons/ammo/9x19-parabellum/round.glb",
+           "size": 17696
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "grenades",
+       "assets": [
+        {
+         "name": "f1",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/grenades/f1/model.blend",
+           "size": 119047
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/grenades/f1/model.glb",
+           "size": 76876
+          }
+         ]
+        },
+        {
+         "name": "mk2",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/grenades/mk2/model.blend",
+           "size": 116940
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/grenades/mk2/model.glb",
+           "size": 70560
+          }
+         ]
+        },
+        {
+         "name": "stick-grenade",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/grenades/stick-grenade/model.blend",
+           "size": 100692
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/grenades/stick-grenade/model.glb",
+           "size": 22188
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "guns",
+       "assets": [
+        {
+         "name": "m1-garand",
+         "assets": [
+          {
+           "name": "gun.blend",
+           "file": "/assets/models/weapons/guns/m1-garand/gun.blend",
+           "size": 144950
+          },
+          {
+           "name": "gun.glb",
+           "file": "/assets/models/weapons/guns/m1-garand/gun.glb",
+           "size": 166564
+          },
+          {
+           "name": "mag.blend",
+           "file": "/assets/models/weapons/guns/m1-garand/mag.blend",
+           "size": 92042
+          },
+          {
+           "name": "mag.glb",
+           "file": "/assets/models/weapons/guns/m1-garand/mag.glb",
+           "size": 7616
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/m1-garand/model.blend",
+           "size": 92108
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/m1-garand/model.glb",
+           "size": 335844
+          }
+         ]
+        },
+        {
+         "name": "m1911",
+         "assets": [
+          {
+           "name": "gun.blend",
+           "file": "/assets/models/weapons/guns/m1911/gun.blend",
+           "size": 124216
+          },
+          {
+           "name": "gun.glb",
+           "file": "/assets/models/weapons/guns/m1911/gun.glb",
+           "size": 82460
+          },
+          {
+           "name": "mag.blend",
+           "file": "/assets/models/weapons/guns/m1911/mag.blend",
+           "size": 95350
+          },
+          {
+           "name": "mag.glb",
+           "file": "/assets/models/weapons/guns/m1911/mag.glb",
+           "size": 5248
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/m1911/model.blend",
+           "size": 92749
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/m1911/model.glb",
+           "size": 211184
+          }
+         ]
+        },
+        {
+         "name": "mauser-c96",
+         "assets": [
+          {
+           "name": "gun.blend",
+           "file": "/assets/models/weapons/guns/mauser-c96/gun.blend",
+           "size": 127516
+          },
+          {
+           "name": "gun.glb",
+           "file": "/assets/models/weapons/guns/mauser-c96/gun.glb",
+           "size": 87864
+          },
+          {
+           "name": "mag.blend",
+           "file": "/assets/models/weapons/guns/mauser-c96/mag.blend",
+           "size": 97171
+          },
+          {
+           "name": "mag.glb",
+           "file": "/assets/models/weapons/guns/mauser-c96/mag.glb",
+           "size": 4344
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/mauser-c96/model.blend",
+           "size": 92498
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/mauser-c96/model.glb",
+           "size": 218172
+          }
+         ]
+        },
+        {
+         "name": "ppsh-41",
+         "assets": [
+          {
+           "name": "gun.blend",
+           "file": "/assets/models/weapons/guns/ppsh-41/gun.blend",
+           "size": 135965
+          },
+          {
+           "name": "gun.glb",
+           "file": "/assets/models/weapons/guns/ppsh-41/gun.glb",
+           "size": 116744
+          },
+          {
+           "name": "mag.blend",
+           "file": "/assets/models/weapons/guns/ppsh-41/mag.blend",
+           "size": 112110
+          },
+          {
+           "name": "mag.glb",
+           "file": "/assets/models/weapons/guns/ppsh-41/mag.glb",
+           "size": 51308
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/ppsh-41/model.blend",
+           "size": 92468
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/ppsh-41/model.glb",
+           "size": 340792
+          }
+         ]
+        },
+        {
+         "name": "stg-44",
+         "assets": [
+          {
+           "name": "gun.blend",
+           "file": "/assets/models/weapons/guns/stg-44/gun.blend",
+           "size": 151275
+          },
+          {
+           "name": "gun.glb",
+           "file": "/assets/models/weapons/guns/stg-44/gun.glb",
+           "size": 158260
+          },
+          {
+           "name": "mag.blend",
+           "file": "/assets/models/weapons/guns/stg-44/mag.blend",
+           "size": 99550
+          },
+          {
+           "name": "mag.glb",
+           "file": "/assets/models/weapons/guns/stg-44/mag.glb",
+           "size": 10800
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/stg-44/model.blend",
+           "size": 92626
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/stg-44/model.glb",
+           "size": 343212
+          }
+         ]
+        },
+        {
+         "name": "thompson-m1",
+         "assets": [
+          {
+           "name": "gun.blend",
+           "file": "/assets/models/weapons/guns/thompson-m1/gun.blend",
+           "size": 128423
+          },
+          {
+           "name": "gun.glb",
+           "file": "/assets/models/weapons/guns/thompson-m1/gun.glb",
+           "size": 99772
+          },
+          {
+           "name": "mag.blend",
+           "file": "/assets/models/weapons/guns/thompson-m1/mag.blend",
+           "size": 95020
+          },
+          {
+           "name": "mag.glb",
+           "file": "/assets/models/weapons/guns/thompson-m1/mag.glb",
+           "size": 7092
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/thompson-m1/model.blend",
+           "size": 92604
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/thompson-m1/model.glb",
+           "size": 239872
+          }
+         ]
+        },
+        {
+         "name": "tt-pistol",
+         "assets": [
+          {
+           "name": "gun.blend",
+           "file": "/assets/models/weapons/guns/tt-pistol/gun.blend",
+           "size": 123324
+          },
+          {
+           "name": "gun.glb",
+           "file": "/assets/models/weapons/guns/tt-pistol/gun.glb",
+           "size": 77644
+          },
+          {
+           "name": "mag.blend",
+           "file": "/assets/models/weapons/guns/tt-pistol/mag.blend",
+           "size": 95321
+          },
+          {
+           "name": "mag.glb",
+           "file": "/assets/models/weapons/guns/tt-pistol/mag.glb",
+           "size": 8120
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/tt-pistol/model.blend",
+           "size": 92771
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/tt-pistol/model.glb",
+           "size": 214460
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "knives",
+       "assets": [
+        {
+         "name": "german-knife",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/knives/german-knife/model.blend",
+           "size": 102302
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/knives/german-knife/model.glb",
+           "size": 26240
+          }
+         ]
+        },
+        {
+         "name": "ka-bar",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/knives/ka-bar/model.blend",
+           "size": 109060
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/knives/ka-bar/model.glb",
+           "size": 42076
+          }
+         ]
+        },
+        {
+         "name": "nr-40",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/knives/nr-40/model.blend",
+           "size": 97645
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/knives/nr-40/model.glb",
+           "size": 14140
+          }
+         ]
         }
        ]
       }

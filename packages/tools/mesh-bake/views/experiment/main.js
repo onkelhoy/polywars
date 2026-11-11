@@ -362,7 +362,7 @@ function frame(time) {
 }
 requestAnimationFrame(frame);
 
-// start: url from the hash, e.g. #/assets/models/modular-village/Stone_Floor_1.glb
+// start: url from the hash, e.g. #/assets/models/buildings/modular-village/Stone_Floor_1.glb
 renderForm();
 const start = decodeURIComponent(location.hash.slice(1));
 if (start) { $('#url').value = start; openUrl(start); }

@@ -22,7 +22,7 @@ npm install @polywar/city
 
 ```js
 import { city, registerStyle } from "@polywar/city";
-registerStyle(medievalStyle(kitSource(base, baked)));
+registerStyle(medievalStyle(kitSource(base)));
 const { lots, streets, pieces } = city({ style: "medieval", seed: 1, radius: 2 });
 ```
 

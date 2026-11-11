@@ -25,7 +25,7 @@ import { building, DEFAULTS, encode, medievalStyle, kitSource } from "@polywar/c
 const house = building({ ...DEFAULTS, floors: [2, 3], windmill: "on" }, 42); // { pieces: {piece, matrix}[], features }
 ```
 
-Same settings + seed = same house. Pieces are Modular Village kit names with a column-major matrix (may contain scale); `compose(pieces, kitSource(base, baked))` turns them into one GLTF. `medievalStyle(source)` is the `@polywar/city` style (houses, streets, squares).
+Same settings + seed = same house. Pieces are Modular Village kit names with a column-major matrix (may contain scale); `compose(pieces, kitSource(base))` turns them into one GLTF. `medievalStyle(source)` is the `@polywar/city` style (houses, streets, squares).
 
 Cells are 1 m, Y up, main box at x 0..w-1, z 0..d-1, ridge along x, front door on +Z.
 Pipeline (`building.ts`): `massing` (boxes) -> `walls.plan` (faces, bays, door) -> feature `plan` -> `walls` -> `roof` per box -> feature `build`. Each feature lives in `src/features/` as `{ name, key, fits, plan, build }` with its own `rng.fork`, so toggling one does not reshuffle the others.

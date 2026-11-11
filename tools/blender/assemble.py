@@ -10,7 +10,7 @@ opt = dict(a.split("=", 1) for a in args if "=" in a)
 files = [a for a in args if "=" not in a]
 src, outs = files[0], files[1:]
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-KIT = os.path.join(ROOT, "assets/models/modular-village")
+KIT = os.path.join(ROOT, "assets/models/buildings/modular-village")
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 C = Matrix(((1, 0, 0, 0), (0, 0, -1, 0), (0, 1, 0, 0), (0, 0, 0, 1)))  # glTF Y up -> Blender Z up

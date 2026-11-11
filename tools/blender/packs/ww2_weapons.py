@@ -2,7 +2,7 @@
 
   blender -b -P tools/blender/packs/ww2_weapons.py -- <pack.blend> [--force]
 
-Writes assets/models/{guns,ammo,knives,grenades}/<slug>/... . Existing files are kept (they may hold
+Writes assets/models/weapons/{guns,ammo,knives,grenades}/<slug>/... . Existing files are kept (they may hold
 hand edits) unless --force; delete one file to regenerate just that one. Part numbers are loose pieces of the source
 gun mesh, largest first (see pw.loose_parts). Positions are cm in the source frame relative to
 the gun's bounding box centre: x = muzzle, y = left, z = up.
@@ -88,18 +88,18 @@ def keep(path):
 
 def ammo(src, cal, names):
     for part, name in zip(("round", "bullet", "case"), names):
-        if keep(os.path.join(pw.ASSETS, "models", "ammo", cal, f"{part}.blend")):
+        if keep(os.path.join(pw.ASSETS, "models", "weapons", "ammo", cal, f"{part}.blend")):
             continue
         pw.empty_file()
         o = pw.append_object(src, name)
         pw.bake(o, Matrix.Rotation(math.radians(-90), 4, "X") @ scale_only(o))  # tip +Z -> +Y
         lo, hi = pw.bbox(v.co for v in o.data.vertices)
         pw.bake(o, Matrix.Translation(-Vector(((lo.x + hi.x) / 2, lo.y, (lo.z + hi.z) / 2))))  # base at origin
-        pw.save_part(o, f"{cal}-{part}", os.path.join(pw.ASSETS, "models", "ammo", cal, f"{part}.blend"))
+        pw.save_part(o, f"{cal}-{part}", os.path.join(pw.ASSETS, "models", "weapons", "ammo", cal, f"{part}.blend"))
 
 
 def gun(src, g):
-    folder = os.path.join(pw.ASSETS, "models", "guns", g["slug"])
+    folder = os.path.join(pw.ASSETS, "models", "weapons", "guns", g["slug"])
     pw.empty_file()
     o = pw.append_object(src, g["src"])
     lo, hi = pw.world_bbox(o)
@@ -174,7 +174,7 @@ def main():
         gun(src, g)
     for kind, slug, name in SINGLE:
         _names[slug] = name
-        single(src, os.path.join(pw.ASSETS, "models", kind, slug), slug, kind == "grenades")
+        single(src, os.path.join(pw.ASSETS, "models", "weapons", kind, slug), slug, kind == "grenades")
 
 
 main()

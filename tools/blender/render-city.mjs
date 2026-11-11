@@ -8,7 +8,7 @@ const { city, registerStyle } = await import(join(ROOT, "packages/generators/cit
 const [out, options = "{}", ...rest] = process.argv.slice(2);
 registerStyle(medievalStyle(kitSource("")));
 const c = city({ style: "medieval", ...JSON.parse(options) });
-const baked = p => `assets/models/modular-village-baked/${p}/model.glb`;
+const baked = p => `assets/models/buildings/modular-village/baked/${p}/model.glb`;
 const list = c.pieces.map(p => existsSync(join(ROOT, baked(p.piece))) ? { ...p, file: baked(p.piece) } : p);
 writeFileSync("/tmp/pw-city.json", JSON.stringify(list));
 console.log(c.lots.length, "lots,", c.lots.filter(l => l.empty).length, "squares,", c.pieces.length, "pieces");

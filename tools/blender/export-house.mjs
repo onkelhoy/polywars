@@ -28,7 +28,7 @@ else
     }
     name = "house";
 }
-const baked = p => `assets/models/modular-village-baked/${p}/model.glb`;
+const baked = p => `assets/models/buildings/modular-village/baked/${p}/model.glb`;
 writeFileSync("/tmp/pw-export.json", JSON.stringify(pieces.map(p => existsSync(join(ROOT, baked(p.piece))) ? { ...p, file: baked(p.piece) } : p)));
 const r = spawnSync("/Applications/Blender.app/Contents/MacOS/Blender", ["-b", "-P", join(ROOT, "tools/blender/assemble.py"), "--", "/tmp/pw-export.json", ...args, `name=${name}`], { encoding: "utf8", maxBuffer: 1 << 26 });
 console.log((r.stdout.match(/^(MISSING|WROTE).*$/gm) ?? [r.stderr.slice(-600)]).join("\n"));

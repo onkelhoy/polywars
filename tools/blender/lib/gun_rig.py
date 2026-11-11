@@ -14,7 +14,7 @@ BONE = 0.02
 
 
 def build(spec, folder):
-    """spec: see packs/ww2_weapons.py GUNS. folder: assets/models/guns/<slug>."""
+    """spec: see packs/ww2_weapons.py GUNS. folder: assets/models/weapons/guns/<slug>."""
     scene = pw.empty_file()
     scene.render.fps = FPS
     path = os.path.join(folder, "model.blend")
@@ -25,7 +25,7 @@ def build(spec, folder):
     pw.parent_to_bone(gun, arm, "body", Matrix.Identity(4))
     mag = pw.link_collection(os.path.join(folder, "mag.blend"), spec["slug"] + "-mag", "mag")
     pw.parent_to_bone(mag, arm, "mag", Matrix.Translation(spec["mag"]) @ spec.get("mag_rot", Matrix.Identity(4)))
-    ammo = os.path.join(pw.ASSETS, "models", "ammo", spec["ammo"], "round.blend")
+    ammo = os.path.join(pw.ASSETS, "models", "weapons", "ammo", spec["ammo"], "round.blend")
     rnd = pw.link_collection(ammo, spec["ammo"] + "-round", "round")
     pw.parent_to_bone(rnd, arm, "round", Matrix.Translation(spec["round"]))
 

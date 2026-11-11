@@ -65,7 +65,7 @@ for (const [slug, from, parts, texture] of VEHICLES)
 
 // Modular Village: OBJ pieces -> one .glb each (the city generator loads <Piece>.glb), OBJ kept in source/
 {
-    const src = join(STORE, "Modular Village"), to = join(MODELS, "modular-village");
+    const src = join(STORE, "Modular Village"), to = join(MODELS, "buildings", "modular-village");
     for (const f of files(src, [".obj", ".mtl"])) copy(join(src, f), join(to, "source", f));
     const todo = files(join(to, "source"), [".obj"]).filter(f => !existsSync(join(to, f.replace(/\.obj$/i, ".glb"))));
     if (todo.length) blender(to, ...todo.map(f => join(to, "source", f)), "--each");

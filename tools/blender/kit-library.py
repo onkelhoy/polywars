@@ -1,5 +1,5 @@
 """Every Modular Village piece in ONE .blend, to model own buildings from the kit.
-blender -b -P tools/blender/kit-library.py -- [out.blend]   (default assets/models/modular-village/modular-village-kit.blend)
+blender -b -P tools/blender/kit-library.py -- [out.blend]   (default assets/models/buildings/modular-village/modular-village-kit.blend)
 Collections per kind (Roof, Stucco, Stone, Wood, Prop, ...), one row per collection, 1 m grid, pieces keep their kit origin
 (walls face +X in glTF = +X in Blender, Y up -> Z up). Baked pieces (quad + maps) go in "Baked". Every object is an asset
 (Asset Browser, tag = kind). Pieces share nothing: edit freely, or link/append from this file.
@@ -9,8 +9,8 @@ from mathutils import Vector
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-KIT = os.path.join(ROOT, "assets/models/modular-village")
-BAKED = os.path.join(ROOT, "assets/models/modular-village-baked")
+KIT = os.path.join(ROOT, "assets/models/buildings/modular-village")
+BAKED = os.path.join(KIT, "baked")
 out = os.path.abspath(args[0]) if args else os.path.join(KIT, "modular-village-kit.blend")
 
 bpy.ops.wm.read_factory_settings(use_empty=True)

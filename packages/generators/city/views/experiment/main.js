@@ -4,7 +4,7 @@ import { kitSource, medievalStyle } from '@polywar/city-medieval';
 
 const $ = s => document.querySelector(s);
 const preview = $('pw-3d-asset-preview');
-const register = () => registerStyle(medievalStyle(kitSource($('#base').value, $('#base').value.replace(/\/$/, '') + '-baked')));
+const register = () => registerStyle(medievalStyle(kitSource($('#base').value)));
 register();
 $('#style').append(...styleNames().map(n => new Option(n)));
 
