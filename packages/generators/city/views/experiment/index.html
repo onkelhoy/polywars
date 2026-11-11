@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>city | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <aside>
+        <h1>city</h1>
+        <label>style <select id="style"></select></label>
+        <label>seed <input id="seed" type="number" min="0" value="1" /></label>
+        <label>radius <input id="radius" type="number" min="1" max="6" value="2" /></label>
+        <label>block m <input id="block" type="number" min="6" max="40" value="14" /></label>
+        <label>street m <input id="street" type="number" min="1" max="10" value="3" /></label>
+        <label>empty <input id="empty" type="number" min="0" max="1" step=".05" value=".1" /></label>
+        <label>kit folder <input id="base" value="/assets/models/modular-village" /></label>
+        <div><button id="dice" type="button">🎲 seed</button> <button id="generate" type="button">generate</button></div>
+        <output id="info"></output>
+    </aside>
+    <pw-3d-asset-preview controls grid mode="orbit"></pw-3d-asset-preview>
+</body>
+
+</html>

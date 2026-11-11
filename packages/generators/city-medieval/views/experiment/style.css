@@ -1,0 +1,13 @@
+html, body { margin: 0; height: 100%; font: 13px system-ui, sans-serif; }
+body { display: grid; grid-template-columns: 300px 1fr; }
+aside { overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #8884; }
+h1 { font-size: 16px; margin: 0; }
+label { display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+label input:not([type=checkbox]), label select { width: 140px; }
+.range input { width: 50px !important; }
+.row { display: flex; gap: 6px; }
+#tiles { display: grid; gap: 4px; }
+#tiles button { font-size: 11px; padding: 6px 2px; }
+#tiles button.active { outline: 2px solid dodgerblue; }
+output { font-size: 11px; opacity: .8; white-space: pre-wrap; }
+pw-gallery { width: 100%; height: 100%; }
