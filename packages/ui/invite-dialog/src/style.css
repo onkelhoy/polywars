@@ -1,4 +1,43 @@
 :host {
-    color: var(--text);
-    background-color: var(--background, light-dark(oklch(96% 0 0), oklch(17% 0 0)));
+    display: contents;
+}
+
+:host([inline]) {
+    display: block;
+}
+
+.invite {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+
+pw-qr-code {
+    inline-size: min(100%, 12rem);
+}
+
+pw-qr-code[hidden] {
+    display: none;
+}
+
+.info {
+    flex: 1 1 12rem;
+    min-inline-size: 0;
+}
+
+.code {
+    margin: 0;
+    font-family: ui-monospace, monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+}
+
+.link {
+    font-size: .75rem;
+    opacity: .7;
+    overflow-wrap: anywhere;
+    max-block-size: 3.2em;
+    overflow: hidden;
 }
