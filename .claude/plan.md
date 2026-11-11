@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `init/assets` (shared with 2 other sessions: commit only own paths). Next: owner answers Git LFS for the ~150 MB of copied .blend files (not committed yet), then task 8.
+Branch `city-generation-village-pack` (`init/assets` merged to `main`). Next: owner answers Git LFS for the ~150 MB of copied .blend files (not committed yet), then task 8.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
@@ -29,6 +29,19 @@ Branch `init/assets` (shared with 2 other sessions: commit only own paths). Next
 10. [x] All store packs copied (`tools/blender/packs/store.mjs`): nature, farm animals, farm buildings, castle, dungeon, vehicles, modular-village. Materials normalised to one Principled output on export.
 11. [x] Manifest is an `Assets` tree (`{ name, assets: (Asset | Assets)[] }`); gallery takes `tree`; `npm run assets` ends serving the gallery (view `everything`).
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
+
+## Medieval buildings + baked surfaces (confirmed 2026-11-11)
+Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
+- Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `albedo.png`, `normal.png`, `spec.png` (glb references them).
+- b1. [ ] `tools/bake.mjs` (`npm run bake`): glb + axis + size → quad glb + albedo/normal/spec.
+- b2. [ ] Bake cobblestone, dirt transitions, stone floors, stone walls.
+- b3. [ ] `packages/material/textured`: albedo + normal + spec, maps optional, own view.
+- b4. [ ] Preview + gallery draw maps.
+- b5. [ ] Generator massing: main volume, wing, lean-to, jetty.
+- b6. [ ] Generator roofs: gable default, cross-gable, dormers, ridge/rake.
+- b7. [ ] Generator facades: bays, aligned windows, timber frame rules.
+- b8. [ ] Attachments + archetypes (cottage, townhouse, inn, mill, gatehouse).
+- b9. [ ] Generator uses baked pieces, view shows triangle count.
 
 ## Later
 - Vehicle parts from FBX are not assembled/rigged (artillery gun sits off its base). Vehicle scale is the pack's (tank ~2 m).

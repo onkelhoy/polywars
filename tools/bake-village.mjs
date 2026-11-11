@@ -1,0 +1,14 @@
+// node tools/bake-village.mjs: bakes the flat stone/ground pieces of the Modular Village kit
+// into assets/models/modular-village-baked/<Piece>/ (see tools/bake.mjs).
+import { spawnSync } from "node:child_process";
+import { dirname, join } from "node:path";
+
+const ROOT = join(dirname(new URL(import.meta.url).pathname), "..");
+const KIT = join(ROOT, "assets/models/modular-village");
+const SETS = [
+    { pieces: ["Cobblestone_Floor_1", ...[1, 2, 3, 4].map(n => `Cobblestone_Dirt_Transition_${n}`)], args: ["--axis", "+y", "--size", "2x2", "--spec", "Dirt=0.05,*=0.5"] },
+    { pieces: ["Stone_Floor_1", "Stone_Floor_2"], args: ["--axis", "+y", "--size", "1x1", "--spec", "Dirt=0.05,*=0.5"] },
+    { pieces: [1, 2, 3, 4, 5].map(n => `Stone_Wall_${n}`), args: ["--axis", "+x", "--size", "1x1"] },
+];
+for (const set of SETS)
+    spawnSync("node", [join(ROOT, "tools/bake.mjs"), ...set.pieces.map(p => join(KIT, p + ".glb")), ...set.args], { stdio: "inherit" });
