@@ -10,7 +10,9 @@ export function loadProfile(storage: Storage | null = safeLocal()): Profile {
         if (saved && typeof saved === "object" && typeof saved.name === "string") return saved;
     }
     catch { /* broken entry: start fresh */ }
-    return { name: `Soldier ${Math.floor(100 + Math.random() * 900)}` };
+    const fresh = { name: `Soldier ${Math.floor(100 + Math.random() * 900)}` };
+    saveProfile(fresh, storage);
+    return fresh;
 }
 
 export function saveProfile(profile: Profile, storage: Storage | null = safeLocal()) {

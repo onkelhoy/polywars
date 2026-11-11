@@ -18,10 +18,12 @@
 <body>
     <h1>Room | experiment</h1>
     <section>
-        <h2>Example</h2>
-        <pap-codeblock>
-            <pw-room></pw-room>
-        </pap-codeblock>
+        <p>Run <code>npm run signal</code>, open with <code>?signal=ws://localhost:3599</code>, two tabs.</p>
+        <pw-lobby></pw-lobby>
+        <pw-room hidden>
+            <div slot="settings"><p><i>game settings slot</i></p></div>
+        </pw-room>
+        <p id="out"></p>
     </section>
 </body>
 

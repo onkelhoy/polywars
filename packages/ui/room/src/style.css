@@ -1,4 +1,87 @@
 :host {
-    color: var(--text);
-    background-color: var(--background, light-dark(oklch(96% 0 0), oklch(17% 0 0)));
+    display: block;
+}
+
+:host([hidden]) {
+    display: none;
+}
+
+header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+header > div {
+    flex: 1 1 auto;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.sub {
+    margin: 2px 0 0;
+    opacity: .75;
+}
+
+.code {
+    font-family: ui-monospace, monospace;
+    letter-spacing: .15em;
+}
+
+.reconnecting {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: color-mix(in oklch, orange, transparent 75%);
+}
+
+.players {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.players li {
+    display: grid;
+    grid-template-columns: 1fr 2em 6em auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: light-dark(oklch(0% 0 0 / .05), oklch(100% 0 0 / .06));
+}
+
+.mine { font-weight: 600; }
+.badge, .ping { opacity: .7; font-weight: 400; }
+.badge { margin-inline-start: .4em; }
+.ping.weak { color: orange; opacity: 1; }
+.ready { color: limegreen; }
+
+.host, footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-block-start: 12px;
+}
+
+.host label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.host input[type="number"] {
+    inline-size: 4em;
+    font: inherit;
+}
+
+footer {
+    justify-content: flex-end;
 }

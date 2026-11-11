@@ -5,7 +5,9 @@
     "papit",
     "web-component",
     "typescript",
-    "room"
+    "lobby",
+    "room",
+    "network"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -14,12 +16,9 @@
     "generate:react": "npx @papit/react",
     "watch": "tsc -w",
     "start": "npx @papit/server --info --live",
-    "test": "npx playwright test -c tests/playwright.config.ts",
     "preversion": "papit-version",
     "postversion": "papit-version",
-    "component": "npm create @papit -- --component",
-    "test:update-snapshots": "npx playwright test --update-snapshots -c tests/playwright.config.ts",
-    "test:chrome": "npm test -- --project=chromium"
+    "component": "npm create @papit -- --component"
   },
   "main": "./lib/bundle.js",
   "types": "./lib/bundle.d.ts",
@@ -55,7 +54,12 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/web-component": "*"
+    "@papit/web-component": "*",
+    "@papit/game-network": "^0.0.1",
+    "@papit/button": "^0.1.10",
+    "@polywar/ping": "*",
+    "@polywar/invite-dialog": "*",
+    "@polywar/share-link": "*"
   },
   "peerDependencies": {
     "react": "^19"
@@ -66,12 +70,11 @@
     }
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
-    "playwright": "1.64.1",
     "typescript": "5.9.3",
     "@papit/theme": "*",
-    "@papit/translator": "*",
-    "@papit/codeblock": "*"
+    "@papit/codeblock": "*",
+    "@polywar/net": "*",
+    "@polywar/lobby": "*"
   },
   "browserslist": [
     "defaults",

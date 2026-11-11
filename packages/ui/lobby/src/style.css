@@ -3,6 +3,10 @@
     font-family: inherit;
 }
 
+:host([hidden]) {
+    display: none;
+}
+
 header {
     display: flex;
     flex-wrap: wrap;
@@ -107,3 +111,4 @@ ul {
 .game .name { flex: 1 1 auto; }
 .game .count, small, .empty { opacity: .7; }
 .mine { font-weight: 600; }
+.players small { margin-inline-start: .4em; }
