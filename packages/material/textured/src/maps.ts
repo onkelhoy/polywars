@@ -20,6 +20,42 @@ function cacheOf(gl: WebGL2RenderingContext) {
     return cache;
 }
 
+function upload(gl: WebGL2RenderingContext, srgb: boolean, image: () => void) {
+    const t = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    image();
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    const sharp = gl.getExtension("EXT_texture_filter_anisotropic");
+    if (sharp) gl.texParameterf(gl.TEXTURE_2D, sharp.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(sharp.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    return t;
+}
+
+/**
+ * A texture from raw 8 bit pixels, rows top to bottom: `channels` 1 (grey), 3 (rgb) or 4 (rgba).
+ * Not cached: `gl.deleteTexture` it when done.
+ */
+export function textureFrom(gl: WebGL2RenderingContext, pixels: Uint8Array, width: number, height: number, channels: 1 | 3 | 4, srgb = false): WebGLTexture {
+    let rgba = pixels;
+    if (channels !== 4)
+    {
+        rgba = new Uint8Array(width * height * 4);
+        for (let i = 0; i < width * height; i++)
+        {
+            rgba[i * 4] = pixels[i * channels];
+            rgba[i * 4 + 1] = pixels[i * channels + (channels === 3 ? 1 : 0)];
+            rgba[i * 4 + 2] = pixels[i * channels + (channels === 3 ? 2 : 0)];
+            rgba[i * 4 + 3] = 255;
+        }
+    }
+    return upload(gl, srgb, () => gl.texImage2D(gl.TEXTURE_2D, 0, srgb ? gl.SRGB8_ALPHA8 : gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgba));
+}
+
 /**
  * One image as a repeating, mipmapped texture; the same url is loaded once per context.
  * `srgb` for colour (albedo): the shader then reads linear values. Normal and spec maps are data, keep it off.
@@ -33,17 +69,7 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string, srgb = fals
             const response = await fetch(url);
             if (!response.ok) throw new Error(`textured: ${url} ${response.status}`);
             const image = await createImageBitmap(await response.blob(), { colorSpaceConversion: "none", premultiplyAlpha: "none" });
-            const t = gl.createTexture()!;
-            gl.bindTexture(gl.TEXTURE_2D, t);
-            gl.texImage2D(gl.TEXTURE_2D, 0, srgb ? gl.SRGB8_ALPHA8 : gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-            const sharp = gl.getExtension("EXT_texture_filter_anisotropic");
-            if (sharp) gl.texParameterf(gl.TEXTURE_2D, sharp.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(sharp.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
-            gl.bindTexture(gl.TEXTURE_2D, null);
+            const t = upload(gl, srgb, () => gl.texImage2D(gl.TEXTURE_2D, 0, srgb ? gl.SRGB8_ALPHA8 : gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image));
             image.close();
             return t;
         })();
