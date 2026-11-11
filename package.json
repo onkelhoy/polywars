@@ -1,0 +1,52 @@
+{
+    "name": "@polywar/root",
+    "version": "0.0.0",
+    "description": "a simple low poly war with multiple settings and webrtc tech for networking",
+    "private": true,
+    "scripts": {
+        "analyse": "npm run analyse --workspaces --if-present",
+        "publish": "node bin/publish.mjs",
+        "clean": "node bin/clean.mjs",
+        "build": "npx @papit/build",
+        "test": "node bin/test.mjs",
+        "create": "npm create @papit -- --package",
+        "start": "npx @papit/server --serve --info",
+        "version:reset": "npx @papit/version --reset",
+        "version:sync": "npx @papit/version --sync"
+    },
+    "keywords": [
+        "typescript",
+        "papit"
+    ],
+    "packageManager": "npm@11.6.2",
+    "engines": {
+        "node": ">=20"
+    },
+    "author": "henry",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/henry/polywar.git"
+    },
+    "workspaces": [
+        "packages/**/*",
+        "!packages/**/asset/**",
+        "!packages/**/dist/**"
+    ],
+    "devDependencies": {
+        "esbuild": "0.27.2",
+        "typescript": "5.9.3",
+        "@papit/bundle-ts": "*",
+        "@papit/bundle-js": "*",
+        "@papit/arguments": "*",
+        "@papit/terminal": "*",
+        "@papit/information": "*",
+        "@papit/build": "*",
+        "@papit/server": "*",
+        "@papit/create": "*",
+        "@papit/version": "*",
+        "@papit/analyse": "*",
+        "@papit/react": "*"
+    },
+    "papit": {}
+}

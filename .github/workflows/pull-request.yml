@@ -1,0 +1,84 @@
+name: pull-request
+
+on:
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: pr-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # bin/changed.mjs compares against the merge base
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check the create template
+        run: npm run check:template --if-present
+
+      - name: Prepare tools
+        env:
+          CI: true
+        run: npm run prebuild --if-present
+
+      - name: Find new packages
+        id: changed
+        env:
+          CI: true
+        run: node bin/changed.mjs
+
+      - name: Build
+        env:
+          CI: true
+        run: node bin/build.mjs --ci
+
+      - name: Read Playwright version
+        id: playwright
+        if: steps.changed.outputs.playwright == 'true'
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test']?.version")" >> "$GITHUB_OUTPUT"
+
+      # Saved by update-playwright-cache on main, a cache saved here would only reach this PR
+      - name: Restore Playwright cache
+        if: steps.changed.outputs.playwright == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+
+      - name: Install Playwright
+        if: steps.changed.outputs.playwright == 'true'
+        run: npx playwright install --with-deps
+
+      - name: Run tests
+        env:
+          CI: true
+        run: npm test -- --ci
+
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            packages/**/tests/test-results
+            packages/**/tests/snapshots
+          retention-days: 3
