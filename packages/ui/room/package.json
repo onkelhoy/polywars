@@ -58,8 +58,7 @@
     "@papit/game-network": "^0.0.1",
     "@papit/button": "^0.1.10",
     "@polywar/ping": "*",
-    "@polywar/invite-dialog": "*",
-    "@polywar/share-link": "*"
+    "@polywar/share": "*"
   },
   "peerDependencies": {
     "react": "^19"

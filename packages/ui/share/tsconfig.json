@@ -27,7 +27,7 @@
         "allowJs": true,
         "baseUrl": "src",
         "paths": {
-            "@polywar/share-link": [
+            "@polywar/share": [
                 "./index"
             ]
         },

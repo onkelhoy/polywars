@@ -1,6 +1,6 @@
 # @polywar/room
 
-`<pw-room>` a game's waiting room: players (host, ready, ping), invite (QR dialog + copy link), ready, leave, reconnecting banner.
+`<pw-room>` a game's waiting room: players (host, ready, ping), invite (`<pw-share>` dialog: QR, code, copy/share), ready, leave, reconnecting banner.
 Host: lock, listed, max, kick, start (when everyone's ready, `all-ready="false"` to drop that).
 
 ```html

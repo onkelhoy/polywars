@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InviteDialog | experiment</title>
+    <title>Share | experiment</title>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
@@ -16,19 +16,24 @@
 </head>
 
 <body>
-    <h1>InviteDialog | experiment</h1>
+    <h1>Share | experiment</h1>
     <section>
-        <h2>Example</h2>
+        <h2>Host (inline)</h2>
         <pap-codeblock>
-            <pw-invite-dialog inline code="K7QF2M" link="https://example.com/?g=K7QF2M"></pw-invite-dialog>
+            <pw-share code="K7QF2M" link="https://example.com/?g=K7QF2M"></pw-share>
         </pap-codeblock>
     </section>
     <section>
-        <h2>Modal</h2>
-        <button id="open">Open</button>
+        <h2>Lobby (no link: scan only)</h2>
         <pap-codeblock>
-            <pw-invite-dialog id="modal" code="K7QF2M" link="https://example.com/?g=K7QF2M"></pw-invite-dialog>
+            <pw-share></pw-share>
         </pap-codeblock>
+    </section>
+    <section>
+        <h2>Dialog</h2>
+        <button id="open">Open</button>
+        <pw-share id="modal" dialog code="K7QF2M" link="https://example.com/?g=K7QF2M"></pw-share>
+        <p id="out"></p>
     </section>
 </body>
 

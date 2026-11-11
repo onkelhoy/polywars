@@ -112,3 +112,7 @@ ul {
 .game .count, small, .empty { opacity: .7; }
 .mine { font-weight: 600; }
 .players small { margin-inline-start: .4em; }
+
+pw-share.scan {
+    margin-block-start: 8px;
+}

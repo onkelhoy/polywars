@@ -1,12 +1,13 @@
 {
-  "name": "@polywar/invite-dialog",
-  "description": "Dialog with invite code, link, QR and share.",
+  "name": "@polywar/share",
+  "description": "Share a game: QR code, copy/share link, scan a code with the camera.",
   "keywords": [
     "papit",
     "web-component",
     "typescript",
-    "invite",
-    "qr"
+    "share",
+    "qr",
+    "scanner"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -39,14 +40,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/invite-dialog",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/share",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/ui/invite-dialog"
+    "directory": "packages/ui/share"
   },
   "sideEffects": true,
   "engines": {
@@ -54,9 +55,8 @@
   },
   "dependencies": {
     "@papit/web-component": "*",
-    "@papit/dialog": "^0.0.17",
-    "@polywar/qr-code": "*",
-    "@polywar/share-link": "*"
+    "@papit/button": "^0.1.10",
+    "@papit/dialog": "^0.0.17"
   },
   "peerDependencies": {
     "react": "^19"
@@ -79,11 +79,11 @@
   "papit": {
     "publish": true,
     "type": "web-component",
-    "main": "invite-dialog",
+    "main": "share",
     "htmlprefix": "pw",
     "components": {
-      "invite-dialog": {
-        "className": "InviteDialog",
+      "share": {
+        "className": "Share",
         "htmlprefix": "pw"
       }
     }

@@ -1,0 +1,130 @@
+:host {
+    display: block;
+}
+
+:host([hidden]) {
+    display: none;
+}
+
+:host([dialog]) {
+    display: contents;
+}
+
+.share {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+
+/* always black on white, in dark mode too: scanners don't all read an inverted code */
+.qr {
+    inline-size: min(100%, 12rem);
+    background: white;
+    color: black;
+    border-radius: 6px;
+}
+
+.qr[hidden], .qr:empty {
+    display: none;
+}
+
+.qr svg {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+}
+
+.qr path {
+    fill: currentColor;
+}
+
+.info {
+    flex: 1 1 12rem;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.scan-only .info {
+    flex: 0 0 auto;
+}
+
+.code {
+    margin: 0;
+    font-family: ui-monospace, monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.link {
+    margin: 0;
+    font-size: .75rem;
+    opacity: .7;
+    overflow-wrap: anywhere;
+    max-block-size: 3.2em;
+    overflow: hidden;
+}
+
+/* the camera: full screen on a phone, a square on a desktop */
+.camera {
+    padding: 0;
+    border: 0;
+    inline-size: min(100vw, 32rem);
+    max-inline-size: 100vw;
+    max-block-size: 100dvh;
+    background: black;
+    color: white;
+    overflow: hidden;
+}
+
+.camera[open] {
+    display: grid;
+    place-items: center;
+}
+
+.camera::backdrop {
+    background: rgb(0 0 0 / .8);
+}
+
+.camera > * {
+    grid-area: 1 / 1;
+}
+
+.camera video {
+    display: block;
+    inline-size: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.camera .frame {
+    inline-size: 60%;
+    aspect-ratio: 1;
+    border: 3px solid rgb(255 255 255 / .8);
+    border-radius: 12px;
+    box-shadow: 0 0 0 100vmax rgb(0 0 0 / .35);
+}
+
+.camera .hint {
+    align-self: start;
+    margin: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgb(0 0 0 / .6);
+}
+
+.camera pap-button {
+    align-self: end;
+    margin: 12px;
+    --btn-background: rgb(0 0 0 / .6);
+    color: white;
+}

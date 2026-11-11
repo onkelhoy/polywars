@@ -55,7 +55,8 @@
   "dependencies": {
     "@papit/web-component": "*",
     "@polywar/net": "*",
-    "@papit/button": "^0.1.10"
+    "@papit/button": "^0.1.10",
+    "@polywar/share": "*"
   },
   "peerDependencies": {
     "react": "^19"

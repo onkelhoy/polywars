@@ -1,6 +1,7 @@
 // system
 import { bind, CustomElement, html, property } from "@papit/web-component";
 import "@papit/button";
+import "@polywar/share";
 import type { Game, GameError, GameListing, LobbyPlayer, Net, NetStatus } from "@polywar/net";
 
 // local
@@ -28,7 +29,7 @@ const REASON: Record<string, string> = {
 };
 
 /**
- * The lobby browser: connection status, my name, join by code, host a game, public games and who's online.
+ * The lobby browser: connection status, my name, join by code or by scanning a QR, host a game, public games and who's online.
  * Give it a `Net` from `@polywar/net`. It hosts and joins itself, then fires `game`; the page swaps to the room.
  *
  * @element pw-lobby
@@ -192,6 +193,11 @@ export class Lobby extends CustomElement {
     }
 
     @bind
+    private handleScan(event: CustomEvent<{ code: string | null }>) {
+        if (event.detail.code) this.join(event.detail.code);
+    }
+
+    @bind
     private handleCancel() {
         this.net?.cancel();
     }
@@ -234,6 +240,7 @@ export class Lobby extends CustomElement {
                         ${this.needsPassword && !this.games.some(game => game.code === this.needsPassword) ? html`<input name="password" type="password" placeholder="password" aria-label="password" />` : ""}
                         <pap-button size="small" type="submit" ${this.busy && "disabled"}>Join</pap-button>
                     </form>
+                    <pw-share class="scan" @scan="${this.handleScan}"></pw-share>
                     <ul class="list" @click="${this.handleList}">
                         ${this.games.map(game => this.renderGame(game))}
                     </ul>

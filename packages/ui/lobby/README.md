@@ -1,6 +1,6 @@
 # @polywar/lobby
 
-`<pw-lobby>` the lobby browser: status, my name, join by code (password when asked), host form, public games, who's online.
+`<pw-lobby>` the lobby browser: status, my name, join by code or by scanning a QR (`<pw-share>`, password when asked), host form, public games, who's online.
 
 ```ts
 const lobby = document.querySelector("pw-lobby");

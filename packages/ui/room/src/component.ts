@@ -3,8 +3,7 @@ import { bind, CustomElement, html, property, query } from "@papit/web-component
 import { inviteLink, withoutInvite, type Game, type Player, type Trying } from "@papit/game-network";
 import { Ping, type PingStat } from "@polywar/ping";
 import "@papit/button";
-import "@polywar/invite-dialog";
-import "@polywar/share-link";
+import "@polywar/share";
 
 // local
 import sheet from "./style.css" with { type: "css" };
@@ -35,7 +34,7 @@ export class Room extends CustomElement {
     @property({ type: String, rerender: true }) link: string = "";
     @property({ type: Boolean, attribute: "all-ready" }) allReady: boolean = true;
 
-    @query("pw-invite-dialog") private invite?: HTMLElement & { open(): void };
+    @query("pw-share") private invite?: HTMLElement & { open(): void };
 
     private ready = new Map<string, boolean>();
     private pings = new Map<string, PingStat>();
@@ -220,7 +219,6 @@ export class Room extends CustomElement {
                     <p class="sub">Code <b class="code">${game.code}</b> · ${game.players.length}/${info.max}${info.locked ? " · locked" : ""}${info.password ? " · 🔒" : ""}</p>
                 </div>
                 <pap-button size="small" variant="outline" @click="${this.handleInvite}">Invite</pap-button>
-                <pw-share-link compact text-compact="Copy link" link="${link}"></pw-share-link>
             </header>
 
             ${this.trying ? html`<p class="reconnecting" role="status">Reconnecting… try ${this.trying.tries}, ${Math.ceil(this.trying.left / 1000)} s left</p>` : ""}
@@ -245,7 +243,7 @@ export class Room extends CustomElement {
                 ${game.isHost ? html`<pap-button @click="${this.handleStart}" ${!canStart && "disabled"}>Start</pap-button>` : ""}
             </footer>
 
-            <pw-invite-dialog code="${game.code}" link="${link}"></pw-invite-dialog>
+            <pw-share dialog code="${game.code}" link="${link}" no-scan></pw-share>
         `;
     }
 }
