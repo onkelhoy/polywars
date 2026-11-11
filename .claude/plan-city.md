@@ -20,6 +20,9 @@ State (2026-11-11): `building.ts` rewritten, one rectangular house is correct (o
 - Under upper roof rows the gable is empty: fill with y-scaled `Stucco_Block` (done).
 - Baked pieces (`BAKED` in `compose.ts`, `kitSource(base, baked)`): Stone_Wall_1..5, Stone_Floor_1|2, Cobblestone_Floor_1, Cobblestone_Dirt_Transition_1..4. In the browser they draw WHITE until `plan.md` b3/b4 (maps in game-mesh/preview). Blender render shows them textured.
 
+- Convex/Concave rows: 0.7 high, rise .5, foot .2 (verified, rows look scalloped by design). `Kit_Window_Upper_*` = dormer house front facing +X with own roof. `Stone_Arch_Outer` arch face on +X, wall block above.
+- Code: `core.ts` (Ctx, Box, Face, frame), `massing.ts`, `walls.ts`, `roof.ts`, `features/*.ts` (`{name,key,fits,plan,build}`).
+
 ## Unverified (bounds from `catalog.ts` only: render before use)
 - Convex/Concave `RISE` .5 is a guess (browser screenshot looks plausible). Check row seams + gable fill + ridge height.
 - `Wall_Prop_Windmill_1`: 7 m wheel centred on its origin, thin, on the wall plane.

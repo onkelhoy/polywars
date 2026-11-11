@@ -1,7 +1,9 @@
 import type { Random } from "@papit/random";
 import type { Ctx } from "../core";
 import type { Settings } from "../types";
+import { braces } from "./braces";
 import { chimney } from "./chimney";
+import { gableWindow } from "./gable";
 
 /** one house feature: `key` = its setting (none = always), `plan` runs before walls/roof, `build` after */
 export type Feature = {
@@ -13,4 +15,4 @@ export type Feature = {
     build?(ctx: Ctx, rng: Random): void;
 };
 
-export const FEATURES: Feature[] = [chimney];
+export const FEATURES: Feature[] = [gableWindow, chimney, braces];

@@ -1,5 +1,5 @@
 import type { PieceName } from "./catalog";
-import { FOOT, RISE, frame, top, type Box, type Ctx } from "./core";
+import { FOOT, RISE, frame, key, top, type Box, type Ctx } from "./core";
 
 /** the roof shape of a box: rows per slope, rise per row, ridge height */
 export function roofOf(ctx: Ctx, box: Box) {
@@ -29,12 +29,16 @@ export function roof(ctx: Ctx, box: Box) {
     // gable walls under the upper roof rows, with a king post
     for (const u of [0, L - 1]) if (gable(u)) for (let k = 1; k < rows; k++) for (const v of [k, D - 1 - k])
     {
+        const [x, z] = r.world(u, v);
+        if (ctx.filled.has(key(x, base, z))) continue;
         const m = r.matrix(u, base, v);
         m[5] = k * rise;
         push("Stucco_Block", m);
     }
     if (ctx.timber && rows > 1) for (const u of [-1, L]) if (gable(u < 0 ? 0 : L - 1))
     {
+        const [x, z] = r.world(u < 0 ? 0 : L - 1, rows);
+        if (ctx.filled.has(key(x, base, z))) continue;
         const m = r.matrix(u, base, u < 0 ? D / 2 : D / 2 - 1, u < 0 ? 180 : 0);
         m[5] = (rows - 1) * rise + FOOT;
         push("Stucco_Prop_Support_Pillar_1", m);
