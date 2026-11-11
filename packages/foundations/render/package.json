@@ -52,7 +52,9 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/game-mesh": "*"
+  },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "playwright": "1.64.1",
@@ -72,10 +74,6 @@
     "publish": true,
     "type": "game",
     "main": "render",
-    "components": {
-      "render": {
-        "className": "Render"
-      }
-    }
+    "components": {}
   }
 }

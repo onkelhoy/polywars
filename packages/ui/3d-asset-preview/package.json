@@ -55,7 +55,10 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/web-component": "*"
+    "@papit/web-component": "*",
+    "@papit/game-engine": "*",
+    "@papit/button": "*",
+    "@polywar/render": "*"
   },
   "peerDependencies": {
     "react": "^19"
@@ -85,7 +88,7 @@
     "htmlprefix": "pw",
     "components": {
       "3d-asset-preview": {
-        "className": "3dAssetPreview",
+        "className": "AssetPreview3D",
         "htmlprefix": "pw"
       }
     }

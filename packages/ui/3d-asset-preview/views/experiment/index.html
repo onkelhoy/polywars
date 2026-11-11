@@ -3,26 +3,21 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3dAssetPreview | experiment</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-
-    <!-- Styles -->
+    <title>3d-asset-preview | experiment</title>
     <link rel="stylesheet" href="style.css" />
-
     <script defer type="module" src="main.js"></script>
 </head>
 
 <body>
-    <h1>3dAssetPreview | experiment</h1>
-    <section>
-        <h2>Example</h2>
-        <pap-codeblock>
-            <pw-3d-asset-preview></pw-3d-asset-preview>
-        </pap-codeblock>
-    </section>
+    <header>
+        <h1>3d-asset-preview</h1>
+        <label>asset <select id="pick"></select></label>
+        <label>toon <input id="toon" type="range" min="0" max="6" step="1" value="0" /></label>
+        <label><input id="grid" type="checkbox" checked /> grid</label>
+        <output id="info"></output>
+    </header>
+    <pw-3d-asset-preview controls grid src="/assets/models/guns/m1911/model.glb"></pw-3d-asset-preview>
 </body>
 
 </html>

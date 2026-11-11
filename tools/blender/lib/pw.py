@@ -26,6 +26,7 @@ def append_object(blend, name):
         dst.objects = [name]
     obj = dst.objects[0]
     bpy.context.scene.collection.objects.link(obj)
+    bpy.context.view_layer.update()  # matrix_world is only evaluated after this
     return obj
 
 

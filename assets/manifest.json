@@ -1,0 +1,641 @@
+{
+ "files": [
+  {
+   "path": "/assets/audio/songs/game/arena-motif.mp3",
+   "name": "arena-motif.mp3",
+   "folder": "audio/songs/game",
+   "kind": "audio",
+   "size": 2127035
+  },
+  {
+   "path": "/assets/audio/songs/game/battle-pulse.mp3",
+   "name": "battle-pulse.mp3",
+   "folder": "audio/songs/game",
+   "kind": "audio",
+   "size": 1764175
+  },
+  {
+   "path": "/assets/audio/songs/game/guardians-watch.mp3",
+   "name": "guardians-watch.mp3",
+   "folder": "audio/songs/game",
+   "kind": "audio",
+   "size": 3592701
+  },
+  {
+   "path": "/assets/audio/songs/game/nimble-pulse.mp3",
+   "name": "nimble-pulse.mp3",
+   "folder": "audio/songs/game",
+   "kind": "audio",
+   "size": 1906556
+  },
+  {
+   "path": "/assets/audio/songs/game/pirates-pulse.mp3",
+   "name": "pirates-pulse.mp3",
+   "folder": "audio/songs/game",
+   "kind": "audio",
+   "size": 3289522
+  },
+  {
+   "path": "/assets/audio/songs/menu/fill-the-cup.mp3",
+   "name": "fill-the-cup.mp3",
+   "folder": "audio/songs/menu",
+   "kind": "audio",
+   "size": 2796950
+  },
+  {
+   "path": "/assets/audio/songs/menu/let-the-fiddler-leap.mp3",
+   "name": "let-the-fiddler-leap.mp3",
+   "folder": "audio/songs/menu",
+   "kind": "audio",
+   "size": 2342745
+  },
+  {
+   "path": "/assets/models/ammo/30-06-springfield/bullet.blend",
+   "name": "bullet.blend",
+   "folder": "models/ammo/30-06-springfield",
+   "kind": "source",
+   "size": 93375
+  },
+  {
+   "path": "/assets/models/ammo/30-06-springfield/bullet.glb",
+   "name": "bullet.glb",
+   "folder": "models/ammo/30-06-springfield",
+   "kind": "model",
+   "size": 9200
+  },
+  {
+   "path": "/assets/models/ammo/30-06-springfield/case.blend",
+   "name": "case.blend",
+   "folder": "models/ammo/30-06-springfield",
+   "kind": "source",
+   "size": 93919
+  },
+  {
+   "path": "/assets/models/ammo/30-06-springfield/case.glb",
+   "name": "case.glb",
+   "folder": "models/ammo/30-06-springfield",
+   "kind": "model",
+   "size": 11620
+  },
+  {
+   "path": "/assets/models/ammo/30-06-springfield/round.blend",
+   "name": "round.blend",
+   "folder": "models/ammo/30-06-springfield",
+   "kind": "source",
+   "size": 97705
+  },
+  {
+   "path": "/assets/models/ammo/30-06-springfield/round.glb",
+   "name": "round.glb",
+   "folder": "models/ammo/30-06-springfield",
+   "kind": "model",
+   "size": 14168
+  },
+  {
+   "path": "/assets/models/ammo/45-acp/bullet.blend",
+   "name": "bullet.blend",
+   "folder": "models/ammo/45-acp",
+   "kind": "source",
+   "size": 92131
+  },
+  {
+   "path": "/assets/models/ammo/45-acp/bullet.glb",
+   "name": "bullet.glb",
+   "folder": "models/ammo/45-acp",
+   "kind": "model",
+   "size": 5988
+  },
+  {
+   "path": "/assets/models/ammo/45-acp/case.blend",
+   "name": "case.blend",
+   "folder": "models/ammo/45-acp",
+   "kind": "source",
+   "size": 93947
+  },
+  {
+   "path": "/assets/models/ammo/45-acp/case.glb",
+   "name": "case.glb",
+   "folder": "models/ammo/45-acp",
+   "kind": "model",
+   "size": 11060
+  },
+  {
+   "path": "/assets/models/ammo/45-acp/round.blend",
+   "name": "round.blend",
+   "folder": "models/ammo/45-acp",
+   "kind": "source",
+   "size": 97860
+  },
+  {
+   "path": "/assets/models/ammo/45-acp/round.glb",
+   "name": "round.glb",
+   "folder": "models/ammo/45-acp",
+   "kind": "model",
+   "size": 13616
+  },
+  {
+   "path": "/assets/models/ammo/762x25-tokarev/bullet.blend",
+   "name": "bullet.blend",
+   "folder": "models/ammo/762x25-tokarev",
+   "kind": "source",
+   "size": 92258
+  },
+  {
+   "path": "/assets/models/ammo/762x25-tokarev/bullet.glb",
+   "name": "bullet.glb",
+   "folder": "models/ammo/762x25-tokarev",
+   "kind": "model",
+   "size": 6008
+  },
+  {
+   "path": "/assets/models/ammo/762x25-tokarev/case.blend",
+   "name": "case.blend",
+   "folder": "models/ammo/762x25-tokarev",
+   "kind": "source",
+   "size": 95460
+  },
+  {
+   "path": "/assets/models/ammo/762x25-tokarev/case.glb",
+   "name": "case.glb",
+   "folder": "models/ammo/762x25-tokarev",
+   "kind": "model",
+   "size": 16060
+  },
+  {
+   "path": "/assets/models/ammo/762x25-tokarev/round.blend",
+   "name": "round.blend",
+   "folder": "models/ammo/762x25-tokarev",
+   "kind": "source",
+   "size": 99133
+  },
+  {
+   "path": "/assets/models/ammo/762x25-tokarev/round.glb",
+   "name": "round.glb",
+   "folder": "models/ammo/762x25-tokarev",
+   "kind": "model",
+   "size": 17496
+  },
+  {
+   "path": "/assets/models/ammo/792x33-kurz/bullet.blend",
+   "name": "bullet.blend",
+   "folder": "models/ammo/792x33-kurz",
+   "kind": "source",
+   "size": 92844
+  },
+  {
+   "path": "/assets/models/ammo/792x33-kurz/bullet.glb",
+   "name": "bullet.glb",
+   "folder": "models/ammo/792x33-kurz",
+   "kind": "model",
+   "size": 7120
+  },
+  {
+   "path": "/assets/models/ammo/792x33-kurz/case.blend",
+   "name": "case.blend",
+   "folder": "models/ammo/792x33-kurz",
+   "kind": "source",
+   "size": 94867
+  },
+  {
+   "path": "/assets/models/ammo/792x33-kurz/case.glb",
+   "name": "case.glb",
+   "folder": "models/ammo/792x33-kurz",
+   "kind": "model",
+   "size": 14028
+  },
+  {
+   "path": "/assets/models/ammo/792x33-kurz/round.blend",
+   "name": "round.blend",
+   "folder": "models/ammo/792x33-kurz",
+   "kind": "source",
+   "size": 99471
+  },
+  {
+   "path": "/assets/models/ammo/792x33-kurz/round.glb",
+   "name": "round.glb",
+   "folder": "models/ammo/792x33-kurz",
+   "kind": "model",
+   "size": 17476
+  },
+  {
+   "path": "/assets/models/ammo/9x19-parabellum/bullet.blend",
+   "name": "bullet.blend",
+   "folder": "models/ammo/9x19-parabellum",
+   "kind": "source",
+   "size": 91864
+  },
+  {
+   "path": "/assets/models/ammo/9x19-parabellum/bullet.glb",
+   "name": "bullet.glb",
+   "folder": "models/ammo/9x19-parabellum",
+   "kind": "model",
+   "size": 6020
+  },
+  {
+   "path": "/assets/models/ammo/9x19-parabellum/case.blend",
+   "name": "case.blend",
+   "folder": "models/ammo/9x19-parabellum",
+   "kind": "source",
+   "size": 95522
+  },
+  {
+   "path": "/assets/models/ammo/9x19-parabellum/case.glb",
+   "name": "case.glb",
+   "folder": "models/ammo/9x19-parabellum",
+   "kind": "model",
+   "size": 16060
+  },
+  {
+   "path": "/assets/models/ammo/9x19-parabellum/round.blend",
+   "name": "round.blend",
+   "folder": "models/ammo/9x19-parabellum",
+   "kind": "source",
+   "size": 99181
+  },
+  {
+   "path": "/assets/models/ammo/9x19-parabellum/round.glb",
+   "name": "round.glb",
+   "folder": "models/ammo/9x19-parabellum",
+   "kind": "model",
+   "size": 17696
+  },
+  {
+   "path": "/assets/models/grenades/f1/model.blend",
+   "name": "model.blend",
+   "folder": "models/grenades/f1",
+   "kind": "source",
+   "size": 119061
+  },
+  {
+   "path": "/assets/models/grenades/f1/model.glb",
+   "name": "model.glb",
+   "folder": "models/grenades/f1",
+   "kind": "model",
+   "size": 76876
+  },
+  {
+   "path": "/assets/models/grenades/mk2/model.blend",
+   "name": "model.blend",
+   "folder": "models/grenades/mk2",
+   "kind": "source",
+   "size": 116932
+  },
+  {
+   "path": "/assets/models/grenades/mk2/model.glb",
+   "name": "model.glb",
+   "folder": "models/grenades/mk2",
+   "kind": "model",
+   "size": 70560
+  },
+  {
+   "path": "/assets/models/grenades/stick-grenade/model.blend",
+   "name": "model.blend",
+   "folder": "models/grenades/stick-grenade",
+   "kind": "source",
+   "size": 100666
+  },
+  {
+   "path": "/assets/models/grenades/stick-grenade/model.glb",
+   "name": "model.glb",
+   "folder": "models/grenades/stick-grenade",
+   "kind": "model",
+   "size": 22188
+  },
+  {
+   "path": "/assets/models/guns/m1-garand/gun.blend",
+   "name": "gun.blend",
+   "folder": "models/guns/m1-garand",
+   "kind": "source",
+   "size": 144994
+  },
+  {
+   "path": "/assets/models/guns/m1-garand/gun.glb",
+   "name": "gun.glb",
+   "folder": "models/guns/m1-garand",
+   "kind": "model",
+   "size": 166564
+  },
+  {
+   "path": "/assets/models/guns/m1-garand/mag.blend",
+   "name": "mag.blend",
+   "folder": "models/guns/m1-garand",
+   "kind": "source",
+   "size": 92028
+  },
+  {
+   "path": "/assets/models/guns/m1-garand/mag.glb",
+   "name": "mag.glb",
+   "folder": "models/guns/m1-garand",
+   "kind": "model",
+   "size": 7616
+  },
+  {
+   "path": "/assets/models/guns/m1-garand/model.blend",
+   "name": "model.blend",
+   "folder": "models/guns/m1-garand",
+   "kind": "source",
+   "size": 92108
+  },
+  {
+   "path": "/assets/models/guns/m1-garand/model.glb",
+   "name": "model.glb",
+   "folder": "models/guns/m1-garand",
+   "kind": "model",
+   "size": 335844
+  },
+  {
+   "path": "/assets/models/guns/m1911/gun.blend",
+   "name": "gun.blend",
+   "folder": "models/guns/m1911",
+   "kind": "source",
+   "size": 124154
+  },
+  {
+   "path": "/assets/models/guns/m1911/gun.glb",
+   "name": "gun.glb",
+   "folder": "models/guns/m1911",
+   "kind": "model",
+   "size": 82460
+  },
+  {
+   "path": "/assets/models/guns/m1911/mag.blend",
+   "name": "mag.blend",
+   "folder": "models/guns/m1911",
+   "kind": "source",
+   "size": 95276
+  },
+  {
+   "path": "/assets/models/guns/m1911/mag.glb",
+   "name": "mag.glb",
+   "folder": "models/guns/m1911",
+   "kind": "model",
+   "size": 5248
+  },
+  {
+   "path": "/assets/models/guns/m1911/model.blend",
+   "name": "model.blend",
+   "folder": "models/guns/m1911",
+   "kind": "source",
+   "size": 92749
+  },
+  {
+   "path": "/assets/models/guns/m1911/model.glb",
+   "name": "model.glb",
+   "folder": "models/guns/m1911",
+   "kind": "model",
+   "size": 211184
+  },
+  {
+   "path": "/assets/models/guns/mauser-c96/gun.blend",
+   "name": "gun.blend",
+   "folder": "models/guns/mauser-c96",
+   "kind": "source",
+   "size": 127553
+  },
+  {
+   "path": "/assets/models/guns/mauser-c96/gun.glb",
+   "name": "gun.glb",
+   "folder": "models/guns/mauser-c96",
+   "kind": "model",
+   "size": 87864
+  },
+  {
+   "path": "/assets/models/guns/mauser-c96/mag.blend",
+   "name": "mag.blend",
+   "folder": "models/guns/mauser-c96",
+   "kind": "source",
+   "size": 97201
+  },
+  {
+   "path": "/assets/models/guns/mauser-c96/mag.glb",
+   "name": "mag.glb",
+   "folder": "models/guns/mauser-c96",
+   "kind": "model",
+   "size": 4344
+  },
+  {
+   "path": "/assets/models/guns/mauser-c96/model.blend",
+   "name": "model.blend",
+   "folder": "models/guns/mauser-c96",
+   "kind": "source",
+   "size": 92553
+  },
+  {
+   "path": "/assets/models/guns/mauser-c96/model.glb",
+   "name": "model.glb",
+   "folder": "models/guns/mauser-c96",
+   "kind": "model",
+   "size": 218192
+  },
+  {
+   "path": "/assets/models/guns/ppsh-41/gun.blend",
+   "name": "gun.blend",
+   "folder": "models/guns/ppsh-41",
+   "kind": "source",
+   "size": 136008
+  },
+  {
+   "path": "/assets/models/guns/ppsh-41/gun.glb",
+   "name": "gun.glb",
+   "folder": "models/guns/ppsh-41",
+   "kind": "model",
+   "size": 116744
+  },
+  {
+   "path": "/assets/models/guns/ppsh-41/mag.blend",
+   "name": "mag.blend",
+   "folder": "models/guns/ppsh-41",
+   "kind": "source",
+   "size": 112101
+  },
+  {
+   "path": "/assets/models/guns/ppsh-41/mag.glb",
+   "name": "mag.glb",
+   "folder": "models/guns/ppsh-41",
+   "kind": "model",
+   "size": 51308
+  },
+  {
+   "path": "/assets/models/guns/ppsh-41/model.blend",
+   "name": "model.blend",
+   "folder": "models/guns/ppsh-41",
+   "kind": "source",
+   "size": 92468
+  },
+  {
+   "path": "/assets/models/guns/ppsh-41/model.glb",
+   "name": "model.glb",
+   "folder": "models/guns/ppsh-41",
+   "kind": "model",
+   "size": 340792
+  },
+  {
+   "path": "/assets/models/guns/stg-44/gun.blend",
+   "name": "gun.blend",
+   "folder": "models/guns/stg-44",
+   "kind": "source",
+   "size": 151287
+  },
+  {
+   "path": "/assets/models/guns/stg-44/gun.glb",
+   "name": "gun.glb",
+   "folder": "models/guns/stg-44",
+   "kind": "model",
+   "size": 158260
+  },
+  {
+   "path": "/assets/models/guns/stg-44/mag.blend",
+   "name": "mag.blend",
+   "folder": "models/guns/stg-44",
+   "kind": "source",
+   "size": 99533
+  },
+  {
+   "path": "/assets/models/guns/stg-44/mag.glb",
+   "name": "mag.glb",
+   "folder": "models/guns/stg-44",
+   "kind": "model",
+   "size": 10800
+  },
+  {
+   "path": "/assets/models/guns/stg-44/model.blend",
+   "name": "model.blend",
+   "folder": "models/guns/stg-44",
+   "kind": "source",
+   "size": 92626
+  },
+  {
+   "path": "/assets/models/guns/stg-44/model.glb",
+   "name": "model.glb",
+   "folder": "models/guns/stg-44",
+   "kind": "model",
+   "size": 343212
+  },
+  {
+   "path": "/assets/models/guns/thompson-m1/gun.blend",
+   "name": "gun.blend",
+   "folder": "models/guns/thompson-m1",
+   "kind": "source",
+   "size": 128383
+  },
+  {
+   "path": "/assets/models/guns/thompson-m1/gun.glb",
+   "name": "gun.glb",
+   "folder": "models/guns/thompson-m1",
+   "kind": "model",
+   "size": 99772
+  },
+  {
+   "path": "/assets/models/guns/thompson-m1/mag.blend",
+   "name": "mag.blend",
+   "folder": "models/guns/thompson-m1",
+   "kind": "source",
+   "size": 95053
+  },
+  {
+   "path": "/assets/models/guns/thompson-m1/mag.glb",
+   "name": "mag.glb",
+   "folder": "models/guns/thompson-m1",
+   "kind": "model",
+   "size": 7092
+  },
+  {
+   "path": "/assets/models/guns/thompson-m1/model.blend",
+   "name": "model.blend",
+   "folder": "models/guns/thompson-m1",
+   "kind": "source",
+   "size": 92604
+  },
+  {
+   "path": "/assets/models/guns/thompson-m1/model.glb",
+   "name": "model.glb",
+   "folder": "models/guns/thompson-m1",
+   "kind": "model",
+   "size": 239872
+  },
+  {
+   "path": "/assets/models/guns/tt-pistol/gun.blend",
+   "name": "gun.blend",
+   "folder": "models/guns/tt-pistol",
+   "kind": "source",
+   "size": 123308
+  },
+  {
+   "path": "/assets/models/guns/tt-pistol/gun.glb",
+   "name": "gun.glb",
+   "folder": "models/guns/tt-pistol",
+   "kind": "model",
+   "size": 77644
+  },
+  {
+   "path": "/assets/models/guns/tt-pistol/mag.blend",
+   "name": "mag.blend",
+   "folder": "models/guns/tt-pistol",
+   "kind": "source",
+   "size": 95339
+  },
+  {
+   "path": "/assets/models/guns/tt-pistol/mag.glb",
+   "name": "mag.glb",
+   "folder": "models/guns/tt-pistol",
+   "kind": "model",
+   "size": 8120
+  },
+  {
+   "path": "/assets/models/guns/tt-pistol/model.blend",
+   "name": "model.blend",
+   "folder": "models/guns/tt-pistol",
+   "kind": "source",
+   "size": 92771
+  },
+  {
+   "path": "/assets/models/guns/tt-pistol/model.glb",
+   "name": "model.glb",
+   "folder": "models/guns/tt-pistol",
+   "kind": "model",
+   "size": 214460
+  },
+  {
+   "path": "/assets/models/knives/german-knife/model.blend",
+   "name": "model.blend",
+   "folder": "models/knives/german-knife",
+   "kind": "source",
+   "size": 102345
+  },
+  {
+   "path": "/assets/models/knives/german-knife/model.glb",
+   "name": "model.glb",
+   "folder": "models/knives/german-knife",
+   "kind": "model",
+   "size": 26240
+  },
+  {
+   "path": "/assets/models/knives/ka-bar/model.blend",
+   "name": "model.blend",
+   "folder": "models/knives/ka-bar",
+   "kind": "source",
+   "size": 109035
+  },
+  {
+   "path": "/assets/models/knives/ka-bar/model.glb",
+   "name": "model.glb",
+   "folder": "models/knives/ka-bar",
+   "kind": "model",
+   "size": 42076
+  },
+  {
+   "path": "/assets/models/knives/nr-40/model.blend",
+   "name": "model.blend",
+   "folder": "models/knives/nr-40",
+   "kind": "source",
+   "size": 97655
+  },
+  {
+   "path": "/assets/models/knives/nr-40/model.glb",
+   "name": "model.glb",
+   "folder": "models/knives/nr-40",
+   "kind": "model",
+   "size": 14140
+  }
+ ]
+}

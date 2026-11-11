@@ -12,7 +12,8 @@
         "create": "npm create @papit -- --package",
         "start": "npx @papit/server --serve --info",
         "version:reset": "npx @papit/version --reset",
-        "version:sync": "npx @papit/version --sync"
+        "version:sync": "npx @papit/version --sync",
+        "assets": "node bin/assets.mjs"
     },
     "keywords": [
         "typescript",

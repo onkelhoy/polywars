@@ -21,3 +21,4 @@ Thumbs.db
 
 # blender backups
 *.blend1
+__pycache__/
