@@ -1,11 +1,11 @@
 {
-  "name": "@polywar/asset-gallery",
-  "description": "Gallery of every asset in assets/: rotating 3D tiles, audio players, images; filter, search, open a model in pw-3d-asset-preview.",
+  "name": "@polywar/gallery",
+  "description": "Gallery web component: every asset under a location (manifest) grouped by folder, plus generated items; 3D tiles share one canvas, click opens pw-3d-asset-preview.",
   "keywords": [
     "papit",
     "web-component",
     "typescript",
-    "asset-gallery"
+    "gallery"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -26,7 +26,8 @@
   "type": "module",
   "files": [
     "asset/",
-    "lib/"
+    "lib/",
+    "bin/"
   ],
   "exports": {
     ".": {
@@ -41,14 +42,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/asset-gallery",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/gallery",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/ui/asset-gallery"
+    "directory": "packages/ui/gallery"
   },
   "sideEffects": true,
   "engines": {
@@ -59,7 +60,8 @@
     "@papit/game-engine": "*",
     "@papit/button": "*",
     "@polywar/render": "*",
-    "@polywar/3d-asset-preview": "*"
+    "@polywar/3d-asset-preview": "*",
+    "@papit/game-mesh": "*"
   },
   "peerDependencies": {
     "react": "^19"
@@ -85,11 +87,11 @@
   "papit": {
     "publish": true,
     "type": "web-component",
-    "main": "asset-gallery",
+    "main": "gallery",
     "htmlprefix": "pw",
     "components": {
-      "asset-gallery": {
-        "className": "AssetGallery",
+      "gallery": {
+        "className": "Gallery",
         "htmlprefix": "pw"
       }
     }

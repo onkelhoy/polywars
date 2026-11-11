@@ -2,6 +2,7 @@
 import { CustomElement, html, property } from "@papit/web-component";
 import { Camera, GameEngine, GameObject, fps, orbit } from "@papit/game-engine";
 import { Grid, Model, Renderer, fromTRS, mat4, multiply } from "@polywar/render";
+import type { GLTF } from "@papit/game-mesh";
 import "@papit/button";
 
 // local
@@ -17,6 +18,8 @@ export class AssetPreview3D extends CustomElement {
     static sheet = sheet;
 
     @property({ after: function (this: AssetPreview3D) { this.load(); } }) src: string = "";
+    /** in-memory glTF (generated content); wins over `src` */
+    @property({ attribute: false, after: function (this: AssetPreview3D) { this.load(); } }) gltf: GLTF | null = null;
     @property({ rerender: true, after: function (this: AssetPreview3D) { this.applyMode(); } }) mode: PreviewMode = "turntable";
     @property({ rerender: true }) animation: string = "";
     @property({ type: Boolean, rerender: true }) controls: boolean = false;
@@ -63,9 +66,12 @@ export class AssetPreview3D extends CustomElement {
 
     private async load() {
         // the html template briefly sets a placeholder before the real value
-        if (!this.engine || !this.src || this.src.includes("__marker__")) return;
+        if (!this.engine) return;
+        const gl = (this.engine.layers.main as any).gl;
+        const src = !this.src || this.src.includes("__marker__") ? "" : this.src;
+        if (!this.gltf && !src) return;
         const ticket = ++this.loading;
-        const model = await Model.load((this.engine.layers.main as any).gl, this.src);
+        const model = this.gltf ? new Model(gl, this.gltf) : await Model.load(gl, src);
         if (ticket !== this.loading) return model.destroy();
         this.model?.destroy();
         this.model = model;
@@ -78,7 +84,7 @@ export class AssetPreview3D extends CustomElement {
         this.applyMode();
         const triangles = model.gltf.meshes.flatMap(m => m.primitives).reduce((n, p) => n + (p.indices?.length ?? p.positions.length / 3) / 3, 0);
         this.dispatchEvent(new CustomEvent<LoadEvent>("load", {
-            detail: { src: this.src, animations: model.animations.map(a => a.name ?? ""), triangles, size: model.size },
+            detail: { src, animations: model.animations.map(a => a.name ?? ""), triangles, size: model.size },
         }));
         this.requestUpdate();
     }
@@ -86,6 +92,12 @@ export class AssetPreview3D extends CustomElement {
     /** Biggest side of the model, for camera distances and speeds. */
     private get reach() {
         return this.model ? Math.max(...this.model.size, .05) : 1;
+    }
+
+    /** distance that fits the bounding sphere in the default 60° view */
+    private get fit() {
+        const radius = this.model ? Math.hypot(...this.model.size) / 2 : .5;
+        return Math.max(radius, .01) / Math.sin(Math.PI / 6) * 1.1;
     }
 
     private applyMode() {
@@ -96,14 +108,14 @@ export class AssetPreview3D extends CustomElement {
         if (this.mode === "fps")
         {
             const camera = new Camera({ near: r * .01, far: r * 200, controllers: [fps({ speed: r * 1.5 })] });
-            camera.position.set([0, this.target.position.y, r * 2]);
+            camera.position.set([0, this.target.position.y, this.fit]);
             layer.camera = camera;
         }
         else
         {
             layer.camera = new Camera({
                 near: r * .01, far: r * 200,
-                controllers: [orbit({ target: this.target, distance: r * 1.6, min: r * .2, max: r * 20, yaw: .7, pitch: .35, speed: .0015 })],
+                controllers: [orbit({ target: this.target, distance: this.fit, min: r * .2, max: r * 20, yaw: .7, pitch: .35, speed: .0015 })],
             });
         }
     }

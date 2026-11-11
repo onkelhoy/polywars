@@ -1,4 +1,4 @@
-import { loadGLTF, rig as makeRig, sample, upload, type GLTF, type GLTFAnimation, type GPUMesh, type Rig } from "@papit/game-mesh";
+import { loadGLTF, rig as makeRig, sample, upload, type GLTF, type GLTFAnimation, type GPUMesh, type Mesh, type Rig } from "@papit/game-mesh";
 import { fromTRS, mat4, multiply, transformPoint, type Mat4 } from "./math";
 import type { DrawOptions, Renderer } from "./renderer";
 
@@ -101,4 +101,13 @@ export class Model {
     destroy() {
         this.gpu.flat().forEach(g => g.destroy());
     }
+}
+
+/** Wrap meshes (e.g. from `MeshBuilder`) as a static glTF, so anything that takes a glTF can show them. */
+export function gltfFromMesh(...meshes: Mesh[]): GLTF {
+    return {
+        meshes: [{ primitives: meshes }],
+        nodes: [{ mesh: 0, children: [], translation: [0, 0, 0], rotation: [0, 0, 0, 1], scale: [1, 1, 1] }],
+        skins: [], roots: [0], animations: [],
+    };
 }

@@ -1,22 +1,15 @@
 // npm run assets [-- --all] [-- --no-export]
 // 1. exports every .blend in assets/ to .glb (when the .glb is older than any .blend in its folder, or --all)
-// 2. writes assets/manifest.json: every file with its kind, for the gallery
-import { readdirSync, statSync, writeFileSync, existsSync } from "node:fs";
-import { join, relative, extname, dirname, basename } from "node:path";
+// 2. writes assets/manifest.json (via the gallery package's generator) for <pw-gallery>
+import { readdirSync, statSync, existsSync } from "node:fs";
+import { join, relative, dirname } from "node:path";
 import { spawnSync } from "node:child_process";
+import { writeManifest } from "../packages/ui/gallery/bin/manifest.mjs";
 
 const ROOT = join(dirname(new URL(import.meta.url).pathname), "..");
 const ASSETS = join(ROOT, "assets");
 const BLENDER = process.env.BLENDER ?? "/Applications/Blender.app/Contents/MacOS/Blender";
 const all = process.argv.includes("--all");
-
-const KINDS = {
-    model: [".glb", ".gltf"],
-    source: [".blend", ".fbx", ".obj", ".mtl"],
-    audio: [".mp3", ".wav", ".ogg", ".m4a"],
-    image: [".png", ".jpg", ".jpeg", ".webp", ".svg", ".gif"],
-};
-const kindOf = file => Object.keys(KINDS).find(k => KINDS[k].includes(extname(file).toLowerCase())) ?? "other";
 
 function walk(dir, out = []) {
     for (const name of readdirSync(dir).sort())
@@ -44,12 +37,5 @@ if (!process.argv.includes("--no-export"))
     }
 }
 
-const files = walk(ASSETS).map(path => ({
-    path: "/" + relative(ROOT, path),
-    name: basename(path),
-    folder: relative(ASSETS, dirname(path)),
-    kind: kindOf(path),
-    size: statSync(path).size,
-}));
-writeFileSync(join(ASSETS, "manifest.json"), JSON.stringify({ files }, null, 1) + "\n");
+const { files } = writeManifest(ASSETS, "/assets");
 console.log(`manifest: ${files.length} files`);

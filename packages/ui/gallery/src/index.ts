@@ -1,4 +1,4 @@
-import { AssetGallery } from './component.js';
+import { Gallery } from './component.js';
 
 // export
 export * from "./component";
@@ -9,6 +9,6 @@ if (!window.customElements) {
   throw new Error('Custom Elements not supported');
 }
 
-if (!window.customElements.get('pw-asset-gallery')) {
-  window.customElements.define('pw-asset-gallery', AssetGallery);
+if (!window.customElements.get('pw-gallery')) {
+  window.customElements.define('pw-gallery', Gallery);
 }

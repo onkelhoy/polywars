@@ -3,7 +3,7 @@ import { Information, PackageGraph } from "@papit/information";
 import { defineConfig, devices } from '@playwright/test';
 import path from "node:path";
 
-const dirname = path.join(PackageGraph.get("@polywar/asset-gallery").location, "tests");
+const dirname = path.join(PackageGraph.get("@polywar/gallery").location, "tests");
 // const relative = path.relative(Information.root.location, PackageGraph.get("@papit/web-component").location);
 
 export default defineConfig({
