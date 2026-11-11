@@ -11,7 +11,7 @@ export const gableWindow: Feature = {
         for (const face of ctx.faces)
         {
             const r = roofOf(ctx, face.box), height = (r.rows - 1) * r.rise;
-            if (!face.gable || height < 1 || r.rows < 2) continue;
+            if (!face.gable || face.taken || height < 1 || r.rows < 2) continue;
             // the two centre cells, first one along the run
             const cells = [r.rows - 1, r.rows];
             if (cells.some(i => hidden(ctx, face, i) > 0 || ctx.filled.has(key(...at(face, i, r.base))))) continue;
