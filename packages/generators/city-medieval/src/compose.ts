@@ -4,7 +4,11 @@ import type { Placement } from "./types";
 
 /** where the kit glb files live, `<base>/<Piece>.glb` */
 export type PieceSource = (piece: PieceName) => string;
-export const kitSource = (base: string): PieceSource => piece => `${base.replace(/\/$/, "")}/${piece}.glb`;
+/** flat stone pieces that exist as one quad + maps (`<baked>/<Piece>/model.glb`, see tools/bake-village.mjs) */
+export const BAKED: ReadonlySet<string> = new Set(["Cobblestone_Floor_1", "Stone_Floor_1", "Stone_Floor_2", ...[1, 2, 3, 4].map(n => `Cobblestone_Dirt_Transition_${n}`), ...[1, 2, 3, 4, 5].map(n => `Stone_Wall_${n}`)]);
+const trim = (s: string) => s.replace(/\/$/, "");
+/** `baked`: folder of the baked pieces, used instead of the mesh for every piece in `BAKED` */
+export const kitSource = (base: string, baked?: string): PieceSource => piece => baked && BAKED.has(piece) ? `${trim(baked)}/${piece}/model.glb` : `${trim(base)}/${piece}.glb`;
 
 const cache = new Map<string, Promise<GLTF | null>>();
 const load = (url: string) => {

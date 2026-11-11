@@ -26,7 +26,7 @@ async function generate() {
     const seed = Number($('#seed').value) >>> 0, n = Number($('#count').value), mine = ++ticket;
     $('#code').value = encode(settings, seed);
     location.hash = $('#code').value;
-    const source = kitSource($('#base').value);
+    const source = kitSource($('#base').value, $('#base').value.replace(/\/$/, '') + '-baked');
     const items = await Promise.all(Array.from({ length: n * n }, async (_, i) => {
         const s = variant(seed, i), b = building(settings, s), gltf = await compose(b.pieces, source);
         const f = b.features;

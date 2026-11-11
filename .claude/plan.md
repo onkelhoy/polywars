@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `city-generation-village-pack` (`init/assets` merged to `main`). Next: owner answers Git LFS for the ~150 MB of copied .blend files (not committed yet), then task 8.
+Branch `city-generation-village-pack` (`init/assets` merged to `main`). City generator work: see `.claude/plan-city.md` (self-contained, tasks 1-17). Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
