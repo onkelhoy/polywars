@@ -1,6 +1,7 @@
 import type { Random } from "@papit/random";
 import type { Ctx } from "../core";
 import type { Settings } from "../types";
+import { awning } from "./awning";
 import { balcony } from "./balcony";
 import { braces } from "./braces";
 import { chimney } from "./chimney";
@@ -21,4 +22,4 @@ export type Feature = {
     build?(ctx: Ctx, rng: Random): void;
 };
 
-export const FEATURES: Feature[] = [tunnel, windmill, jetty, balcony, gableWindow, dormer, chimney, braces, waterwheel];
+export const FEATURES: Feature[] = [tunnel, windmill, jetty, balcony, gableWindow, dormer, chimney, braces, waterwheel, awning];
