@@ -40,6 +40,15 @@ async function generate() {
 
 $('#dice').onclick = () => { $('#seed').value = randomSeed(); generate(); };
 $('#generate').onclick = generate;
+// pieces of the house in the build code field, for tools/blender/export-house.mjs
+$('#export').onclick = () => {
+    const parsed = decode($('#code').value);
+    if (!parsed) return;
+    const blob = new Blob([JSON.stringify({ code: $('#code').value, pieces: building(parsed.settings, parsed.seed).pieces })], { type: 'application/json' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${$('#code').value}.json` });
+    a.click();
+    URL.revokeObjectURL(a.href);
+};
 form.onchange = generate;
 $('#count').onchange = generate;
 $('#base').onchange = generate;
