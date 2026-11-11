@@ -2,9 +2,10 @@ import type { GLTF, Mesh } from "@papit/game-mesh";
 
 export type AssetKind = "model" | "source" | "audio" | "image" | "other";
 
-/** One file in a `manifest.json` (written by the `gallery-manifest` bin). */
-export type ManifestFile = { path: string; name: string; folder: string; kind: AssetKind; size: number };
-export type Manifest = { files: ManifestFile[] };
+/** A file. `file` is its url. */
+export type Asset = { name: string; file: string; size?: number };
+/** A folder of files and folders; `manifest.json` (bin/manifest.mjs) is one of these. Each level is a heading. */
+export type Assets = { name: string; assets: (Asset | Assets)[] };
 
 /**
  * Anything the gallery shows. From a manifest, or set through `items` (e.g. generated content).

@@ -1,641 +1,4940 @@
 {
- "files": [
-  {
-   "path": "/assets/audio/songs/game/arena-motif.mp3",
-   "name": "arena-motif.mp3",
-   "folder": "audio/songs/game",
-   "kind": "audio",
-   "size": 2127035
-  },
-  {
-   "path": "/assets/audio/songs/game/battle-pulse.mp3",
-   "name": "battle-pulse.mp3",
-   "folder": "audio/songs/game",
-   "kind": "audio",
-   "size": 1764175
-  },
-  {
-   "path": "/assets/audio/songs/game/guardians-watch.mp3",
-   "name": "guardians-watch.mp3",
-   "folder": "audio/songs/game",
-   "kind": "audio",
-   "size": 3592701
-  },
-  {
-   "path": "/assets/audio/songs/game/nimble-pulse.mp3",
-   "name": "nimble-pulse.mp3",
-   "folder": "audio/songs/game",
-   "kind": "audio",
-   "size": 1906556
-  },
-  {
-   "path": "/assets/audio/songs/game/pirates-pulse.mp3",
-   "name": "pirates-pulse.mp3",
-   "folder": "audio/songs/game",
-   "kind": "audio",
-   "size": 3289522
-  },
-  {
-   "path": "/assets/audio/songs/menu/fill-the-cup.mp3",
-   "name": "fill-the-cup.mp3",
-   "folder": "audio/songs/menu",
-   "kind": "audio",
-   "size": 2796950
-  },
-  {
-   "path": "/assets/audio/songs/menu/let-the-fiddler-leap.mp3",
-   "name": "let-the-fiddler-leap.mp3",
-   "folder": "audio/songs/menu",
-   "kind": "audio",
-   "size": 2342745
-  },
-  {
-   "path": "/assets/models/ammo/30-06-springfield/bullet.blend",
-   "name": "bullet.blend",
-   "folder": "models/ammo/30-06-springfield",
-   "kind": "source",
-   "size": 93366
-  },
-  {
-   "path": "/assets/models/ammo/30-06-springfield/bullet.glb",
-   "name": "bullet.glb",
-   "folder": "models/ammo/30-06-springfield",
-   "kind": "model",
-   "size": 9200
-  },
-  {
-   "path": "/assets/models/ammo/30-06-springfield/case.blend",
-   "name": "case.blend",
-   "folder": "models/ammo/30-06-springfield",
-   "kind": "source",
-   "size": 93886
-  },
-  {
-   "path": "/assets/models/ammo/30-06-springfield/case.glb",
-   "name": "case.glb",
-   "folder": "models/ammo/30-06-springfield",
-   "kind": "model",
-   "size": 11620
-  },
-  {
-   "path": "/assets/models/ammo/30-06-springfield/round.blend",
-   "name": "round.blend",
-   "folder": "models/ammo/30-06-springfield",
-   "kind": "source",
-   "size": 97685
-  },
-  {
-   "path": "/assets/models/ammo/30-06-springfield/round.glb",
-   "name": "round.glb",
-   "folder": "models/ammo/30-06-springfield",
-   "kind": "model",
-   "size": 14168
-  },
-  {
-   "path": "/assets/models/ammo/45-acp/bullet.blend",
-   "name": "bullet.blend",
-   "folder": "models/ammo/45-acp",
-   "kind": "source",
-   "size": 92128
-  },
-  {
-   "path": "/assets/models/ammo/45-acp/bullet.glb",
-   "name": "bullet.glb",
-   "folder": "models/ammo/45-acp",
-   "kind": "model",
-   "size": 5988
-  },
-  {
-   "path": "/assets/models/ammo/45-acp/case.blend",
-   "name": "case.blend",
-   "folder": "models/ammo/45-acp",
-   "kind": "source",
-   "size": 93931
-  },
-  {
-   "path": "/assets/models/ammo/45-acp/case.glb",
-   "name": "case.glb",
-   "folder": "models/ammo/45-acp",
-   "kind": "model",
-   "size": 11060
-  },
-  {
-   "path": "/assets/models/ammo/45-acp/round.blend",
-   "name": "round.blend",
-   "folder": "models/ammo/45-acp",
-   "kind": "source",
-   "size": 97836
-  },
-  {
-   "path": "/assets/models/ammo/45-acp/round.glb",
-   "name": "round.glb",
-   "folder": "models/ammo/45-acp",
-   "kind": "model",
-   "size": 13616
-  },
-  {
-   "path": "/assets/models/ammo/762x25-tokarev/bullet.blend",
-   "name": "bullet.blend",
-   "folder": "models/ammo/762x25-tokarev",
-   "kind": "source",
-   "size": 92245
-  },
-  {
-   "path": "/assets/models/ammo/762x25-tokarev/bullet.glb",
-   "name": "bullet.glb",
-   "folder": "models/ammo/762x25-tokarev",
-   "kind": "model",
-   "size": 6008
-  },
-  {
-   "path": "/assets/models/ammo/762x25-tokarev/case.blend",
-   "name": "case.blend",
-   "folder": "models/ammo/762x25-tokarev",
-   "kind": "source",
-   "size": 95459
-  },
-  {
-   "path": "/assets/models/ammo/762x25-tokarev/case.glb",
-   "name": "case.glb",
-   "folder": "models/ammo/762x25-tokarev",
-   "kind": "model",
-   "size": 16060
-  },
-  {
-   "path": "/assets/models/ammo/762x25-tokarev/round.blend",
-   "name": "round.blend",
-   "folder": "models/ammo/762x25-tokarev",
-   "kind": "source",
-   "size": 99126
-  },
-  {
-   "path": "/assets/models/ammo/762x25-tokarev/round.glb",
-   "name": "round.glb",
-   "folder": "models/ammo/762x25-tokarev",
-   "kind": "model",
-   "size": 17496
-  },
-  {
-   "path": "/assets/models/ammo/792x33-kurz/bullet.blend",
-   "name": "bullet.blend",
-   "folder": "models/ammo/792x33-kurz",
-   "kind": "source",
-   "size": 92833
-  },
-  {
-   "path": "/assets/models/ammo/792x33-kurz/bullet.glb",
-   "name": "bullet.glb",
-   "folder": "models/ammo/792x33-kurz",
-   "kind": "model",
-   "size": 7120
-  },
-  {
-   "path": "/assets/models/ammo/792x33-kurz/case.blend",
-   "name": "case.blend",
-   "folder": "models/ammo/792x33-kurz",
-   "kind": "source",
-   "size": 94898
-  },
-  {
-   "path": "/assets/models/ammo/792x33-kurz/case.glb",
-   "name": "case.glb",
-   "folder": "models/ammo/792x33-kurz",
-   "kind": "model",
-   "size": 14028
-  },
-  {
-   "path": "/assets/models/ammo/792x33-kurz/round.blend",
-   "name": "round.blend",
-   "folder": "models/ammo/792x33-kurz",
-   "kind": "source",
-   "size": 99498
-  },
-  {
-   "path": "/assets/models/ammo/792x33-kurz/round.glb",
-   "name": "round.glb",
-   "folder": "models/ammo/792x33-kurz",
-   "kind": "model",
-   "size": 17476
-  },
-  {
-   "path": "/assets/models/ammo/9x19-parabellum/bullet.blend",
-   "name": "bullet.blend",
-   "folder": "models/ammo/9x19-parabellum",
-   "kind": "source",
-   "size": 91846
-  },
-  {
-   "path": "/assets/models/ammo/9x19-parabellum/bullet.glb",
-   "name": "bullet.glb",
-   "folder": "models/ammo/9x19-parabellum",
-   "kind": "model",
-   "size": 6020
-  },
-  {
-   "path": "/assets/models/ammo/9x19-parabellum/case.blend",
-   "name": "case.blend",
-   "folder": "models/ammo/9x19-parabellum",
-   "kind": "source",
-   "size": 95493
-  },
-  {
-   "path": "/assets/models/ammo/9x19-parabellum/case.glb",
-   "name": "case.glb",
-   "folder": "models/ammo/9x19-parabellum",
-   "kind": "model",
-   "size": 16060
-  },
-  {
-   "path": "/assets/models/ammo/9x19-parabellum/round.blend",
-   "name": "round.blend",
-   "folder": "models/ammo/9x19-parabellum",
-   "kind": "source",
-   "size": 99154
-  },
-  {
-   "path": "/assets/models/ammo/9x19-parabellum/round.glb",
-   "name": "round.glb",
-   "folder": "models/ammo/9x19-parabellum",
-   "kind": "model",
-   "size": 17696
-  },
-  {
-   "path": "/assets/models/grenades/f1/model.blend",
-   "name": "model.blend",
-   "folder": "models/grenades/f1",
-   "kind": "source",
-   "size": 119047
-  },
-  {
-   "path": "/assets/models/grenades/f1/model.glb",
-   "name": "model.glb",
-   "folder": "models/grenades/f1",
-   "kind": "model",
-   "size": 76876
-  },
-  {
-   "path": "/assets/models/grenades/mk2/model.blend",
-   "name": "model.blend",
-   "folder": "models/grenades/mk2",
-   "kind": "source",
-   "size": 116940
-  },
-  {
-   "path": "/assets/models/grenades/mk2/model.glb",
-   "name": "model.glb",
-   "folder": "models/grenades/mk2",
-   "kind": "model",
-   "size": 70560
-  },
-  {
-   "path": "/assets/models/grenades/stick-grenade/model.blend",
-   "name": "model.blend",
-   "folder": "models/grenades/stick-grenade",
-   "kind": "source",
-   "size": 100692
-  },
-  {
-   "path": "/assets/models/grenades/stick-grenade/model.glb",
-   "name": "model.glb",
-   "folder": "models/grenades/stick-grenade",
-   "kind": "model",
-   "size": 22188
-  },
-  {
-   "path": "/assets/models/guns/m1-garand/gun.blend",
-   "name": "gun.blend",
-   "folder": "models/guns/m1-garand",
-   "kind": "source",
-   "size": 144950
-  },
-  {
-   "path": "/assets/models/guns/m1-garand/gun.glb",
-   "name": "gun.glb",
-   "folder": "models/guns/m1-garand",
-   "kind": "model",
-   "size": 166564
-  },
-  {
-   "path": "/assets/models/guns/m1-garand/mag.blend",
-   "name": "mag.blend",
-   "folder": "models/guns/m1-garand",
-   "kind": "source",
-   "size": 92042
-  },
-  {
-   "path": "/assets/models/guns/m1-garand/mag.glb",
-   "name": "mag.glb",
-   "folder": "models/guns/m1-garand",
-   "kind": "model",
-   "size": 7616
-  },
-  {
-   "path": "/assets/models/guns/m1-garand/model.blend",
-   "name": "model.blend",
-   "folder": "models/guns/m1-garand",
-   "kind": "source",
-   "size": 92108
-  },
-  {
-   "path": "/assets/models/guns/m1-garand/model.glb",
-   "name": "model.glb",
-   "folder": "models/guns/m1-garand",
-   "kind": "model",
-   "size": 335844
-  },
-  {
-   "path": "/assets/models/guns/m1911/gun.blend",
-   "name": "gun.blend",
-   "folder": "models/guns/m1911",
-   "kind": "source",
-   "size": 124216
-  },
-  {
-   "path": "/assets/models/guns/m1911/gun.glb",
-   "name": "gun.glb",
-   "folder": "models/guns/m1911",
-   "kind": "model",
-   "size": 82460
-  },
-  {
-   "path": "/assets/models/guns/m1911/mag.blend",
-   "name": "mag.blend",
-   "folder": "models/guns/m1911",
-   "kind": "source",
-   "size": 95350
-  },
-  {
-   "path": "/assets/models/guns/m1911/mag.glb",
-   "name": "mag.glb",
-   "folder": "models/guns/m1911",
-   "kind": "model",
-   "size": 5248
-  },
-  {
-   "path": "/assets/models/guns/m1911/model.blend",
-   "name": "model.blend",
-   "folder": "models/guns/m1911",
-   "kind": "source",
-   "size": 92749
-  },
-  {
-   "path": "/assets/models/guns/m1911/model.glb",
-   "name": "model.glb",
-   "folder": "models/guns/m1911",
-   "kind": "model",
-   "size": 211184
-  },
-  {
-   "path": "/assets/models/guns/mauser-c96/gun.blend",
-   "name": "gun.blend",
-   "folder": "models/guns/mauser-c96",
-   "kind": "source",
-   "size": 127516
-  },
-  {
-   "path": "/assets/models/guns/mauser-c96/gun.glb",
-   "name": "gun.glb",
-   "folder": "models/guns/mauser-c96",
-   "kind": "model",
-   "size": 87864
-  },
-  {
-   "path": "/assets/models/guns/mauser-c96/mag.blend",
-   "name": "mag.blend",
-   "folder": "models/guns/mauser-c96",
-   "kind": "source",
-   "size": 97171
-  },
-  {
-   "path": "/assets/models/guns/mauser-c96/mag.glb",
-   "name": "mag.glb",
-   "folder": "models/guns/mauser-c96",
-   "kind": "model",
-   "size": 4344
-  },
-  {
-   "path": "/assets/models/guns/mauser-c96/model.blend",
-   "name": "model.blend",
-   "folder": "models/guns/mauser-c96",
-   "kind": "source",
-   "size": 92498
-  },
-  {
-   "path": "/assets/models/guns/mauser-c96/model.glb",
-   "name": "model.glb",
-   "folder": "models/guns/mauser-c96",
-   "kind": "model",
-   "size": 218172
-  },
-  {
-   "path": "/assets/models/guns/ppsh-41/gun.blend",
-   "name": "gun.blend",
-   "folder": "models/guns/ppsh-41",
-   "kind": "source",
-   "size": 135965
-  },
-  {
-   "path": "/assets/models/guns/ppsh-41/gun.glb",
-   "name": "gun.glb",
-   "folder": "models/guns/ppsh-41",
-   "kind": "model",
-   "size": 116744
-  },
-  {
-   "path": "/assets/models/guns/ppsh-41/mag.blend",
-   "name": "mag.blend",
-   "folder": "models/guns/ppsh-41",
-   "kind": "source",
-   "size": 112110
-  },
-  {
-   "path": "/assets/models/guns/ppsh-41/mag.glb",
-   "name": "mag.glb",
-   "folder": "models/guns/ppsh-41",
-   "kind": "model",
-   "size": 51308
-  },
-  {
-   "path": "/assets/models/guns/ppsh-41/model.blend",
-   "name": "model.blend",
-   "folder": "models/guns/ppsh-41",
-   "kind": "source",
-   "size": 92468
-  },
-  {
-   "path": "/assets/models/guns/ppsh-41/model.glb",
-   "name": "model.glb",
-   "folder": "models/guns/ppsh-41",
-   "kind": "model",
-   "size": 340792
-  },
-  {
-   "path": "/assets/models/guns/stg-44/gun.blend",
-   "name": "gun.blend",
-   "folder": "models/guns/stg-44",
-   "kind": "source",
-   "size": 151275
-  },
-  {
-   "path": "/assets/models/guns/stg-44/gun.glb",
-   "name": "gun.glb",
-   "folder": "models/guns/stg-44",
-   "kind": "model",
-   "size": 158260
-  },
-  {
-   "path": "/assets/models/guns/stg-44/mag.blend",
-   "name": "mag.blend",
-   "folder": "models/guns/stg-44",
-   "kind": "source",
-   "size": 99550
-  },
-  {
-   "path": "/assets/models/guns/stg-44/mag.glb",
-   "name": "mag.glb",
-   "folder": "models/guns/stg-44",
-   "kind": "model",
-   "size": 10800
-  },
-  {
-   "path": "/assets/models/guns/stg-44/model.blend",
-   "name": "model.blend",
-   "folder": "models/guns/stg-44",
-   "kind": "source",
-   "size": 92626
-  },
-  {
-   "path": "/assets/models/guns/stg-44/model.glb",
-   "name": "model.glb",
-   "folder": "models/guns/stg-44",
-   "kind": "model",
-   "size": 343212
-  },
-  {
-   "path": "/assets/models/guns/thompson-m1/gun.blend",
-   "name": "gun.blend",
-   "folder": "models/guns/thompson-m1",
-   "kind": "source",
-   "size": 128423
-  },
-  {
-   "path": "/assets/models/guns/thompson-m1/gun.glb",
-   "name": "gun.glb",
-   "folder": "models/guns/thompson-m1",
-   "kind": "model",
-   "size": 99772
-  },
-  {
-   "path": "/assets/models/guns/thompson-m1/mag.blend",
-   "name": "mag.blend",
-   "folder": "models/guns/thompson-m1",
-   "kind": "source",
-   "size": 95020
-  },
-  {
-   "path": "/assets/models/guns/thompson-m1/mag.glb",
-   "name": "mag.glb",
-   "folder": "models/guns/thompson-m1",
-   "kind": "model",
-   "size": 7092
-  },
-  {
-   "path": "/assets/models/guns/thompson-m1/model.blend",
-   "name": "model.blend",
-   "folder": "models/guns/thompson-m1",
-   "kind": "source",
-   "size": 92604
-  },
-  {
-   "path": "/assets/models/guns/thompson-m1/model.glb",
-   "name": "model.glb",
-   "folder": "models/guns/thompson-m1",
-   "kind": "model",
-   "size": 239872
-  },
-  {
-   "path": "/assets/models/guns/tt-pistol/gun.blend",
-   "name": "gun.blend",
-   "folder": "models/guns/tt-pistol",
-   "kind": "source",
-   "size": 123324
-  },
-  {
-   "path": "/assets/models/guns/tt-pistol/gun.glb",
-   "name": "gun.glb",
-   "folder": "models/guns/tt-pistol",
-   "kind": "model",
-   "size": 77644
-  },
-  {
-   "path": "/assets/models/guns/tt-pistol/mag.blend",
-   "name": "mag.blend",
-   "folder": "models/guns/tt-pistol",
-   "kind": "source",
-   "size": 95321
-  },
-  {
-   "path": "/assets/models/guns/tt-pistol/mag.glb",
-   "name": "mag.glb",
-   "folder": "models/guns/tt-pistol",
-   "kind": "model",
-   "size": 8120
-  },
-  {
-   "path": "/assets/models/guns/tt-pistol/model.blend",
-   "name": "model.blend",
-   "folder": "models/guns/tt-pistol",
-   "kind": "source",
-   "size": 92771
-  },
-  {
-   "path": "/assets/models/guns/tt-pistol/model.glb",
-   "name": "model.glb",
-   "folder": "models/guns/tt-pistol",
-   "kind": "model",
-   "size": 214460
-  },
-  {
-   "path": "/assets/models/knives/german-knife/model.blend",
-   "name": "model.blend",
-   "folder": "models/knives/german-knife",
-   "kind": "source",
-   "size": 102302
-  },
-  {
-   "path": "/assets/models/knives/german-knife/model.glb",
-   "name": "model.glb",
-   "folder": "models/knives/german-knife",
-   "kind": "model",
-   "size": 26240
-  },
-  {
-   "path": "/assets/models/knives/ka-bar/model.blend",
-   "name": "model.blend",
-   "folder": "models/knives/ka-bar",
-   "kind": "source",
-   "size": 109060
-  },
-  {
-   "path": "/assets/models/knives/ka-bar/model.glb",
-   "name": "model.glb",
-   "folder": "models/knives/ka-bar",
-   "kind": "model",
-   "size": 42076
-  },
-  {
-   "path": "/assets/models/knives/nr-40/model.blend",
-   "name": "model.blend",
-   "folder": "models/knives/nr-40",
-   "kind": "source",
-   "size": 97645
-  },
-  {
-   "path": "/assets/models/knives/nr-40/model.glb",
-   "name": "model.glb",
-   "folder": "models/knives/nr-40",
-   "kind": "model",
-   "size": 14140
+ "name": "assets",
+ "assets": [
+  {
+   "name": "audio",
+   "assets": [
+    {
+     "name": "songs",
+     "assets": [
+      {
+       "name": "game",
+       "assets": [
+        {
+         "name": "arena-motif.mp3",
+         "file": "/assets/audio/songs/game/arena-motif.mp3",
+         "size": 2127035
+        },
+        {
+         "name": "battle-pulse.mp3",
+         "file": "/assets/audio/songs/game/battle-pulse.mp3",
+         "size": 1764175
+        },
+        {
+         "name": "guardians-watch.mp3",
+         "file": "/assets/audio/songs/game/guardians-watch.mp3",
+         "size": 3592701
+        },
+        {
+         "name": "nimble-pulse.mp3",
+         "file": "/assets/audio/songs/game/nimble-pulse.mp3",
+         "size": 1906556
+        },
+        {
+         "name": "pirates-pulse.mp3",
+         "file": "/assets/audio/songs/game/pirates-pulse.mp3",
+         "size": 3289522
+        }
+       ]
+      },
+      {
+       "name": "menu",
+       "assets": [
+        {
+         "name": "fill-the-cup.mp3",
+         "file": "/assets/audio/songs/menu/fill-the-cup.mp3",
+         "size": 2796950
+        },
+        {
+         "name": "let-the-fiddler-leap.mp3",
+         "file": "/assets/audio/songs/menu/let-the-fiddler-leap.mp3",
+         "size": 2342745
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "models",
+   "assets": [
+    {
+     "name": "ammo",
+     "assets": [
+      {
+       "name": "30-06-springfield",
+       "assets": [
+        {
+         "name": "bullet.blend",
+         "file": "/assets/models/ammo/30-06-springfield/bullet.blend",
+         "size": 93366
+        },
+        {
+         "name": "bullet.glb",
+         "file": "/assets/models/ammo/30-06-springfield/bullet.glb",
+         "size": 9200
+        },
+        {
+         "name": "case.blend",
+         "file": "/assets/models/ammo/30-06-springfield/case.blend",
+         "size": 93886
+        },
+        {
+         "name": "case.glb",
+         "file": "/assets/models/ammo/30-06-springfield/case.glb",
+         "size": 11620
+        },
+        {
+         "name": "round.blend",
+         "file": "/assets/models/ammo/30-06-springfield/round.blend",
+         "size": 97685
+        },
+        {
+         "name": "round.glb",
+         "file": "/assets/models/ammo/30-06-springfield/round.glb",
+         "size": 14168
+        }
+       ]
+      },
+      {
+       "name": "45-acp",
+       "assets": [
+        {
+         "name": "bullet.blend",
+         "file": "/assets/models/ammo/45-acp/bullet.blend",
+         "size": 92128
+        },
+        {
+         "name": "bullet.glb",
+         "file": "/assets/models/ammo/45-acp/bullet.glb",
+         "size": 5988
+        },
+        {
+         "name": "case.blend",
+         "file": "/assets/models/ammo/45-acp/case.blend",
+         "size": 93931
+        },
+        {
+         "name": "case.glb",
+         "file": "/assets/models/ammo/45-acp/case.glb",
+         "size": 11060
+        },
+        {
+         "name": "round.blend",
+         "file": "/assets/models/ammo/45-acp/round.blend",
+         "size": 97836
+        },
+        {
+         "name": "round.glb",
+         "file": "/assets/models/ammo/45-acp/round.glb",
+         "size": 13616
+        }
+       ]
+      },
+      {
+       "name": "762x25-tokarev",
+       "assets": [
+        {
+         "name": "bullet.blend",
+         "file": "/assets/models/ammo/762x25-tokarev/bullet.blend",
+         "size": 92245
+        },
+        {
+         "name": "bullet.glb",
+         "file": "/assets/models/ammo/762x25-tokarev/bullet.glb",
+         "size": 6008
+        },
+        {
+         "name": "case.blend",
+         "file": "/assets/models/ammo/762x25-tokarev/case.blend",
+         "size": 95459
+        },
+        {
+         "name": "case.glb",
+         "file": "/assets/models/ammo/762x25-tokarev/case.glb",
+         "size": 16060
+        },
+        {
+         "name": "round.blend",
+         "file": "/assets/models/ammo/762x25-tokarev/round.blend",
+         "size": 99126
+        },
+        {
+         "name": "round.glb",
+         "file": "/assets/models/ammo/762x25-tokarev/round.glb",
+         "size": 17496
+        }
+       ]
+      },
+      {
+       "name": "792x33-kurz",
+       "assets": [
+        {
+         "name": "bullet.blend",
+         "file": "/assets/models/ammo/792x33-kurz/bullet.blend",
+         "size": 92833
+        },
+        {
+         "name": "bullet.glb",
+         "file": "/assets/models/ammo/792x33-kurz/bullet.glb",
+         "size": 7120
+        },
+        {
+         "name": "case.blend",
+         "file": "/assets/models/ammo/792x33-kurz/case.blend",
+         "size": 94898
+        },
+        {
+         "name": "case.glb",
+         "file": "/assets/models/ammo/792x33-kurz/case.glb",
+         "size": 14028
+        },
+        {
+         "name": "round.blend",
+         "file": "/assets/models/ammo/792x33-kurz/round.blend",
+         "size": 99498
+        },
+        {
+         "name": "round.glb",
+         "file": "/assets/models/ammo/792x33-kurz/round.glb",
+         "size": 17476
+        }
+       ]
+      },
+      {
+       "name": "9x19-parabellum",
+       "assets": [
+        {
+         "name": "bullet.blend",
+         "file": "/assets/models/ammo/9x19-parabellum/bullet.blend",
+         "size": 91846
+        },
+        {
+         "name": "bullet.glb",
+         "file": "/assets/models/ammo/9x19-parabellum/bullet.glb",
+         "size": 6020
+        },
+        {
+         "name": "case.blend",
+         "file": "/assets/models/ammo/9x19-parabellum/case.blend",
+         "size": 95493
+        },
+        {
+         "name": "case.glb",
+         "file": "/assets/models/ammo/9x19-parabellum/case.glb",
+         "size": 16060
+        },
+        {
+         "name": "round.blend",
+         "file": "/assets/models/ammo/9x19-parabellum/round.blend",
+         "size": 99154
+        },
+        {
+         "name": "round.glb",
+         "file": "/assets/models/ammo/9x19-parabellum/round.glb",
+         "size": 17696
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "animals",
+     "assets": [
+      {
+       "name": "farm",
+       "assets": [
+        {
+         "name": "about",
+         "assets": [
+          {
+           "name": "License.txt",
+           "file": "/assets/models/animals/farm/about/License.txt",
+           "size": 581
+          },
+          {
+           "name": "Preview.gif",
+           "file": "/assets/models/animals/farm/about/Preview.gif",
+           "size": 4794183
+          }
+         ]
+        },
+        {
+         "name": "Cow.blend",
+         "file": "/assets/models/animals/farm/Cow.blend",
+         "size": 970088
+        },
+        {
+         "name": "Cow.glb",
+         "file": "/assets/models/animals/farm/Cow.glb",
+         "size": 351752
+        },
+        {
+         "name": "Horse.blend",
+         "file": "/assets/models/animals/farm/Horse.blend",
+         "size": 975328
+        },
+        {
+         "name": "Horse.glb",
+         "file": "/assets/models/animals/farm/Horse.glb",
+         "size": 319808
+        },
+        {
+         "name": "Llama.blend",
+         "file": "/assets/models/animals/farm/Llama.blend",
+         "size": 928212
+        },
+        {
+         "name": "Llama.glb",
+         "file": "/assets/models/animals/farm/Llama.glb",
+         "size": 286428
+        },
+        {
+         "name": "Pig.blend",
+         "file": "/assets/models/animals/farm/Pig.blend",
+         "size": 904380
+        },
+        {
+         "name": "Pig.glb",
+         "file": "/assets/models/animals/farm/Pig.glb",
+         "size": 279520
+        },
+        {
+         "name": "Pug.blend",
+         "file": "/assets/models/animals/farm/Pug.blend",
+         "size": 859268
+        },
+        {
+         "name": "Pug.glb",
+         "file": "/assets/models/animals/farm/Pug.glb",
+         "size": 275464
+        },
+        {
+         "name": "Sheep.blend",
+         "file": "/assets/models/animals/farm/Sheep.blend",
+         "size": 923936
+        },
+        {
+         "name": "Sheep.glb",
+         "file": "/assets/models/animals/farm/Sheep.glb",
+         "size": 279236
+        },
+        {
+         "name": "Zebra.blend",
+         "file": "/assets/models/animals/farm/Zebra.blend",
+         "size": 981412
+        },
+        {
+         "name": "Zebra.glb",
+         "file": "/assets/models/animals/farm/Zebra.glb",
+         "size": 393152
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "buildings",
+     "assets": [
+      {
+       "name": "castle",
+       "assets": [
+        {
+         "name": "about",
+         "assets": [
+          {
+           "name": "Preview.jpg",
+           "file": "/assets/models/buildings/castle/about/Preview.jpg",
+           "size": 168387
+          }
+         ]
+        },
+        {
+         "name": "Banner.blend",
+         "file": "/assets/models/buildings/castle/Banner.blend",
+         "size": 459752
+        },
+        {
+         "name": "Banner.glb",
+         "file": "/assets/models/buildings/castle/Banner.glb",
+         "size": 4152
+        },
+        {
+         "name": "Bridge.blend",
+         "file": "/assets/models/buildings/castle/Bridge.blend",
+         "size": 483800
+        },
+        {
+         "name": "Bridge.glb",
+         "file": "/assets/models/buildings/castle/Bridge.glb",
+         "size": 23788
+        },
+        {
+         "name": "Door.blend",
+         "file": "/assets/models/buildings/castle/Door.blend",
+         "size": 446300
+        },
+        {
+         "name": "Door.glb",
+         "file": "/assets/models/buildings/castle/Door.glb",
+         "size": 22860
+        },
+        {
+         "name": "Dummy.blend",
+         "file": "/assets/models/buildings/castle/Dummy.blend",
+         "size": 466748
+        },
+        {
+         "name": "Dummy.glb",
+         "file": "/assets/models/buildings/castle/Dummy.glb",
+         "size": 7044
+        },
+        {
+         "name": "LargeSimpleTower.blend",
+         "file": "/assets/models/buildings/castle/LargeSimpleTower.blend",
+         "size": 501284
+        },
+        {
+         "name": "LargeSimpleTower.glb",
+         "file": "/assets/models/buildings/castle/LargeSimpleTower.glb",
+         "size": 23172
+        },
+        {
+         "name": "LargeSquareTower.blend",
+         "file": "/assets/models/buildings/castle/LargeSquareTower.blend",
+         "size": 485904
+        },
+        {
+         "name": "LargeSquareTower.glb",
+         "file": "/assets/models/buildings/castle/LargeSquareTower.glb",
+         "size": 30016
+        },
+        {
+         "name": "LargeSquareTowerBricks.blend",
+         "file": "/assets/models/buildings/castle/LargeSquareTowerBricks.blend",
+         "size": 509908
+        },
+        {
+         "name": "LargeSquareTowerBricks.glb",
+         "file": "/assets/models/buildings/castle/LargeSquareTowerBricks.glb",
+         "size": 38852
+        },
+        {
+         "name": "LargeTower.blend",
+         "file": "/assets/models/buildings/castle/LargeTower.blend",
+         "size": 483340
+        },
+        {
+         "name": "LargeTower.glb",
+         "file": "/assets/models/buildings/castle/LargeTower.glb",
+         "size": 27092
+        },
+        {
+         "name": "PointyTower.blend",
+         "file": "/assets/models/buildings/castle/PointyTower.blend",
+         "size": 511748
+        },
+        {
+         "name": "PointyTower.glb",
+         "file": "/assets/models/buildings/castle/PointyTower.glb",
+         "size": 31624
+        },
+        {
+         "name": "SimpleTowerBricks.blend",
+         "file": "/assets/models/buildings/castle/SimpleTowerBricks.blend",
+         "size": 498964
+        },
+        {
+         "name": "SimpleTowerBricks.glb",
+         "file": "/assets/models/buildings/castle/SimpleTowerBricks.glb",
+         "size": 15500
+        },
+        {
+         "name": "Simpletower.blend",
+         "file": "/assets/models/buildings/castle/Simpletower.blend",
+         "size": 484280
+        },
+        {
+         "name": "Simpletower.glb",
+         "file": "/assets/models/buildings/castle/Simpletower.glb",
+         "size": 10088
+        },
+        {
+         "name": "SmallSquareTower.blend",
+         "file": "/assets/models/buildings/castle/SmallSquareTower.blend",
+         "size": 477312
+        },
+        {
+         "name": "SmallSquareTower.glb",
+         "file": "/assets/models/buildings/castle/SmallSquareTower.glb",
+         "size": 24160
+        },
+        {
+         "name": "SmallSquareTowerBricks.blend",
+         "file": "/assets/models/buildings/castle/SmallSquareTowerBricks.blend",
+         "size": 491992
+        },
+        {
+         "name": "SmallSquareTowerBricks.glb",
+         "file": "/assets/models/buildings/castle/SmallSquareTowerBricks.glb",
+         "size": 30296
+        },
+        {
+         "name": "SmallTower.blend",
+         "file": "/assets/models/buildings/castle/SmallTower.blend",
+         "size": 466784
+        },
+        {
+         "name": "SmallTower.glb",
+         "file": "/assets/models/buildings/castle/SmallTower.glb",
+         "size": 19164
+        },
+        {
+         "name": "TallWall.blend",
+         "file": "/assets/models/buildings/castle/TallWall.blend",
+         "size": 452984
+        },
+        {
+         "name": "TallWall.glb",
+         "file": "/assets/models/buildings/castle/TallWall.glb",
+         "size": 5668
+        },
+        {
+         "name": "TallWallBricks.blend",
+         "file": "/assets/models/buildings/castle/TallWallBricks.blend",
+         "size": 467760
+        },
+        {
+         "name": "TallWallBricks.glb",
+         "file": "/assets/models/buildings/castle/TallWallBricks.glb",
+         "size": 12380
+        },
+        {
+         "name": "TallWallEntrance.blend",
+         "file": "/assets/models/buildings/castle/TallWallEntrance.blend",
+         "size": 467968
+        },
+        {
+         "name": "TallWallEntrance.glb",
+         "file": "/assets/models/buildings/castle/TallWallEntrance.glb",
+         "size": 11820
+        },
+        {
+         "name": "Target.blend",
+         "file": "/assets/models/buildings/castle/Target.blend",
+         "size": 475016
+        },
+        {
+         "name": "Target.glb",
+         "file": "/assets/models/buildings/castle/Target.glb",
+         "size": 8472
+        },
+        {
+         "name": "TargetWithArrows.blend",
+         "file": "/assets/models/buildings/castle/TargetWithArrows.blend",
+         "size": 457052
+        },
+        {
+         "name": "TargetWithArrows.glb",
+         "file": "/assets/models/buildings/castle/TargetWithArrows.glb",
+         "size": 16564
+        },
+        {
+         "name": "Tower.blend",
+         "file": "/assets/models/buildings/castle/Tower.blend",
+         "size": 509632
+        },
+        {
+         "name": "Tower.glb",
+         "file": "/assets/models/buildings/castle/Tower.glb",
+         "size": 34120
+        },
+        {
+         "name": "Tunnel.blend",
+         "file": "/assets/models/buildings/castle/Tunnel.blend",
+         "size": 459772
+        },
+        {
+         "name": "Tunnel.glb",
+         "file": "/assets/models/buildings/castle/Tunnel.glb",
+         "size": 4832
+        },
+        {
+         "name": "Wall.blend",
+         "file": "/assets/models/buildings/castle/Wall.blend",
+         "size": 452800
+        },
+        {
+         "name": "Wall.glb",
+         "file": "/assets/models/buildings/castle/Wall.glb",
+         "size": 5664
+        },
+        {
+         "name": "WallBricks.blend",
+         "file": "/assets/models/buildings/castle/WallBricks.blend",
+         "size": 467408
+        },
+        {
+         "name": "WallBricks.glb",
+         "file": "/assets/models/buildings/castle/WallBricks.glb",
+         "size": 9776
+        },
+        {
+         "name": "WallEntrance.blend",
+         "file": "/assets/models/buildings/castle/WallEntrance.blend",
+         "size": 454468
+        },
+        {
+         "name": "WallEntrance.glb",
+         "file": "/assets/models/buildings/castle/WallEntrance.glb",
+         "size": 7636
+        },
+        {
+         "name": "WallEntranceBricks.blend",
+         "file": "/assets/models/buildings/castle/WallEntranceBricks.blend",
+         "size": 466776
+        },
+        {
+         "name": "WallEntranceBricks.glb",
+         "file": "/assets/models/buildings/castle/WallEntranceBricks.glb",
+         "size": 11084
+        },
+        {
+         "name": "WatchTowerWRoof.blend",
+         "file": "/assets/models/buildings/castle/WatchTowerWRoof.blend",
+         "size": 476000
+        },
+        {
+         "name": "WatchTowerWRoof.glb",
+         "file": "/assets/models/buildings/castle/WatchTowerWRoof.glb",
+         "size": 21008
+        },
+        {
+         "name": "Watchtower.blend",
+         "file": "/assets/models/buildings/castle/Watchtower.blend",
+         "size": 463400
+        },
+        {
+         "name": "Watchtower.glb",
+         "file": "/assets/models/buildings/castle/Watchtower.glb",
+         "size": 17264
+        },
+        {
+         "name": "Well.blend",
+         "file": "/assets/models/buildings/castle/Well.blend",
+         "size": 473952
+        },
+        {
+         "name": "Well.glb",
+         "file": "/assets/models/buildings/castle/Well.glb",
+         "size": 8648
+        },
+        {
+         "name": "WindowGothic.blend",
+         "file": "/assets/models/buildings/castle/WindowGothic.blend",
+         "size": 468348
+        },
+        {
+         "name": "WindowGothic.glb",
+         "file": "/assets/models/buildings/castle/WindowGothic.glb",
+         "size": 4820
+        },
+        {
+         "name": "WindowSquare.blend",
+         "file": "/assets/models/buildings/castle/WindowSquare.blend",
+         "size": 463484
+        },
+        {
+         "name": "WindowSquare.glb",
+         "file": "/assets/models/buildings/castle/WindowSquare.glb",
+         "size": 3124
+        }
+       ]
+      },
+      {
+       "name": "dungeon",
+       "assets": [
+        {
+         "name": "about",
+         "assets": [
+          {
+           "name": "Preview.png",
+           "file": "/assets/models/buildings/dungeon/about/Preview.png",
+           "size": 8309190
+          },
+          {
+           "name": "Preview2.png",
+           "file": "/assets/models/buildings/dungeon/about/Preview2.png",
+           "size": 728763
+          }
+         ]
+        },
+        {
+         "name": "Barrel.blend",
+         "file": "/assets/models/buildings/dungeon/Barrel.blend",
+         "size": 472160
+        },
+        {
+         "name": "Barrel.glb",
+         "file": "/assets/models/buildings/dungeon/Barrel.glb",
+         "size": 26596
+        },
+        {
+         "name": "Bars.blend",
+         "file": "/assets/models/buildings/dungeon/Bars.blend",
+         "size": 465648
+        },
+        {
+         "name": "Bars.glb",
+         "file": "/assets/models/buildings/dungeon/Bars.glb",
+         "size": 20280
+        },
+        {
+         "name": "Bones.blend",
+         "file": "/assets/models/buildings/dungeon/Bones.blend",
+         "size": 506548
+        },
+        {
+         "name": "Bones.glb",
+         "file": "/assets/models/buildings/dungeon/Bones.glb",
+         "size": 41820
+        },
+        {
+         "name": "Bones2.blend",
+         "file": "/assets/models/buildings/dungeon/Bones2.blend",
+         "size": 489384
+        },
+        {
+         "name": "Bones2.glb",
+         "file": "/assets/models/buildings/dungeon/Bones2.glb",
+         "size": 31812
+        },
+        {
+         "name": "Book2.blend",
+         "file": "/assets/models/buildings/dungeon/Book2.blend",
+         "size": 497640
+        },
+        {
+         "name": "Book2.glb",
+         "file": "/assets/models/buildings/dungeon/Book2.glb",
+         "size": 30380
+        },
+        {
+         "name": "Book3.blend",
+         "file": "/assets/models/buildings/dungeon/Book3.blend",
+         "size": 481752
+        },
+        {
+         "name": "Book3.glb",
+         "file": "/assets/models/buildings/dungeon/Book3.glb",
+         "size": 31276
+        },
+        {
+         "name": "Book_Open.blend",
+         "file": "/assets/models/buildings/dungeon/Book_Open.blend",
+         "size": 481752
+        },
+        {
+         "name": "Book_Open.glb",
+         "file": "/assets/models/buildings/dungeon/Book_Open.glb",
+         "size": 29172
+        },
+        {
+         "name": "Candelabrum.blend",
+         "file": "/assets/models/buildings/dungeon/Candelabrum.blend",
+         "size": 482760
+        },
+        {
+         "name": "Candelabrum.glb",
+         "file": "/assets/models/buildings/dungeon/Candelabrum.glb",
+         "size": 34872
+        },
+        {
+         "name": "Candelabrum_tall.blend",
+         "file": "/assets/models/buildings/dungeon/Candelabrum_tall.blend",
+         "size": 501512
+        },
+        {
+         "name": "Candelabrum_tall.glb",
+         "file": "/assets/models/buildings/dungeon/Candelabrum_tall.glb",
+         "size": 53116
+        },
+        {
+         "name": "Candle.blend",
+         "file": "/assets/models/buildings/dungeon/Candle.blend",
+         "size": 472312
+        },
+        {
+         "name": "Candle.glb",
+         "file": "/assets/models/buildings/dungeon/Candle.glb",
+         "size": 16652
+        },
+        {
+         "name": "Carpet.blend",
+         "file": "/assets/models/buildings/dungeon/Carpet.blend",
+         "size": 455944
+        },
+        {
+         "name": "Carpet.glb",
+         "file": "/assets/models/buildings/dungeon/Carpet.glb",
+         "size": 9172
+        },
+        {
+         "name": "Chest.blend",
+         "file": "/assets/models/buildings/dungeon/Chest.blend",
+         "size": 475076
+        },
+        {
+         "name": "Chest.glb",
+         "file": "/assets/models/buildings/dungeon/Chest.glb",
+         "size": 20308
+        },
+        {
+         "name": "Chest_gold.blend",
+         "file": "/assets/models/buildings/dungeon/Chest_gold.blend",
+         "size": 480408
+        },
+        {
+         "name": "Chest_gold.glb",
+         "file": "/assets/models/buildings/dungeon/Chest_gold.glb",
+         "size": 26544
+        },
+        {
+         "name": "Column.blend",
+         "file": "/assets/models/buildings/dungeon/Column.blend",
+         "size": 457928
+        },
+        {
+         "name": "Column.glb",
+         "file": "/assets/models/buildings/dungeon/Column.glb",
+         "size": 15676
+        },
+        {
+         "name": "Column_Broken.blend",
+         "file": "/assets/models/buildings/dungeon/Column_Broken.blend",
+         "size": 449480
+        },
+        {
+         "name": "Column_Broken.glb",
+         "file": "/assets/models/buildings/dungeon/Column_Broken.glb",
+         "size": 7540
+        },
+        {
+         "name": "Column_Broken2.blend",
+         "file": "/assets/models/buildings/dungeon/Column_Broken2.blend",
+         "size": 450888
+        },
+        {
+         "name": "Column_Broken2.glb",
+         "file": "/assets/models/buildings/dungeon/Column_Broken2.glb",
+         "size": 8820
+        },
+        {
+         "name": "Entrance.blend",
+         "file": "/assets/models/buildings/dungeon/Entrance.blend",
+         "size": 447108
+        },
+        {
+         "name": "Entrance.glb",
+         "file": "/assets/models/buildings/dungeon/Entrance.glb",
+         "size": 6024
+        },
+        {
+         "name": "Entrance2.blend",
+         "file": "/assets/models/buildings/dungeon/Entrance2.blend",
+         "size": 476724
+        },
+        {
+         "name": "Entrance2.glb",
+         "file": "/assets/models/buildings/dungeon/Entrance2.glb",
+         "size": 22156
+        },
+        {
+         "name": "ModularColumn_bottom.blend",
+         "file": "/assets/models/buildings/dungeon/ModularColumn_bottom.blend",
+         "size": 453848
+        },
+        {
+         "name": "ModularColumn_bottom.glb",
+         "file": "/assets/models/buildings/dungeon/ModularColumn_bottom.glb",
+         "size": 6720
+        },
+        {
+         "name": "ModularColumn_middle.blend",
+         "file": "/assets/models/buildings/dungeon/ModularColumn_middle.blend",
+         "size": 453744
+        },
+        {
+         "name": "ModularColumn_middle.glb",
+         "file": "/assets/models/buildings/dungeon/ModularColumn_middle.glb",
+         "size": 7296
+        },
+        {
+         "name": "ModularColumn_top.blend",
+         "file": "/assets/models/buildings/dungeon/ModularColumn_top.blend",
+         "size": 454144
+        },
+        {
+         "name": "ModularColumn_top.glb",
+         "file": "/assets/models/buildings/dungeon/ModularColumn_top.glb",
+         "size": 6720
+        },
+        {
+         "name": "ModularFloor.blend",
+         "file": "/assets/models/buildings/dungeon/ModularFloor.blend",
+         "size": 446200
+        },
+        {
+         "name": "ModularFloor.glb",
+         "file": "/assets/models/buildings/dungeon/ModularFloor.glb",
+         "size": 25096
+        },
+        {
+         "name": "ModularStoneWall.blend",
+         "file": "/assets/models/buildings/dungeon/ModularStoneWall.blend",
+         "size": 449968
+        },
+        {
+         "name": "ModularStoneWall.glb",
+         "file": "/assets/models/buildings/dungeon/ModularStoneWall.glb",
+         "size": 25624
+        },
+        {
+         "name": "ModularStoneWall_EntranceTop.blend",
+         "file": "/assets/models/buildings/dungeon/ModularStoneWall_EntranceTop.blend",
+         "size": 447168
+        },
+        {
+         "name": "ModularStoneWall_EntranceTop.glb",
+         "file": "/assets/models/buildings/dungeon/ModularStoneWall_EntranceTop.glb",
+         "size": 15944
+        },
+        {
+         "name": "ModularStoneWall_top.blend",
+         "file": "/assets/models/buildings/dungeon/ModularStoneWall_top.blend",
+         "size": 472896
+        },
+        {
+         "name": "ModularStoneWall_top.glb",
+         "file": "/assets/models/buildings/dungeon/ModularStoneWall_top.glb",
+         "size": 30572
+        },
+        {
+         "name": "Potion.blend",
+         "file": "/assets/models/buildings/dungeon/Potion.blend",
+         "size": 476384
+        },
+        {
+         "name": "Potion.glb",
+         "file": "/assets/models/buildings/dungeon/Potion.glb",
+         "size": 21036
+        },
+        {
+         "name": "Potion2.blend",
+         "file": "/assets/models/buildings/dungeon/Potion2.blend",
+         "size": 479072
+        },
+        {
+         "name": "Potion2.glb",
+         "file": "/assets/models/buildings/dungeon/Potion2.glb",
+         "size": 20972
+        },
+        {
+         "name": "Potion3.blend",
+         "file": "/assets/models/buildings/dungeon/Potion3.blend",
+         "size": 469784
+        },
+        {
+         "name": "Potion3.glb",
+         "file": "/assets/models/buildings/dungeon/Potion3.glb",
+         "size": 24404
+        },
+        {
+         "name": "Potion4.blend",
+         "file": "/assets/models/buildings/dungeon/Potion4.blend",
+         "size": 471552
+        },
+        {
+         "name": "Potion4.glb",
+         "file": "/assets/models/buildings/dungeon/Potion4.glb",
+         "size": 13608
+        },
+        {
+         "name": "Potion5.blend",
+         "file": "/assets/models/buildings/dungeon/Potion5.blend",
+         "size": 468448
+        },
+        {
+         "name": "Potion5.glb",
+         "file": "/assets/models/buildings/dungeon/Potion5.glb",
+         "size": 10532
+        },
+        {
+         "name": "Potion6.blend",
+         "file": "/assets/models/buildings/dungeon/Potion6.blend",
+         "size": 466600
+        },
+        {
+         "name": "Potion6.glb",
+         "file": "/assets/models/buildings/dungeon/Potion6.glb",
+         "size": 15700
+        },
+        {
+         "name": "Rock1.blend",
+         "file": "/assets/models/buildings/dungeon/Rock1.blend",
+         "size": 445056
+        },
+        {
+         "name": "Rock1.glb",
+         "file": "/assets/models/buildings/dungeon/Rock1.glb",
+         "size": 2944
+        },
+        {
+         "name": "Rock2.blend",
+         "file": "/assets/models/buildings/dungeon/Rock2.blend",
+         "size": 453212
+        },
+        {
+         "name": "Rock2.glb",
+         "file": "/assets/models/buildings/dungeon/Rock2.glb",
+         "size": 2636
+        },
+        {
+         "name": "Rock3.blend",
+         "file": "/assets/models/buildings/dungeon/Rock3.blend",
+         "size": 453612
+        },
+        {
+         "name": "Rock3.glb",
+         "file": "/assets/models/buildings/dungeon/Rock3.glb",
+         "size": 3068
+        },
+        {
+         "name": "Rock4.blend",
+         "file": "/assets/models/buildings/dungeon/Rock4.blend",
+         "size": 449012
+        },
+        {
+         "name": "Rock4.glb",
+         "file": "/assets/models/buildings/dungeon/Rock4.glb",
+         "size": 2636
+        },
+        {
+         "name": "Rock5.blend",
+         "file": "/assets/models/buildings/dungeon/Rock5.blend",
+         "size": 452500
+        },
+        {
+         "name": "Rock5.glb",
+         "file": "/assets/models/buildings/dungeon/Rock5.glb",
+         "size": 1700
+        },
+        {
+         "name": "Stairs.blend",
+         "file": "/assets/models/buildings/dungeon/Stairs.blend",
+         "size": 453048
+        },
+        {
+         "name": "Stairs.glb",
+         "file": "/assets/models/buildings/dungeon/Stairs.glb",
+         "size": 7484
+        },
+        {
+         "name": "Torch.blend",
+         "file": "/assets/models/buildings/dungeon/Torch.blend",
+         "size": 491320
+        },
+        {
+         "name": "Torch.glb",
+         "file": "/assets/models/buildings/dungeon/Torch.glb",
+         "size": 31224
+        },
+        {
+         "name": "Torch_wall.blend",
+         "file": "/assets/models/buildings/dungeon/Torch_wall.blend",
+         "size": 488604
+        },
+        {
+         "name": "Torch_wall.glb",
+         "file": "/assets/models/buildings/dungeon/Torch_wall.glb",
+         "size": 33120
+        },
+        {
+         "name": "WallRocks.blend",
+         "file": "/assets/models/buildings/dungeon/WallRocks.blend",
+         "size": 436944
+        },
+        {
+         "name": "WallRocks.glb",
+         "file": "/assets/models/buildings/dungeon/WallRocks.glb",
+         "size": 25280
+        },
+        {
+         "name": "Window.blend",
+         "file": "/assets/models/buildings/dungeon/Window.blend",
+         "size": 456488
+        },
+        {
+         "name": "Window.glb",
+         "file": "/assets/models/buildings/dungeon/Window.glb",
+         "size": 16160
+        }
+       ]
+      },
+      {
+       "name": "farm",
+       "assets": [
+        {
+         "name": "about",
+         "assets": [
+          {
+           "name": "License.txt",
+           "file": "/assets/models/buildings/farm/about/License.txt",
+           "size": 364
+          },
+          {
+           "name": "Preview.png",
+           "file": "/assets/models/buildings/farm/about/Preview.png",
+           "size": 1291760
+          }
+         ]
+        },
+        {
+         "name": "Barn.blend",
+         "file": "/assets/models/buildings/farm/Barn.blend",
+         "size": 674776
+        },
+        {
+         "name": "Barn.glb",
+         "file": "/assets/models/buildings/farm/Barn.glb",
+         "size": 125344
+        },
+        {
+         "name": "BigBarn.blend",
+         "file": "/assets/models/buildings/farm/BigBarn.blend",
+         "size": 742232
+        },
+        {
+         "name": "BigBarn.glb",
+         "file": "/assets/models/buildings/farm/BigBarn.glb",
+         "size": 183860
+        },
+        {
+         "name": "ChickenCoop.blend",
+         "file": "/assets/models/buildings/farm/ChickenCoop.blend",
+         "size": 567788
+        },
+        {
+         "name": "ChickenCoop.glb",
+         "file": "/assets/models/buildings/farm/ChickenCoop.glb",
+         "size": 47208
+        },
+        {
+         "name": "Fence.blend",
+         "file": "/assets/models/buildings/farm/Fence.blend",
+         "size": 506040
+        },
+        {
+         "name": "Fence.glb",
+         "file": "/assets/models/buildings/farm/Fence.glb",
+         "size": 10272
+        },
+        {
+         "name": "Fence2.blend",
+         "file": "/assets/models/buildings/farm/Fence2.blend",
+         "size": 512504
+        },
+        {
+         "name": "Fence2.glb",
+         "file": "/assets/models/buildings/farm/Fence2.glb",
+         "size": 16468
+        },
+        {
+         "name": "OpenBarn.blend",
+         "file": "/assets/models/buildings/farm/OpenBarn.blend",
+         "size": 595340
+        },
+        {
+         "name": "OpenBarn.glb",
+         "file": "/assets/models/buildings/farm/OpenBarn.glb",
+         "size": 74712
+        },
+        {
+         "name": "Silo.blend",
+         "file": "/assets/models/buildings/farm/Silo.blend",
+         "size": 595900
+        },
+        {
+         "name": "Silo.glb",
+         "file": "/assets/models/buildings/farm/Silo.glb",
+         "size": 68232
+        },
+        {
+         "name": "Silo_House.blend",
+         "file": "/assets/models/buildings/farm/Silo_House.blend",
+         "size": 666868
+        },
+        {
+         "name": "Silo_House.glb",
+         "file": "/assets/models/buildings/farm/Silo_House.glb",
+         "size": 126264
+        },
+        {
+         "name": "SmallBarn.blend",
+         "file": "/assets/models/buildings/farm/SmallBarn.blend",
+         "size": 634908
+        },
+        {
+         "name": "SmallBarn.glb",
+         "file": "/assets/models/buildings/farm/SmallBarn.glb",
+         "size": 95512
+        },
+        {
+         "name": "TowerWindmill.blend",
+         "file": "/assets/models/buildings/farm/TowerWindmill.blend",
+         "size": 884588
+        },
+        {
+         "name": "TowerWindmill.glb",
+         "file": "/assets/models/buildings/farm/TowerWindmill.glb",
+         "size": 327008
+        },
+        {
+         "name": "WaterTower.blend",
+         "file": "/assets/models/buildings/farm/WaterTower.blend",
+         "size": 622368
+        },
+        {
+         "name": "WaterTower.glb",
+         "file": "/assets/models/buildings/farm/WaterTower.glb",
+         "size": 103992
+        },
+        {
+         "name": "Well.blend",
+         "file": "/assets/models/buildings/farm/Well.blend",
+         "size": 670132
+        },
+        {
+         "name": "Well.glb",
+         "file": "/assets/models/buildings/farm/Well.glb",
+         "size": 151556
+        },
+        {
+         "name": "Windmill.blend",
+         "file": "/assets/models/buildings/farm/Windmill.blend",
+         "size": 575324
+        },
+        {
+         "name": "Windmill.glb",
+         "file": "/assets/models/buildings/farm/Windmill.glb",
+         "size": 73212
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "grenades",
+     "assets": [
+      {
+       "name": "f1",
+       "assets": [
+        {
+         "name": "model.blend",
+         "file": "/assets/models/grenades/f1/model.blend",
+         "size": 119047
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/grenades/f1/model.glb",
+         "size": 76876
+        }
+       ]
+      },
+      {
+       "name": "mk2",
+       "assets": [
+        {
+         "name": "model.blend",
+         "file": "/assets/models/grenades/mk2/model.blend",
+         "size": 116940
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/grenades/mk2/model.glb",
+         "size": 70560
+        }
+       ]
+      },
+      {
+       "name": "stick-grenade",
+       "assets": [
+        {
+         "name": "model.blend",
+         "file": "/assets/models/grenades/stick-grenade/model.blend",
+         "size": 100692
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/grenades/stick-grenade/model.glb",
+         "size": 22188
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "guns",
+     "assets": [
+      {
+       "name": "m1-garand",
+       "assets": [
+        {
+         "name": "gun.blend",
+         "file": "/assets/models/guns/m1-garand/gun.blend",
+         "size": 144950
+        },
+        {
+         "name": "gun.glb",
+         "file": "/assets/models/guns/m1-garand/gun.glb",
+         "size": 166564
+        },
+        {
+         "name": "mag.blend",
+         "file": "/assets/models/guns/m1-garand/mag.blend",
+         "size": 92042
+        },
+        {
+         "name": "mag.glb",
+         "file": "/assets/models/guns/m1-garand/mag.glb",
+         "size": 7616
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/guns/m1-garand/model.blend",
+         "size": 92108
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/guns/m1-garand/model.glb",
+         "size": 335844
+        }
+       ]
+      },
+      {
+       "name": "m1911",
+       "assets": [
+        {
+         "name": "gun.blend",
+         "file": "/assets/models/guns/m1911/gun.blend",
+         "size": 124216
+        },
+        {
+         "name": "gun.glb",
+         "file": "/assets/models/guns/m1911/gun.glb",
+         "size": 82460
+        },
+        {
+         "name": "mag.blend",
+         "file": "/assets/models/guns/m1911/mag.blend",
+         "size": 95350
+        },
+        {
+         "name": "mag.glb",
+         "file": "/assets/models/guns/m1911/mag.glb",
+         "size": 5248
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/guns/m1911/model.blend",
+         "size": 92749
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/guns/m1911/model.glb",
+         "size": 211184
+        }
+       ]
+      },
+      {
+       "name": "mauser-c96",
+       "assets": [
+        {
+         "name": "gun.blend",
+         "file": "/assets/models/guns/mauser-c96/gun.blend",
+         "size": 127516
+        },
+        {
+         "name": "gun.glb",
+         "file": "/assets/models/guns/mauser-c96/gun.glb",
+         "size": 87864
+        },
+        {
+         "name": "mag.blend",
+         "file": "/assets/models/guns/mauser-c96/mag.blend",
+         "size": 97171
+        },
+        {
+         "name": "mag.glb",
+         "file": "/assets/models/guns/mauser-c96/mag.glb",
+         "size": 4344
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/guns/mauser-c96/model.blend",
+         "size": 92498
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/guns/mauser-c96/model.glb",
+         "size": 218172
+        }
+       ]
+      },
+      {
+       "name": "ppsh-41",
+       "assets": [
+        {
+         "name": "gun.blend",
+         "file": "/assets/models/guns/ppsh-41/gun.blend",
+         "size": 135965
+        },
+        {
+         "name": "gun.glb",
+         "file": "/assets/models/guns/ppsh-41/gun.glb",
+         "size": 116744
+        },
+        {
+         "name": "mag.blend",
+         "file": "/assets/models/guns/ppsh-41/mag.blend",
+         "size": 112110
+        },
+        {
+         "name": "mag.glb",
+         "file": "/assets/models/guns/ppsh-41/mag.glb",
+         "size": 51308
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/guns/ppsh-41/model.blend",
+         "size": 92468
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/guns/ppsh-41/model.glb",
+         "size": 340792
+        }
+       ]
+      },
+      {
+       "name": "stg-44",
+       "assets": [
+        {
+         "name": "gun.blend",
+         "file": "/assets/models/guns/stg-44/gun.blend",
+         "size": 151275
+        },
+        {
+         "name": "gun.glb",
+         "file": "/assets/models/guns/stg-44/gun.glb",
+         "size": 158260
+        },
+        {
+         "name": "mag.blend",
+         "file": "/assets/models/guns/stg-44/mag.blend",
+         "size": 99550
+        },
+        {
+         "name": "mag.glb",
+         "file": "/assets/models/guns/stg-44/mag.glb",
+         "size": 10800
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/guns/stg-44/model.blend",
+         "size": 92626
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/guns/stg-44/model.glb",
+         "size": 343212
+        }
+       ]
+      },
+      {
+       "name": "thompson-m1",
+       "assets": [
+        {
+         "name": "gun.blend",
+         "file": "/assets/models/guns/thompson-m1/gun.blend",
+         "size": 128423
+        },
+        {
+         "name": "gun.glb",
+         "file": "/assets/models/guns/thompson-m1/gun.glb",
+         "size": 99772
+        },
+        {
+         "name": "mag.blend",
+         "file": "/assets/models/guns/thompson-m1/mag.blend",
+         "size": 95020
+        },
+        {
+         "name": "mag.glb",
+         "file": "/assets/models/guns/thompson-m1/mag.glb",
+         "size": 7092
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/guns/thompson-m1/model.blend",
+         "size": 92604
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/guns/thompson-m1/model.glb",
+         "size": 239872
+        }
+       ]
+      },
+      {
+       "name": "tt-pistol",
+       "assets": [
+        {
+         "name": "gun.blend",
+         "file": "/assets/models/guns/tt-pistol/gun.blend",
+         "size": 123324
+        },
+        {
+         "name": "gun.glb",
+         "file": "/assets/models/guns/tt-pistol/gun.glb",
+         "size": 77644
+        },
+        {
+         "name": "mag.blend",
+         "file": "/assets/models/guns/tt-pistol/mag.blend",
+         "size": 95321
+        },
+        {
+         "name": "mag.glb",
+         "file": "/assets/models/guns/tt-pistol/mag.glb",
+         "size": 8120
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/guns/tt-pistol/model.blend",
+         "size": 92771
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/guns/tt-pistol/model.glb",
+         "size": 214460
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "knives",
+     "assets": [
+      {
+       "name": "german-knife",
+       "assets": [
+        {
+         "name": "model.blend",
+         "file": "/assets/models/knives/german-knife/model.blend",
+         "size": 102302
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/knives/german-knife/model.glb",
+         "size": 26240
+        }
+       ]
+      },
+      {
+       "name": "ka-bar",
+       "assets": [
+        {
+         "name": "model.blend",
+         "file": "/assets/models/knives/ka-bar/model.blend",
+         "size": 109060
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/knives/ka-bar/model.glb",
+         "size": 42076
+        }
+       ]
+      },
+      {
+       "name": "nr-40",
+       "assets": [
+        {
+         "name": "model.blend",
+         "file": "/assets/models/knives/nr-40/model.blend",
+         "size": 97645
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/knives/nr-40/model.glb",
+         "size": 14140
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "modular-village",
+     "assets": [
+      {
+       "name": "source",
+       "assets": [
+        {
+         "name": "Canopy_Beam.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Beam.obj",
+         "size": 2164
+        },
+        {
+         "name": "Canopy_Beam_Short.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Beam_Short.obj",
+         "size": 2174
+        },
+        {
+         "name": "Canopy_Corner.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Corner.obj",
+         "size": 14359
+        },
+        {
+         "name": "Canopy_Full.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Full.obj",
+         "size": 20018
+        },
+        {
+         "name": "Canopy_Ramp_Corner.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Ramp_Corner.obj",
+         "size": 14813
+        },
+        {
+         "name": "Canopy_Ramp_Full.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Ramp_Full.obj",
+         "size": 20544
+        },
+        {
+         "name": "Canopy_Ramp_Mid.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Ramp_Mid.obj",
+         "size": 8996
+        },
+        {
+         "name": "Canopy_Side.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Side.obj",
+         "size": 8690
+        },
+        {
+         "name": "Canopy_Sides_Opposite.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Sides_Opposite.obj",
+         "size": 15448
+        },
+        {
+         "name": "Canopy_Top.obj",
+         "file": "/assets/models/modular-village/source/Canopy_Top.obj",
+         "size": 2167
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_1.obj",
+         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_1.obj",
+         "size": 71872
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_2.obj",
+         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_2.obj",
+         "size": 64770
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_3.obj",
+         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_3.obj",
+         "size": 67293
+        },
+        {
+         "name": "Cobblestone_Dirt_Transition_4.obj",
+         "file": "/assets/models/modular-village/source/Cobblestone_Dirt_Transition_4.obj",
+         "size": 64099
+        },
+        {
+         "name": "Cobblestone_Floor_1.obj",
+         "file": "/assets/models/modular-village/source/Cobblestone_Floor_1.obj",
+         "size": 203443
+        },
+        {
+         "name": "Dirt_Fading.obj",
+         "file": "/assets/models/modular-village/source/Dirt_Fading.obj",
+         "size": 2161
+        },
+        {
+         "name": "Dirt_Fading_from_Gathered.obj",
+         "file": "/assets/models/modular-village/source/Dirt_Fading_from_Gathered.obj",
+         "size": 2161
+        },
+        {
+         "name": "Dirt_Gathered_Corner.obj",
+         "file": "/assets/models/modular-village/source/Dirt_Gathered_Corner.obj",
+         "size": 5933
+        },
+        {
+         "name": "Dirt_Gathered_Straight.obj",
+         "file": "/assets/models/modular-village/source/Dirt_Gathered_Straight.obj",
+         "size": 2720
+        },
+        {
+         "name": "Kit_Window_Upper_Convex.obj",
+         "file": "/assets/models/modular-village/source/Kit_Window_Upper_Convex.obj",
+         "size": 90960
+        },
+        {
+         "name": "Kit_Window_Upper_Straight.obj",
+         "file": "/assets/models/modular-village/source/Kit_Window_Upper_Straight.obj",
+         "size": 77530
+        },
+        {
+         "name": "Materials_Modular_Village.mtl",
+         "file": "/assets/models/modular-village/source/Materials_Modular_Village.mtl",
+         "size": 2854
+        },
+        {
+         "name": "Prop_Barrel_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Barrel_1.obj",
+         "size": 66861
+        },
+        {
+         "name": "Prop_Barrel_1_Open.obj",
+         "file": "/assets/models/modular-village/source/Prop_Barrel_1_Open.obj",
+         "size": 100748
+        },
+        {
+         "name": "Prop_Barrel_2.obj",
+         "file": "/assets/models/modular-village/source/Prop_Barrel_2.obj",
+         "size": 72583
+        },
+        {
+         "name": "Prop_Boat_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Boat_1.obj",
+         "size": 30939
+        },
+        {
+         "name": "Prop_Boat_2.obj",
+         "file": "/assets/models/modular-village/source/Prop_Boat_2.obj",
+         "size": 33229
+        },
+        {
+         "name": "Prop_Boat_Oars_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Boat_Oars_1.obj",
+         "size": 21260
+        },
+        {
+         "name": "Prop_Boat_Oars_2.obj",
+         "file": "/assets/models/modular-village/source/Prop_Boat_Oars_2.obj",
+         "size": 21300
+        },
+        {
+         "name": "Prop_Broom.obj",
+         "file": "/assets/models/modular-village/source/Prop_Broom.obj",
+         "size": 38171
+        },
+        {
+         "name": "Prop_Cart_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Cart_1.obj",
+         "size": 174926
+        },
+        {
+         "name": "Prop_Cart_1_Barrels.obj",
+         "file": "/assets/models/modular-village/source/Prop_Cart_1_Barrels.obj",
+         "size": 481141
+        },
+        {
+         "name": "Prop_Cart_1_Hay.obj",
+         "file": "/assets/models/modular-village/source/Prop_Cart_1_Hay.obj",
+         "size": 409320
+        },
+        {
+         "name": "Prop_Crate_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Crate_1.obj",
+         "size": 63797
+        },
+        {
+         "name": "Prop_Crate_1_Open.obj",
+         "file": "/assets/models/modular-village/source/Prop_Crate_1_Open.obj",
+         "size": 72377
+        },
+        {
+         "name": "Prop_Hay_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Hay_1.obj",
+         "size": 110823
+        },
+        {
+         "name": "Prop_Ladder_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Ladder_1.obj",
+         "size": 52350
+        },
+        {
+         "name": "Prop_Lamp_Street.obj",
+         "file": "/assets/models/modular-village/source/Prop_Lamp_Street.obj",
+         "size": 71777
+        },
+        {
+         "name": "Prop_Well_1.obj",
+         "file": "/assets/models/modular-village/source/Prop_Well_1.obj",
+         "size": 222021
+        },
+        {
+         "name": "Prop_Well_Cobblestone.obj",
+         "file": "/assets/models/modular-village/source/Prop_Well_Cobblestone.obj",
+         "size": 42716
+        },
+        {
+         "name": "Prop_Well_Dirt.obj",
+         "file": "/assets/models/modular-village/source/Prop_Well_Dirt.obj",
+         "size": 8495
+        },
+        {
+         "name": "Prop_Well_Grass.obj",
+         "file": "/assets/models/modular-village/source/Prop_Well_Grass.obj",
+         "size": 8483
+        },
+        {
+         "name": "Prop_Well_Inside.obj",
+         "file": "/assets/models/modular-village/source/Prop_Well_Inside.obj",
+         "size": 10806
+        },
+        {
+         "name": "Roof_Accent_Rake_Concave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Concave.obj",
+         "size": 5545
+        },
+        {
+         "name": "Roof_Accent_Rake_Convex.obj",
+         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Convex.obj",
+         "size": 5541
+        },
+        {
+         "name": "Roof_Accent_Rake_Eave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Eave.obj",
+         "size": 2174
+        },
+        {
+         "name": "Roof_Accent_Rake_Straight.obj",
+         "file": "/assets/models/modular-village/source/Roof_Accent_Rake_Straight.obj",
+         "size": 2160
+        },
+        {
+         "name": "Roof_Accent_Ridge.obj",
+         "file": "/assets/models/modular-village/source/Roof_Accent_Ridge.obj",
+         "size": 2172
+        },
+        {
+         "name": "Roof_Accent_Ridge_End.obj",
+         "file": "/assets/models/modular-village/source/Roof_Accent_Ridge_End.obj",
+         "size": 3896
+        },
+        {
+         "name": "Roof_Concave_Corner_Inner.obj",
+         "file": "/assets/models/modular-village/source/Roof_Concave_Corner_Inner.obj",
+         "size": 17097
+        },
+        {
+         "name": "Roof_Concave_Corner_Outer.obj",
+         "file": "/assets/models/modular-village/source/Roof_Concave_Corner_Outer.obj",
+         "size": 16039
+        },
+        {
+         "name": "Roof_Concave_Corner_Outer_Eave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Concave_Corner_Outer_Eave.obj",
+         "size": 38527
+        },
+        {
+         "name": "Roof_Concave_Side.obj",
+         "file": "/assets/models/modular-village/source/Roof_Concave_Side.obj",
+         "size": 15139
+        },
+        {
+         "name": "Roof_Concave_Side_Eave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Concave_Side_Eave.obj",
+         "size": 20182
+        },
+        {
+         "name": "Roof_Concave_Side_Eave_Edge.obj",
+         "file": "/assets/models/modular-village/source/Roof_Concave_Side_Eave_Edge.obj",
+         "size": 29459
+        },
+        {
+         "name": "Roof_Concave_Side_Edge.obj",
+         "file": "/assets/models/modular-village/source/Roof_Concave_Side_Edge.obj",
+         "size": 24537
+        },
+        {
+         "name": "Roof_Convex_Corner_Inner.obj",
+         "file": "/assets/models/modular-village/source/Roof_Convex_Corner_Inner.obj",
+         "size": 16857
+        },
+        {
+         "name": "Roof_Convex_Corner_Outer.obj",
+         "file": "/assets/models/modular-village/source/Roof_Convex_Corner_Outer.obj",
+         "size": 14927
+        },
+        {
+         "name": "Roof_Convex_Corner_Outer_Eave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Convex_Corner_Outer_Eave.obj",
+         "size": 35578
+        },
+        {
+         "name": "Roof_Convex_Side.obj",
+         "file": "/assets/models/modular-village/source/Roof_Convex_Side.obj",
+         "size": 15186
+        },
+        {
+         "name": "Roof_Convex_Side_Eave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Convex_Side_Eave.obj",
+         "size": 20288
+        },
+        {
+         "name": "Roof_Convex_Side_Eave_Edge.obj",
+         "file": "/assets/models/modular-village/source/Roof_Convex_Side_Eave_Edge.obj",
+         "size": 29542
+        },
+        {
+         "name": "Roof_Convex_Side_Edge.obj",
+         "file": "/assets/models/modular-village/source/Roof_Convex_Side_Edge.obj",
+         "size": 24428
+        },
+        {
+         "name": "Roof_Prop_Chimney_Pipe.obj",
+         "file": "/assets/models/modular-village/source/Roof_Prop_Chimney_Pipe.obj",
+         "size": 37776
+        },
+        {
+         "name": "Roof_Prop_Chimney_Stone.obj",
+         "file": "/assets/models/modular-village/source/Roof_Prop_Chimney_Stone.obj",
+         "size": 16009
+        },
+        {
+         "name": "Roof_Straight_Corner_Inner.obj",
+         "file": "/assets/models/modular-village/source/Roof_Straight_Corner_Inner.obj",
+         "size": 17380
+        },
+        {
+         "name": "Roof_Straight_Corner_Outer.obj",
+         "file": "/assets/models/modular-village/source/Roof_Straight_Corner_Outer.obj",
+         "size": 14368
+        },
+        {
+         "name": "Roof_Straight_Corner_Outer_Eave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Straight_Corner_Outer_Eave.obj",
+         "size": 29877
+        },
+        {
+         "name": "Roof_Straight_Side.obj",
+         "file": "/assets/models/modular-village/source/Roof_Straight_Side.obj",
+         "size": 15159
+        },
+        {
+         "name": "Roof_Straight_Side_Eave.obj",
+         "file": "/assets/models/modular-village/source/Roof_Straight_Side_Eave.obj",
+         "size": 20264
+        },
+        {
+         "name": "Roof_Straight_Side_Eave_Edge.obj",
+         "file": "/assets/models/modular-village/source/Roof_Straight_Side_Eave_Edge.obj",
+         "size": 25553
+        },
+        {
+         "name": "Roof_Straight_Side_Edge.obj",
+         "file": "/assets/models/modular-village/source/Roof_Straight_Side_Edge.obj",
+         "size": 20764
+        },
+        {
+         "name": "Stone_Arch.obj",
+         "file": "/assets/models/modular-village/source/Stone_Arch.obj",
+         "size": 6692
+        },
+        {
+         "name": "Stone_Arch_Outer.obj",
+         "file": "/assets/models/modular-village/source/Stone_Arch_Outer.obj",
+         "size": 221950
+        },
+        {
+         "name": "Stone_Curb_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_Curb_1.obj",
+         "size": 55092
+        },
+        {
+         "name": "Stone_Curb_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_Curb_2.obj",
+         "size": 47147
+        },
+        {
+         "name": "Stone_Curb_3.obj",
+         "file": "/assets/models/modular-village/source/Stone_Curb_3.obj",
+         "size": 55108
+        },
+        {
+         "name": "Stone_Curb_4.obj",
+         "file": "/assets/models/modular-village/source/Stone_Curb_4.obj",
+         "size": 54888
+        },
+        {
+         "name": "Stone_Doorway_Narrow_Tall_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_Doorway_Narrow_Tall_1.obj",
+         "size": 16625
+        },
+        {
+         "name": "Stone_Doorway_Narrow_Tall_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_Doorway_Narrow_Tall_2.obj",
+         "size": 21191
+        },
+        {
+         "name": "Stone_Doorway_Wide_Tall_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_Doorway_Wide_Tall_1.obj",
+         "size": 144559
+        },
+        {
+         "name": "Stone_Doorway_Wide_Tall_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_Doorway_Wide_Tall_2.obj",
+         "size": 149297
+        },
+        {
+         "name": "Stone_Floor_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_Floor_1.obj",
+         "size": 65144
+        },
+        {
+         "name": "Stone_Floor_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_Floor_2.obj",
+         "size": 56689
+        },
+        {
+         "name": "Stone_Pillar.obj",
+         "file": "/assets/models/modular-village/source/Stone_Pillar.obj",
+         "size": 15953
+        },
+        {
+         "name": "Stone_Pillar_Base.obj",
+         "file": "/assets/models/modular-village/source/Stone_Pillar_Base.obj",
+         "size": 8259
+        },
+        {
+         "name": "Stone_Sewer_Grate_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_Sewer_Grate_1.obj",
+         "size": 56188
+        },
+        {
+         "name": "Stone_Sewer_Grate_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_Sewer_Grate_2.obj",
+         "size": 58366
+        },
+        {
+         "name": "Stone_Stairs_Railing.obj",
+         "file": "/assets/models/modular-village/source/Stone_Stairs_Railing.obj",
+         "size": 42429
+        },
+        {
+         "name": "Stone_Steps.obj",
+         "file": "/assets/models/modular-village/source/Stone_Steps.obj",
+         "size": 9492
+        },
+        {
+         "name": "Stone_Steps_Side_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_Steps_Side_1.obj",
+         "size": 56474
+        },
+        {
+         "name": "Stone_Steps_Side_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_Steps_Side_2.obj",
+         "size": 61335
+        },
+        {
+         "name": "Stone_Wall_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_Wall_1.obj",
+         "size": 16333
+        },
+        {
+         "name": "Stone_Wall_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_Wall_2.obj",
+         "size": 20307
+        },
+        {
+         "name": "Stone_Wall_3.obj",
+         "file": "/assets/models/modular-village/source/Stone_Wall_3.obj",
+         "size": 20250
+        },
+        {
+         "name": "Stone_Wall_4.obj",
+         "file": "/assets/models/modular-village/source/Stone_Wall_4.obj",
+         "size": 25122
+        },
+        {
+         "name": "Stone_Wall_5.obj",
+         "file": "/assets/models/modular-village/source/Stone_Wall_5.obj",
+         "size": 18342
+        },
+        {
+         "name": "Stone_to_Stucco_Doorway_Wide_Tall_1.obj",
+         "file": "/assets/models/modular-village/source/Stone_to_Stucco_Doorway_Wide_Tall_1.obj",
+         "size": 117889
+        },
+        {
+         "name": "Stone_to_Stucco_Doorway_Wide_Tall_2.obj",
+         "file": "/assets/models/modular-village/source/Stone_to_Stucco_Doorway_Wide_Tall_2.obj",
+         "size": 124640
+        },
+        {
+         "name": "Stucco_Arch_Half.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Arch_Half.obj",
+         "size": 2717
+        },
+        {
+         "name": "Stucco_Arch_Half_Outer.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Arch_Half_Outer.obj",
+         "size": 8867
+        },
+        {
+         "name": "Stucco_Block.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Block.obj",
+         "size": 2145
+        },
+        {
+         "name": "Stucco_Doorway_Narrow_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Doorway_Narrow_Tall.obj",
+         "size": 9311
+        },
+        {
+         "name": "Stucco_Doorway_Wide_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Doorway_Wide_Tall.obj",
+         "size": 11641
+        },
+        {
+         "name": "Stucco_Prop_Support_Angled_Large.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Angled_Large.obj",
+         "size": 2714
+        },
+        {
+         "name": "Stucco_Prop_Support_Angled_Low.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Angled_Low.obj",
+         "size": 2158
+        },
+        {
+         "name": "Stucco_Prop_Support_Angled_Small.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Angled_Small.obj",
+         "size": 2157
+        },
+        {
+         "name": "Stucco_Prop_Support_Beam_1.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Beam_1.obj",
+         "size": 2164
+        },
+        {
+         "name": "Stucco_Prop_Support_Beam_2.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Beam_2.obj",
+         "size": 3321
+        },
+        {
+         "name": "Stucco_Prop_Support_Beam_3.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Beam_3.obj",
+         "size": 3307
+        },
+        {
+         "name": "Stucco_Prop_Support_Pillar_1.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Pillar_1.obj",
+         "size": 2150
+        },
+        {
+         "name": "Stucco_Prop_Support_Pillar_2.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Pillar_2.obj",
+         "size": 3300
+        },
+        {
+         "name": "Stucco_Prop_Support_Pillar_3.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Prop_Support_Pillar_3.obj",
+         "size": 3340
+        },
+        {
+         "name": "Stucco_Window_Double_Narrow.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Narrow.obj",
+         "size": 32052
+        },
+        {
+         "name": "Stucco_Window_Double_Narrow_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Narrow_Tall.obj",
+         "size": 32014
+        },
+        {
+         "name": "Stucco_Window_Double_Wide.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Wide.obj",
+         "size": 32865
+        },
+        {
+         "name": "Stucco_Window_Double_Wide_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Double_Wide_Tall.obj",
+         "size": 32895
+        },
+        {
+         "name": "Stucco_Window_Rounded_Narrow.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Narrow.obj",
+         "size": 26957
+        },
+        {
+         "name": "Stucco_Window_Rounded_Narrow_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Narrow_Tall.obj",
+         "size": 26917
+        },
+        {
+         "name": "Stucco_Window_Rounded_Wide.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Wide.obj",
+         "size": 27159
+        },
+        {
+         "name": "Stucco_Window_Rounded_Wide_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Rounded_Wide_Tall.obj",
+         "size": 27099
+        },
+        {
+         "name": "Stucco_Window_Single_Narrow.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Narrow.obj",
+         "size": 21943
+        },
+        {
+         "name": "Stucco_Window_Single_Narrow_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Narrow_Tall.obj",
+         "size": 21922
+        },
+        {
+         "name": "Stucco_Window_Single_Wide.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Wide.obj",
+         "size": 21913
+        },
+        {
+         "name": "Stucco_Window_Single_Wide_Tall.obj",
+         "file": "/assets/models/modular-village/source/Stucco_Window_Single_Wide_Tall.obj",
+         "size": 21879
+        },
+        {
+         "name": "Wall_Prop_Bell_1.obj",
+         "file": "/assets/models/modular-village/source/Wall_Prop_Bell_1.obj",
+         "size": 69701
+        },
+        {
+         "name": "Wall_Prop_Door_Ornate.obj",
+         "file": "/assets/models/modular-village/source/Wall_Prop_Door_Ornate.obj",
+         "size": 68843
+        },
+        {
+         "name": "Wall_Prop_Door_Simple.obj",
+         "file": "/assets/models/modular-village/source/Wall_Prop_Door_Simple.obj",
+         "size": 40587
+        },
+        {
+         "name": "Wall_Prop_Lamp.obj",
+         "file": "/assets/models/modular-village/source/Wall_Prop_Lamp.obj",
+         "size": 67011
+        },
+        {
+         "name": "Wall_Prop_Sign_1.obj",
+         "file": "/assets/models/modular-village/source/Wall_Prop_Sign_1.obj",
+         "size": 110280
+        },
+        {
+         "name": "Wall_Prop_Windmill_1.obj",
+         "file": "/assets/models/modular-village/source/Wall_Prop_Windmill_1.obj",
+         "size": 119784
+        },
+        {
+         "name": "Waterwheel_1.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_1.obj",
+         "size": 241122
+        },
+        {
+         "name": "Waterwheel_Flume_Curved.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Curved.obj",
+         "size": 11823
+        },
+        {
+         "name": "Waterwheel_Flume_End.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_End.obj",
+         "size": 8107
+        },
+        {
+         "name": "Waterwheel_Flume_Ramp.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Ramp.obj",
+         "size": 6662
+        },
+        {
+         "name": "Waterwheel_Flume_Ramp_Supported.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Ramp_Supported.obj",
+         "size": 8857
+        },
+        {
+         "name": "Waterwheel_Flume_Straight.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Straight.obj",
+         "size": 6643
+        },
+        {
+         "name": "Waterwheel_Flume_Support_Brace.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Support_Brace.obj",
+         "size": 2178
+        },
+        {
+         "name": "Waterwheel_Flume_Support_Brace_Double.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Support_Brace_Double.obj",
+         "size": 4333
+        },
+        {
+         "name": "Waterwheel_Flume_Support_Pillar.obj",
+         "file": "/assets/models/modular-village/source/Waterwheel_Flume_Support_Pillar.obj",
+         "size": 2176
+        },
+        {
+         "name": "Wood_Baseboard.obj",
+         "file": "/assets/models/modular-village/source/Wood_Baseboard.obj",
+         "size": 2174
+        },
+        {
+         "name": "Wood_Floor_Corner.obj",
+         "file": "/assets/models/modular-village/source/Wood_Floor_Corner.obj",
+         "size": 18228
+        },
+        {
+         "name": "Wood_Floor_Straight_1.obj",
+         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_1.obj",
+         "size": 14202
+        },
+        {
+         "name": "Wood_Floor_Straight_2.obj",
+         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_2.obj",
+         "size": 16299
+        },
+        {
+         "name": "Wood_Floor_Straight_3.obj",
+         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_3.obj",
+         "size": 14315
+        },
+        {
+         "name": "Wood_Floor_Straight_4.obj",
+         "file": "/assets/models/modular-village/source/Wood_Floor_Straight_4.obj",
+         "size": 16274
+        },
+        {
+         "name": "Wood_Post_Large.obj",
+         "file": "/assets/models/modular-village/source/Wood_Post_Large.obj",
+         "size": 4951
+        },
+        {
+         "name": "Wood_Post_Small.obj",
+         "file": "/assets/models/modular-village/source/Wood_Post_Small.obj",
+         "size": 3533
+        },
+        {
+         "name": "Wood_Railing_Corner.obj",
+         "file": "/assets/models/modular-village/source/Wood_Railing_Corner.obj",
+         "size": 26414
+        },
+        {
+         "name": "Wood_Railing_Stairs.obj",
+         "file": "/assets/models/modular-village/source/Wood_Railing_Stairs.obj",
+         "size": 23319
+        },
+        {
+         "name": "Wood_Railing_Straight.obj",
+         "file": "/assets/models/modular-village/source/Wood_Railing_Straight.obj",
+         "size": 14323
+        },
+        {
+         "name": "Wood_Rope_Corner.obj",
+         "file": "/assets/models/modular-village/source/Wood_Rope_Corner.obj",
+         "size": 30057
+        },
+        {
+         "name": "Wood_Rope_Stairs.obj",
+         "file": "/assets/models/modular-village/source/Wood_Rope_Stairs.obj",
+         "size": 26633
+        },
+        {
+         "name": "Wood_Rope_Straight.obj",
+         "file": "/assets/models/modular-village/source/Wood_Rope_Straight.obj",
+         "size": 12989
+        },
+        {
+         "name": "Wood_Steps.obj",
+         "file": "/assets/models/modular-village/source/Wood_Steps.obj",
+         "size": 22299
+        },
+        {
+         "name": "Wood_Steps_Stucco.obj",
+         "file": "/assets/models/modular-village/source/Wood_Steps_Stucco.obj",
+         "size": 21587
+        }
+       ]
+      },
+      {
+       "name": "Canopy_Beam.glb",
+       "file": "/assets/models/modular-village/Canopy_Beam.glb",
+       "size": 2180
+      },
+      {
+       "name": "Canopy_Beam_Short.glb",
+       "file": "/assets/models/modular-village/Canopy_Beam_Short.glb",
+       "size": 2188
+      },
+      {
+       "name": "Canopy_Corner.glb",
+       "file": "/assets/models/modular-village/Canopy_Corner.glb",
+       "size": 8264
+      },
+      {
+       "name": "Canopy_Full.glb",
+       "file": "/assets/models/modular-village/Canopy_Full.glb",
+       "size": 10640
+      },
+      {
+       "name": "Canopy_Ramp_Corner.glb",
+       "file": "/assets/models/modular-village/Canopy_Ramp_Corner.glb",
+       "size": 8324
+      },
+      {
+       "name": "Canopy_Ramp_Full.glb",
+       "file": "/assets/models/modular-village/Canopy_Ramp_Full.glb",
+       "size": 10728
+      },
+      {
+       "name": "Canopy_Ramp_Mid.glb",
+       "file": "/assets/models/modular-village/Canopy_Ramp_Mid.glb",
+       "size": 5916
+      },
+      {
+       "name": "Canopy_Side.glb",
+       "file": "/assets/models/modular-village/Canopy_Side.glb",
+       "size": 5892
+      },
+      {
+       "name": "Canopy_Sides_Opposite.glb",
+       "file": "/assets/models/modular-village/Canopy_Sides_Opposite.glb",
+       "size": 9448
+      },
+      {
+       "name": "Canopy_Top.glb",
+       "file": "/assets/models/modular-village/Canopy_Top.glb",
+       "size": 2144
+      },
+      {
+       "name": "Cobblestone_Dirt_Transition_1.glb",
+       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_1.glb",
+       "size": 30440
+      },
+      {
+       "name": "Cobblestone_Dirt_Transition_2.glb",
+       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_2.glb",
+       "size": 27912
+      },
+      {
+       "name": "Cobblestone_Dirt_Transition_3.glb",
+       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_3.glb",
+       "size": 28776
+      },
+      {
+       "name": "Cobblestone_Dirt_Transition_4.glb",
+       "file": "/assets/models/modular-village/Cobblestone_Dirt_Transition_4.glb",
+       "size": 27668
+      },
+      {
+       "name": "Cobblestone_Floor_1.glb",
+       "file": "/assets/models/modular-village/Cobblestone_Floor_1.glb",
+       "size": 76552
+      },
+      {
+       "name": "Dirt_Fading.glb",
+       "file": "/assets/models/modular-village/Dirt_Fading.glb",
+       "size": 2128
+      },
+      {
+       "name": "Dirt_Fading_from_Gathered.glb",
+       "file": "/assets/models/modular-village/Dirt_Fading_from_Gathered.glb",
+       "size": 2140
+      },
+      {
+       "name": "Dirt_Gathered_Corner.glb",
+       "file": "/assets/models/modular-village/Dirt_Gathered_Corner.glb",
+       "size": 3644
+      },
+      {
+       "name": "Dirt_Gathered_Straight.glb",
+       "file": "/assets/models/modular-village/Dirt_Gathered_Straight.glb",
+       "size": 2372
+      },
+      {
+       "name": "Kit_Window_Upper_Convex.glb",
+       "file": "/assets/models/modular-village/Kit_Window_Upper_Convex.glb",
+       "size": 41324
+      },
+      {
+       "name": "Kit_Window_Upper_Straight.glb",
+       "file": "/assets/models/modular-village/Kit_Window_Upper_Straight.glb",
+       "size": 37544
+      },
+      {
+       "name": "Prop_Barrel_1.glb",
+       "file": "/assets/models/modular-village/Prop_Barrel_1.glb",
+       "size": 27524
+      },
+      {
+       "name": "Prop_Barrel_1_Open.glb",
+       "file": "/assets/models/modular-village/Prop_Barrel_1_Open.glb",
+       "size": 42712
+      },
+      {
+       "name": "Prop_Barrel_2.glb",
+       "file": "/assets/models/modular-village/Prop_Barrel_2.glb",
+       "size": 28672
+      },
+      {
+       "name": "Prop_Boat_1.glb",
+       "file": "/assets/models/modular-village/Prop_Boat_1.glb",
+       "size": 15276
+      },
+      {
+       "name": "Prop_Boat_2.glb",
+       "file": "/assets/models/modular-village/Prop_Boat_2.glb",
+       "size": 16864
+      },
+      {
+       "name": "Prop_Boat_Oars_1.glb",
+       "file": "/assets/models/modular-village/Prop_Boat_Oars_1.glb",
+       "size": 10608
+      },
+      {
+       "name": "Prop_Boat_Oars_2.glb",
+       "file": "/assets/models/modular-village/Prop_Boat_Oars_2.glb",
+       "size": 10608
+      },
+      {
+       "name": "Prop_Broom.glb",
+       "file": "/assets/models/modular-village/Prop_Broom.glb",
+       "size": 17668
+      },
+      {
+       "name": "Prop_Cart_1.glb",
+       "file": "/assets/models/modular-village/Prop_Cart_1.glb",
+       "size": 95672
+      },
+      {
+       "name": "Prop_Cart_1_Barrels.glb",
+       "file": "/assets/models/modular-village/Prop_Cart_1_Barrels.glb",
+       "size": 208352
+      },
+      {
+       "name": "Prop_Cart_1_Hay.glb",
+       "file": "/assets/models/modular-village/Prop_Cart_1_Hay.glb",
+       "size": 183240
+      },
+      {
+       "name": "Prop_Crate_1.glb",
+       "file": "/assets/models/modular-village/Prop_Crate_1.glb",
+       "size": 34788
+      },
+      {
+       "name": "Prop_Crate_1_Open.glb",
+       "file": "/assets/models/modular-village/Prop_Crate_1_Open.glb",
+       "size": 36564
+      },
+      {
+       "name": "Prop_Hay_1.glb",
+       "file": "/assets/models/modular-village/Prop_Hay_1.glb",
+       "size": 43236
+      },
+      {
+       "name": "Prop_Ladder_1.glb",
+       "file": "/assets/models/modular-village/Prop_Ladder_1.glb",
+       "size": 20500
+      },
+      {
+       "name": "Prop_Lamp_Street.glb",
+       "file": "/assets/models/modular-village/Prop_Lamp_Street.glb",
+       "size": 36844
+      },
+      {
+       "name": "Prop_Well_1.glb",
+       "file": "/assets/models/modular-village/Prop_Well_1.glb",
+       "size": 104824
+      },
+      {
+       "name": "Prop_Well_Cobblestone.glb",
+       "file": "/assets/models/modular-village/Prop_Well_Cobblestone.glb",
+       "size": 19976
+      },
+      {
+       "name": "Prop_Well_Dirt.glb",
+       "file": "/assets/models/modular-village/Prop_Well_Dirt.glb",
+       "size": 4496
+      },
+      {
+       "name": "Prop_Well_Grass.glb",
+       "file": "/assets/models/modular-village/Prop_Well_Grass.glb",
+       "size": 4504
+      },
+      {
+       "name": "Prop_Well_Inside.glb",
+       "file": "/assets/models/modular-village/Prop_Well_Inside.glb",
+       "size": 5432
+      },
+      {
+       "name": "Roof_Accent_Rake_Concave.glb",
+       "file": "/assets/models/modular-village/Roof_Accent_Rake_Concave.glb",
+       "size": 3500
+      },
+      {
+       "name": "Roof_Accent_Rake_Convex.glb",
+       "file": "/assets/models/modular-village/Roof_Accent_Rake_Convex.glb",
+       "size": 3496
+      },
+      {
+       "name": "Roof_Accent_Rake_Eave.glb",
+       "file": "/assets/models/modular-village/Roof_Accent_Rake_Eave.glb",
+       "size": 2212
+      },
+      {
+       "name": "Roof_Accent_Rake_Straight.glb",
+       "file": "/assets/models/modular-village/Roof_Accent_Rake_Straight.glb",
+       "size": 2200
+      },
+      {
+       "name": "Roof_Accent_Ridge.glb",
+       "file": "/assets/models/modular-village/Roof_Accent_Ridge.glb",
+       "size": 2192
+      },
+      {
+       "name": "Roof_Accent_Ridge_End.glb",
+       "file": "/assets/models/modular-village/Roof_Accent_Ridge_End.glb",
+       "size": 3984
+      },
+      {
+       "name": "Roof_Concave_Corner_Inner.glb",
+       "file": "/assets/models/modular-village/Roof_Concave_Corner_Inner.glb",
+       "size": 9824
+      },
+      {
+       "name": "Roof_Concave_Corner_Outer.glb",
+       "file": "/assets/models/modular-village/Roof_Concave_Corner_Outer.glb",
+       "size": 9444
+      },
+      {
+       "name": "Roof_Concave_Corner_Outer_Eave.glb",
+       "file": "/assets/models/modular-village/Roof_Concave_Corner_Outer_Eave.glb",
+       "size": 13608
+      },
+      {
+       "name": "Roof_Concave_Side.glb",
+       "file": "/assets/models/modular-village/Roof_Concave_Side.glb",
+       "size": 9112
+      },
+      {
+       "name": "Roof_Concave_Side_Eave.glb",
+       "file": "/assets/models/modular-village/Roof_Concave_Side_Eave.glb",
+       "size": 11172
+      },
+      {
+       "name": "Roof_Concave_Side_Eave_Edge.glb",
+       "file": "/assets/models/modular-village/Roof_Concave_Side_Eave_Edge.glb",
+       "size": 15660
+      },
+      {
+       "name": "Roof_Concave_Side_Edge.glb",
+       "file": "/assets/models/modular-village/Roof_Concave_Side_Edge.glb",
+       "size": 13644
+      },
+      {
+       "name": "Roof_Convex_Corner_Inner.glb",
+       "file": "/assets/models/modular-village/Roof_Convex_Corner_Inner.glb",
+       "size": 9764
+      },
+      {
+       "name": "Roof_Convex_Corner_Outer.glb",
+       "file": "/assets/models/modular-village/Roof_Convex_Corner_Outer.glb",
+       "size": 9008
+      },
+      {
+       "name": "Roof_Convex_Corner_Outer_Eave.glb",
+       "file": "/assets/models/modular-village/Roof_Convex_Corner_Outer_Eave.glb",
+       "size": 12936
+      },
+      {
+       "name": "Roof_Convex_Side.glb",
+       "file": "/assets/models/modular-village/Roof_Convex_Side.glb",
+       "size": 9112
+      },
+      {
+       "name": "Roof_Convex_Side_Eave.glb",
+       "file": "/assets/models/modular-village/Roof_Convex_Side_Eave.glb",
+       "size": 11172
+      },
+      {
+       "name": "Roof_Convex_Side_Eave_Edge.glb",
+       "file": "/assets/models/modular-village/Roof_Convex_Side_Eave_Edge.glb",
+       "size": 15676
+      },
+      {
+       "name": "Roof_Convex_Side_Edge.glb",
+       "file": "/assets/models/modular-village/Roof_Convex_Side_Edge.glb",
+       "size": 13644
+      },
+      {
+       "name": "Roof_Prop_Chimney_Pipe.glb",
+       "file": "/assets/models/modular-village/Roof_Prop_Chimney_Pipe.glb",
+       "size": 15916
+      },
+      {
+       "name": "Roof_Prop_Chimney_Stone.glb",
+       "file": "/assets/models/modular-village/Roof_Prop_Chimney_Stone.glb",
+       "size": 8096
+      },
+      {
+       "name": "Roof_Straight_Corner_Inner.glb",
+       "file": "/assets/models/modular-village/Roof_Straight_Corner_Inner.glb",
+       "size": 9944
+      },
+      {
+       "name": "Roof_Straight_Corner_Outer.glb",
+       "file": "/assets/models/modular-village/Roof_Straight_Corner_Outer.glb",
+       "size": 8820
+      },
+      {
+       "name": "Roof_Straight_Corner_Outer_Eave.glb",
+       "file": "/assets/models/modular-village/Roof_Straight_Corner_Outer_Eave.glb",
+       "size": 12604
+      },
+      {
+       "name": "Roof_Straight_Side.glb",
+       "file": "/assets/models/modular-village/Roof_Straight_Side.glb",
+       "size": 9116
+      },
+      {
+       "name": "Roof_Straight_Side_Eave.glb",
+       "file": "/assets/models/modular-village/Roof_Straight_Side_Eave.glb",
+       "size": 11176
+      },
+      {
+       "name": "Roof_Straight_Side_Eave_Edge.glb",
+       "file": "/assets/models/modular-village/Roof_Straight_Side_Eave_Edge.glb",
+       "size": 14316
+      },
+      {
+       "name": "Roof_Straight_Side_Edge.glb",
+       "file": "/assets/models/modular-village/Roof_Straight_Side_Edge.glb",
+       "size": 12356
+      },
+      {
+       "name": "Stone_Arch.glb",
+       "file": "/assets/models/modular-village/Stone_Arch.glb",
+       "size": 3868
+      },
+      {
+       "name": "Stone_Arch_Outer.glb",
+       "file": "/assets/models/modular-village/Stone_Arch_Outer.glb",
+       "size": 91864
+      },
+      {
+       "name": "Stone_Curb_1.glb",
+       "file": "/assets/models/modular-village/Stone_Curb_1.glb",
+       "size": 23760
+      },
+      {
+       "name": "Stone_Curb_2.glb",
+       "file": "/assets/models/modular-village/Stone_Curb_2.glb",
+       "size": 20688
+      },
+      {
+       "name": "Stone_Curb_3.glb",
+       "file": "/assets/models/modular-village/Stone_Curb_3.glb",
+       "size": 23756
+      },
+      {
+       "name": "Stone_Curb_4.glb",
+       "file": "/assets/models/modular-village/Stone_Curb_4.glb",
+       "size": 23696
+      },
+      {
+       "name": "Stone_Doorway_Narrow_Tall_1.glb",
+       "file": "/assets/models/modular-village/Stone_Doorway_Narrow_Tall_1.glb",
+       "size": 9868
+      },
+      {
+       "name": "Stone_Doorway_Narrow_Tall_2.glb",
+       "file": "/assets/models/modular-village/Stone_Doorway_Narrow_Tall_2.glb",
+       "size": 11544
+      },
+      {
+       "name": "Stone_Doorway_Wide_Tall_1.glb",
+       "file": "/assets/models/modular-village/Stone_Doorway_Wide_Tall_1.glb",
+       "size": 62836
+      },
+      {
+       "name": "Stone_Doorway_Wide_Tall_2.glb",
+       "file": "/assets/models/modular-village/Stone_Doorway_Wide_Tall_2.glb",
+       "size": 64636
+      },
+      {
+       "name": "Stone_Floor_1.glb",
+       "file": "/assets/models/modular-village/Stone_Floor_1.glb",
+       "size": 27180
+      },
+      {
+       "name": "Stone_Floor_2.glb",
+       "file": "/assets/models/modular-village/Stone_Floor_2.glb",
+       "size": 24076
+      },
+      {
+       "name": "Stone_Pillar.glb",
+       "file": "/assets/models/modular-village/Stone_Pillar.glb",
+       "size": 7728
+      },
+      {
+       "name": "Stone_Pillar_Base.glb",
+       "file": "/assets/models/modular-village/Stone_Pillar_Base.glb",
+       "size": 4732
+      },
+      {
+       "name": "Stone_Sewer_Grate_1.glb",
+       "file": "/assets/models/modular-village/Stone_Sewer_Grate_1.glb",
+       "size": 29248
+      },
+      {
+       "name": "Stone_Sewer_Grate_2.glb",
+       "file": "/assets/models/modular-village/Stone_Sewer_Grate_2.glb",
+       "size": 30032
+      },
+      {
+       "name": "Stone_Stairs_Railing.glb",
+       "file": "/assets/models/modular-village/Stone_Stairs_Railing.glb",
+       "size": 21476
+      },
+      {
+       "name": "Stone_Steps.glb",
+       "file": "/assets/models/modular-village/Stone_Steps.glb",
+       "size": 4972
+      },
+      {
+       "name": "Stone_Steps_Side_1.glb",
+       "file": "/assets/models/modular-village/Stone_Steps_Side_1.glb",
+       "size": 23616
+      },
+      {
+       "name": "Stone_Steps_Side_2.glb",
+       "file": "/assets/models/modular-village/Stone_Steps_Side_2.glb",
+       "size": 25456
+      },
+      {
+       "name": "Stone_Wall_1.glb",
+       "file": "/assets/models/modular-village/Stone_Wall_1.glb",
+       "size": 8628
+      },
+      {
+       "name": "Stone_Wall_2.glb",
+       "file": "/assets/models/modular-village/Stone_Wall_2.glb",
+       "size": 10188
+      },
+      {
+       "name": "Stone_Wall_3.glb",
+       "file": "/assets/models/modular-village/Stone_Wall_3.glb",
+       "size": 10156
+      },
+      {
+       "name": "Stone_Wall_4.glb",
+       "file": "/assets/models/modular-village/Stone_Wall_4.glb",
+       "size": 12068
+      },
+      {
+       "name": "Stone_Wall_5.glb",
+       "file": "/assets/models/modular-village/Stone_Wall_5.glb",
+       "size": 9376
+      },
+      {
+       "name": "Stone_to_Stucco_Doorway_Wide_Tall_1.glb",
+       "file": "/assets/models/modular-village/Stone_to_Stucco_Doorway_Wide_Tall_1.glb",
+       "size": 57156
+      },
+      {
+       "name": "Stone_to_Stucco_Doorway_Wide_Tall_2.glb",
+       "file": "/assets/models/modular-village/Stone_to_Stucco_Doorway_Wide_Tall_2.glb",
+       "size": 59656
+      },
+      {
+       "name": "Stucco_Arch_Half.glb",
+       "file": "/assets/models/modular-village/Stucco_Arch_Half.glb",
+       "size": 2348
+      },
+      {
+       "name": "Stucco_Arch_Half_Outer.glb",
+       "file": "/assets/models/modular-village/Stucco_Arch_Half_Outer.glb",
+       "size": 5792
+      },
+      {
+       "name": "Stucco_Block.glb",
+       "file": "/assets/models/modular-village/Stucco_Block.glb",
+       "size": 2108
+      },
+      {
+       "name": "Stucco_Doorway_Narrow_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Doorway_Narrow_Tall.glb",
+       "size": 6064
+      },
+      {
+       "name": "Stucco_Doorway_Wide_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Doorway_Wide_Tall.glb",
+       "size": 6928
+      },
+      {
+       "name": "Stucco_Prop_Support_Angled_Large.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Angled_Large.glb",
+       "size": 2420
+      },
+      {
+       "name": "Stucco_Prop_Support_Angled_Low.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Angled_Low.glb",
+       "size": 2200
+      },
+      {
+       "name": "Stucco_Prop_Support_Angled_Small.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Angled_Small.glb",
+       "size": 2200
+      },
+      {
+       "name": "Stucco_Prop_Support_Beam_1.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Beam_1.glb",
+       "size": 2200
+      },
+      {
+       "name": "Stucco_Prop_Support_Beam_2.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Beam_2.glb",
+       "size": 3596
+      },
+      {
+       "name": "Stucco_Prop_Support_Beam_3.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Beam_3.glb",
+       "size": 3600
+      },
+      {
+       "name": "Stucco_Prop_Support_Pillar_1.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Pillar_1.glb",
+       "size": 2196
+      },
+      {
+       "name": "Stucco_Prop_Support_Pillar_2.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Pillar_2.glb",
+       "size": 3588
+      },
+      {
+       "name": "Stucco_Prop_Support_Pillar_3.glb",
+       "file": "/assets/models/modular-village/Stucco_Prop_Support_Pillar_3.glb",
+       "size": 3592
+      },
+      {
+       "name": "Stucco_Window_Double_Narrow.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Double_Narrow.glb",
+       "size": 16144
+      },
+      {
+       "name": "Stucco_Window_Double_Narrow_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Double_Narrow_Tall.glb",
+       "size": 16128
+      },
+      {
+       "name": "Stucco_Window_Double_Wide.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Double_Wide.glb",
+       "size": 16440
+      },
+      {
+       "name": "Stucco_Window_Double_Wide_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Double_Wide_Tall.glb",
+       "size": 16432
+      },
+      {
+       "name": "Stucco_Window_Rounded_Narrow.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Narrow.glb",
+       "size": 14272
+      },
+      {
+       "name": "Stucco_Window_Rounded_Narrow_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Narrow_Tall.glb",
+       "size": 14256
+      },
+      {
+       "name": "Stucco_Window_Rounded_Wide.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Wide.glb",
+       "size": 14336
+      },
+      {
+       "name": "Stucco_Window_Rounded_Wide_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Rounded_Wide_Tall.glb",
+       "size": 14320
+      },
+      {
+       "name": "Stucco_Window_Single_Narrow.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Single_Narrow.glb",
+       "size": 12336
+      },
+      {
+       "name": "Stucco_Window_Single_Narrow_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Single_Narrow_Tall.glb",
+       "size": 12320
+      },
+      {
+       "name": "Stucco_Window_Single_Wide.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Single_Wide.glb",
+       "size": 12324
+      },
+      {
+       "name": "Stucco_Window_Single_Wide_Tall.glb",
+       "file": "/assets/models/modular-village/Stucco_Window_Single_Wide_Tall.glb",
+       "size": 12308
+      },
+      {
+       "name": "Wall_Prop_Bell_1.glb",
+       "file": "/assets/models/modular-village/Wall_Prop_Bell_1.glb",
+       "size": 34400
+      },
+      {
+       "name": "Wall_Prop_Door_Ornate.glb",
+       "file": "/assets/models/modular-village/Wall_Prop_Door_Ornate.glb",
+       "size": 30220
+      },
+      {
+       "name": "Wall_Prop_Door_Simple.glb",
+       "file": "/assets/models/modular-village/Wall_Prop_Door_Simple.glb",
+       "size": 21080
+      },
+      {
+       "name": "Wall_Prop_Lamp.glb",
+       "file": "/assets/models/modular-village/Wall_Prop_Lamp.glb",
+       "size": 33456
+      },
+      {
+       "name": "Wall_Prop_Sign_1.glb",
+       "file": "/assets/models/modular-village/Wall_Prop_Sign_1.glb",
+       "size": 52112
+      },
+      {
+       "name": "Wall_Prop_Windmill_1.glb",
+       "file": "/assets/models/modular-village/Wall_Prop_Windmill_1.glb",
+       "size": 48244
+      },
+      {
+       "name": "Waterwheel_1.glb",
+       "file": "/assets/models/modular-village/Waterwheel_1.glb",
+       "size": 88688
+      },
+      {
+       "name": "Waterwheel_Flume_Curved.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_Curved.glb",
+       "size": 6768
+      },
+      {
+       "name": "Waterwheel_Flume_End.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_End.glb",
+       "size": 5396
+      },
+      {
+       "name": "Waterwheel_Flume_Ramp.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_Ramp.glb",
+       "size": 4768
+      },
+      {
+       "name": "Waterwheel_Flume_Ramp_Supported.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_Ramp_Supported.glb",
+       "size": 6584
+      },
+      {
+       "name": "Waterwheel_Flume_Straight.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_Straight.glb",
+       "size": 4776
+      },
+      {
+       "name": "Waterwheel_Flume_Support_Brace.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_Support_Brace.glb",
+       "size": 2156
+      },
+      {
+       "name": "Waterwheel_Flume_Support_Brace_Double.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_Support_Brace_Double.glb",
+       "size": 3028
+      },
+      {
+       "name": "Waterwheel_Flume_Support_Pillar.glb",
+       "file": "/assets/models/modular-village/Waterwheel_Flume_Support_Pillar.glb",
+       "size": 2216
+      },
+      {
+       "name": "Wood_Baseboard.glb",
+       "file": "/assets/models/modular-village/Wood_Baseboard.glb",
+       "size": 2188
+      },
+      {
+       "name": "Wood_Floor_Corner.glb",
+       "file": "/assets/models/modular-village/Wood_Floor_Corner.glb",
+       "size": 9244
+      },
+      {
+       "name": "Wood_Floor_Straight_1.glb",
+       "file": "/assets/models/modular-village/Wood_Floor_Straight_1.glb",
+       "size": 7632
+      },
+      {
+       "name": "Wood_Floor_Straight_2.glb",
+       "file": "/assets/models/modular-village/Wood_Floor_Straight_2.glb",
+       "size": 8408
+      },
+      {
+       "name": "Wood_Floor_Straight_3.glb",
+       "file": "/assets/models/modular-village/Wood_Floor_Straight_3.glb",
+       "size": 7632
+      },
+      {
+       "name": "Wood_Floor_Straight_4.glb",
+       "file": "/assets/models/modular-village/Wood_Floor_Straight_4.glb",
+       "size": 8408
+      },
+      {
+       "name": "Wood_Post_Large.glb",
+       "file": "/assets/models/modular-village/Wood_Post_Large.glb",
+       "size": 3344
+      },
+      {
+       "name": "Wood_Post_Small.glb",
+       "file": "/assets/models/modular-village/Wood_Post_Small.glb",
+       "size": 2764
+      },
+      {
+       "name": "Wood_Railing_Corner.glb",
+       "file": "/assets/models/modular-village/Wood_Railing_Corner.glb",
+       "size": 19288
+      },
+      {
+       "name": "Wood_Railing_Stairs.glb",
+       "file": "/assets/models/modular-village/Wood_Railing_Stairs.glb",
+       "size": 17324
+      },
+      {
+       "name": "Wood_Railing_Straight.glb",
+       "file": "/assets/models/modular-village/Wood_Railing_Straight.glb",
+       "size": 10944
+      },
+      {
+       "name": "Wood_Rope_Corner.glb",
+       "file": "/assets/models/modular-village/Wood_Rope_Corner.glb",
+       "size": 15708
+      },
+      {
+       "name": "Wood_Rope_Stairs.glb",
+       "file": "/assets/models/modular-village/Wood_Rope_Stairs.glb",
+       "size": 14380
+      },
+      {
+       "name": "Wood_Rope_Straight.glb",
+       "file": "/assets/models/modular-village/Wood_Rope_Straight.glb",
+       "size": 7520
+      },
+      {
+       "name": "Wood_Steps.glb",
+       "file": "/assets/models/modular-village/Wood_Steps.glb",
+       "size": 10412
+      },
+      {
+       "name": "Wood_Steps_Stucco.glb",
+       "file": "/assets/models/modular-village/Wood_Steps_Stucco.glb",
+       "size": 11100
+      }
+     ]
+    },
+    {
+     "name": "nature",
+     "assets": [
+      {
+       "name": "about",
+       "assets": [
+        {
+         "name": "License.txt",
+         "file": "/assets/models/nature/about/License.txt",
+         "size": 364
+        },
+        {
+         "name": "Preview.jpg",
+         "file": "/assets/models/nature/about/Preview.jpg",
+         "size": 470595
+        }
+       ]
+      },
+      {
+       "name": "BirchTree_1.blend",
+       "file": "/assets/models/nature/BirchTree_1.blend",
+       "size": 596608
+      },
+      {
+       "name": "BirchTree_1.glb",
+       "file": "/assets/models/nature/BirchTree_1.glb",
+       "size": 96020
+      },
+      {
+       "name": "BirchTree_2.blend",
+       "file": "/assets/models/nature/BirchTree_2.blend",
+       "size": 624792
+      },
+      {
+       "name": "BirchTree_2.glb",
+       "file": "/assets/models/nature/BirchTree_2.glb",
+       "size": 88964
+      },
+      {
+       "name": "BirchTree_3.blend",
+       "file": "/assets/models/nature/BirchTree_3.blend",
+       "size": 597472
+      },
+      {
+       "name": "BirchTree_3.glb",
+       "file": "/assets/models/nature/BirchTree_3.glb",
+       "size": 98028
+      },
+      {
+       "name": "BirchTree_4.blend",
+       "file": "/assets/models/nature/BirchTree_4.blend",
+       "size": 624624
+      },
+      {
+       "name": "BirchTree_4.glb",
+       "file": "/assets/models/nature/BirchTree_4.glb",
+       "size": 130460
+      },
+      {
+       "name": "BirchTree_5.blend",
+       "file": "/assets/models/nature/BirchTree_5.blend",
+       "size": 598160
+      },
+      {
+       "name": "BirchTree_5.glb",
+       "file": "/assets/models/nature/BirchTree_5.glb",
+       "size": 98728
+      },
+      {
+       "name": "BirchTree_Autumn_1.blend",
+       "file": "/assets/models/nature/BirchTree_Autumn_1.blend",
+       "size": 625776
+      },
+      {
+       "name": "BirchTree_Autumn_1.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_1.glb",
+       "size": 96036
+      },
+      {
+       "name": "BirchTree_Autumn_2.blend",
+       "file": "/assets/models/nature/BirchTree_Autumn_2.blend",
+       "size": 590056
+      },
+      {
+       "name": "BirchTree_Autumn_2.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_2.glb",
+       "size": 88952
+      },
+      {
+       "name": "BirchTree_Autumn_3.blend",
+       "file": "/assets/models/nature/BirchTree_Autumn_3.blend",
+       "size": 597472
+      },
+      {
+       "name": "BirchTree_Autumn_3.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_3.glb",
+       "size": 98036
+      },
+      {
+       "name": "BirchTree_Autumn_4.blend",
+       "file": "/assets/models/nature/BirchTree_Autumn_4.blend",
+       "size": 624624
+      },
+      {
+       "name": "BirchTree_Autumn_4.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_4.glb",
+       "size": 130468
+      },
+      {
+       "name": "BirchTree_Autumn_5.blend",
+       "file": "/assets/models/nature/BirchTree_Autumn_5.blend",
+       "size": 598160
+      },
+      {
+       "name": "BirchTree_Autumn_5.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_5.glb",
+       "size": 98732
+      },
+      {
+       "name": "BirchTree_Dead_1.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_1.blend",
+       "size": 545080
+      },
+      {
+       "name": "BirchTree_Dead_1.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_1.glb",
+       "size": 46552
+      },
+      {
+       "name": "BirchTree_Dead_2.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_2.blend",
+       "size": 566488
+      },
+      {
+       "name": "BirchTree_Dead_2.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_2.glb",
+       "size": 73580
+      },
+      {
+       "name": "BirchTree_Dead_3.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_3.blend",
+       "size": 568264
+      },
+      {
+       "name": "BirchTree_Dead_3.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_3.glb",
+       "size": 75752
+      },
+      {
+       "name": "BirchTree_Dead_4.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_4.blend",
+       "size": 578400
+      },
+      {
+       "name": "BirchTree_Dead_4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_4.glb",
+       "size": 87436
+      },
+      {
+       "name": "BirchTree_Dead_5.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_5.blend",
+       "size": 563208
+      },
+      {
+       "name": "BirchTree_Dead_5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_5.glb",
+       "size": 69536
+      },
+      {
+       "name": "BirchTree_Dead_Snow_1.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_1.blend",
+       "size": 553784
+      },
+      {
+       "name": "BirchTree_Dead_Snow_1.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_1.glb",
+       "size": 50252
+      },
+      {
+       "name": "BirchTree_Dead_Snow_2.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_2.blend",
+       "size": 578024
+      },
+      {
+       "name": "BirchTree_Dead_Snow_2.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_2.glb",
+       "size": 80896
+      },
+      {
+       "name": "BirchTree_Dead_Snow_3.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_3.blend",
+       "size": 577768
+      },
+      {
+       "name": "BirchTree_Dead_Snow_3.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_3.glb",
+       "size": 80628
+      },
+      {
+       "name": "BirchTree_Dead_Snow_4.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_4.blend",
+       "size": 591080
+      },
+      {
+       "name": "BirchTree_Dead_Snow_4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_4.glb",
+       "size": 96108
+      },
+      {
+       "name": "BirchTree_Dead_Snow_5.blend",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_5.blend",
+       "size": 571360
+      },
+      {
+       "name": "BirchTree_Dead_Snow_5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_5.glb",
+       "size": 72648
+      },
+      {
+       "name": "BirchTree_Snow_1.blend",
+       "file": "/assets/models/nature/BirchTree_Snow_1.blend",
+       "size": 607292
+      },
+      {
+       "name": "BirchTree_Snow_1.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_1.glb",
+       "size": 102204
+      },
+      {
+       "name": "BirchTree_Snow_2.blend",
+       "file": "/assets/models/nature/BirchTree_Snow_2.blend",
+       "size": 598156
+      },
+      {
+       "name": "BirchTree_Snow_2.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_2.glb",
+       "size": 92100
+      },
+      {
+       "name": "BirchTree_Snow_3.blend",
+       "file": "/assets/models/nature/BirchTree_Snow_3.blend",
+       "size": 606732
+      },
+      {
+       "name": "BirchTree_Snow_3.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_3.glb",
+       "size": 102476
+      },
+      {
+       "name": "BirchTree_Snow_4.blend",
+       "file": "/assets/models/nature/BirchTree_Snow_4.blend",
+       "size": 637124
+      },
+      {
+       "name": "BirchTree_Snow_4.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_4.glb",
+       "size": 138796
+      },
+      {
+       "name": "BirchTree_Snow_5.blend",
+       "file": "/assets/models/nature/BirchTree_Snow_5.blend",
+       "size": 607396
+      },
+      {
+       "name": "BirchTree_Snow_5.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_5.glb",
+       "size": 103388
+      },
+      {
+       "name": "BushBerries_1.blend",
+       "file": "/assets/models/nature/BushBerries_1.blend",
+       "size": 543392
+      },
+      {
+       "name": "BushBerries_1.glb",
+       "file": "/assets/models/nature/BushBerries_1.glb",
+       "size": 50032
+      },
+      {
+       "name": "BushBerries_2.blend",
+       "file": "/assets/models/nature/BushBerries_2.blend",
+       "size": 539168
+      },
+      {
+       "name": "BushBerries_2.glb",
+       "file": "/assets/models/nature/BushBerries_2.glb",
+       "size": 44848
+      },
+      {
+       "name": "Bush_1.blend",
+       "file": "/assets/models/nature/Bush_1.blend",
+       "size": 519720
+      },
+      {
+       "name": "Bush_1.glb",
+       "file": "/assets/models/nature/Bush_1.glb",
+       "size": 20740
+      },
+      {
+       "name": "Bush_2.blend",
+       "file": "/assets/models/nature/Bush_2.blend",
+       "size": 515496
+      },
+      {
+       "name": "Bush_2.glb",
+       "file": "/assets/models/nature/Bush_2.glb",
+       "size": 15552
+      },
+      {
+       "name": "Bush_Snow_1.blend",
+       "file": "/assets/models/nature/Bush_Snow_1.blend",
+       "size": 523944
+      },
+      {
+       "name": "Bush_Snow_1.glb",
+       "file": "/assets/models/nature/Bush_Snow_1.glb",
+       "size": 26696
+      },
+      {
+       "name": "Bush_Snow_2.blend",
+       "file": "/assets/models/nature/Bush_Snow_2.blend",
+       "size": 518664
+      },
+      {
+       "name": "Bush_Snow_2.glb",
+       "file": "/assets/models/nature/Bush_Snow_2.glb",
+       "size": 20212
+      },
+      {
+       "name": "CactusFlower_1.blend",
+       "file": "/assets/models/nature/CactusFlower_1.blend",
+       "size": 590656
+      },
+      {
+       "name": "CactusFlower_1.glb",
+       "file": "/assets/models/nature/CactusFlower_1.glb",
+       "size": 115152
+      },
+      {
+       "name": "CactusFlowers_2.blend",
+       "file": "/assets/models/nature/CactusFlowers_2.blend",
+       "size": 570968
+      },
+      {
+       "name": "CactusFlowers_2.glb",
+       "file": "/assets/models/nature/CactusFlowers_2.glb",
+       "size": 83376
+      },
+      {
+       "name": "CactusFlowers_3.blend",
+       "file": "/assets/models/nature/CactusFlowers_3.blend",
+       "size": 557296
+      },
+      {
+       "name": "CactusFlowers_3.glb",
+       "file": "/assets/models/nature/CactusFlowers_3.glb",
+       "size": 66956
+      },
+      {
+       "name": "CactusFlowers_4.blend",
+       "file": "/assets/models/nature/CactusFlowers_4.blend",
+       "size": 576072
+      },
+      {
+       "name": "CactusFlowers_4.glb",
+       "file": "/assets/models/nature/CactusFlowers_4.glb",
+       "size": 90004
+      },
+      {
+       "name": "CactusFlowers_5.blend",
+       "file": "/assets/models/nature/CactusFlowers_5.blend",
+       "size": 539144
+      },
+      {
+       "name": "CactusFlowers_5.glb",
+       "file": "/assets/models/nature/CactusFlowers_5.glb",
+       "size": 45076
+      },
+      {
+       "name": "Cactus_1.blend",
+       "file": "/assets/models/nature/Cactus_1.blend",
+       "size": 527960
+      },
+      {
+       "name": "Cactus_1.glb",
+       "file": "/assets/models/nature/Cactus_1.glb",
+       "size": 29428
+      },
+      {
+       "name": "Cactus_2.blend",
+       "file": "/assets/models/nature/Cactus_2.blend",
+       "size": 529880
+      },
+      {
+       "name": "Cactus_2.glb",
+       "file": "/assets/models/nature/Cactus_2.glb",
+       "size": 39972
+      },
+      {
+       "name": "Cactus_3.blend",
+       "file": "/assets/models/nature/Cactus_3.blend",
+       "size": 516208
+      },
+      {
+       "name": "Cactus_3.glb",
+       "file": "/assets/models/nature/Cactus_3.glb",
+       "size": 23552
+      },
+      {
+       "name": "Cactus_4.blend",
+       "file": "/assets/models/nature/Cactus_4.blend",
+       "size": 548616
+      },
+      {
+       "name": "Cactus_4.glb",
+       "file": "/assets/models/nature/Cactus_4.glb",
+       "size": 63300
+      },
+      {
+       "name": "Cactus_5.blend",
+       "file": "/assets/models/nature/Cactus_5.blend",
+       "size": 522368
+      },
+      {
+       "name": "Cactus_5.glb",
+       "file": "/assets/models/nature/Cactus_5.glb",
+       "size": 31332
+      },
+      {
+       "name": "CommonTree_1.blend",
+       "file": "/assets/models/nature/CommonTree_1.blend",
+       "size": 636952
+      },
+      {
+       "name": "CommonTree_1.glb",
+       "file": "/assets/models/nature/CommonTree_1.glb",
+       "size": 157824
+      },
+      {
+       "name": "CommonTree_2.blend",
+       "file": "/assets/models/nature/CommonTree_2.blend",
+       "size": 639768
+      },
+      {
+       "name": "CommonTree_2.glb",
+       "file": "/assets/models/nature/CommonTree_2.glb",
+       "size": 161280
+      },
+      {
+       "name": "CommonTree_3.blend",
+       "file": "/assets/models/nature/CommonTree_3.blend",
+       "size": 579576
+      },
+      {
+       "name": "CommonTree_3.glb",
+       "file": "/assets/models/nature/CommonTree_3.glb",
+       "size": 88172
+      },
+      {
+       "name": "CommonTree_4.blend",
+       "file": "/assets/models/nature/CommonTree_4.blend",
+       "size": 569368
+      },
+      {
+       "name": "CommonTree_4.glb",
+       "file": "/assets/models/nature/CommonTree_4.glb",
+       "size": 75644
+      },
+      {
+       "name": "CommonTree_5.blend",
+       "file": "/assets/models/nature/CommonTree_5.blend",
+       "size": 584568
+      },
+      {
+       "name": "CommonTree_5.glb",
+       "file": "/assets/models/nature/CommonTree_5.glb",
+       "size": 101008
+      },
+      {
+       "name": "CommonTree_Autumn_1.blend",
+       "file": "/assets/models/nature/CommonTree_Autumn_1.blend",
+       "size": 630856
+      },
+      {
+       "name": "CommonTree_Autumn_1.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_1.glb",
+       "size": 157828
+      },
+      {
+       "name": "CommonTree_Autumn_2.blend",
+       "file": "/assets/models/nature/CommonTree_Autumn_2.blend",
+       "size": 639768
+      },
+      {
+       "name": "CommonTree_Autumn_2.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_2.glb",
+       "size": 162060
+      },
+      {
+       "name": "CommonTree_Autumn_3.blend",
+       "file": "/assets/models/nature/CommonTree_Autumn_3.blend",
+       "size": 579576
+      },
+      {
+       "name": "CommonTree_Autumn_3.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_3.glb",
+       "size": 88176
+      },
+      {
+       "name": "CommonTree_Autumn_4.blend",
+       "file": "/assets/models/nature/CommonTree_Autumn_4.blend",
+       "size": 569368
+      },
+      {
+       "name": "CommonTree_Autumn_4.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_4.glb",
+       "size": 75652
+      },
+      {
+       "name": "CommonTree_Autumn_5.blend",
+       "file": "/assets/models/nature/CommonTree_Autumn_5.blend",
+       "size": 584568
+      },
+      {
+       "name": "CommonTree_Autumn_5.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_5.glb",
+       "size": 101012
+      },
+      {
+       "name": "CommonTree_Dead_1.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_1.blend",
+       "size": 601448
+      },
+      {
+       "name": "CommonTree_Dead_1.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_1.glb",
+       "size": 128540
+      },
+      {
+       "name": "CommonTree_Dead_2.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_2.blend",
+       "size": 601448
+      },
+      {
+       "name": "CommonTree_Dead_2.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_2.glb",
+       "size": 128540
+      },
+      {
+       "name": "CommonTree_Dead_3.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_3.blend",
+       "size": 539144
+      },
+      {
+       "name": "CommonTree_Dead_3.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_3.glb",
+       "size": 52076
+      },
+      {
+       "name": "CommonTree_Dead_4.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_4.blend",
+       "size": 541960
+      },
+      {
+       "name": "CommonTree_Dead_4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_4.glb",
+       "size": 55532
+      },
+      {
+       "name": "CommonTree_Dead_5.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_5.blend",
+       "size": 560264
+      },
+      {
+       "name": "CommonTree_Dead_5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_5.glb",
+       "size": 77992
+      },
+      {
+       "name": "CommonTree_Dead_Snow_1.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_1.blend",
+       "size": 619448
+      },
+      {
+       "name": "CommonTree_Dead_Snow_1.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_1.glb",
+       "size": 143788
+      },
+      {
+       "name": "CommonTree_Dead_Snow_2.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_2.blend",
+       "size": 619088
+      },
+      {
+       "name": "CommonTree_Dead_Snow_2.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_2.glb",
+       "size": 143260
+      },
+      {
+       "name": "CommonTree_Dead_Snow_3.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_3.blend",
+       "size": 548104
+      },
+      {
+       "name": "CommonTree_Dead_Snow_3.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_3.glb",
+       "size": 56304
+      },
+      {
+       "name": "CommonTree_Dead_Snow_4.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_4.blend",
+       "size": 552328
+      },
+      {
+       "name": "CommonTree_Dead_Snow_4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_4.glb",
+       "size": 61484
+      },
+      {
+       "name": "CommonTree_Dead_Snow_5.blend",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_5.blend",
+       "size": 596448
+      },
+      {
+       "name": "CommonTree_Dead_Snow_5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_5.glb",
+       "size": 85688
+      },
+      {
+       "name": "CommonTree_Snow_1.blend",
+       "file": "/assets/models/nature/CommonTree_Snow_1.blend",
+       "size": 646600
+      },
+      {
+       "name": "CommonTree_Snow_1.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_1.glb",
+       "size": 162952
+      },
+      {
+       "name": "CommonTree_Snow_2.blend",
+       "file": "/assets/models/nature/CommonTree_Snow_2.blend",
+       "size": 650216
+      },
+      {
+       "name": "CommonTree_Snow_2.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_2.glb",
+       "size": 167392
+      },
+      {
+       "name": "CommonTree_Snow_3.blend",
+       "file": "/assets/models/nature/CommonTree_Snow_3.blend",
+       "size": 589704
+      },
+      {
+       "name": "CommonTree_Snow_3.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_3.glb",
+       "size": 93888
+      },
+      {
+       "name": "CommonTree_Snow_4.blend",
+       "file": "/assets/models/nature/CommonTree_Snow_4.blend",
+       "size": 577912
+      },
+      {
+       "name": "CommonTree_Snow_4.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_4.glb",
+       "size": 79388
+      },
+      {
+       "name": "CommonTree_Snow_5.blend",
+       "file": "/assets/models/nature/CommonTree_Snow_5.blend",
+       "size": 594224
+      },
+      {
+       "name": "CommonTree_Snow_5.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_5.glb",
+       "size": 106100
+      },
+      {
+       "name": "Corn_1.blend",
+       "file": "/assets/models/nature/Corn_1.blend",
+       "size": 524884
+      },
+      {
+       "name": "Corn_1.glb",
+       "file": "/assets/models/nature/Corn_1.glb",
+       "size": 32564
+      },
+      {
+       "name": "Corn_2.blend",
+       "file": "/assets/models/nature/Corn_2.blend",
+       "size": 538628
+      },
+      {
+       "name": "Corn_2.glb",
+       "file": "/assets/models/nature/Corn_2.glb",
+       "size": 42408
+      },
+      {
+       "name": "Flowers.blend",
+       "file": "/assets/models/nature/Flowers.blend",
+       "size": 533284
+      },
+      {
+       "name": "Flowers.glb",
+       "file": "/assets/models/nature/Flowers.glb",
+       "size": 25408
+      },
+      {
+       "name": "Grass.blend",
+       "file": "/assets/models/nature/Grass.blend",
+       "size": 506976
+      },
+      {
+       "name": "Grass.glb",
+       "file": "/assets/models/nature/Grass.glb",
+       "size": 12028
+      },
+      {
+       "name": "Grass_2.blend",
+       "file": "/assets/models/nature/Grass_2.blend",
+       "size": 506976
+      },
+      {
+       "name": "Grass_2.glb",
+       "file": "/assets/models/nature/Grass_2.glb",
+       "size": 12028
+      },
+      {
+       "name": "Grass_Short.blend",
+       "file": "/assets/models/nature/Grass_Short.blend",
+       "size": 506976
+      },
+      {
+       "name": "Grass_Short.glb",
+       "file": "/assets/models/nature/Grass_Short.glb",
+       "size": 12064
+      },
+      {
+       "name": "Lilypad.blend",
+       "file": "/assets/models/nature/Lilypad.blend",
+       "size": 521512
+      },
+      {
+       "name": "Lilypad.glb",
+       "file": "/assets/models/nature/Lilypad.glb",
+       "size": 22856
+      },
+      {
+       "name": "PalmTree_1.blend",
+       "file": "/assets/models/nature/PalmTree_1.blend",
+       "size": 595616
+      },
+      {
+       "name": "PalmTree_1.glb",
+       "file": "/assets/models/nature/PalmTree_1.glb",
+       "size": 99672
+      },
+      {
+       "name": "PalmTree_2.blend",
+       "file": "/assets/models/nature/PalmTree_2.blend",
+       "size": 565160
+      },
+      {
+       "name": "PalmTree_2.glb",
+       "file": "/assets/models/nature/PalmTree_2.glb",
+       "size": 70028
+      },
+      {
+       "name": "PalmTree_3.blend",
+       "file": "/assets/models/nature/PalmTree_3.blend",
+       "size": 584432
+      },
+      {
+       "name": "PalmTree_3.glb",
+       "file": "/assets/models/nature/PalmTree_3.glb",
+       "size": 86696
+      },
+      {
+       "name": "PalmTree_4.blend",
+       "file": "/assets/models/nature/PalmTree_4.blend",
+       "size": 564440
+      },
+      {
+       "name": "PalmTree_4.glb",
+       "file": "/assets/models/nature/PalmTree_4.glb",
+       "size": 62340
+      },
+      {
+       "name": "PineTree_1.blend",
+       "file": "/assets/models/nature/PineTree_1.blend",
+       "size": 594400
+      },
+      {
+       "name": "PineTree_1.glb",
+       "file": "/assets/models/nature/PineTree_1.glb",
+       "size": 104584
+      },
+      {
+       "name": "PineTree_2.blend",
+       "file": "/assets/models/nature/PineTree_2.blend",
+       "size": 584328
+      },
+      {
+       "name": "PineTree_2.glb",
+       "file": "/assets/models/nature/PineTree_2.glb",
+       "size": 92464
+      },
+      {
+       "name": "PineTree_3.blend",
+       "file": "/assets/models/nature/PineTree_3.blend",
+       "size": 615240
+      },
+      {
+       "name": "PineTree_3.glb",
+       "file": "/assets/models/nature/PineTree_3.glb",
+       "size": 130792
+      },
+      {
+       "name": "PineTree_4.blend",
+       "file": "/assets/models/nature/PineTree_4.blend",
+       "size": 584856
+      },
+      {
+       "name": "PineTree_4.glb",
+       "file": "/assets/models/nature/PineTree_4.glb",
+       "size": 93636
+      },
+      {
+       "name": "PineTree_5.blend",
+       "file": "/assets/models/nature/PineTree_5.blend",
+       "size": 579256
+      },
+      {
+       "name": "PineTree_5.glb",
+       "file": "/assets/models/nature/PineTree_5.glb",
+       "size": 86248
+      },
+      {
+       "name": "PineTree_Autumn_1.blend",
+       "file": "/assets/models/nature/PineTree_Autumn_1.blend",
+       "size": 594432
+      },
+      {
+       "name": "PineTree_Autumn_1.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_1.glb",
+       "size": 105368
+      },
+      {
+       "name": "PineTree_Autumn_2.blend",
+       "file": "/assets/models/nature/PineTree_Autumn_2.blend",
+       "size": 584328
+      },
+      {
+       "name": "PineTree_Autumn_2.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_2.glb",
+       "size": 93244
+      },
+      {
+       "name": "PineTree_Autumn_3.blend",
+       "file": "/assets/models/nature/PineTree_Autumn_3.blend",
+       "size": 615208
+      },
+      {
+       "name": "PineTree_Autumn_3.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_3.glb",
+       "size": 131580
+      },
+      {
+       "name": "PineTree_Autumn_4.blend",
+       "file": "/assets/models/nature/PineTree_Autumn_4.blend",
+       "size": 584856
+      },
+      {
+       "name": "PineTree_Autumn_4.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_4.glb",
+       "size": 94420
+      },
+      {
+       "name": "PineTree_Autumn_5.blend",
+       "file": "/assets/models/nature/PineTree_Autumn_5.blend",
+       "size": 579224
+      },
+      {
+       "name": "PineTree_Autumn_5.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_5.glb",
+       "size": 87032
+      },
+      {
+       "name": "PineTree_Snow_1.blend",
+       "file": "/assets/models/nature/PineTree_Snow_1.blend",
+       "size": 594400
+      },
+      {
+       "name": "PineTree_Snow_1.glb",
+       "file": "/assets/models/nature/PineTree_Snow_1.glb",
+       "size": 105356
+      },
+      {
+       "name": "PineTree_Snow_2.blend",
+       "file": "/assets/models/nature/PineTree_Snow_2.blend",
+       "size": 584328
+      },
+      {
+       "name": "PineTree_Snow_2.glb",
+       "file": "/assets/models/nature/PineTree_Snow_2.glb",
+       "size": 93236
+      },
+      {
+       "name": "PineTree_Snow_3.blend",
+       "file": "/assets/models/nature/PineTree_Snow_3.blend",
+       "size": 615208
+      },
+      {
+       "name": "PineTree_Snow_3.glb",
+       "file": "/assets/models/nature/PineTree_Snow_3.glb",
+       "size": 131568
+      },
+      {
+       "name": "PineTree_Snow_4.blend",
+       "file": "/assets/models/nature/PineTree_Snow_4.blend",
+       "size": 584856
+      },
+      {
+       "name": "PineTree_Snow_4.glb",
+       "file": "/assets/models/nature/PineTree_Snow_4.glb",
+       "size": 94460
+      },
+      {
+       "name": "PineTree_Snow_5.blend",
+       "file": "/assets/models/nature/PineTree_Snow_5.blend",
+       "size": 579224
+      },
+      {
+       "name": "PineTree_Snow_5.glb",
+       "file": "/assets/models/nature/PineTree_Snow_5.glb",
+       "size": 87020
+      },
+      {
+       "name": "Plant_1.blend",
+       "file": "/assets/models/nature/Plant_1.blend",
+       "size": 511240
+      },
+      {
+       "name": "Plant_1.glb",
+       "file": "/assets/models/nature/Plant_1.glb",
+       "size": 17836
+      },
+      {
+       "name": "Plant_2.blend",
+       "file": "/assets/models/nature/Plant_2.blend",
+       "size": 515192
+      },
+      {
+       "name": "Plant_2.glb",
+       "file": "/assets/models/nature/Plant_2.glb",
+       "size": 15168
+      },
+      {
+       "name": "Plant_3.blend",
+       "file": "/assets/models/nature/Plant_3.blend",
+       "size": 525168
+      },
+      {
+       "name": "Plant_3.glb",
+       "file": "/assets/models/nature/Plant_3.glb",
+       "size": 32436
+      },
+      {
+       "name": "Plant_4.blend",
+       "file": "/assets/models/nature/Plant_4.blend",
+       "size": 520096
+      },
+      {
+       "name": "Plant_4.glb",
+       "file": "/assets/models/nature/Plant_4.glb",
+       "size": 27008
+      },
+      {
+       "name": "Plant_5.blend",
+       "file": "/assets/models/nature/Plant_5.blend",
+       "size": 531808
+      },
+      {
+       "name": "Plant_5.glb",
+       "file": "/assets/models/nature/Plant_5.glb",
+       "size": 35720
+      },
+      {
+       "name": "Rock_1.blend",
+       "file": "/assets/models/nature/Rock_1.blend",
+       "size": 500728
+      },
+      {
+       "name": "Rock_1.glb",
+       "file": "/assets/models/nature/Rock_1.glb",
+       "size": 4908
+      },
+      {
+       "name": "Rock_2.blend",
+       "file": "/assets/models/nature/Rock_2.blend",
+       "size": 501240
+      },
+      {
+       "name": "Rock_2.glb",
+       "file": "/assets/models/nature/Rock_2.glb",
+       "size": 5492
+      },
+      {
+       "name": "Rock_3.blend",
+       "file": "/assets/models/nature/Rock_3.blend",
+       "size": 501008
+      },
+      {
+       "name": "Rock_3.glb",
+       "file": "/assets/models/nature/Rock_3.glb",
+       "size": 5204
+      },
+      {
+       "name": "Rock_4.blend",
+       "file": "/assets/models/nature/Rock_4.blend",
+       "size": 503480
+      },
+      {
+       "name": "Rock_4.glb",
+       "file": "/assets/models/nature/Rock_4.glb",
+       "size": 8184
+      },
+      {
+       "name": "Rock_5.blend",
+       "file": "/assets/models/nature/Rock_5.blend",
+       "size": 501648
+      },
+      {
+       "name": "Rock_5.glb",
+       "file": "/assets/models/nature/Rock_5.glb",
+       "size": 6036
+      },
+      {
+       "name": "Rock_6.blend",
+       "file": "/assets/models/nature/Rock_6.blend",
+       "size": 502552
+      },
+      {
+       "name": "Rock_6.glb",
+       "file": "/assets/models/nature/Rock_6.glb",
+       "size": 7148
+      },
+      {
+       "name": "Rock_7.blend",
+       "file": "/assets/models/nature/Rock_7.blend",
+       "size": 501864
+      },
+      {
+       "name": "Rock_7.glb",
+       "file": "/assets/models/nature/Rock_7.glb",
+       "size": 6152
+      },
+      {
+       "name": "Rock_Moss_1.blend",
+       "file": "/assets/models/nature/Rock_Moss_1.blend",
+       "size": 506824
+      },
+      {
+       "name": "Rock_Moss_1.glb",
+       "file": "/assets/models/nature/Rock_Moss_1.glb",
+       "size": 5676
+      },
+      {
+       "name": "Rock_Moss_2.blend",
+       "file": "/assets/models/nature/Rock_Moss_2.blend",
+       "size": 507288
+      },
+      {
+       "name": "Rock_Moss_2.glb",
+       "file": "/assets/models/nature/Rock_Moss_2.glb",
+       "size": 6200
+      },
+      {
+       "name": "Rock_Moss_3.blend",
+       "file": "/assets/models/nature/Rock_Moss_3.blend",
+       "size": 506912
+      },
+      {
+       "name": "Rock_Moss_3.glb",
+       "file": "/assets/models/nature/Rock_Moss_3.glb",
+       "size": 5232
+      },
+      {
+       "name": "Rock_Moss_4.blend",
+       "file": "/assets/models/nature/Rock_Moss_4.blend",
+       "size": 509696
+      },
+      {
+       "name": "Rock_Moss_4.glb",
+       "file": "/assets/models/nature/Rock_Moss_4.glb",
+       "size": 8948
+      },
+      {
+       "name": "Rock_Moss_5.blend",
+       "file": "/assets/models/nature/Rock_Moss_5.blend",
+       "size": 507648
+      },
+      {
+       "name": "Rock_Moss_5.glb",
+       "file": "/assets/models/nature/Rock_Moss_5.glb",
+       "size": 6648
+      },
+      {
+       "name": "Rock_Moss_6.blend",
+       "file": "/assets/models/nature/Rock_Moss_6.blend",
+       "size": 508648
+      },
+      {
+       "name": "Rock_Moss_6.glb",
+       "file": "/assets/models/nature/Rock_Moss_6.glb",
+       "size": 7920
+      },
+      {
+       "name": "Rock_Moss_7.blend",
+       "file": "/assets/models/nature/Rock_Moss_7.blend",
+       "size": 507576
+      },
+      {
+       "name": "Rock_Moss_7.glb",
+       "file": "/assets/models/nature/Rock_Moss_7.glb",
+       "size": 6408
+      },
+      {
+       "name": "Rock_Snow_1.blend",
+       "file": "/assets/models/nature/Rock_Snow_1.blend",
+       "size": 508280
+      },
+      {
+       "name": "Rock_Snow_1.glb",
+       "file": "/assets/models/nature/Rock_Snow_1.glb",
+       "size": 7404
+      },
+      {
+       "name": "Rock_Snow_2.blend",
+       "file": "/assets/models/nature/Rock_Snow_2.blend",
+       "size": 521720
+      },
+      {
+       "name": "Rock_Snow_2.glb",
+       "file": "/assets/models/nature/Rock_Snow_2.glb",
+       "size": 8372
+      },
+      {
+       "name": "Rock_Snow_3.blend",
+       "file": "/assets/models/nature/Rock_Snow_3.blend",
+       "size": 508104
+      },
+      {
+       "name": "Rock_Snow_3.glb",
+       "file": "/assets/models/nature/Rock_Snow_3.glb",
+       "size": 6740
+      },
+      {
+       "name": "Rock_Snow_4.blend",
+       "file": "/assets/models/nature/Rock_Snow_4.blend",
+       "size": 512368
+      },
+      {
+       "name": "Rock_Snow_4.glb",
+       "file": "/assets/models/nature/Rock_Snow_4.glb",
+       "size": 12188
+      },
+      {
+       "name": "Rock_Snow_5.blend",
+       "file": "/assets/models/nature/Rock_Snow_5.blend",
+       "size": 509248
+      },
+      {
+       "name": "Rock_Snow_5.glb",
+       "file": "/assets/models/nature/Rock_Snow_5.glb",
+       "size": 8592
+      },
+      {
+       "name": "Rock_Snow_6.blend",
+       "file": "/assets/models/nature/Rock_Snow_6.blend",
+       "size": 511608
+      },
+      {
+       "name": "Rock_Snow_6.glb",
+       "file": "/assets/models/nature/Rock_Snow_6.glb",
+       "size": 11592
+      },
+      {
+       "name": "Rock_Snow_7.blend",
+       "file": "/assets/models/nature/Rock_Snow_7.blend",
+       "size": 510432
+      },
+      {
+       "name": "Rock_Snow_7.glb",
+       "file": "/assets/models/nature/Rock_Snow_7.glb",
+       "size": 9976
+      },
+      {
+       "name": "TreeStump.blend",
+       "file": "/assets/models/nature/TreeStump.blend",
+       "size": 520360
+      },
+      {
+       "name": "TreeStump.glb",
+       "file": "/assets/models/nature/TreeStump.glb",
+       "size": 15184
+      },
+      {
+       "name": "TreeStump_Moss.blend",
+       "file": "/assets/models/nature/TreeStump_Moss.blend",
+       "size": 520360
+      },
+      {
+       "name": "TreeStump_Moss.glb",
+       "file": "/assets/models/nature/TreeStump_Moss.glb",
+       "size": 14420
+      },
+      {
+       "name": "TreeStump_Snow.blend",
+       "file": "/assets/models/nature/TreeStump_Snow.blend",
+       "size": 527476
+      },
+      {
+       "name": "TreeStump_Snow.glb",
+       "file": "/assets/models/nature/TreeStump_Snow.glb",
+       "size": 15844
+      },
+      {
+       "name": "Wheat.blend",
+       "file": "/assets/models/nature/Wheat.blend",
+       "size": 516000
+      },
+      {
+       "name": "Wheat.glb",
+       "file": "/assets/models/nature/Wheat.glb",
+       "size": 22400
+      },
+      {
+       "name": "Willow_1.blend",
+       "file": "/assets/models/nature/Willow_1.blend",
+       "size": 596504
+      },
+      {
+       "name": "Willow_1.glb",
+       "file": "/assets/models/nature/Willow_1.glb",
+       "size": 107460
+      },
+      {
+       "name": "Willow_2.blend",
+       "file": "/assets/models/nature/Willow_2.blend",
+       "size": 630848
+      },
+      {
+       "name": "Willow_2.glb",
+       "file": "/assets/models/nature/Willow_2.glb",
+       "size": 150384
+      },
+      {
+       "name": "Willow_3.blend",
+       "file": "/assets/models/nature/Willow_3.blend",
+       "size": 555776
+      },
+      {
+       "name": "Willow_3.glb",
+       "file": "/assets/models/nature/Willow_3.glb",
+       "size": 58284
+      },
+      {
+       "name": "Willow_4.blend",
+       "file": "/assets/models/nature/Willow_4.blend",
+       "size": 578872
+      },
+      {
+       "name": "Willow_4.glb",
+       "file": "/assets/models/nature/Willow_4.glb",
+       "size": 86588
+      },
+      {
+       "name": "Willow_5.blend",
+       "file": "/assets/models/nature/Willow_5.blend",
+       "size": 581176
+      },
+      {
+       "name": "Willow_5.glb",
+       "file": "/assets/models/nature/Willow_5.glb",
+       "size": 89372
+      },
+      {
+       "name": "Willow_Autumn_1.blend",
+       "file": "/assets/models/nature/Willow_Autumn_1.blend",
+       "size": 590408
+      },
+      {
+       "name": "Willow_Autumn_1.glb",
+       "file": "/assets/models/nature/Willow_Autumn_1.glb",
+       "size": 107464
+      },
+      {
+       "name": "Willow_Autumn_2.blend",
+       "file": "/assets/models/nature/Willow_Autumn_2.blend",
+       "size": 624752
+      },
+      {
+       "name": "Willow_Autumn_2.glb",
+       "file": "/assets/models/nature/Willow_Autumn_2.glb",
+       "size": 150388
+      },
+      {
+       "name": "Willow_Autumn_3.blend",
+       "file": "/assets/models/nature/Willow_Autumn_3.blend",
+       "size": 549680
+      },
+      {
+       "name": "Willow_Autumn_3.glb",
+       "file": "/assets/models/nature/Willow_Autumn_3.glb",
+       "size": 58244
+      },
+      {
+       "name": "Willow_Autumn_4.blend",
+       "file": "/assets/models/nature/Willow_Autumn_4.blend",
+       "size": 572776
+      },
+      {
+       "name": "Willow_Autumn_4.glb",
+       "file": "/assets/models/nature/Willow_Autumn_4.glb",
+       "size": 86588
+      },
+      {
+       "name": "Willow_Autumn_5.blend",
+       "file": "/assets/models/nature/Willow_Autumn_5.blend",
+       "size": 575080
+      },
+      {
+       "name": "Willow_Autumn_5.glb",
+       "file": "/assets/models/nature/Willow_Autumn_5.glb",
+       "size": 89372
+      },
+      {
+       "name": "Willow_Dead_1.blend",
+       "file": "/assets/models/nature/Willow_Dead_1.blend",
+       "size": 548360
+      },
+      {
+       "name": "Willow_Dead_1.glb",
+       "file": "/assets/models/nature/Willow_Dead_1.glb",
+       "size": 62608
+      },
+      {
+       "name": "Willow_Dead_2.blend",
+       "file": "/assets/models/nature/Willow_Dead_2.blend",
+       "size": 579448
+      },
+      {
+       "name": "Willow_Dead_2.glb",
+       "file": "/assets/models/nature/Willow_Dead_2.glb",
+       "size": 101536
+      },
+      {
+       "name": "Willow_Dead_3.blend",
+       "file": "/assets/models/nature/Willow_Dead_3.blend",
+       "size": 515208
+      },
+      {
+       "name": "Willow_Dead_3.glb",
+       "file": "/assets/models/nature/Willow_Dead_3.glb",
+       "size": 22692
+      },
+      {
+       "name": "Willow_Dead_4.blend",
+       "file": "/assets/models/nature/Willow_Dead_4.blend",
+       "size": 532104
+      },
+      {
+       "name": "Willow_Dead_4.glb",
+       "file": "/assets/models/nature/Willow_Dead_4.glb",
+       "size": 43428
+      },
+      {
+       "name": "Willow_Dead_5.blend",
+       "file": "/assets/models/nature/Willow_Dead_5.blend",
+       "size": 519432
+      },
+      {
+       "name": "Willow_Dead_5.glb",
+       "file": "/assets/models/nature/Willow_Dead_5.glb",
+       "size": 27876
+      },
+      {
+       "name": "Willow_Dead_Snow_1.blend",
+       "file": "/assets/models/nature/Willow_Dead_Snow_1.blend",
+       "size": 558552
+      },
+      {
+       "name": "Willow_Dead_Snow_1.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_1.glb",
+       "size": 68156
+      },
+      {
+       "name": "Willow_Dead_Snow_2.blend",
+       "file": "/assets/models/nature/Willow_Dead_Snow_2.blend",
+       "size": 594168
+      },
+      {
+       "name": "Willow_Dead_Snow_2.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_2.glb",
+       "size": 112896
+      },
+      {
+       "name": "Willow_Dead_Snow_3.blend",
+       "file": "/assets/models/nature/Willow_Dead_Snow_3.blend",
+       "size": 523104
+      },
+      {
+       "name": "Willow_Dead_Snow_3.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_3.glb",
+       "size": 25624
+      },
+      {
+       "name": "Willow_Dead_Snow_4.blend",
+       "file": "/assets/models/nature/Willow_Dead_Snow_4.blend",
+       "size": 541416
+      },
+      {
+       "name": "Willow_Dead_Snow_4.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_4.glb",
+       "size": 48092
+      },
+      {
+       "name": "Willow_Dead_Snow_5.blend",
+       "file": "/assets/models/nature/Willow_Dead_Snow_5.blend",
+       "size": 528568
+      },
+      {
+       "name": "Willow_Dead_Snow_5.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_5.glb",
+       "size": 32228
+      },
+      {
+       "name": "Willow_Snow_1.blend",
+       "file": "/assets/models/nature/Willow_Snow_1.blend",
+       "size": 605464
+      },
+      {
+       "name": "Willow_Snow_1.glb",
+       "file": "/assets/models/nature/Willow_Snow_1.glb",
+       "size": 111688
+      },
+      {
+       "name": "Willow_Snow_2.blend",
+       "file": "/assets/models/nature/Willow_Snow_2.blend",
+       "size": 639976
+      },
+      {
+       "name": "Willow_Snow_2.glb",
+       "file": "/assets/models/nature/Willow_Snow_2.glb",
+       "size": 154828
+      },
+      {
+       "name": "Willow_Snow_3.blend",
+       "file": "/assets/models/nature/Willow_Snow_3.blend",
+       "size": 564200
+      },
+      {
+       "name": "Willow_Snow_3.glb",
+       "file": "/assets/models/nature/Willow_Snow_3.glb",
+       "size": 61824
+      },
+      {
+       "name": "Willow_Snow_4.blend",
+       "file": "/assets/models/nature/Willow_Snow_4.blend",
+       "size": 588000
+      },
+      {
+       "name": "Willow_Snow_4.glb",
+       "file": "/assets/models/nature/Willow_Snow_4.glb",
+       "size": 91032
+      },
+      {
+       "name": "Willow_Snow_5.blend",
+       "file": "/assets/models/nature/Willow_Snow_5.blend",
+       "size": 591560
+      },
+      {
+       "name": "Willow_Snow_5.glb",
+       "file": "/assets/models/nature/Willow_Snow_5.glb",
+       "size": 95328
+      },
+      {
+       "name": "WoodLog.blend",
+       "file": "/assets/models/nature/WoodLog.blend",
+       "size": 531192
+      },
+      {
+       "name": "WoodLog.glb",
+       "file": "/assets/models/nature/WoodLog.glb",
+       "size": 28176
+      },
+      {
+       "name": "WoodLog_Moss.blend",
+       "file": "/assets/models/nature/WoodLog_Moss.blend",
+       "size": 550696
+      },
+      {
+       "name": "WoodLog_Moss.glb",
+       "file": "/assets/models/nature/WoodLog_Moss.glb",
+       "size": 38272
+      },
+      {
+       "name": "WoodLog_Snow.blend",
+       "file": "/assets/models/nature/WoodLog_Snow.blend",
+       "size": 515904
+      },
+      {
+       "name": "WoodLog_Snow.glb",
+       "file": "/assets/models/nature/WoodLog_Snow.glb",
+       "size": 16976
+      }
+     ]
+    },
+    {
+     "name": "vehicles",
+     "assets": [
+      {
+       "name": "artillery",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "ArtilleryBase.fbx",
+           "file": "/assets/models/vehicles/artillery/source/ArtilleryBase.fbx",
+           "size": 19516
+          },
+          {
+           "name": "ArtilleryGun.fbx",
+           "file": "/assets/models/vehicles/artillery/source/ArtilleryGun.fbx",
+           "size": 22732
+          },
+          {
+           "name": "ArtilleryWheels.fbx",
+           "file": "/assets/models/vehicles/artillery/source/ArtilleryWheels.fbx",
+           "size": 20060
+          },
+          {
+           "name": "WW2Texture.PNG",
+           "file": "/assets/models/vehicles/artillery/source/WW2Texture.PNG",
+           "size": 12025
+          }
+         ]
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/vehicles/artillery/model.blend",
+         "size": 100307
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/vehicles/artillery/model.glb",
+         "size": 29864
+        }
+       ]
+      },
+      {
+       "name": "ww2-bomber",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "WW2BomberBackWheels.fbx",
+           "file": "/assets/models/vehicles/ww2-bomber/source/WW2BomberBackWheels.fbx",
+           "size": 20572
+          },
+          {
+           "name": "WW2BomberBody.fbx",
+           "file": "/assets/models/vehicles/ww2-bomber/source/WW2BomberBody.fbx",
+           "size": 35116
+          },
+          {
+           "name": "WW2BomberFarLeftRotor.fbx",
+           "file": "/assets/models/vehicles/ww2-bomber/source/WW2BomberFarLeftRotor.fbx",
+           "size": 19548
+          },
+          {
+           "name": "WW2BomberFrontWheels.fbx",
+           "file": "/assets/models/vehicles/ww2-bomber/source/WW2BomberFrontWheels.fbx",
+           "size": 21948
+          },
+          {
+           "name": "WW2BomberInnerLeftRotor.fbx",
+           "file": "/assets/models/vehicles/ww2-bomber/source/WW2BomberInnerLeftRotor.fbx",
+           "size": 19564
+          },
+          {
+           "name": "WW2PlaneTexture.jpg",
+           "file": "/assets/models/vehicles/ww2-bomber/source/WW2PlaneTexture.jpg",
+           "size": 16105
+          }
+         ]
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/vehicles/ww2-bomber/model.blend",
+         "size": 116103
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/vehicles/ww2-bomber/model.glb",
+         "size": 98412
+        }
+       ]
+      },
+      {
+       "name": "ww2-fighter",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "FighterPlaneBackWheel.fbx",
+           "file": "/assets/models/vehicles/ww2-fighter/source/FighterPlaneBackWheel.fbx",
+           "size": 20092
+          },
+          {
+           "name": "FighterPlaneBody.fbx",
+           "file": "/assets/models/vehicles/ww2-fighter/source/FighterPlaneBody.fbx",
+           "size": 32636
+          },
+          {
+           "name": "FighterPlaneFrontWheels.fbx",
+           "file": "/assets/models/vehicles/ww2-fighter/source/FighterPlaneFrontWheels.fbx",
+           "size": 24060
+          },
+          {
+           "name": "FighterPlanePropeller.fbx",
+           "file": "/assets/models/vehicles/ww2-fighter/source/FighterPlanePropeller.fbx",
+           "size": 34732
+          },
+          {
+           "name": "WW2FightTexture.jpg",
+           "file": "/assets/models/vehicles/ww2-fighter/source/WW2FightTexture.jpg",
+           "size": 16105
+          }
+         ]
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/vehicles/ww2-fighter/model.blend",
+         "size": 118320
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/vehicles/ww2-fighter/model.glb",
+         "size": 96448
+        }
+       ]
+      },
+      {
+       "name": "ww2-motorcycle",
+       "assets": [
+        {
+         "name": "WW2MotorcycleTexture.png",
+         "file": "/assets/models/vehicles/ww2-motorcycle/WW2MotorcycleTexture.png",
+         "size": 3760
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/vehicles/ww2-motorcycle/model.blend",
+         "size": 956128
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/vehicles/ww2-motorcycle/model.glb",
+         "size": 283952
+        }
+       ]
+      },
+      {
+       "name": "ww2-tank",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "TankBarrel.fbx",
+           "file": "/assets/models/vehicles/ww2-tank/source/TankBarrel.fbx",
+           "size": 16940
+          },
+          {
+           "name": "TankBody.fbx",
+           "file": "/assets/models/vehicles/ww2-tank/source/TankBody.fbx",
+           "size": 22716
+          },
+          {
+           "name": "TankTexture.PNG",
+           "file": "/assets/models/vehicles/ww2-tank/source/TankTexture.PNG",
+           "size": 12025
+          },
+          {
+           "name": "TankTreads.fbx",
+           "file": "/assets/models/vehicles/ww2-tank/source/TankTreads.fbx",
+           "size": 19948
+          },
+          {
+           "name": "TankTurretHead.fbx",
+           "file": "/assets/models/vehicles/ww2-tank/source/TankTurretHead.fbx",
+           "size": 17724
+          },
+          {
+           "name": "TankWheelHolder.fbx",
+           "file": "/assets/models/vehicles/ww2-tank/source/TankWheelHolder.fbx",
+           "size": 26524
+          },
+          {
+           "name": "TankWheels(all).fbx",
+           "file": "/assets/models/vehicles/ww2-tank/source/TankWheels(all).fbx",
+           "size": 47820
+          }
+         ]
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/vehicles/ww2-tank/model.blend",
+         "size": 124292
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/vehicles/ww2-tank/model.glb",
+         "size": 185428
+        }
+       ]
+      },
+      {
+       "name": "ww2-truck",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "TruckBack.fbx",
+           "file": "/assets/models/vehicles/ww2-truck/source/TruckBack.fbx",
+           "size": 23292
+          },
+          {
+           "name": "TruckBackCover.fbx",
+           "file": "/assets/models/vehicles/ww2-truck/source/TruckBackCover.fbx",
+           "size": 22716
+          },
+          {
+           "name": "TruckBackWheels.fbx",
+           "file": "/assets/models/vehicles/ww2-truck/source/TruckBackWheels.fbx",
+           "size": 31324
+          },
+          {
+           "name": "TruckFront.fbx",
+           "file": "/assets/models/vehicles/ww2-truck/source/TruckFront.fbx",
+           "size": 30892
+          },
+          {
+           "name": "TruckFrontWheels.fbx",
+           "file": "/assets/models/vehicles/ww2-truck/source/TruckFrontWheels.fbx",
+           "size": 31116
+          },
+          {
+           "name": "WW2TruckTex.PNG",
+           "file": "/assets/models/vehicles/ww2-truck/source/WW2TruckTex.PNG",
+           "size": 18918
+          }
+         ]
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/vehicles/ww2-truck/model.blend",
+         "size": 130033
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/vehicles/ww2-truck/model.glb",
+         "size": 205088
+        }
+       ]
+      }
+     ]
+    }
+   ]
   }
  ]
 }

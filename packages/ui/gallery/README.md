@@ -16,6 +16,12 @@
 ```
 
 ```js
+// a tree, same shape as manifest.json: every level is a heading
+gallery.tree = { name: "village", assets: [
+    { name: "houses", assets: [{ name: "house.glb", file: "/x/house.glb" }] },
+] };
+
+// or flat items, e.g. generated meshes
 gallery.items = [
     { name: "house 1", group: "village/houses", kind: "model", mesh },   // Mesh or Mesh[] (game-mesh)
     { name: "tower", group: "village/towers", kind: "model", gltf },     // in-memory glTF
@@ -26,7 +32,8 @@ gallery.items = [
 | Property | Default | |
 | --- | --- | --- |
 | `location` | `/assets` | served folder with a `manifest.json`; `""` for none |
-| `items` | `[]` | extra `GalleryItem`s, shown after the manifest ones |
+| `tree` | `null` | an `Assets` tree (`{ name, assets: (Asset \| Assets)[] }`, `Asset = { name, file, size? }`) |
+| `items` | `[]` | extra `GalleryItem`s (`src`, `gltf` or `mesh`), shown last |
 | `kinds` | `model, audio, image` | kinds visible at start (`model`, `audio`, `image`, `source`, `other`) |
 | `search` | `""` | filters names and groups |
 
@@ -40,9 +47,9 @@ Methods: `open(item)`, `close()`. Event: `open` with `{ item }`.
 node packages/ui/gallery/bin/manifest.mjs <folder> [--prefix=/url/of/folder]
 ```
 
-Writes `<folder>/manifest.json`. Also importable: `writeManifest(folder, prefix)`.
+Writes `<folder>/manifest.json` as an `Assets` tree. Also importable: `writeManifest(folder, prefix)`, `count(tree)`.
 
 ## Views
 
-- `experiment`: root `assets/`
+- `everything`: root `assets/` (`npm run assets` at the repo root serves it)
 - `generated`: procedural houses through `items` (no manifest)

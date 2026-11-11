@@ -8,9 +8,9 @@ import { Model, Renderer, fromTRS, gltfFromMesh, mat4, multiply, type AssetPrevi
 
 // local
 import sheet from "./style.css" with { type: "css" };
-import type { AssetKind, GalleryItem, Manifest, OpenEvent } from "./types";
+import type { Asset, AssetKind, Assets, GalleryItem, OpenEvent } from "./types";
 
-type Tile = { item: GalleryItem; stage?: HTMLElement; model?: Model; yaw: number; drag: number | null };
+type Tile = { item: GalleryItem; stage?: HTMLElement; model?: Model; loading?: boolean; yaw: number; drag: number | null };
 
 const KINDS: AssetKind[] = ["model", "audio", "image", "source", "other"];
 
@@ -18,7 +18,8 @@ const KINDS: AssetKind[] = ["model", "audio", "image", "source", "other"];
  * A gallery of assets, grouped under headings.
  *
  * - `location` (default `/assets`): a served folder with a `manifest.json` (`node bin/manifest.mjs <folder>` in this package).
- *   Empty string: no manifest, only `items`.
+ *   Empty string: no manifest.
+ * - `tree`: an `Assets` tree set directly (same shape as the manifest), shown after the manifest.
  * - `items`: extra entries, e.g. generated meshes, shown after the manifest ones.
  * - `kinds`: which kinds start visible; the header toggles them, and searches names and groups.
  *
@@ -29,11 +30,14 @@ export class Gallery extends CustomElement {
     static sheet = sheet;
 
     @property({ after: function (this: Gallery) { this.load(); } }) location: string = "/assets";
+    @property({ type: Object, attribute: false, after: function (this: Gallery) { this.sync(); } }) tree: Assets | null = null;
     @property({ type: Array, attribute: false, after: function (this: Gallery) { this.sync(); } }) items: GalleryItem[] = [];
     @property({ type: Array, attribute: false, rerender: true }) kinds: AssetKind[] = ["model", "audio", "image"];
     @property({ rerender: true }) search: string = "";
 
     private manifestItems: GalleryItem[] = [];
+    private treeItems: GalleryItem[] = [];
+    private treeSource: Assets | null = null;
     private tiles = new Map<GalleryItem, Tile>();
     private engine?: GameEngine<any>;
     private renderer?: Renderer;
@@ -45,7 +49,8 @@ export class Gallery extends CustomElement {
     private loading = 0;
 
     get all() {
-        return [...this.manifestItems, ...this.items];
+        if (this.tree !== this.treeSource) { this.treeSource = this.tree; this.treeItems = this.tree ? flatten(this.tree) : []; }
+        return [...this.manifestItems, ...this.treeItems, ...this.items];
     }
 
     firstRender() {
@@ -76,8 +81,8 @@ export class Gallery extends CustomElement {
         {
             try
             {
-                const data: Manifest = await (await fetch(`${this.location.replace(/\/$/, "")}/manifest.json`)).json();
-                items = data.files.map(f => ({ name: f.name.replace(/\.[^.]+$/, ""), group: f.folder, kind: f.kind, src: f.path, size: f.size }));
+                const tree: Assets = await (await fetch(`${this.location.replace(/\/$/, "")}/manifest.json`)).json();
+                items = flatten({ ...tree, name: "" });
             }
             catch (e) { console.warn("pw-gallery: no manifest at", this.location, e); }
         }
@@ -94,13 +99,29 @@ export class Gallery extends CustomElement {
         for (const item of all)
         {
             if (item.kind !== "model" || this.tiles.has(item)) continue;
-            const tile: Tile = { item, yaw: .6, drag: null };
-            this.tiles.set(item, tile);
-            const gltf = toGLTF(item);
-            const ready = gltf ? Promise.resolve(new Model(this.gl, gltf)) : item.src ? Model.load(this.gl, item.src) : null;
-            ready?.then(m => { if (this.tiles.get(item) === tile) tile.model = m; else m.destroy(); }).catch(e => console.warn("pw-gallery:", item.src, e));
+            this.tiles.set(item, { item, yaw: .6, drag: null });
         }
         this.requestUpdate();
+    }
+
+    /** models load when their tile comes near the viewport */
+    private observer = new IntersectionObserver(entries => {
+        for (const entry of entries)
+        {
+            if (!entry.isIntersecting) continue;
+            const tile = [...this.tiles.values()].find(t => t.stage === entry.target);
+            if (tile) this.fetch(tile);
+            this.observer.unobserve(entry.target);
+        }
+    }, { rootMargin: "400px" });
+
+    private fetch(tile: Tile) {
+        if (tile.loading || tile.model || !this.gl) return;
+        tile.loading = true;
+        const { item } = tile;
+        const gltf = toGLTF(item);
+        const ready = gltf ? Promise.resolve(new Model(this.gl, gltf)) : item.src ? Model.load(this.gl, item.src) : null;
+        ready?.then(m => { if (this.tiles.get(item) === tile) tile.model = m; else m.destroy(); }).catch(e => console.warn("pw-gallery:", item.src, e));
     }
 
     // ---- drawing ----
@@ -212,7 +233,10 @@ export class Gallery extends CustomElement {
         {
             const tile = this.tiles.get(item);
             const id = `tile-${[...this.tiles.keys()].indexOf(item)}`;
-            if (tile) requestAnimationFrame(() => tile.stage = this.shadowRoot!.getElementById(id) ?? undefined);
+            if (tile) requestAnimationFrame(() => {
+                const stage = this.shadowRoot!.getElementById(id) ?? undefined;
+                if (stage && stage !== tile.stage) { tile.stage = stage; if (!tile.model) this.observer.observe(stage); }
+            });
             return html`<figure class="model">
                 <div class="stage" id="${id}" @pointerdown="${tile ? this.dragstart(tile) : null}"></div>
                 ${caption}
@@ -248,6 +272,26 @@ export class Gallery extends CustomElement {
             <canvas class="models"></canvas>
         `;
     }
+}
+
+const EXTENSIONS: Record<AssetKind, string[]> = {
+    model: [".glb", ".gltf"],
+    source: [".blend", ".fbx", ".obj", ".mtl"],
+    audio: [".mp3", ".wav", ".ogg", ".m4a", ".flac"],
+    image: [".png", ".jpg", ".jpeg", ".webp", ".svg", ".gif", ".avif"],
+    other: [],
+};
+
+export function kindOf(file: string): AssetKind {
+    const ext = file.slice(file.lastIndexOf(".")).toLowerCase();
+    return (Object.keys(EXTENSIONS) as AssetKind[]).find(k => EXTENSIONS[k].includes(ext)) ?? "other";
+}
+
+/** an `Assets` tree to gallery items; the folder names (below the root) become the group */
+export function flatten(tree: Assets, group = tree.name): GalleryItem[] {
+    return tree.assets.flatMap(a => "assets" in a
+        ? flatten(a, group ? `${group}/${a.name}` : a.name)
+        : [{ name: (a as Asset).name.replace(/\.[^.]+$/, ""), group, kind: kindOf((a as Asset).file), src: (a as Asset).file, size: (a as Asset).size }]);
 }
 
 function toGLTF(item: GalleryItem): GLTF | null {

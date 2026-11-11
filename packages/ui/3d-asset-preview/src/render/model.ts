@@ -15,6 +15,8 @@ export class Model {
     private gpu: GPUMesh[][];
     private items: { node: number; skinned: boolean; world: Mat4 }[] = [];
     private rest: { offset: number[]; rotation: number[] }[] = [];
+    /** world matrix of the skeleton's non-joint ancestors (e.g. a scaled Armature node); `rig()` leaves it out */
+    private skeleton = mat4();
     private scratch = mat4();
 
     static async load(gl: WebGL2RenderingContext, url: string) {
@@ -40,14 +42,37 @@ export class Model {
         };
         gltf.roots.forEach(root => visit(root, mat4()));
 
-        // bounds from the rest pose
+        if (gltf.skins.length)
+        {
+            const joints = new Set(gltf.skins[0].joints);
+            const parentOf = new Map<number, number>();
+            gltf.nodes.forEach((n, i) => n.children.forEach(c => parentOf.set(c, i)));
+            const root = gltf.skins[0].joints.find(j => !joints.has(parentOf.get(j) ?? -1));
+            const chain: number[] = [];
+            for (let p = parentOf.get(root ?? -1); p !== undefined; p = parentOf.get(p)) chain.unshift(p);
+            for (const n of chain)
+            {
+                const node = gltf.nodes[n];
+                multiply(this.skeleton, this.skeleton, node.matrix ? node.matrix : fromTRS(mat4(), node.translation, node.rotation, node.scale));
+            }
+        }
+
+        // bounds from the rest pose (skinned vertices posed on the CPU once)
         const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
         for (const item of this.items)
             for (const p of gltf.meshes[gltf.nodes[item.node].mesh!].primitives)
             {
-                const m = item.skinned ? mat4() : item.world;
-                for (let i = 0; i < p.positions.length; i += 3)
+                const joints = this.rig?.matrices;
+                for (let i = 0, vi = 0; i < p.positions.length; i += 3, vi++)
                 {
+                    let m: ArrayLike<number> = item.world;
+                    if (item.skinned && joints && p.joints && p.weights)
+                    {
+                        // strongest joint is enough for bounds
+                        let best = 0;
+                        for (let k = 1; k < 4; k++) if (p.weights[vi * 4 + k] > p.weights[vi * 4 + best]) best = k;
+                        m = multiply(this.scratch, this.skeleton, joints.subarray(p.joints[vi * 4 + best] * 16, p.joints[vi * 4 + best] * 16 + 16));
+                    }
                     const v = transformPoint(m, p.positions[i], p.positions[i + 1], p.positions[i + 2]);
                     for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], v[k]); max[k] = Math.max(max[k], v[k]); }
                 }
@@ -92,7 +117,7 @@ export class Model {
         for (const item of this.items)
         {
             const meshIndex = this.gltf.nodes[item.node].mesh!;
-            const m = item.skinned ? matrix : multiply(this.scratch, matrix, item.world);
+            const m = multiply(this.scratch, matrix, item.skinned ? this.skeleton : item.world);
             const o = item.skinned ? { ...options, joints: this.rig!.matrices } : options;
             for (const gpu of this.gpu[meshIndex]) renderer.draw(gpu, m, o);
         }

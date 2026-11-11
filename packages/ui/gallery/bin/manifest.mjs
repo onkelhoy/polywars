@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // node bin/manifest.mjs <folder> [--prefix=/url/of/folder] [--out=<file>]
-// Writes <folder>/manifest.json listing every file (kind, size, folder) for <pw-gallery location="...">.
+// Writes <folder>/manifest.json, a tree of every file, for <pw-gallery location="...">.
 // The prefix is the url the folder is served at, default "/" + the folder relative to the current directory.
 import { readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, extname, dirname, basename, resolve } from "node:path";
@@ -26,17 +26,36 @@ function walk(dir, out = []) {
     return out;
 }
 
-/** Scan `folder`, write `manifest.json` into it, return the manifest. */
+/**
+ * Scan `folder` into a tree and write it as `manifest.json`:
+ *   Assets = { name, assets: (Asset | Assets)[] }, Asset = { name, file, size }
+ * `file` is the url (prefix + path inside the folder). Folders first, then files, both sorted.
+ */
 export function writeManifest(folder, prefix = "/" + relative(process.cwd(), resolve(folder)), out = join(folder, "manifest.json")) {
     prefix = prefix.replace(/\/$/, "");
-    const files = walk(resolve(folder)).map(path => {
-        const rel = relative(resolve(folder), path).split("\\").join("/");
-        return { path: `${prefix}/${rel}`, name: basename(path), folder: dirname(rel) === "." ? "" : dirname(rel), kind: kindOf(path), size: statSync(path).size };
-    });
-    const manifest = { files };
-    writeFileSync(out, JSON.stringify(manifest, null, 1) + "\n");
-    return manifest;
+    const root = resolve(folder);
+    const scan = (dir) => {
+        const assets = [];
+        const names = readdirSync(dir).filter(n => !n.startsWith(".") && n !== "manifest.json").sort();
+        for (const name of names.filter(n => statSync(join(dir, n)).isDirectory()))
+        {
+            const child = scan(join(dir, name));
+            if (child.assets.length) assets.push(child);
+        }
+        for (const name of names.filter(n => !statSync(join(dir, n)).isDirectory()))
+        {
+            const path = join(dir, name);
+            assets.push({ name, file: `${prefix}/${relative(root, path).split("\\").join("/")}`, size: statSync(path).size });
+        }
+        return { name: basename(dir), assets };
+    };
+    const tree = scan(root);
+    writeFileSync(out, JSON.stringify(tree, null, 1) + "\n");
+    return tree;
 }
+
+/** number of files in a tree */
+export const count = tree => tree.assets.reduce((n, a) => n + ("assets" in a ? count(a) : 1), 0);
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url))
 {
@@ -44,6 +63,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const flag = name => args.find(a => a.startsWith(`--${name}=`))?.split("=")[1];
     const folder = args.find(a => !a.startsWith("--"));
     if (!folder) { console.log("usage: node bin/manifest.mjs <folder> [--prefix=/url] [--out=file]"); process.exit(1); }
-    const { files } = writeManifest(folder, flag("prefix"), flag("out"));
-    console.log(`manifest: ${files.length} files`);
+    console.log(`manifest: ${count(writeManifest(folder, flag("prefix"), flag("out")))} files`);
 }

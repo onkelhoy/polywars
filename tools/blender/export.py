@@ -49,6 +49,31 @@ def bones_to_skin():
         mod.object = arm
 
 
+def principled_materials():
+    """glTF reads one Principled BSDF behind the material output. Older packs have several outputs
+    (Cycles/EEVEE) and Diffuse BSDFs; each material is reduced to one output fed by a Principled
+    BSDF (the linked one if any, else a new one with the diffuse colour)."""
+    for mat in bpy.data.materials:
+        nt = mat.node_tree
+        if not nt:
+            continue
+        outputs = [n for n in nt.nodes if n.type == "OUTPUT_MATERIAL"]
+        fed = [o.inputs["Surface"].links[0].from_node for o in sorted(outputs, key=lambda o: not o.is_active_output) if o.inputs["Surface"].links]
+        bsdf = next((n for n in fed if n.type == "BSDF_PRINCIPLED"), None)
+        if not bsdf:
+            source = next((n for n in fed if "Color" in n.inputs), None)
+            colour = source.inputs["Color"].default_value[:] if source else mat.diffuse_color[:]
+            bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+            bsdf.inputs["Base Color"].default_value = colour
+            bsdf.inputs["Roughness"].default_value = 1
+        for o in outputs:
+            nt.nodes.remove(o)
+        out = nt.nodes.new("ShaderNodeOutputMaterial")
+        out.target = "ALL"
+        out.is_active_output = True
+        nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+
+
 def textures_to_vertex_colours():
     for obj in [o for o in bpy.context.scene.objects if o.type == "MESH"]:
         me = obj.data
@@ -87,15 +112,14 @@ def textures_to_vertex_colours():
                 bsdf.inputs["Base Color"].default_value = (1, 1, 1, 1)
 
 
-def main():
-    a = pw.args()
-    out = a[0] if a else os.path.splitext(bpy.data.filepath)[0] + ".glb"
+def export(out):
     arms = [o for o in bpy.context.scene.objects if o.type == "ARMATURE"]
     for arm in arms:
         arm.data.pose_position = "REST"
     bpy.context.view_layer.update()
     realize_instances()
     bones_to_skin()
+    principled_materials()
     textures_to_vertex_colours()
     for arm in arms:
         arm.data.pose_position = "POSE"
@@ -110,4 +134,6 @@ def main():
     print("exported", os.path.relpath(out, pw.ROOT))
 
 
-main()
+if __name__ == "__main__":
+    a = pw.args()
+    export(a[0] if a else os.path.splitext(bpy.data.filepath)[0] + ".glb")
