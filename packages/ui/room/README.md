@@ -1,32 +1,22 @@
 # @polywar/room
 
-Game waiting room: players, ping, ready, host controls, leave, reconnecting.
-
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-ui-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/room.svg?logo=npm)](https://www.npmjs.com/package/@polywar/room)
-
----
-
-## installation
-
-```bash
-npm install @polywar/room
-```
-
-### to use in **html**
+`<pw-room>` a game's waiting room: players (host, ready, ping), invite (QR dialog + copy link), ready, leave, reconnecting banner.
+Host: lock, listed, max, kick, start (when everyone's ready, `all-ready="false"` to drop that).
 
 ```html
-<script type="module" defer>
-  import "@polywar/room";
-</script>
-
-<pw-room></pw-room>
+<pw-room>
+    <game-rules slot="settings"></game-rules>
+</pw-room>
 ```
+
+```ts
+room.game = net.game;
+room.addEventListener("start", e => play(e.detail.game, e.detail.meta)); // every player
+room.addEventListener("end", e => backToLobby(e.detail));               // EndReason
+room.start(meta);                                                       // host, by code
+```
+
+Messages it uses: `room:ready`, `room:start`, `ping:*`.
 
 ## License
 

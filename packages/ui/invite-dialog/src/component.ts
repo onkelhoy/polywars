@@ -47,11 +47,11 @@ export class InviteDialog extends CustomElement {
     private block() {
         return html`
             <div class="invite" part="invite">
-                <pw-qr-code part="qr" value="${this.link}" ?hidden="${!this.link}"></pw-qr-code>
+                <pw-qr-code part="qr" value="${this.link}" ${!this.link && "hidden"}></pw-qr-code>
                 <div class="info">
                     ${this.code ? html`<p class="code" part="code">${this.code}</p>` : ""}
                     <p class="text">${this.link ? this.text : this.waiting}</p>
-                    <pw-share-link link="${this.link}" ?hidden="${!this.link}"></pw-share-link>
+                    <pw-share-link link="${this.link}" ${!this.link && "hidden"}></pw-share-link>
                     <p class="link" part="link">${this.link}</p>
                     <slot></slot>
                 </div>

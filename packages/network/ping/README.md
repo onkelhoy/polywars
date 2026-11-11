@@ -1,22 +1,16 @@
 # @polywar/ping
 
-Round trip per player in a game, over game messages. Flags weak links.
+Round trip to every other player of a game, over a `ping` / `pong` message pair. Start one on every peer.
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
+```ts
+import { Ping } from "@polywar/ping";
 
----
-
-![Type](https://img.shields.io/badge/Type-network-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/ping.svg?logo=npm)](https://www.npmjs.com/package/@polywar/ping)
-
----
-
-## installation
-
-```bash
-npm install @polywar/ping
+const ping = new Ping(game, { every: 2000, weak: 250 });
+ping.onChange(stats => {});   // [{ id, rtt, last, weak, lost }]
+ping.of(id); ping.stop();
 ```
+
+Works with any object shaped like `PingTarget` (`me`, `players`, `send`, `onMessage`). papit's webrtc `rtt` is private, hence this.
 
 ## License
 
@@ -30,7 +24,3 @@ Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
 - ❌ Cannot resell the component itself as a standalone product
 
 See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class

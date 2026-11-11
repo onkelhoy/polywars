@@ -1,31 +1,11 @@
 # @polywar/invite-dialog
 
-Dialog with invite code, link, QR and share.
+`<pw-invite-dialog code="K7QF2M" link="…">` QR + code + link + share. Modal by default (`open()`, `close()`), `inline` for a panel.
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-ui-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/invite-dialog.svg?logo=npm)](https://www.npmjs.com/package/@polywar/invite-dialog)
-
----
-
-## installation
-
-```bash
-npm install @polywar/invite-dialog
-```
-
-### to use in **html**
-
-```html
-<script type="module" defer>
-  import "@polywar/invite-dialog";
-</script>
-
-<pw-invite-dialog></pw-invite-dialog>
+```ts
+dialog.code = net.invite().code;
+dialog.link = net.invite().link;
+dialog.open();
 ```
 
 ## License

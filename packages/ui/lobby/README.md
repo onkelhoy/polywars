@@ -1,32 +1,15 @@
 # @polywar/lobby
 
-Lobby browser: connection status, public games, join by code, create game, players online.
+`<pw-lobby>` the lobby browser: status, my name, join by code (password when asked), host form, public games, who's online.
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-ui-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/lobby.svg?logo=npm)](https://www.npmjs.com/package/@polywar/lobby)
-
----
-
-## installation
-
-```bash
-npm install @polywar/lobby
+```ts
+const lobby = document.querySelector("pw-lobby");
+lobby.net = connect();             // @polywar/net
+lobby.meta = { map: "village" };   // goes to host({ meta })
+lobby.addEventListener("game", e => showRoom(e.detail));
 ```
 
-### to use in **html**
-
-```html
-<script type="module" defer>
-  import "@polywar/lobby";
-</script>
-
-<pw-lobby></pw-lobby>
-```
+Events: `game` (`Game`), `error` (`GameError`).
 
 ## License
 

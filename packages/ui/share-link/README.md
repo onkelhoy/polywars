@@ -1,32 +1,6 @@
 # @polywar/share-link
 
-Copy or share a link.
-
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-ui-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/share-link.svg?logo=npm)](https://www.npmjs.com/package/@polywar/share-link)
-
----
-
-## installation
-
-```bash
-npm install @polywar/share-link
-```
-
-### to use in **html**
-
-```html
-<script type="module" defer>
-  import "@polywar/share-link";
-</script>
-
-<pw-share-link></pw-share-link>
-```
+`<pw-share-link link="…" [compact]>` share sheet on phones, clipboard elsewhere, says "Copied". Labels: `text-copy`, `text-share`, `text-copied`, `text-compact`. Fires `shared`.
 
 ## License
 

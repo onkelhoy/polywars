@@ -1,32 +1,7 @@
 # @polywar/qr-code
 
-QR code of any text, e.g. an invite link.
-
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-ui-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/qr-code.svg?logo=npm)](https://www.npmjs.com/package/@polywar/qr-code)
-
----
-
-## installation
-
-```bash
-npm install @polywar/qr-code
-```
-
-### to use in **html**
-
-```html
-<script type="module" defer>
-  import "@polywar/qr-code";
-</script>
-
-<pw-qr-code></pw-qr-code>
-```
+`<pw-qr-code value="https://…" label="Invite QR">` QR code as SVG, generated in the browser (byte mode, level M, v1-40).
+`encodeQr(text)` gives the raw matrix. Ported from arrow-warfare.
 
 ## License
 
