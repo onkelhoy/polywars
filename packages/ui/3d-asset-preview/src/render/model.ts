@@ -1,6 +1,10 @@
 import { loadGLTF, rig as makeRig, sample, upload, type GLTF, type GLTFAnimation, type GPUMesh, type Mesh, type Rig } from "@papit/game-mesh";
+import { loadMaps, readMaps, type MapUrls, type Maps } from "@polywar/textured";
 import { fromTRS, mat4, multiply, transformPoint, type Mat4 } from "./math";
 import type { DrawOptions, Renderer } from "./renderer";
+
+/** a glTF + optional texture map urls per mesh and primitive (`maps[mesh][primitive]`, as `readMaps` returns) */
+export type TexturedGLTF = GLTF & { maps?: (MapUrls | undefined)[][] };
 
 export type Box = { min: [number, number, number]; max: [number, number, number] };
 
@@ -13,6 +17,8 @@ export class Model {
     readonly animations: GLTFAnimation[];
     readonly bounds: Box;
     private gpu: GPUMesh[][];
+    /** textures per mesh and primitive, filled in once loaded */
+    private textures: (Maps | undefined)[][] = [];
     private items: { node: number; skinned: boolean; world: Mat4 }[] = [];
     private rest: { offset: number[]; rotation: number[] }[] = [];
     /** world matrix of the skeleton's non-joint ancestors (e.g. a scaled Armature node); `rig()` leaves it out */
@@ -20,11 +26,21 @@ export class Model {
     private scratch = mat4();
 
     static async load(gl: WebGL2RenderingContext, url: string) {
-        return new Model(gl, await loadGLTF(url));
+        const [gltf, maps] = await Promise.all([loadGLTF(url), readMaps(url).catch(() => [])]);
+        const model = new Model(gl, Object.assign(gltf, { maps }));
+        await model.ready;
+        return model;
     }
 
-    constructor(gl: WebGL2RenderingContext, readonly gltf: GLTF) {
+    /** resolves when the textures are on the GPU */
+    readonly ready: Promise<void>;
+
+    constructor(gl: WebGL2RenderingContext, readonly gltf: TexturedGLTF) {
         this.gpu = gltf.meshes.map(m => m.primitives.map(p => upload(gl, p)));
+        this.ready = Promise.all((gltf.maps ?? []).map((mesh, m) => Promise.all(mesh.map(async (urls, i) => {
+            if (!urls) return;
+            (this.textures[m] ??= [])[i] = await loadMaps(gl, urls);
+        })))).then(() => undefined);
         this.animations = gltf.animations;
         if (gltf.skins.length)
         {
@@ -119,7 +135,7 @@ export class Model {
             const meshIndex = this.gltf.nodes[item.node].mesh!;
             const m = multiply(this.scratch, matrix, item.skinned ? this.skeleton : item.world);
             const o = item.skinned ? { ...options, joints: this.rig!.matrices } : options;
-            for (const gpu of this.gpu[meshIndex]) renderer.draw(gpu, m, o);
+            this.gpu[meshIndex].forEach((gpu, i) => renderer.draw(gpu, m, { ...o, maps: this.textures[meshIndex]?.[i] }));
         }
     }
 

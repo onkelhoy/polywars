@@ -1,4 +1,5 @@
 import type { GPUMesh } from "@papit/game-mesh";
+import { TEXTURED_UNIFORMS, bindMaps, type Maps } from "@polywar/textured";
 import { SHADERS } from "./shaders";
 
 export type Vec3 = [number, number, number];
@@ -47,12 +48,13 @@ export type View = {
     worldPosition?: { x: number; y: number; z: number };
 };
 
-export type DrawOptions = { joints?: Float32Array; tint?: [number, number, number, number]; unlit?: boolean };
+/** `maps`: albedo / normal / spec / ao textures (see @polywar/textured), none = vertex colour only */
+export type DrawOptions = { joints?: Float32Array; tint?: [number, number, number, number]; unlit?: boolean; maps?: Maps };
 
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
-    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored"];
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", ...TEXTURED_UNIFORMS];
 
 /** Draws `@papit/game-mesh` GPU meshes, plain or skinned, with one light. */
 export class Renderer {
@@ -93,6 +95,7 @@ export class Renderer {
         // a mirroring matrix (negative determinant) flips the triangle winding: front faces then read as back faces
         const m = this.f32.model, det = m[0] * (m[5] * m[10] - m[6] * m[9]) - m[4] * (m[1] * m[10] - m[2] * m[9]) + m[8] * (m[1] * m[6] - m[2] * m[5]);
         gl.uniform1i(p.uniforms.mirrored, det < 0 ? 1 : 0);
+        bindMaps(gl, p.uniforms, options.maps);
         if (mode === undefined) return mesh.draw();
         gl.bindVertexArray(mesh.vao);
         gl.drawArrays(mode, 0, mesh.count);
