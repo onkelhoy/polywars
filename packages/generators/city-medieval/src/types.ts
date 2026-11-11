@@ -5,6 +5,7 @@ export type Tri = "off" | "on" | "random";
 export type Range = [min: number, max: number];
 export type Shape = "rect" | "L" | "T" | "random";
 export type RoofProfile = "Straight" | "Convex" | "Concave" | "random";
+export type WindowFamily = "Single" | "Double" | "Rounded" | "random";
 
 export type Settings = {
     /** footprint in metres (rounded to even) */
@@ -13,6 +14,7 @@ export type Settings = {
     floors: Range;
     shape: Shape;
     roof: RoofProfile;
+    windows: WindowFamily;
     tunnel: Tri;
     windmill: Tri;
     waterwheel: Tri;
@@ -23,6 +25,10 @@ export type Settings = {
     awning: Tri;
     props: Tri;
     ground: Tri;
+    /** stone base storey */
+    stone: Tri;
+    /** upper storeys of the front stand out */
+    jetty: Tri;
 };
 
 /** one kit piece: column-major 4x4 matrix */
