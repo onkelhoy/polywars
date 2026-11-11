@@ -14,7 +14,7 @@
         "version:reset": "npx @papit/version --reset",
         "version:sync": "npx @papit/version --sync",
         "assets": "node bin/assets.mjs",
-        "bake": "node tools/bake.mjs",
+        "bake": "node packages/tools/mesh-bake/lib/bin.js",
         "signal": "npx papit-signal-server --port 3599"
     },
     "keywords": [

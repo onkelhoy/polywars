@@ -1,7 +1,7 @@
 /** image urls of one material, all optional */
-export type MapUrls = { albedo?: string; normal?: string; spec?: string };
+export type MapUrls = { albedo?: string; normal?: string; spec?: string; ao?: string };
 /** the same on the GPU */
-export type Maps = { albedo?: WebGLTexture; normal?: WebGLTexture; spec?: WebGLTexture };
+export type Maps = { albedo?: WebGLTexture; normal?: WebGLTexture; spec?: WebGLTexture; ao?: WebGLTexture };
 
 type Cache = { textures: Map<string, Promise<WebGLTexture>>; white: WebGLTexture };
 const caches = new WeakMap<WebGL2RenderingContext, Cache>();
@@ -56,23 +56,23 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string, srgb = fals
 /** Load the maps of one material. A map that fails to load is left out. */
 export async function loadMaps(gl: WebGL2RenderingContext, urls: MapUrls): Promise<Maps> {
     const one = (url: string | undefined, srgb: boolean) => url ? loadTexture(gl, url, srgb).catch(() => undefined) : undefined;
-    const [albedo, normal, spec] = await Promise.all([one(urls.albedo, true), one(urls.normal, false), one(urls.spec, false)]);
-    return { albedo, normal, spec };
+    const [albedo, normal, spec, ao] = await Promise.all([one(urls.albedo, true), one(urls.normal, false), one(urls.spec, false), one(urls.ao, false)]);
+    return { albedo, normal, spec, ao };
 }
 
 /**
  * Bind `maps` (or none) for the next draw of a program that includes the textured chunks.
- * `uniforms` holds the locations of `TEXTURED_UNIFORMS`; texture units `unit` to `unit + 2` are used.
+ * `uniforms` holds the locations of `TEXTURED_UNIFORMS`; texture units `unit` to `unit + 3` are used.
  */
 export function bindMaps(gl: WebGL2RenderingContext, uniforms: Record<string, WebGLUniformLocation | null>, maps?: Maps, unit = 0) {
     const white = cacheOf(gl).white;
-    const list = [maps?.albedo, maps?.normal, maps?.spec], names = ["albedoMap", "normalMap", "specMap"];
-    for (let i = 0; i < 3; i++)
+    const list = [maps?.albedo, maps?.normal, maps?.spec, maps?.ao], names = ["albedoMap", "normalMap", "specMap", "aoMap"];
+    for (let i = 0; i < 4; i++)
     {
         gl.activeTexture(gl.TEXTURE0 + unit + i);
         gl.bindTexture(gl.TEXTURE_2D, list[i] ?? white);
         gl.uniform1i(uniforms[names[i]], unit + i);
     }
     gl.activeTexture(gl.TEXTURE0);
-    gl.uniform3f(uniforms.mapsOn, list[0] ? 1 : 0, list[1] ? 1 : 0, list[2] ? 1 : 0);
+    gl.uniform4f(uniforms.mapsOn, list[0] ? 1 : 0, list[1] ? 1 : 0, list[2] ? 1 : 0, list[3] ? 1 : 0);
 }

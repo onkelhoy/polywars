@@ -32,10 +32,13 @@ Branch `city-generation-village-pack` (`init/assets` merged to `main`). Next: ow
 
 ## Medieval buildings + baked surfaces (confirmed 2026-11-11)
 Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
-- Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `albedo.png`, `normal.png`, `spec.png` (glb references them).
-- b1. [ ] `tools/bake.mjs` (`npm run bake`): glb + axis + size → quad glb + albedo/normal/spec.
-- b2. [ ] Bake cobblestone, dirt transitions, stone floors, stone walls.
-- b3. [ ] `packages/material/textured`: albedo + normal + spec, maps optional, own view.
+- Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `color.png`, `normal.png`, `ao.png`, `spec.png` (glb references them). Rebake: `node tools/bake-village.mjs`.
+- mesh-bake: `papit.type` is `node` so `src/bin.ts` builds to `lib/bin.js` (browser type fails on `node:` imports); `lib/bundle.js` stays browser safe (bin is not exported from index).
+- b1. [x] `tools/bake.mjs` (`npm run bake`): glb + axis + size → quad glb + albedo/normal/spec.
+- b2. [x] Bake cobblestone, dirt transitions, stone floors, stone walls.
+- b3. [ ] `packages/material/textured`: albedo + normal + spec + ao, maps optional, own view.
+- b3a. [x] `packages/tools/mesh-bake` (moves to papit later: no `@polywar/*` runtime deps, no village specifics): core (node + browser), CLI (`npm run bake`), ao as own map. `tools/bake.mjs` removed, `tools/bake-village.mjs` stays (game's piece list).
+- b3b. [ ] mesh-bake GUI view: drop glb, live maps + lit preview, settings, download.
 - b4. [ ] Preview + gallery draw maps.
 - b5. [ ] Generator massing: main volume, wing, lean-to, jetty.
 - b6. [ ] Generator roofs: gable default, cross-gable, dormers, ridge/rake.

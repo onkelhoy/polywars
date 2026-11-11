@@ -14,11 +14,12 @@ void texturedVertex() { vUv = uv; }
  * - `texturedNormal(n, world)`: unit world normal bent by the normal map (OpenGL, +Y up). The tangent
  *   frame comes from screen derivatives, so meshes need uvs but no tangents; mirrored uvs work.
  * - `texturedSpec()`: highlight strength, 1 without a map
+ * - `texturedAo()`: ambient occlusion (multiply the ambient light with it), 1 without a map
  */
 export const TEXTURED_FRAGMENT_GLSL = `
 in vec2 vUv;
-uniform sampler2D albedoMap, normalMap, specMap;
-uniform vec3 mapsOn;
+uniform sampler2D albedoMap, normalMap, specMap, aoMap;
+uniform vec4 mapsOn;
 vec4 texturedColor(vec4 base) {
     return mapsOn.x > 0.5 ? base * texture(albedoMap, vUv) : base;
 }
@@ -39,7 +40,10 @@ vec3 texturedNormal(vec3 n, vec3 world) {
 float texturedSpec() {
     return mapsOn.z > 0.5 ? texture(specMap, vUv).r : 1.0;
 }
+float texturedAo() {
+    return mapsOn.w > 0.5 ? texture(aoMap, vUv).r : 1.0;
+}
 `;
 
 /** uniform names of the chunks, for `gl.getUniformLocation` */
-export const TEXTURED_UNIFORMS = ["albedoMap", "normalMap", "specMap", "mapsOn"] as const;
+export const TEXTURED_UNIFORMS = ["albedoMap", "normalMap", "specMap", "aoMap", "mapsOn"] as const;

@@ -2,7 +2,7 @@ import type { MapUrls } from "./maps";
 
 /**
  * Map urls of a `.glb` / `.gltf`, per mesh and primitive (`result[mesh][primitive]`, `undefined` = no maps).
- * Reads `baseColorTexture`, `normalTexture` and the `KHR_materials_specular` texture.
+ * Reads `baseColorTexture`, `normalTexture`, `occlusionTexture` and the `KHR_materials_specular` texture.
  * Images inside the glb become blob urls.
  */
 export async function readMaps(url: string): Promise<(MapUrls | undefined)[][]> {
@@ -40,8 +40,9 @@ export async function readMaps(url: string): Promise<(MapUrls | undefined)[][]> 
             albedo: image(m.pbrMetallicRoughness?.baseColorTexture),
             normal: image(m.normalTexture),
             spec: image(specular?.specularColorTexture ?? specular?.specularTexture),
+            ao: image(m.occlusionTexture),
         };
-        return maps.albedo || maps.normal || maps.spec ? maps : undefined;
+        return maps.albedo || maps.normal || maps.spec || maps.ao ? maps : undefined;
     });
     return json.meshes.map((m: any) => m.primitives.map((p: any) => materials[p.material]));
 }
