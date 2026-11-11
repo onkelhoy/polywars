@@ -58,7 +58,7 @@
     "@papit/web-component": "*",
     "@papit/game-engine": "*",
     "@papit/button": "*",
-    "@polywar/render": "*"
+    "@papit/game-mesh": "*"
   },
   "peerDependencies": {
     "react": "^19"

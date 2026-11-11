@@ -1,7 +1,7 @@
 // system
 import { CustomElement, html, property } from "@papit/web-component";
 import { Camera, GameEngine, GameObject, fps, orbit } from "@papit/game-engine";
-import { Grid, Model, Renderer, fromTRS, mat4, multiply } from "@polywar/render";
+import { Grid, Model, Renderer, fromTRS, mat4, multiply } from "./render";
 import type { GLTF } from "@papit/game-mesh";
 import "@papit/button";
 

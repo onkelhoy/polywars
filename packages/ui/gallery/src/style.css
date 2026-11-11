@@ -99,12 +99,15 @@ canvas.models {
     z-index: 1;
 }
 
+/* the preview opens as a full screen page; Esc or close leaves it */
 dialog {
-    width: min(1100px, 95vw);
-    height: min(800px, 90vh);
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
     padding: 0;
     border: none;
-    border-radius: 12px;
     background: var(--background, Canvas);
     color: inherit;
 }
@@ -114,6 +117,13 @@ dialog[open] {
     grid-template-rows: auto 1fr;
 }
 
+dialog > header {
+    position: static;
+    justify-content: space-between;
+    border-bottom: 1px solid currentColor;
+}
+
 dialog pw-3d-asset-preview {
     height: 100%;
+    min-height: 0;
 }

@@ -3,6 +3,7 @@ import { AssetPreview3D } from './component.js';
 // export
 export * from "./component";
 export * from "./types";
+export * from "./render";
 
 // Register the element with the browser
 if (!window.customElements) {

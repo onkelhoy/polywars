@@ -1,11 +1,10 @@
 // system
 import { CustomElement, html, property } from "@papit/web-component";
 import { GameEngine, GameObject } from "@papit/game-engine";
-import { Model, Renderer, fromTRS, gltfFromMesh, mat4, multiply } from "@polywar/render";
 import type { GLTF } from "@papit/game-mesh";
 import "@papit/button";
 import "@polywar/3d-asset-preview";
-import type { AssetPreview3D } from "@polywar/3d-asset-preview";
+import { Model, Renderer, fromTRS, gltfFromMesh, mat4, multiply, type AssetPreview3D } from "@polywar/3d-asset-preview";
 
 // local
 import sheet from "./style.css" with { type: "css" };
@@ -161,7 +160,7 @@ export class Gallery extends CustomElement {
         let dialog = this.shadowRoot!.querySelector<HTMLDialogElement>("dialog");
         if (dialog) return dialog;
         dialog = document.createElement("dialog");
-        dialog.innerHTML = `<header><strong></strong><pap-button size="small" variant="outline">close</pap-button></header>`;
+        dialog.innerHTML = `<header><strong></strong><pap-button variant="filled" aria-label="close preview">close ✕</pap-button></header>`;
         dialog.querySelector("pap-button")!.addEventListener("click", () => this.close());
         dialog.addEventListener("close", () => { dialog!.querySelector("pw-3d-asset-preview")?.remove(); this.opened = undefined; });
         this.shadowRoot!.append(dialog);
