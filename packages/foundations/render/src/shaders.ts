@@ -30,7 +30,8 @@ uniform bool unlit;
 out vec4 outColor;
 void main() {
     vec4 base = vColor * tint;
-    if (unlit) { outColor = base; return; }
+    // canvases composite premultiplied alpha
+    if (unlit) { outColor = vec4(base.rgb * base.a, base.a); return; }
     vec3 n = normalize(gl_FrontFacing ? vNormal : -vNormal);
     float sun = max(dot(n, normalize(sunDirection)), 0.0);
     if (toon > 0.0) sun = floor(sun * toon + 0.5) / toon;
@@ -38,7 +39,7 @@ void main() {
     vec3 lit = base.rgb * (hemi + sunColor * sun);
     float d = length(vWorld - eye);
     float fog = 1.0 - exp(-d * fogDensity);
-    outColor = vec4(mix(lit, fogColor, fog), base.a);
+    outColor = vec4(mix(lit, fogColor, fog) * base.a, base.a);
 }`;
 
 export const SHADERS = {

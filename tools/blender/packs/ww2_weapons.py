@@ -2,8 +2,8 @@
 
   blender -b -P tools/blender/packs/ww2_weapons.py -- <pack.blend> [--force]
 
-Writes assets/models/{guns,ammo,knives,grenades}/<slug>/... . An existing model.blend is kept
-(it holds hand-edited animations) unless --force. Part numbers are loose pieces of the source
+Writes assets/models/{guns,ammo,knives,grenades}/<slug>/... . Existing files are kept (they may hold
+hand edits) unless --force; delete one file to regenerate just that one. Part numbers are loose pieces of the source
 gun mesh, largest first (see pw.loose_parts). Positions are cm in the source frame relative to
 the gun's bounding box centre: x = muzzle, y = left, z = up.
 """
@@ -60,6 +60,8 @@ def scale_only(obj):
 
 
 def single(src, folder, slug, upright):
+    if keep(os.path.join(folder, "model.blend")):
+        return
     pw.empty_file()
     o = pw.append_object(src, slug_src(slug))
     m = scale_only(o) if upright else R @ scale_only(o)
@@ -74,8 +76,20 @@ def slug_src(slug):
     return _names[slug]
 
 
+FORCE = False
+
+
+def keep(path):
+    if FORCE or not os.path.exists(path):
+        return False
+    print("kept", os.path.relpath(path, pw.ROOT))
+    return True
+
+
 def ammo(src, cal, names):
     for part, name in zip(("round", "bullet", "case"), names):
+        if keep(os.path.join(pw.ASSETS, "models", "ammo", cal, f"{part}.blend")):
+            continue
         pw.empty_file()
         o = pw.append_object(src, name)
         pw.bake(o, Matrix.Rotation(math.radians(-90), 4, "X") @ scale_only(o))  # tip +Z -> +Y
@@ -84,7 +98,7 @@ def ammo(src, cal, names):
         pw.save_part(o, f"{cal}-{part}", os.path.join(pw.ASSETS, "models", "ammo", cal, f"{part}.blend"))
 
 
-def gun(src, g, force):
+def gun(src, g):
     folder = os.path.join(pw.ASSETS, "models", "guns", g["slug"])
     pw.empty_file()
     o = pw.append_object(src, g["src"])
@@ -133,7 +147,8 @@ def gun(src, g, force):
         vg.add(idx, 1.0, "REPLACE")
     if mag_delete:
         pw.delete_vertices(o, mag_delete)
-    pw.save_part(o, g["slug"] + "-gun", os.path.join(folder, "gun.blend"))
+    if not keep(os.path.join(folder, "gun.blend")):
+        pw.save_part(o, g["slug"] + "-gun", os.path.join(folder, "gun.blend"))
 
     # mag.blend: centred on itself, gun orientation
     pw.empty_file()
@@ -141,22 +156,22 @@ def gun(src, g, force):
     pw.bake(m, R @ scale_only(m))
     lo, hi = pw.bbox(v.co for v in m.data.vertices)
     pw.bake(m, Matrix.Translation(-(lo + hi) / 2))
-    spec["round"] = spec["mag"] + Vector((0, -.012, (hi.z - lo.z) / 2 - .008))
-    pw.save_part(m, g["slug"] + "-mag", os.path.join(folder, "mag.blend"))
-
-    if force or not os.path.exists(os.path.join(folder, "model.blend")):
+    # top round sits on the mag lip; a stripper clip rests hidden inside the barrel, so its round does too
+    spec["round"] = spec["mag"].copy() if g["reload"] == "stripper" else spec["mag"] + Vector((0, -.012, (hi.z - lo.z) / 2 - .008))
+    if not keep(os.path.join(folder, "mag.blend")):
+        pw.save_part(m, g["slug"] + "-mag", os.path.join(folder, "mag.blend"))
+    if not keep(os.path.join(folder, "model.blend")):
         gun_rig.build(spec, folder)
-    else:
-        print("kept", g["slug"], "model.blend (use --force to rebuild)")
 
 
 def main():
     a = pw.args()
-    src, force = a[0], "--force" in a
+    global FORCE
+    src, FORCE = a[0], "--force" in a
     for cal, names in AMMO.items():
         ammo(src, cal, names)
     for g in GUNS:
-        gun(src, g, force)
+        gun(src, g)
     for kind, slug, name in SINGLE:
         _names[slug] = name
         single(src, os.path.join(pw.ASSETS, "models", kind, slug), slug, kind == "grenades")

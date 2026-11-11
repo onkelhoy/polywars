@@ -41,7 +41,6 @@ export class AssetPreview3D extends CustomElement {
         const engine = new GameEngine({ name: "main", query: "canvas", type: "webgl2", documentElement: this.shadowRoot! });
         this.engine = engine;
         this.renderer = new Renderer((engine.layers.main as any).gl);
-        this.gridMesh = new Grid((engine.layers.main as any).gl, 10, .1, 10);
         const preview = this;
         engine.add(new class extends GameObject {
             override update(dt: number) { preview.step(dt); }
@@ -63,12 +62,17 @@ export class AssetPreview3D extends CustomElement {
     // ---- scene ----
 
     private async load() {
-        if (!this.engine || !this.src) return;
+        // the html template briefly sets a placeholder before the real value
+        if (!this.engine || !this.src || this.src.includes("__marker__")) return;
         const ticket = ++this.loading;
         const model = await Model.load((this.engine.layers.main as any).gl, this.src);
         if (ticket !== this.loading) return model.destroy();
         this.model?.destroy();
         this.model = model;
+        // grid scaled to the model: lines every 10^n / 2 metres, out to 3x its size
+        const r = this.reach, step = Math.pow(10, Math.floor(Math.log10(r))) / 2;
+        this.gridMesh?.destroy();
+        this.gridMesh = new Grid((this.engine.layers.main as any).gl, Math.ceil(r * 3 / step) * step, step, 5);
         this.time = 0;
         if (!model.animation(this.animation)) this.animation = "";
         this.applyMode();
@@ -120,7 +124,7 @@ export class AssetPreview3D extends CustomElement {
         const renderer = this.renderer!;
         renderer.light.toon = this.toon;
         renderer.begin(camera as any);
-        if (this.grid) this.gridMesh!.draw(renderer);
+        if (this.grid) this.gridMesh?.draw(renderer);
         if (!this.model) return;
         const [cx, , cz] = this.model.center;
         const bottom = this.model.bounds.min[1];
@@ -174,7 +178,7 @@ export class AssetPreview3D extends CustomElement {
                 <div class="bar" part="controls">
                     <div class="modes">
                         ${(["turntable", "orbit", "fps"] as PreviewMode[]).map(m => html`
-                            <pap-button size="small" variant="${m === this.mode ? "filled" : "outlined"}" @click="${this.handlemode(m)}">${m}</pap-button>
+                            <pap-button size="small" variant="${m === this.mode ? "filled" : "outline"}" @click="${this.handlemode(m)}">${m}</pap-button>
                         `)}
                     </div>
                     ${names.length ? html`
@@ -182,7 +186,7 @@ export class AssetPreview3D extends CustomElement {
                             <option value="" ${!this.animation && "selected"}>rest pose</option>
                             ${names.map(n => html`<option value="${n}" ${n === this.animation && "selected"}>${n}</option>`)}
                         </select>
-                        <pap-button size="small" variant="outlined" @click="${this.handleplay}">${this.playing ? "pause" : "play"}</pap-button>
+                        <pap-button size="small" variant="outline" @click="${this.handleplay}">${this.playing ? "pause" : "play"}</pap-button>
                         <input type="range" min="0" max="1" step="0.001" value="0" aria-label="time" @input="${this.handlescrub}" />
                     ` : ""}
                 </div>
