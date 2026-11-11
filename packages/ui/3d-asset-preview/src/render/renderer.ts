@@ -3,12 +3,22 @@ import { SHADERS } from "./shaders";
 
 export type Vec3 = [number, number, number];
 
-/** Sun + hemisphere light with fog. `toon` > 0 quantises the sun into that many bands. */
+/**
+ * Sun + hemisphere ambient + one point lamp, with fog. Colours are linear.
+ * `toon` > 0 quantises sun and lamp into that many bands. A lamp strength of 0 turns it off.
+ */
 export type Light = {
     sunDirection: Vec3;
     sunColor: Vec3;
+    sunStrength: number;
     sky: Vec3;
     ground: Vec3;
+    ambient: number;
+    lampPosition: Vec3;
+    lampColor: Vec3;
+    lampStrength: number;
+    /** metres until the lamp reaches 0 */
+    lampRange: number;
     fogColor: Vec3;
     fogDensity: number;
     toon: number;
@@ -16,9 +26,15 @@ export type Light = {
 
 export const DAYLIGHT: Light = {
     sunDirection: [.5, .8, .35],
-    sunColor: [.7, .66, .58],
-    sky: [.55, .6, .68],
-    ground: [.3, .28, .24],
+    sunColor: [1, .95, .85],
+    sunStrength: 1,
+    sky: [.6, .66, .75],
+    ground: [.32, .3, .26],
+    ambient: .6,
+    lampPosition: [0, 1, 1],
+    lampColor: [1, .8, .55],
+    lampStrength: 0,
+    lampRange: 3,
     fogColor: [.7, .78, .85],
     fogDensity: 0,
     toon: 0,
@@ -35,7 +51,8 @@ export type DrawOptions = { joints?: Float32Array; tint?: [number, number, numbe
 
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
-const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sky", "ground", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit"];
+const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit"];
 
 /** Draws `@papit/game-mesh` GPU meshes, plain or skinned, with one light. */
 export class Renderer {
@@ -94,6 +111,12 @@ export class Renderer {
         gl.uniform3fv(p.uniforms.fogColor, l.fogColor);
         gl.uniform1f(p.uniforms.fogDensity, l.fogDensity);
         gl.uniform1f(p.uniforms.toon, l.toon);
+        gl.uniform1f(p.uniforms.sunStrength, l.sunStrength);
+        gl.uniform1f(p.uniforms.ambient, l.ambient);
+        gl.uniform3fv(p.uniforms.lampPosition, l.lampPosition);
+        gl.uniform3fv(p.uniforms.lampColor, l.lampColor);
+        gl.uniform1f(p.uniforms.lampStrength, l.lampStrength);
+        gl.uniform1f(p.uniforms.lampRange, l.lampRange);
         const e = v.worldPosition ?? { x: 0, y: 0, z: 0 };
         gl.uniform3f(p.uniforms.eye, e.x, e.y, e.z);
         this.current = p;

@@ -12,7 +12,7 @@ export class Grid {
         const n = Math.round(size / step);
         for (let i = -n; i <= n; i++)
         {
-            const c = i === 0 ? [.5, .5, .5, .9] : i % major === 0 ? [.5, .5, .5, .5] : [.5, .5, .5, .2];
+            const c = i === 0 ? [.15, .15, .15, .9] : i % major === 0 ? [.15, .15, .15, .5] : [.15, .15, .15, .2];
             const v = i * step;
             positions.push(v, 0, -size, v, 0, size, -size, 0, v, size, 0, v);
             for (let k = 0; k < 4; k++) colors.push(...c);

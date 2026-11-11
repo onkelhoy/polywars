@@ -2,7 +2,7 @@
 import { CustomElement, html, property } from "@papit/web-component";
 import { Camera, GameEngine, GameObject, fps, orbit } from "@papit/game-engine";
 import { Grid, Model, Renderer, fromTRS, mat4, multiply } from "./render";
-import type { GLTF } from "@papit/game-mesh";
+import { MeshBuilder, upload, type GLTF, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
 
 // local
@@ -27,10 +27,19 @@ export class AssetPreview3D extends CustomElement {
     /** toon bands for the sun, 0 is smooth */
     @property({ type: Number }) toon: number = 0;
     @property({ type: Number }) speed: number = 1;
+    // light: ambient and sun strength, sun direction in degrees, lamp (point light) strength and angle around the model
+    @property({ type: Number }) ambient: number = .6;
+    @property({ type: Number }) sun: number = 1;
+    @property({ type: Number, attribute: "sun-azimuth" }) sunAzimuth: number = 40;
+    @property({ type: Number, attribute: "sun-elevation" }) sunElevation: number = 50;
+    @property({ type: Number }) lamp: number = 0;
+    @property({ type: Number, attribute: "lamp-angle" }) lampAngle: number = 120;
+    @property({ type: Boolean, rerender: true }) lights: boolean = false;
 
     private engine?: GameEngine<any>;
     private renderer?: Renderer;
     private gridMesh?: Grid;
+    private bulb?: GPUMesh;
     private model?: Model;
     private target = { position: { x: 0, y: 0, z: 0 } };
     private yaw = 0;
@@ -44,6 +53,7 @@ export class AssetPreview3D extends CustomElement {
         const engine = new GameEngine({ name: "main", query: "canvas", type: "webgl2", documentElement: this.shadowRoot! });
         this.engine = engine;
         this.renderer = new Renderer((engine.layers.main as any).gl);
+        this.bulb = upload((engine.layers.main as any).gl, new MeshBuilder().sphere([1, .85, .6], {}, 1).build());
         const preview = this;
         engine.add(new class extends GameObject {
             override update(dt: number) { preview.step(dt); }
@@ -134,8 +144,24 @@ export class AssetPreview3D extends CustomElement {
 
     private draw(camera: Camera) {
         const renderer = this.renderer!;
-        renderer.light.toon = this.toon;
+        const light = renderer.light;
+        light.toon = this.toon;
+        light.ambient = this.ambient;
+        light.sunStrength = this.sun;
+        const az = this.sunAzimuth * Math.PI / 180, el = this.sunElevation * Math.PI / 180;
+        light.sunDirection = [Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az)];
+        // lamp circles the model at 80% of its height, just outside its bounds
+        const r = this.reach, height = (this.model?.size[1] ?? 1);
+        const la = this.lampAngle * Math.PI / 180;
+        light.lampPosition = [Math.sin(la) * r * .9, height * .8, Math.cos(la) * r * .9];
+        light.lampRange = r * 2.5;
+        light.lampStrength = this.lamp;
         renderer.begin(camera as any);
+        if (this.lamp > 0 && this.bulb)
+        {
+            const k = r * .03;
+            renderer.draw(this.bulb, [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, ...light.lampPosition, 1], { unlit: true });
+        }
         if (this.grid) this.gridMesh?.draw(renderer);
         if (!this.model) return;
         const [cx, , cz] = this.model.center;
@@ -172,6 +198,10 @@ export class AssetPreview3D extends CustomElement {
     };
 
     private handlemode = (mode: PreviewMode) => () => { this.mode = mode; };
+    private handlelights = () => { this.lights = !this.lights; };
+    private handlelight = (name: "ambient" | "sun" | "sunAzimuth" | "sunElevation" | "lamp" | "lampAngle") => (e: Event) => {
+        this[name] = Number((e.target as HTMLInputElement).value);
+    };
     private handleanimation = (e: Event) => { this.animation = (e.target as HTMLSelectElement).value; this.time = 0; };
     private handleplay = () => { this.playing = !this.playing; this.requestUpdate(); };
     private handlescrub = (e: Event) => {
@@ -203,6 +233,17 @@ export class AssetPreview3D extends CustomElement {
                     ` : ""}
                 </div>
                 ${this.mode === "fps" ? html`<p class="hint">click to look, WASD to walk, esc to release</p>` : ""}
+                <div class="lights" part="lights">
+                    <pap-button size="small" variant="${this.lights ? "filled" : "outline"}" @click="${this.handlelights}">light</pap-button>
+                    ${this.lights ? html`
+                        <label>ambient <input type="range" min="0" max="2" step="0.05" value="${this.ambient}" @input="${this.handlelight("ambient")}" /></label>
+                        <label>sun <input type="range" min="0" max="3" step="0.05" value="${this.sun}" @input="${this.handlelight("sun")}" /></label>
+                        <label>sun direction <input type="range" min="0" max="360" step="1" value="${this.sunAzimuth}" @input="${this.handlelight("sunAzimuth")}" /></label>
+                        <label>sun height <input type="range" min="-10" max="90" step="1" value="${this.sunElevation}" @input="${this.handlelight("sunElevation")}" /></label>
+                        <label>lamp <input type="range" min="0" max="4" step="0.05" value="${this.lamp}" @input="${this.handlelight("lamp")}" /></label>
+                        <label>lamp around <input type="range" min="0" max="360" step="1" value="${this.lampAngle}" @input="${this.handlelight("lampAngle")}" /></label>
+                    ` : ""}
+                </div>
             ` : ""}
         `;
     }

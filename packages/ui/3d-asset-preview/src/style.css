@@ -44,3 +44,27 @@ input[type=range] {
     font-size: .8em;
     opacity: .7;
 }
+
+.lights {
+    position: absolute;
+    top: var(--gap-small, 8px);
+    right: var(--gap-small, 8px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    padding: var(--gap-small, 8px);
+    border-radius: var(--radius-medium, 8px);
+    background: color-mix(in oklch, var(--background, Canvas) 85%, transparent);
+}
+
+.lights label {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: .8em;
+}
+
+.lights input {
+    width: 120px;
+}

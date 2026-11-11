@@ -4,12 +4,11 @@ const preview = document.querySelector('pw-3d-asset-preview');
 const pick = document.querySelector('#pick');
 const info = document.querySelector('#info');
 
-const { files } = await (await fetch('/assets/manifest.json')).json();
-for (const file of files.filter(f => f.kind === 'model'))
-{
-    const option = new Option(`${file.folder}/${file.name}`, file.path, false, file.path === preview.src);
-    pick.add(option);
-}
+// manifest is a tree: { name, assets: (Asset | Assets)[] }, Asset = { name, file, size }
+const walk = (node, path) => node.assets.flatMap(a => a.assets ? walk(a, `${path}/${a.name}`) : [{ path: a.file, label: `${path.slice(8)}/${a.name}` }]);
+const tree = await (await fetch('/assets/manifest.json')).json();
+for (const { path, label } of walk(tree, '/assets').filter(f => f.path.endsWith('.glb')))
+    pick.add(new Option(label, path, false, path === preview.src));
 
 pick.onchange = () => preview.src = pick.value;
 document.querySelector('#toon').oninput = e => preview.toon = Number(e.target.value);
