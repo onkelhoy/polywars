@@ -1,3 +1,4 @@
 // exports
-export * from "./component";
-export * from "./types";
+export * from "./glsl";
+export * from "./maps";
+export * from "./gltf";
