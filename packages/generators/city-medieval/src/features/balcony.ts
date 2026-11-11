@@ -11,15 +11,15 @@ export const balcony: Feature = {
         for (const face of [1, 0, 2].map(s => ctx.faces[s])) if (!face.taken && !face.shift)
             for (let i = 2; i < face.length - 2; i++) if (face.bays[i] && !hidden(ctx, face, i - 1) && !hidden(ctx, face, i + 1)) options.push([face, i]);
         const spot = rng.pick(options);
-        if (!spot) return;
+        if (!spot) { ctx.features.balcony = false; return; }
         const [face, i] = spot, s = rng.int(1, box.floors), y = s * STOREY;
         face.taken = "balcony";
         for (const c of face.bays[i] === 2 ? [i, i + 1] : [i]) { const [x, z] = face.at(c); ctx.filled.add(key(x, y, z)); ctx.filled.add(key(x, y + 1, z)); }
         ctx.features.balconyAt = `${face.side},${i},${s}`;
     },
     build(ctx, rng) {
-        const [side, i, s] = String(ctx.features.balconyAt ?? "").split(",").map(Number), face = ctx.faces[side];
-        if (!face) return;
+        if (!ctx.features.balconyAt) return;
+        const [side, i, s] = String(ctx.features.balconyAt).split(",").map(Number), face = ctx.faces[side];
         const y = s * STOREY, [x, z] = face.at(i);
         ctx.put("Stucco_Doorway_Narrow_Tall", x, y, z, face.deg);
         if (face.bays[i] === 2) { const [bx, bz] = face.at(i + 1); ctx.put("Stucco_Block", bx, y, bz); ctx.put("Stucco_Block", bx, y + 1, bz); }

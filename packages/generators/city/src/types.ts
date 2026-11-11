@@ -8,6 +8,10 @@ export type CityStyle<Out = unknown> = {
     name: string;
     /** pieces centred on the origin, fitting the lot */
     build(lot: Lot, seed: number): Placement[];
+    /** street pieces: segment along +X from 0 to `length`, centred across (Z) on the street, `width` metres wide */
+    street?(length: number, width: number, seed: number): Placement[];
+    /** an open square on an empty block, centred on the origin */
+    square?(lot: Lot, seed: number): Placement[];
     /** turns pieces into something drawable (e.g. a GLTF) */
     render?(pieces: Placement[]): Promise<Out>;
 };
@@ -21,10 +25,13 @@ export type CityOptions = {
     block: number;
     /** street width in metres */
     street: number;
-    /** chance a lot stays empty (square) */
+    /** chance a block stays empty (square) */
     empty: number;
+    /** lot width along the street in metres, [min, max] */
+    lot: [number, number];
 };
 
+/** a lot: front (+Z local) faces the street */
 export type CityLot = Lot & { cell: number; x: number; z: number; /** radians around Y */ angle: number; seed: number; empty: boolean };
 
 export type City = {

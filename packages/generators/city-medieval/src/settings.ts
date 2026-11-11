@@ -14,7 +14,7 @@ export const DEFAULTS: Settings = {
 };
 
 /** chance a "random" feature is on */
-export const CHANCE: Partial<Record<typeof TRI_KEYS[number], number>> = { windmill: .2, waterwheel: .2, tunnel: .3, jetty: .3, balcony: .3, awning: .4, stone: .8 };
+export const CHANCE: Partial<Record<typeof TRI_KEYS[number], number>> = { windmill: .08, waterwheel: .08, tunnel: .3, jetty: .3, balcony: .3, awning: .4, stone: .8 };
 
 /** settings + seed as one short code: `m2.<seed>.<numbers>.<shape+roof+windows>.<tris>` (base 36) */
 export function encode(settings: Settings, seed: number) {
