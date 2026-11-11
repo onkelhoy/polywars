@@ -1,7 +1,7 @@
 # Plan: medieval house + village generator (`packages/generators/city-medieval`, `packages/generators/city`)
 
 Owner goal: houses and villages like the store screenshots (`~/Desktop/*.png`, half-timber, gables, mill, bridge), every setting in the view must have a visible effect.
-State (2026-11-11): `building.ts` rewritten, one rectangular house is correct (owner: "way better"). Uncommitted, branch `city-generation-village-pack`.
+State (2026-11-11): tasks 1-17 done (commits on `city-generation-village-pack`). Open notes: no `Stone_Steps` (base is never raised), roof valleys by intersection (no `Corner_Inner`), curbs stop short of crossings, houses fill one lot per block row on small blocks.
 
 ## Rules for whoever implements (token budget is tight)
 - Never place a piece from its name alone. Unknown piece → put it in a contact sheet, render, look once, write the fact down under "Kit facts".

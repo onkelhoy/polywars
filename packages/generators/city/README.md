@@ -18,6 +18,29 @@ procedural city generator
 npm install @polywar/city
 ```
 
+## usage
+
+```js
+import { city, registerStyle } from "@polywar/city";
+registerStyle(medievalStyle(kitSource(base, baked)));
+const { lots, streets, pieces } = city({ style: "medieval", seed: 1, radius: 2 });
+```
+
+Blocks are the quad cells of a papit irregular hex grid, streets run along the cell edges. Each block gets the biggest rectangle that fits inside its streets; it is cut into lots along its long sides (front and back row when deep enough), every lot facing its street. Empty blocks become squares.
+
+The city knows nothing about pieces. A style (`CityStyle`) gives `build(lot, seed)` (house, front on the lot's +Z edge), optional `street(length, width, seed)` and `square(lot, seed)`, and `render(pieces)`.
+
+| option | default | |
+| --- | --- | --- |
+| seed | 1 | |
+| radius | 2 | hex radius in grid steps |
+| block | 20 | block size in metres, about |
+| street | 3 | street width |
+| empty | .15 | chance a block is a square |
+| lot | [5, 9] | lot width along the street |
+
+Check without a browser: `node tools/blender/render-city.mjs out.jpg '{"seed":4,"radius":1}'`.
+
 ## License
 
 Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
