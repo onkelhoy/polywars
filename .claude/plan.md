@@ -9,6 +9,7 @@ Branch `init/assets` (shared with 2 other sessions: commit only own paths). Next
 - Pack script keeps existing files (hand edits); `--force` or delete one file to regenerate it.
 - Guns: muzzle +Y Blender (glTF -Z), up +Z. Bones: root > body > action, trigger, hammer?, mag > round, muzzle, eject. Moving parts = vertex groups in `gun.blend`. Actions: idle, fire, reload, reload-empty.
 - `game-mesh` has no textures → `export.py` bakes image textures into vertex colours.
+- Render code (Renderer, Model, Grid, gltfFromMesh) lives in `packages/ui/3d-asset-preview/src/render`, exported by `@polywar/3d-asset-preview`.
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
 
 ## Tasks
