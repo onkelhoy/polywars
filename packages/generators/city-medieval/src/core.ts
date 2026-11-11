@@ -18,7 +18,7 @@ export function matrix(x: number, y: number, z: number, deg = 0, mirror = false)
 }
 
 /** a box of the house: cells x..x+w-1, z..z+d-1, ridge along x or z */
-export type Box = { x: number; z: number; w: number; d: number; floors: number; ridge: "x" | "z"; /** cells the roof runs on past the end that joins another box */ join?: "start" | "end"; extend?: number };
+export type Box = { x: number; z: number; w: number; d: number; floors: number; ridge: "x" | "z"; /** cells the roof runs on past the end that joins another box */ join?: "start" | "end"; extend?: number; /** gable end whose upper storeys stand out .5 m */ jetty?: "start" | "end" };
 
 /** the four sides of a box, going round: outward normal, rotation (local +X faces outward), run (local +Z) */
 export const SIDES: { n: V; deg: number; run: V }[] = [
@@ -32,6 +32,8 @@ export type Face = {
     bays: number[];
     /** metres the upper storeys stand out (jetty) */
     shift: number;
+    /** a feature that owns this face (windmill, jetty, ...) */
+    taken?: string;
     at(i: number): V;
     out(i: number): V;
 };

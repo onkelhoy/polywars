@@ -5,6 +5,7 @@ import { braces } from "./braces";
 import { chimney } from "./chimney";
 import { dormer } from "./dormer";
 import { gableWindow } from "./gable";
+import { jetty } from "./jetty";
 
 /** one house feature: `key` = its setting (none = always), `plan` runs before walls/roof, `build` after */
 export type Feature = {
@@ -16,4 +17,4 @@ export type Feature = {
     build?(ctx: Ctx, rng: Random): void;
 };
 
-export const FEATURES: Feature[] = [gableWindow, dormer, chimney, braces];
+export const FEATURES: Feature[] = [jetty, gableWindow, dormer, chimney, braces];

@@ -22,11 +22,11 @@ export const gableWindow: Feature = {
     build(ctx) {
         for (const [face, { first, height }] of gables)
         {
-            const r = roofOf(ctx, face.box), [x, z] = face.at(first);
-            ctx.put(`Stucco_Window_${ctx.family}_Wide` as PieceName, x, r.base, z, face.deg);
+            const r = roofOf(ctx, face.box), sh = face.shift, [x, z] = face.at(first);
+            ctx.put(`Stucco_Window_${ctx.family}_Wide` as PieceName, x + face.n[0] * sh, r.base, z + face.n[1] * sh, face.deg);
             if (height > 1) for (const i of [first, first + 1])
             {
-                const [bx, bz] = face.at(i), p = ctx.put("Stucco_Block", bx, r.base + 1, bz);
+                const [bx, bz] = face.at(i), p = ctx.put("Stucco_Block", bx + face.n[0] * sh, r.base + 1, bz + face.n[1] * sh);
                 p.matrix[5] = height - 1;
             }
         }

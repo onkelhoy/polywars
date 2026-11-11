@@ -12,7 +12,11 @@ export function roof(ctx: Ctx, box: Box) {
     const r = roofOf(ctx, box), { L, D, rows, rise, base } = r;
     const u0 = box.join === "start" ? -(box.extend ?? 0) : 0, u1 = box.join === "end" ? L - 1 + (box.extend ?? 0) : L - 1;
     const gable = (u: number) => (u === 0 && box.join !== "start") || (u === L - 1 && box.join !== "end");
-    const push = (piece: PieceName, m: number[]) => { ctx.pieces.push({ piece, matrix: m }); };
+    const push = (piece: PieceName, m: number[]) => { ctx.pieces.push({ piece, matrix: m }); return m; };
+    // jetty gable: the end row moves out .5, a half row fills the gap
+    const J = .5, du = (u: number) => box.jetty === "end" && u >= L - 1 ? J : box.jetty === "start" && u <= 0 ? -J : 0;
+    const half = box.jetty === "end" ? L - 1.25 : box.jetty === "start" ? .25 : null;
+    const squash = (m: number[], col: number) => { for (let c = col; c < col + 3; c++) m[c] *= J; return m; };
     for (let k = 0; k < rows; k++) for (let u = u0; u <= u1; u++)
     {
         const edge = gable(u) && (u === 0 || u === L - 1);
@@ -22,16 +26,18 @@ export function roof(ctx: Ctx, box: Box) {
         {
             const [x, z] = r.world(u, v);
             if (k === 0 && ctx.noRoof.has(`${x},${z}`)) continue;
-            push(name, r.matrix(u, base + k * rise, v, deg, mirror));
+            push(name, r.matrix(u + du(u), base + k * rise, v, deg, mirror));
+            if (half !== null && u === 0) squash(push(`Roof_${ctx.profile}_Side${k === 0 ? "_Eave" : ""}` as PieceName, r.matrix(half, base + k * rise, v, deg)), 8);
         }
     }
-    for (let u = u0; u <= u1; u++) push("Roof_Accent_Ridge", r.matrix(u, r.peak - .2, rows - 1));
+    for (let u = u0; u <= u1; u++) push("Roof_Accent_Ridge", r.matrix(u + du(u), r.peak - .2, rows - 1));
+    if (half !== null) squash(push("Roof_Accent_Ridge", r.matrix(half, r.peak - .2, rows - 1)), 0);
     // gable walls under the upper roof rows, with a king post
     for (const u of [0, L - 1]) if (gable(u)) for (let k = 1; k < rows; k++) for (const v of [k, D - 1 - k])
     {
         const [x, z] = r.world(u, v);
         if (ctx.filled.has(key(x, base, z))) continue;
-        const m = r.matrix(u, base, v);
+        const m = r.matrix(u + du(u), base, v);
         m[5] = k * rise;
         push("Stucco_Block", m);
     }
@@ -39,7 +45,7 @@ export function roof(ctx: Ctx, box: Box) {
     {
         const [x, z] = r.world(u < 0 ? 0 : L - 1, rows);
         if (ctx.filled.has(key(x, base, z))) continue;
-        const m = r.matrix(u, base, u < 0 ? D / 2 : D / 2 - 1, u < 0 ? 180 : 0);
+        const m = r.matrix(u + du(u), base, u < 0 ? D / 2 : D / 2 - 1, u < 0 ? 180 : 0);
         m[5] = (rows - 1) * rise + FOOT;
         push("Stucco_Prop_Support_Pillar_1", m);
     }
