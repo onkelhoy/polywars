@@ -131,6 +131,15 @@ $('#minimap').onclick = e => {
     stand(((e.clientX - r.left) / r.width - .5) * size(), ((e.clientY - r.top) / r.height - .5) * size());
 };
 
+// ---- play: first person on foot where the camera is (Esc back to the editor) ----
+demo.walking = { ground: (x, z) => terrain.heightAt(x, z) };
+$('#play').onclick = () => {
+    const cam = demo.camera?.position;
+    if (cam && Math.abs(cam[0]) > size() / 2 || cam && Math.abs(cam[2]) > size() / 2) stand(0, 0);
+    demo.mode = 'walk';
+};
+demo.addEventListener('walkexit', () => world.grass.push([]));
+
 let first = true;
 world.onchange = () => { minimap(); refresh(); if (first) { first = false; overview(); } };
 terrain.onprogress = p => { $('#info').value = `terrain · ${p.stage} ${(p.done * 100).toFixed(0)}%`; };
@@ -138,6 +147,9 @@ terrain.onprogress = p => { $('#info').value = `terrain · ${p.stage} ${(p.done 
 // ---- loop ----
 let frames = 0, clock = 0, rate = 0;
 demo.tick = dt => {
+    // the walker bends the grass round the feet
+    const feet = demo.mode === 'walk' && demo.layer.camera?.controllers?.[0]?.feet;
+    if (feet) world.grass.push([[feet.x, feet.y, feet.z, .6]]);
     frames++; clock += dt;
     if (clock < .5) return;
     rate = frames / clock; frames = clock = 0;

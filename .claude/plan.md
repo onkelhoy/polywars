@@ -9,4 +9,4 @@ Branch `feature/ecosystem`: nature done (`@polywar/nature`, `ecosystem`, `scatte
 - f3. [x] Props less plastic: soft toon bands on props + an EXTREMELY subtle grit (few % world space noise, steady with the camera).
 - f4. [x] Painted ground (terrain material): biome borders as ragged stroke shaped edges (no straight triangle lines, no fade blend), light / dark brush stroke patches inside each biome (hard edged). Biomes stay where they are.
 - f5. [x] Gloss: steep rock ground + rock props slightly glossy, wet ground near water a little, the rest matte.
-- f6. [ ] Play mode in the world view: first person on foot (WASD, mouse look, shift run, space jump), eye height on the ground, pushes grass; Esc back to the editor.
+- f6. [x] Play mode in the world view: first person on foot (WASD, mouse look, shift run, space jump), eye height on the ground, pushes grass; Esc back to the editor.
