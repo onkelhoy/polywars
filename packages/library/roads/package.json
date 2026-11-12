@@ -47,10 +47,15 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@polywar/pathfinding": "*",
+    "@papit/random": "*"
+  },
   "devDependencies": {
     "typescript": "5.9.3",
-    "@papit/theme": "*"
+    "@papit/theme": "*",
+    "@polywar/terrain": "*",
+    "@polywar/sites": "*"
   },
   "browserslist": [
     "defaults",

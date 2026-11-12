@@ -54,6 +54,8 @@ export type RoadsOptions = {
     era: string;
     /** routing grid cell, metres; `step` metres between output points */
     cell: number; step: number;
+    /** search greed (weighted A*): > 1 faster, routes a bit worse */
+    greed: number;
     classes: Record<RoadClass, ClassOptions>;
     /** which classes to build */
     build: Record<RoadClass, boolean>;

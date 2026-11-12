@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Roads plan written (2026-11-12), waiting for owner confirm. Branch `feature/roads`. Phase 1 = logic, terrain pipeline hook + carving, 2D views (no road meshes). Phases 2–3 listed so phase 1 data fits them; backlog if not confirmed.
+`feature/roads`: tasks 0–10 done (2026-11-12). Next: 10b (carve + fix hooks), 10c (world), 11 (docs). Open tuning: rail zigzags (straight bridge/tunnel hops), raw shape is rough so roads wiggle, full network ~6 s at medium (road class ~3 s), a beach site can stay unconnected.
 
 ## Design (read before any task)
 
@@ -73,18 +73,18 @@ Drawing = plain 2D canvas lines, no meshes. Full world scale (3072 m default, ma
 - `roads/views/`: same map, roads as lines by class (colour + px width), bridges / tunnels dashed / marked, junctions as dots; toggles per class; click A then B → `alternatives(a, b, 4)` in different colours; sliders for class costs; route + total time shown.
 
 ## Tasks (phase 1)
-- [ ] 0. terrain: `shapeOnly(options)` (shape + cities, no erosion) for views; move `cities` before erosion; `Generator` hooks `features` + `fix`; erosion honours `hard`; `generate(options, hooks?)`; experiment view still works without hooks.
-- [ ] 1. Branch `feature/roads`. Create `library/sites` + `library/roads` via `npm run create`. Add `Site`/road types.
-- [ ] 2. 2D map view base (hillshade + sea, pan / zoom, scale bar, cursor readout) in each view folder (copy, no shared package yet).
-- [ ] 3. sites: villages + farms. View.
-- [ ] 4. sites: landmarks (peak, beach, lake, pass, viewpoint). View icons.
-- [ ] 5. pathfinding (`utils/pathfinding`): typed heap, `astar`, `gridSearch` (headings, `extra` moves), `alternatives`. View: grid with random walls / cost noise, click A→B, shows route + k alternatives + time.
-- [ ] 5b. roads: cost grid + grade limit on `gridSearch` (ground moves only). View: click A→B draws one route.
-- [ ] 6. roads: bridge + tunnel moves, spans. View marks them.
-- [ ] 7. roads: `used` grid + reuse discount; `alternatives` via pathfinding. View shows k routes.
-- [ ] 8. roads: shape (simplify, smooth by min radius, resample, graded bed height).
-- [ ] 9. roads: classes + `ERAS.ww2` presets; topology per class; `generateRoads` full network. View draws all.
-- [ ] 10. roads: junctions + `at(site)`, `nearest`, `mask`. View: hover shows nearest road; click site lists incoming roads.
+- [x] 0. terrain: `shapeOnly(options)` (shape + cities, no erosion) for views; move `cities` before erosion; `Generator` hooks `features` + `fix`; erosion honours `hard`; `generate(options, hooks?)`; experiment view still works without hooks.
+- [x] 1. Branch `feature/roads`. Create `library/sites` + `library/roads` via `npm run create`. Add `Site`/road types.
+- [x] 2. 2D map view base (hillshade + sea, pan / zoom, scale bar, cursor readout) in each view folder (copy, no shared package yet).
+- [x] 3. sites: villages + farms. View.
+- [x] 4. sites: landmarks (peak, beach, lake, pass, viewpoint). View icons.
+- [x] 5. pathfinding (`utils/pathfinding`): typed heap, `astar`, `gridSearch` (headings, `extra` moves), `alternatives`. View: grid with random walls / cost noise, click A→B, shows route + k alternatives + time.
+- [x] 5b. roads: cost grid + grade limit on `gridSearch` (ground moves only). View: click A→B draws one route.
+- [x] 6. roads: bridge + tunnel moves, spans. View marks them.
+- [x] 7. roads: `used` grid + reuse discount; `alternatives` via pathfinding. View shows k routes.
+- [x] 8. roads: shape (simplify, smooth by min radius, resample, graded bed height).
+- [x] 9. roads: classes + `ERAS.ww2` presets; topology per class; `generateRoads` full network. View draws all.
+- [x] 10. roads: junctions + `at(site)`, `nearest`, `mask`. View: hover shows nearest road; click site lists incoming roads.
 - [ ] 10b. roads: `features` (carve: bed flattened across width, cut/fill blended over shoulder, none under bridges / tunnels; `hard` mask) + `fix` (river / lake crossings). Roads view uses the hooks: before / after erosion toggle.
 - [ ] 10c. world: pass sites + roads hooks to the terrain; world code gets roads options.
 - [ ] 11. READMEs for both + facts.md section "Roads". Owner review.
