@@ -156,7 +156,7 @@ demo.tick = dt => {
     if (terrain.generating) return;
     const cam = demo.camera?.position, counts = Object.entries(eco.counts).filter(([, v]) => v).map(([k, v]) => `${k} ${v}`).join(' · ');
     $('#info').value = `${eco.total} props (${eco.batches.length} models) grown in ${eco.time.toFixed(0)} ms\n${counts}\n`
-        + `${world.scatter.drawn} props drawn · ${world.scatter.calls} calls · ${world.grass.drawn} tufts (${world.grass.count} planted)\n`
+        + `${world.scatter.drawn} props drawn (lod ${world.scatter.perLod.join(" / ")}) · ${Math.round(world.scatter.triangles / 1000)}k tris · ${world.scatter.calls} calls · ${world.grass.drawn} tufts (${world.grass.count} planted)\n`
         + `${rate.toFixed(0)} fps · ${cam ? terrain.biomeAt(cam[0], cam[2]) ?? '-' : '-'} below`;
 };
 demo.draw = camera => {

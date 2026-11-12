@@ -43,7 +43,7 @@ export class World {
         this.v = { quality: "medium", grass: true, props: true, style: "pixel", ...view };
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
-        this.scatter = new Scatter(renderer, name => modelUrl(nature, name), { quality: this.v.quality });
+        this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
         this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
         this.terrain = new Terrain(layer, s.terrain ?? {});

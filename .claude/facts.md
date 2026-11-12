@@ -30,6 +30,7 @@ Knowledge that outlives a plan. Trust code over this.
 - Stand things on `terrain.groundAt(x, z)` (height of the drawn RTIN triangles, finest level), not `heightAt` (smooth grid, up to ~2 m below the mesh: buried the grass).
 - Forest cores: `EcosystemOptions.core` (depth into a core biome) scales group size / density / spacing (`group.core`). Clearings: `biomes[b].open` share + `clearings` noise, only grass (ground not tinted).
 - Ground look: flat pixel patches in `terrain-material` (`look.paint`: washes, pixel cell size, rim + grain off by default, light bands bent into patch shapes, billowy biome borders from a biome grid texture `material.biomes(map)`); gloss `look.gloss` (rock, wet via `toWater`). Props: renderer `Surface` (bands, soft, grit, gloss) via scatter `surface` / `gloss` per kind.
+- Prop LODs: folder `lod.json` (`ratios`) → `npm run assets` writes `<name>.lod<n>.glb` (`tools/blender/lod.py`, min 48 tris). Scatter `lods` (parts of the kind's distance, chunk near edge, 64 m chunks) picks the level; `modelUrl(list, name, lod)`.
 - Play: `walk` controller (viewport-camera), `pw-3d-demo` `mode="walk"` + `walking.ground`, Esc fires `walkexit`.
 - Headless browser checks: playwright chromium is installed (`node_modules/playwright`).
 

@@ -12,7 +12,7 @@ const renderer = new Renderer(demo.layer);
 renderer.light.fogDensity = .002;
 renderer.light.fogColor = [.62, .72, .82];
 const list = await loadNature();
-const scatter = new Scatter(renderer, name => modelUrl(list, name));
+const scatter = new Scatter(renderer, (name, lod) => modelUrl(list, name, lod));
 const size = 1200;
 const ground = upload(demo.layer.gl, new MeshBuilder().box([.3, .45, .2], { at: [0, -.5, 0], scale: [size, 1, size] }).build());
 

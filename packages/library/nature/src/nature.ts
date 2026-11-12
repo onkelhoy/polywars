@@ -15,8 +15,8 @@ export function modelName(family: Family, index: number, variant?: string): stri
     return list[((index % list.length) + list.length) % list.length];
 }
 
-/** url of a model name in the list */
-export const modelUrl = (list: NatureList, name: string) => `${list.base}${name}.glb`;
+/** url of a model name in the list; `lod` > 0: its lower detail copy (`npm run assets` writes `<name>.lod<n>.glb`) */
+export const modelUrl = (list: NatureList, name: string, lod = 0) => `${list.base}${name}${lod ? `.lod${lod}` : ""}.glb`;
 
 /** every model name in the list (all variants), once */
 export function allModels(list: NatureList): string[] {

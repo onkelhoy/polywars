@@ -10,6 +10,8 @@ export type ScatterOptions = {
     distance: Record<string, number>;
     /** last part of the distance where props shrink away, 0..1 */
     fade: number;
+    /** where lod 1, 2, ... start, as parts of the kind's draw distance (chunk centre); `[]` = full detail only */
+    lods: number[];
     /** wind: x z direction and strength (top sway in metres per metre of height) */
     wind: { direction: Vec2; strength: number };
     /** prop surface (see `@polywar/renderer` `Surface`): toon bands, soft edges, world space grit */
