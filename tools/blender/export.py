@@ -6,6 +6,7 @@
 - Objects parented to a bone become skinned meshes: vertex groups named like a bone keep their
   weights, every other vertex goes to the parent bone. game-mesh then animates them via the rig.
 - Actions on NLA tracks (or the active one) export as glTF animations.
+- Trailing holds (keys that no longer change anything) are cut off each action.
 - Image textures are baked into vertex colours (game-mesh draws base colour x COLOR_0 only).
 - An armature also writes `<out>.rig.json` (glTF drops bone lengths and constraints):
   { bones: { name: { length, deform } }, ik: [{ bone, chain, target, pole, weight }],
@@ -115,6 +116,26 @@ def textures_to_vertex_colours():
                 bsdf.inputs["Base Color"].default_value = (1, 1, 1, 1)
 
 
+def trim_actions():
+    """Cuts trailing holds: a clip ends on the last frame where any curve still changes (packs key a still tail)."""
+    for a in bpy.data.actions:
+        curves = [c for layer in a.layers for strip in layer.strips for bag in strip.channelbags for c in bag.fcurves]
+        if not curves:
+            continue
+        start, end = (int(round(f)) for f in a.frame_range)
+        last = start
+        prev = [c.evaluate(start) for c in curves]
+        for f in range(start + 1, end + 1):
+            now = [c.evaluate(f) for c in curves]
+            if any(abs(x - y) > 1e-4 for x, y in zip(now, prev)):
+                last = f
+            prev = now
+        if start < last and end - last >= max(4, (end - start) // 5):  # small tails are loop seams
+            a.use_frame_range = True
+            a.frame_start, a.frame_end = start, last
+            print(f"trimmed {a.name}: {end} -> {last}")
+
+
 def write_rig(arm, out):
     rig = {"bones": {}, "ik": [], "copyRotation": []}
     for b in arm.data.bones:
@@ -141,6 +162,7 @@ def export(out):
     for arm in arms:
         arm.data.pose_position = "REST"
     bpy.context.view_layer.update()
+    trim_actions()
     realize_instances()
     bones_to_skin()
     principled_materials()
