@@ -28,6 +28,7 @@ One rule per folder; put a new package where its role says.
 | `packages/tools/` | offline/dev tools (bakers, exporters) |
 | `packages/ui/` | game UI |
 | `packages/network/` | networking |
+| `packages/animation/` | rigs, skeletons, animation playback, IK setup |
 
 ## Assets
 All assets live in root `assets/` (models, audio, textures, animations) so the owner edits them in one place. Packages reference them, never copy. Target format glTF 2.0 (rigged, animations baked in the file).

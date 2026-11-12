@@ -7,8 +7,11 @@
   weights, every other vertex goes to the parent bone. game-mesh then animates them via the rig.
 - Actions on NLA tracks (or the active one) export as glTF animations.
 - Image textures are baked into vertex colours (game-mesh draws base colour x COLOR_0 only).
+- An armature with IK / Copy Rotation constraints also writes `<out>.rig.json` (glTF drops constraints):
+  { bones: { name: { length, deform } }, ik: [{ bone, chain, target, pole, weight }],
+    copyRotation: [{ bone, target, weight }] }. Weights are the rest values (actions may key them).
 """
-import bpy, os, sys
+import bpy, json, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import pw
 from mathutils import Matrix
@@ -112,8 +115,31 @@ def textures_to_vertex_colours():
                 bsdf.inputs["Base Color"].default_value = (1, 1, 1, 1)
 
 
+def write_rig(arm, out):
+    rig = {"bones": {}, "ik": [], "copyRotation": []}
+    for b in arm.data.bones:
+        rig["bones"][b.name] = {"length": round(b.length, 5), "deform": b.use_deform}
+    for pb in arm.pose.bones:
+        for c in pb.constraints:
+            if c.type == "IK" and c.subtarget:
+                ik = {"bone": pb.name, "chain": c.chain_count, "target": c.subtarget, "weight": round(c.influence, 4)}
+                if c.pole_subtarget:
+                    ik["pole"] = c.pole_subtarget
+                rig["ik"].append(ik)
+            elif c.type == "COPY_ROTATION" and c.subtarget:
+                rig["copyRotation"].append({"bone": pb.name, "target": c.subtarget, "weight": round(c.influence, 4)})
+    if not rig["ik"] and not rig["copyRotation"]:
+        return
+    path = os.path.splitext(out)[0] + ".rig.json"
+    with open(path, "w") as f:
+        json.dump(rig, f, indent=1)
+    print("wrote", os.path.relpath(path, pw.ROOT))
+
+
 def export(out):
     arms = [o for o in bpy.context.scene.objects if o.type == "ARMATURE"]
+    for arm in arms[:1]:
+        write_rig(arm, out)
     for arm in arms:
         arm.data.pose_position = "REST"
     bpy.context.view_layer.update()
