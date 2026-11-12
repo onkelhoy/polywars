@@ -27,6 +27,10 @@ Knowledge that outlives a plan. Trust code over this.
 ## Ecosystem
 - `@polywar/nature`: `assets/models/nature/nature.json` is hand kept (families, variants by index). `@polywar/ecosystem` (pure CPU: cover maps + placement, `grassAt`), `@polywar/scatter` (instanced props, `Renderer.drawInstanced`), `@polywar/world` (all together, world code `<terrain>~<ecosystem>`, view `world`).
 - Grass planting `grow` + `window` + `grass.follow(x, z)`: chunks seeded per chunk. Instance attributes: grass 4 tuft + 5 cover; renderer instanced 6 `x y z scale` + 7 `yaw tint sway _`.
+- Stand things on `terrain.groundAt(x, z)` (height of the drawn RTIN triangles, finest level), not `heightAt` (smooth grid, up to ~2 m below the mesh: buried the grass).
+- Forest cores: `EcosystemOptions.core` (depth into a core biome) scales group size / density / spacing (`group.core`). Clearings: `biomes[b].open` share + `clearings` noise, only grass (ground not tinted).
+- Ground look: watercolour in `terrain-material` (`look.paint`: washes, rim, warmth, grain, billowy biome borders from a biome grid texture `material.biomes(map)`); gloss `look.gloss` (rock, wet via `toWater`). Props: renderer `Surface` (bands, soft, grit, gloss) via scatter `surface` / `gloss` per kind.
+- Play: `walk` controller (viewport-camera), `pw-3d-demo` `mode="walk"` + `walking.ground`, Esc fires `walkexit`.
 - Headless browser checks: playwright chromium is installed (`node_modules/playwright`).
 
 ## Layout (2026-11-12)

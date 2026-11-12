@@ -1,7 +1,7 @@
 # Plan: world look + play
 
 ## Where we are
-Branch `feature/ecosystem`: nature done (`@polywar/nature`, `ecosystem`, `scatter`, `world`; see `facts.md`). Now: the look pass below (confirmed 2026-11-12). Next task: f7, then f4 (redo), f8.
+Branch `feature/ecosystem`: nature done (`@polywar/nature`, `ecosystem`, `scatter`, `world`; see `facts.md`). Now: the look pass below (confirmed 2026-11-12). All tasks done; waiting for the owner (look check, then "prepare PR").
 
 ## Tasks
 - f1. [x] Bigger, fuller grass: owner's grass code is the world default (`g2.eyJzZXR0aW5ncy5zb2Z0QmFuZHMiOjAuMjUsInNldHRpbmdzLnNpemVTY2FsZSI6MS43NSwic2V0dGluZ3MuZGVuc2l0eSI6MzIsImxvb2suYmFuZHMiOjMsImJsYWRlU2hhcmUiOjAuMjUsInZhcmlhdGlvbiI6MC4xNiwicGF0Y2hlcy4wLnNjYWxlIjowLjAyM30` = density 32, sizeScale 1.75, softBands .25, bands 3, bladeShare .25, variation .16, patches.0.scale .023); density still varies by the cover maps.

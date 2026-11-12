@@ -12,6 +12,8 @@ export type Cover = {
     height: Float32Array;
     dry: Float32Array;
     flowers: Float32Array;
+    /** share of open dry spots 0..1 */
+    open: Float32Array;
     groups: Record<string, Float32Array>;
     /** every tree group summed, per hectare */
     trees: Float32Array;
@@ -21,7 +23,7 @@ export type Cover = {
 
 export function cover(g: Ground, o: EcosystemOptions): Cover {
     const m = Math.max(2, Math.min(g.n, Math.round(o.cover.resolution) + 1)), cell = g.size / (m - 1), count = m * m;
-    const grass = { density: new Float32Array(count), height: new Float32Array(count), dry: new Float32Array(count), flowers: new Float32Array(count) };
+    const grass = { density: new Float32Array(count), height: new Float32Array(count), dry: new Float32Array(count), flowers: new Float32Array(count), open: new Float32Array(count) };
     const names = Object.keys(o.groups);
     const groups: Record<string, Float32Array> = Object.fromEntries(names.map(n => [n, new Float32Array(count)]));
     for (let j = 0, k = 0; j < m; j++) for (let i = 0; i < m; i++, k++)
@@ -34,6 +36,7 @@ export function cover(g: Ground, o: EcosystemOptions): Cover {
         grass.height[k] = rule.grass.height * (.75 + mo * .5) * (1 + Math.min(1, flow) * .6);
         grass.dry[k] = clamp01(rule.grass.dry + (.45 - mo) * .6);
         grass.flowers[k] = rule.grass.flowers;
+        grass.open[k] = rule.open ?? 0;
         for (const name of names)
         {
             const per = rule.props[name];

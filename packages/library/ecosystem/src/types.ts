@@ -68,8 +68,8 @@ export type Group = {
     max: number;
 };
 
-/** Per biome: props per hectare by group, and the grass. */
-export type BiomeRule = { props: Record<string, number>; grass: GrassCover };
+/** Per biome: props per hectare by group, the grass, and the share of open dry spots in it 0..1. */
+export type BiomeRule = { props: Record<string, number>; grass: GrassCover; open?: number };
 
 export type EcosystemOptions = {
     seed: number;
@@ -85,6 +85,8 @@ export type EcosystemOptions = {
     around: { ring: number; taller: number; bare: number };
     /** core biomes (e.g. forest): depth 0 at the border .. 1 `reach` metres in; groups' `core` scales with it */
     core: { biomes: string[]; reach: number };
+    /** open dry spots in the grass (share per biome in `biomes[b].open`): noise feature size metres, edge softness, `rim` width of the short dry grass round them */
+    clearings: { scale: number; soft: number; rim: number };
     groups: Record<string, Group>;
     biomes: Record<string, BiomeRule>;
 };

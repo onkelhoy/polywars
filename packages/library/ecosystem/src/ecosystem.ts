@@ -1,3 +1,4 @@
+import { fbm, simplex, type Noise2D } from "@polywar/noise";
 import { decode, encode, isCode } from "./code";
 import { cover, type Cover } from "./cover";
 import { GRASS_MODE } from "./hash";
@@ -16,6 +17,7 @@ export class Ecosystem {
     private ground?: Ground;
     cover?: Cover;
     private placed?: Placed;
+    private clearings: Noise2D = simplex(1);
     /** ms the last grow took */
     time = 0;
 
@@ -51,6 +53,7 @@ export class Ecosystem {
     grow(ground: Ground) {
         const t = performance.now();
         this.ground = ground;
+        this.clearings = simplex(this.o.seed * 7919 + 13);
         this.cover = cover(ground, this.o);
         this.placed = place(ground, this.cover, this.list, this.o);
         this.time = performance.now() - t;
@@ -76,6 +79,18 @@ export class Ecosystem {
         density *= smoothstep(snow - .05, snow + .03, t);
         if (g.snowHeight !== undefined) density *= 1 - smoothstep(g.snowHeight - 30, g.snowHeight, sample(g, g.height, x, z));
         if (density <= .002) return out;
+
+        // open dry spots: noise blobs cover about `open` of the ground, short dry grass round them
+        const open = bilinear(c.open, c.m, c.size, x, z);
+        if (open > .001)
+        {
+            const k = this.o.clearings, v = fbm(this.clearings, x / k.scale, z / k.scale, { octaves: 3 }), th = .3 - open * .9;
+            const rim = smoothstep(th - k.rim, th, v), inside = smoothstep(th - k.soft, th + k.soft, v);
+            density *= (1 - .45 * rim) * (1 - .97 * inside);
+            height *= 1 - .45 * rim;
+            dry = Math.max(dry, rim * .85);
+            if (density <= .002) return out;
+        }
 
         const h = p.hash, a = this.o.around;
         h.near(x, z, h.reach * a.ring, (id, d) => {

@@ -11,6 +11,7 @@ export const DEFAULTS: EcosystemOptions = {
     cities: { clear: 1.15, grass: .45, height: .5 },
     around: { ring: 1.4, taller: .8, bare: .3 },
     core: { biomes: ["forest"], reach: 90 },
+    clearings: { scale: 45, soft: .02, rim: .22 },
     groups: {
         conifer: { select: { kind: "tree", tags: ["pine"], not: ["dead"] }, layer: 0, scale: 1.5, core: { scale: 1.35, density: 3, spacing: .85 }, spacing: 1, cluster: { scale: 140, amount: .6 }, temperature: [0, .5], max: 40000 },
         broadleaf: { select: { kind: "tree", tags: ["broadleaf"], not: ["dead", "wet"] }, layer: 0, scale: 1.5, core: { scale: 1.1, density: .35 }, spacing: 1.1, cluster: { scale: 90, amount: .7 }, temperature: [.35, .85], max: 40000 },
@@ -28,12 +29,12 @@ export const DEFAULTS: EcosystemOptions = {
     },
     biomes: {
         forest: { props: { conifer: 110, broadleaf: 130, dead: 3, rock: 8, bush: 40, deadwood: 10, plant: 150, flower: 12, clump: 50 }, grass: g(.65, 1.25, .05, .1) },
-        grassland: { props: { broadleaf: 5, conifer: 2, willow: 8, rock: 4, bush: 7, plant: 12, flower: 150, clump: 90 }, grass: g(1, 1, .12, .55) },
-        savanna: { props: { broadleaf: 3, dead: 1.5, palm: 1, rock: 5, bush: 5, cactus: 1, clump: 30 }, grass: g(.8, 1.35, .75, .08) },
+        grassland: { props: { broadleaf: 5, conifer: 2, willow: 8, rock: 4, bush: 7, plant: 12, flower: 150, clump: 90 }, grass: g(1, 1, .12, .55) , open: .18 },
+        savanna: { props: { broadleaf: 3, dead: 1.5, palm: 1, rock: 5, bush: 5, cactus: 1, clump: 30 }, grass: g(.8, 1.35, .75, .08) , open: .3 },
         desert: { props: { cactus: 12, rock: 14, dead: .4, palm: .3, plant: 4 }, grass: g(.03, .45, 1, 0) },
         beach: { props: { palm: 6, willow: 1, rock: 3, clump: 12 }, grass: g(.12, .7, .5, 0) },
-        hills: { props: { conifer: 25, broadleaf: 14, rock: 25, bush: 14, deadwood: 3, flower: 40, clump: 60 }, grass: g(.85, .8, .22, .25) },
-        plateau: { props: { broadleaf: 5, conifer: 6, rock: 20, bush: 8, flower: 50, clump: 50 }, grass: g(.7, .7, .38, .3) },
+        hills: { props: { conifer: 25, broadleaf: 14, rock: 25, bush: 14, deadwood: 3, flower: 40, clump: 60 }, grass: g(.85, .8, .22, .25) , open: .15 },
+        plateau: { props: { broadleaf: 5, conifer: 6, rock: 20, bush: 8, flower: 50, clump: 50 }, grass: g(.7, .7, .38, .3) , open: .22 },
         mountain: { props: { conifer: 10, rock: 55, bush: 4 }, grass: g(.2, .5, .3, .06) },
         snow: { props: { conifer: 12, dead: 3, rock: 20, bush: 2 }, grass: g(0, .4, .2, 0) },
         lake: { props: { lilypad: 140 }, grass: g(0, 1, 0, 0) },
@@ -46,7 +47,7 @@ export function resolve(options: Partial<EcosystemOptions> = {}): EcosystemOptio
     const d = structuredClone(DEFAULTS);
     return {
         ...d, ...options,
-        cover: { ...d.cover, ...options.cover }, season: { ...d.season, ...options.season }, cities: { ...d.cities, ...options.cities }, around: { ...d.around, ...options.around }, core: { ...d.core, ...options.core },
+        cover: { ...d.cover, ...options.cover }, season: { ...d.season, ...options.season }, cities: { ...d.cities, ...options.cities }, around: { ...d.around, ...options.around }, core: { ...d.core, ...options.core }, clearings: { ...d.clearings, ...options.clearings },
         groups: { ...d.groups, ...options.groups },
         biomes: { ...d.biomes, ...options.biomes },
     };
