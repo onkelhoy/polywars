@@ -31,6 +31,30 @@ vec3 lit(vec3 albedo, vec3 n, vec3 world, float extra) {
  * Ground attributes: 0 position, 1 normal, 2 data (biome index, slope 0..1, moisture 0..1, temperature 0..1),
  * 3 flow 0..1 (< 0: far ground and chunk walls, smooth and plain), 4 water surface height (ground below it is under water).
  */
+/** value noise + billowy fbm 0..1 (cloud like outlines, watercolour blotches) */
+const NOISE = `
+float hash2f(vec2 p) { vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash2f(i), hash2f(i + vec2(1, 0)), f.x), mix(hash2f(i + vec2(0, 1)), hash2f(i + vec2(1, 1)), f.x), f.y);
+}
+float fbmBake(vec2 p) {
+    float v = 0.0, a = .5;
+    for (int o = 0; o < 5; o++) { v += vnoise(p) * a; p = mat2(1.6, 1.2, -1.2, 1.6) * p + 17.3; a *= .5; }
+    return v / .97;
+}`;
+
+/** baked fbm: `NOISE_SPAN` noise units over `NOISE_SIZE` texels */
+export const NOISE_SPAN = 256, NOISE_SIZE = 2048;
+export const NOISE_VERTEX = `#version 300 es
+void main() { gl_Position = vec4(vec2(gl_VertexID & 1, gl_VertexID >> 1) * 4.0 - 1.0, 0, 1); }`;
+export const NOISE_FRAGMENT = `#version 300 es
+precision highp float;
+${NOISE}
+out vec4 outColor;
+void main() { outColor = vec4(fbmBake(gl_FragCoord.xy * ${NOISE_SPAN}.0 / ${NOISE_SIZE}.0), 0, 0, 1); }`;
+
 export const GROUND_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
@@ -82,18 +106,10 @@ uniform int debug;
 ${COMMON}
 out vec4 outColor;
 
-float hash2f(vec2 p) { vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
-float vnoise(vec2 p) {
-    vec2 i = floor(p), f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    return mix(mix(hash2f(i), hash2f(i + vec2(1, 0)), f.x), mix(hash2f(i + vec2(0, 1)), hash2f(i + vec2(1, 1)), f.x), f.y);
-}
-/** billowy fbm 0..1: cloud like outlines (watercolour blotches) */
-float fbm(vec2 p) {
-    float v = 0.0, a = .5;
-    for (int o = 0; o < 5; o++) { v += vnoise(p) * a; p = mat2(1.6, 1.2, -1.2, 1.6) * p + 17.3; a *= .5; }
-    return v / .97;
-}
+${NOISE}
+uniform sampler2D noiseMap; // fbm baked once (NOISE_FRAGMENT), mirrored every NOISE_SPAN units
+/** fbm from the baked texture: one fetch instead of 5 octaves of value noise (phones) */
+float fbm(vec2 p) { return texture(noiseMap, p / ${NOISE_SPAN}.0).r; }
 uint biomeNode(ivec2 c) { int n = int(grid.x); return texelFetch(biomeMap, clamp(c, ivec2(0), ivec2(n - 1)), 0).r; }
 /** biome at a spot, borders pushed about by strokes: the biome with the most bilinear weight wins (hard edge) */
 float border; // 0 at a painted biome border .. 1 well inside (set by paintedBiome)

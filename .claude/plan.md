@@ -14,5 +14,5 @@
 - p1. [x] Stats per system (terrain / water / props / grass: calls, tris, ms) in the world view, to see what costs.
 - p2. [x] Render scale: cap the pixel ratio (phones render at 3x now?), lower on low quality.
 - p3. [x] Props: pack visible instances per model + lod into one stream buffer each frame → one call per model / lod / part.
-- p4. [ ] Fix the next biggest cost p1 shows (terrain chunks, water, grass).
+- p4. [x] Terrain shader: fbm baked once into a 2048² R8 texture (mirrored), 8 fetches instead of ~160 hashes per ground pixel.
 - p5. [ ] Phones start at low quality (touch / small screen), low = cheaper everywhere.
