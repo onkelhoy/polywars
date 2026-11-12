@@ -137,8 +137,8 @@ pap-dialog.material::part(dialog) {
     max-height: none;
 }
 
-pap-dialog.model pw-3d-asset-preview,
-pap-dialog.material pw-3d-asset-preview {
+pap-dialog.model > *,
+pap-dialog.material > * {
     display: block;
     height: 100%;
     min-height: 0;

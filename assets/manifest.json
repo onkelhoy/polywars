@@ -2995,6 +2995,36 @@
      ]
     },
     {
+     "name": "characters",
+     "assets": [
+      {
+       "name": "base",
+       "assets": [
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/base/character.json",
+         "size": 416
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/base/model.blend",
+         "size": 126995
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/base/model.glb",
+         "size": 243076
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/base/model.rig.json",
+         "size": 3484
+        }
+       ]
+      }
+     ]
+    },
+    {
      "name": "nature",
      "assets": [
       {

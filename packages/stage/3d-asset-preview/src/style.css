@@ -68,3 +68,4 @@ input[type=range] {
 .lights input {
     width: 120px;
 }
+output.frame { min-width: 5.5em; text-align: center; font-variant-numeric: tabular-nums; }

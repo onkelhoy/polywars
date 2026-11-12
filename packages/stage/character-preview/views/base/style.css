@@ -1,0 +1,4 @@
+@import "@papit/theme";
+
+html, body { margin: 0; height: 100%; font: 13px system-ui, sans-serif; background: var(--background); color: var(--text); }
+pw-character-preview { position: fixed; inset: 0; }

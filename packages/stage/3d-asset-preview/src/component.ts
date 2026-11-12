@@ -4,18 +4,19 @@ import type { Camera } from "@papit/game-engine";
 import "@polywar/3d-demo";
 import type { Demo3D } from "@polywar/3d-demo";
 import { Matrix4 } from "@papit/matrix";
-import { Grid, Model, Renderer, type Drawable, type Scene, type TexturedGLTF } from "@polywar/renderer";
+import { Grid, Model, Renderer, type Drawable, type ModelOptions, type Scene, type TexturedGLTF } from "@polywar/renderer";
 import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
 
 // local
 import sheet from "./style.css" with { type: "css" };
-import type { LoadEvent, PreviewMode } from "./types";
+import type { LoadEvent, Overlay, PreviewMode } from "./types";
 
 /**
  * Shows one 3D asset (.glb/.gltf) by path.
  * Modes: `turntable` (spins, drag to orbit), `orbit` (drag turn, right-drag/shift-drag pan, wheel zoom), `fps` (click, WASD + mouse).
- * With `controls`: mode switch, animation picker, play/pause and a time scrubber.
+ * With `controls`: mode switch, animation picker, play/pause, a time scrubber and frame stepping (`fps`).
+ * Hooks: `skin` (e.g. `Skeleton.skin` for IK), `overlay` (draws over the model, e.g. bones), `hide-model`.
  */
 export class AssetPreview3D extends CustomElement {
     static sheet = sheet;
@@ -27,6 +28,14 @@ export class AssetPreview3D extends CustomElement {
     @property({ attribute: false, after: function (this: AssetPreview3D) { this.load(); } }) scene: Scene | null = null;
     /** a new model keeps the camera where it is (after the first one); `frame()` fits it again */
     @property({ type: Boolean, attribute: "keep-view" }) keepView: boolean = false;
+    /** makes the skin for a loaded `src` (see `Model.load`), used from the next load */
+    @property({ attribute: false }) skin: ModelOptions["skin"] | null = null;
+    /** drawn after the model, with the same placement matrix */
+    @property({ attribute: false }) overlay: Overlay | null = null;
+    /** skip drawing the model (the overlay still draws) */
+    @property({ type: Boolean, attribute: "hide-model" }) hideModel: boolean = false;
+    /** frames per second for the frame readout and stepping */
+    @property({ type: Number }) fps: number = 30;
     @property({ rerender: true, after: function (this: AssetPreview3D) { this.applyMode(); } }) mode: PreviewMode = "turntable";
     @property({ rerender: true }) animation: string = "";
     @property({ type: Boolean, rerender: true }) controls: boolean = false;
@@ -47,7 +56,8 @@ export class AssetPreview3D extends CustomElement {
     private renderer?: Renderer;
     private gridMesh?: Grid;
     private bulb?: GPUMesh;
-    private model?: Model;
+    /** the loaded model */
+    model?: Model;
     private drawable?: Drawable;
     private drawableOf?: Scene;
     private yaw = 0;
@@ -60,7 +70,9 @@ export class AssetPreview3D extends CustomElement {
         const demo = this.shadowRoot!.querySelector<Demo3D>("pw-3d-demo")!;
         this.demo = demo;
         await demo.ready;
-        this.renderer = new Renderer(demo.layer!);
+        // a copy a template made and dropped never gets a layer
+        if (!demo.layer) return;
+        this.renderer = new Renderer(demo.layer);
         this.bulb = upload(demo.gl, new MeshBuilder().sphere([1, .85, .6], {}, 1).build());
         demo.tick = dt => this.step(dt);
         demo.draw = camera => this.draw(camera);
@@ -85,7 +97,7 @@ export class AssetPreview3D extends CustomElement {
         }
         if (!this.gltf && !src) return;
         const ticket = ++this.loading;
-        const model = this.gltf ? new Model(gl, this.gltf) : await Model.load(gl, src);
+        const model = this.gltf ? new Model(gl, this.gltf) : await Model.load(gl, src, { skin: this.skin ?? undefined });
         await model.ready;
         if (ticket !== this.loading) return model.destroy();
         const first = !this.model;
@@ -150,6 +162,8 @@ export class AssetPreview3D extends CustomElement {
         {
             const scrub = this.shadowRoot?.querySelector<HTMLInputElement>("input[type=range]");
             if (scrub && document.activeElement !== this) scrub.value = String(anim.duration ? (this.time % anim.duration) / anim.duration : 0);
+            const frame = this.shadowRoot?.querySelector<HTMLOutputElement>("output.frame");
+            if (frame) frame.value = `${Math.round(((this.time % anim.duration) + anim.duration) % anim.duration * this.fps)} / ${Math.round(anim.duration * this.fps)}`;
         }
     }
 
@@ -181,7 +195,8 @@ export class AssetPreview3D extends CustomElement {
         // spin around the model's middle, standing on y = 0; the origin dot sits on the asset's own origin
         const m = Matrix4.rotationY(this.yaw).translate(-cx, -bottom, -cz);
         if (this.demo) this.demo.origin = [m[12], m[13], m[14]];
-        this.model.draw(renderer, m);
+        if (!this.hideModel) this.model.draw(renderer, m);
+        this.overlay?.(renderer, this.model, m);
     }
 
     // ---- input ----
@@ -193,6 +208,11 @@ export class AssetPreview3D extends CustomElement {
     };
     private handleanimation = (e: Event) => { this.animation = (e.target as HTMLSelectElement).value; this.time = 0; };
     private handleplay = () => { this.playing = !this.playing; this.requestUpdate(); };
+    private handlestep = (n: number) => () => {
+        this.playing = false;
+        this.time = (Math.round(this.time * this.fps) + n) / this.fps;
+        this.requestUpdate();
+    };
     private handlescrub = (e: Event) => {
         const anim = this.model?.animation(this.animation);
         if (!anim) return;
@@ -219,6 +239,9 @@ export class AssetPreview3D extends CustomElement {
                         </select>
                         <pap-button size="small" variant="outline" @click="${this.handleplay}">${this.playing ? "pause" : "play"}</pap-button>
                         <input type="range" min="0" max="1" step="0.001" value="0" aria-label="time" @input="${this.handlescrub}" />
+                        <pap-button size="small" variant="outline" @click="${this.handlestep(-1)}" aria-label="previous frame">‹</pap-button>
+                        <output class="frame" aria-label="frame"></output>
+                        <pap-button size="small" variant="outline" @click="${this.handlestep(1)}" aria-label="next frame">›</pap-button>
                     ` : ""}
                 </div>
                 ${this.mode === "fps" ? html`<p class="hint">click to look (esc frees), WASD, E/Q up/down, shift fast, wheel speed</p>` : ""}

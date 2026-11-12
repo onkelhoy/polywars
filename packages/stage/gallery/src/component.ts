@@ -6,7 +6,7 @@ import "@papit/dialog";
 import type { Dialog } from "@papit/dialog";
 import "@polywar/3d-asset-preview";
 import type { AssetPreview3D } from "@polywar/3d-asset-preview";
-import { Model, Renderer, gltfFromMesh, type Drawable, type TexturedGLTF } from "@polywar/renderer";
+import { Model, Renderer, gltfFromMesh, type Drawable, type ModelOptions, type TexturedGLTF } from "@polywar/renderer";
 import { Matrix4 } from "@papit/matrix";
 
 // local
@@ -28,7 +28,9 @@ const is3D = (kind: AssetKind) => kind === "model" || kind === "material";
  * - `kinds`: which kinds start visible; the header toggles them, and searches names and groups.
  *
  * 3D tiles share one canvas over the page (a scissor rect per tile) so any number of them costs one
- * WebGL context. Drag a tile to turn it; click opens it in `pw-3d-asset-preview`.
+ * WebGL context. Drag a tile to turn it; click opens it in `pw-3d-asset-preview` (or what `opener` makes).
+ * Tiles play `animation` when they have it, else "idle"; the header lists every clip the tiles have.
+ * `skin` makes the skin of loaded models (e.g. `@polywar/skeleton` for characters, IK).
  */
 export class Gallery extends CustomElement {
     static sheet = sheet;
@@ -38,6 +40,12 @@ export class Gallery extends CustomElement {
     @property({ type: Array, attribute: false, after: function (this: Gallery) { this.sync(); } }) items: GalleryItem[] = [];
     @property({ type: Array, attribute: false, rerender: true }) kinds: AssetKind[] = ["model", "material", "audio", "image", "video"];
     @property({ rerender: true }) search: string = "";
+    /** clip every tile plays when it has it (else "idle") */
+    @property({ rerender: true }) animation: string = "idle";
+    /** skin factory for loaded models, see `Model.load` */
+    @property({ attribute: false }) skin: ModelOptions["skin"] | null = null;
+    /** makes the element an item opens in; undefined = the default `pw-3d-asset-preview` */
+    @property({ attribute: false }) opener: ((item: GalleryItem, animation: string) => HTMLElement | undefined) | null = null;
 
     private manifestItems: GalleryItem[] = [];
     private treeItems: GalleryItem[] = [];
@@ -51,6 +59,8 @@ export class Gallery extends CustomElement {
     private projection = Matrix4.create();
     private matrix = Matrix4.create();
     private loading = 0;
+    /** every clip name the loaded tiles have */
+    private clips = new Set<string>();
 
     get all() {
         if (this.tree !== this.treeSource) { this.treeSource = this.tree; this.treeItems = this.tree ? flatten(this.tree) : []; }
@@ -125,8 +135,12 @@ export class Gallery extends CustomElement {
         const { item } = tile;
         if (item.scene) { tile.drawable = item.scene(this.engine!.layers.main as Layer3D); return; }
         const gltf = toGLTF(item);
-        const ready = gltf ? Promise.resolve(new Model(this.gl, gltf)) : item.src ? Model.load(this.gl, item.src) : null;
-        ready?.then(m => { if (this.tiles.get(item) === tile) tile.model = m; else m.destroy(); }).catch(e => console.warn("pw-gallery:", item.src, e));
+        const ready = gltf ? Promise.resolve(new Model(this.gl, gltf)) : item.src ? Model.load(this.gl, item.src, { skin: this.skin ?? undefined }) : null;
+        ready?.then(m => {
+            if (this.tiles.get(item) !== tile) return m.destroy();
+            tile.model = m;
+            if (m.animations.some(a => a.name && !this.clips.has(a.name))) { m.animations.forEach(a => a.name && this.clips.add(a.name)); this.requestUpdate(); }
+        }).catch(e => console.warn("pw-gallery:", item.src, e));
     }
 
     // ---- drawing ----
@@ -160,8 +174,8 @@ export class Gallery extends CustomElement {
                 continue;
             }
             if (!model) continue;
-            const idle = model.animation("idle");
-            if (idle) model.pose(idle, time);
+            const clip = model.animation(this.animation) ?? model.animation("idle");
+            if (clip) model.pose(clip, time);
             // far enough that the bounding sphere fits the tile (fov .75 rad)
             const radius = Math.max(Math.hypot(...model.size) / 2, .01);
             const reach = radius / Math.sin(.75 / 2) * 1.05;
@@ -203,12 +217,16 @@ export class Gallery extends CustomElement {
         dialog.header = `${item.group ? item.group + "/" : ""}${item.name}`;
         dialog.className = item.kind;
         let content: HTMLElement;
-        if (is3D(item.kind))
+        const custom = is3D(item.kind) ? this.opener?.(item, this.animation) : undefined;
+        if (custom) content = custom;
+        else if (is3D(item.kind))
         {
             const preview = content = document.createElement("pw-3d-asset-preview") as AssetPreview3D;
             preview.setAttribute("controls", "");
             preview.setAttribute("grid", "");
             preview.setAttribute("mode", "orbit");
+            preview.setAttribute("animation", this.animation);
+            if (this.skin) preview.skin = this.skin;
             if (item.scene) preview.scene = item.scene;
             const gltf = toGLTF(item);
             if (gltf) preview.gltf = gltf;
@@ -236,6 +254,7 @@ export class Gallery extends CustomElement {
     }
 
     private handleopen = (item: GalleryItem) => () => this.open(item);
+    private handleclip = (e: Event) => { this.animation = (e.target as HTMLSelectElement).value; };
     private handlesearch = (e: Event) => { this.search = (e.target as HTMLInputElement).value; };
     private handlekind = (kind: AssetKind) => () => {
         this.kinds = this.kinds.includes(kind) ? this.kinds.filter(k => k !== kind) : [...this.kinds, kind];
@@ -296,6 +315,11 @@ export class Gallery extends CustomElement {
             <header>
                 <input type="search" placeholder="search" aria-label="search" @input="${this.handlesearch}" />
                 ${KINDS.map(k => html`<pap-button size="small" variant="${this.kinds.includes(k) ? "filled" : "outline"}" @click="${this.handlekind(k)}">${k}</pap-button>`)}
+                ${this.clips.size ? html`
+                    <select aria-label="animation" @change="${this.handleclip}">
+                        ${[...this.clips].sort().map(n => html`<option value="${n}" ${n === this.animation && "selected"}>${n}</option>`)}
+                    </select>
+                ` : ""}
                 <small>${shown.length} / ${all.length}</small>
             </header>
             ${tops.map(t => html`

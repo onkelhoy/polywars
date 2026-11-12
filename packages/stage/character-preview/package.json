@@ -55,7 +55,13 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/web-component": "*"
+    "@papit/web-component": "*",
+    "@papit/button": "*",
+    "@papit/matrix": "*",
+    "@polywar/3d-asset-preview": "*",
+    "@polywar/renderer": "*",
+    "@polywar/skeleton": "*",
+    "@polywar/rig-gizmo": "*"
   },
   "peerDependencies": {
     "react": "^19"

@@ -81,7 +81,9 @@
     "@papit/translator": "*",
     "@papit/codeblock": "*",
     "@polywar/grass-material": "*",
-    "@polywar/shading": "*"
+    "@polywar/shading": "*",
+    "@polywar/character-preview": "*",
+    "@polywar/skeleton": "*"
   },
   "browserslist": [
     "defaults",
