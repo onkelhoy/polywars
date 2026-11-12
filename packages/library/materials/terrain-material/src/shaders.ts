@@ -71,7 +71,8 @@ uniform float variation, contours, seaLevel;
 uniform bool flatShade;
 uniform highp usampler2D biomeMap;
 uniform vec2 grid; // nodes per side (0: no map), metres
-uniform vec3 paint; // border edge metres (0: mesh borders), stroke size metres, stroke patch strength
+uniform vec3 paint; // border bleed metres (0: mesh borders), wash size metres, wash strength
+uniform vec3 wash; // rim, warmth, grain
 uniform sampler2D waterMap; // metres to water / 255
 uniform vec3 gloss; // rock, wet, wet reach metres
 uniform vec2 range;
@@ -85,20 +86,19 @@ float vnoise(vec2 p) {
     f = f * f * (3.0 - 2.0 * f);
     return mix(mix(hash2f(i), hash2f(i + vec2(1, 0)), f.x), mix(hash2f(i + vec2(0, 1)), hash2f(i + vec2(1, 1)), f.x), f.y);
 }
-/** brush stroke noise: dabs long along a direction (fixed per seed, bent by a warp), thin across; 0..1 */
-float stroke(vec2 p, float size, float seed) {
-    vec2 q = p / size;
-    q += (vec2(vnoise(q * .3 + seed * 5.3), vnoise(q * .3 + seed * 9.1)) - .5) * 2.5;
-    float a = seed * 2.39996;
-    vec2 d = vec2(cos(a), sin(a));
-    q = vec2(dot(q, d), dot(q, vec2(-d.y, d.x)));
-    return vnoise(q * vec2(1.0, 2.6) + seed * 13.7) * .75 + vnoise(q * vec2(2.2, 5.0) + seed * 3.3) * .25;
+/** billowy fbm 0..1: cloud like outlines (watercolour blotches) */
+float fbm(vec2 p) {
+    float v = 0.0, a = .5;
+    for (int o = 0; o < 5; o++) { v += vnoise(p) * a; p = mat2(1.6, 1.2, -1.2, 1.6) * p + 17.3; a *= .5; }
+    return v / .97;
 }
 uint biomeNode(ivec2 c) { int n = int(grid.x); return texelFetch(biomeMap, clamp(c, ivec2(0), ivec2(n - 1)), 0).r; }
 /** biome at a spot, borders pushed about by strokes: the biome with the most bilinear weight wins (hard edge) */
+float border; // 0 at a painted biome border .. 1 well inside (set by paintedBiome)
 int paintedBiome(vec2 xz, int fallback) {
+    border = 1.0;
     if (grid.x < 2.0 || paint.x <= 0.0) return fallback;
-    vec2 w = vec2(stroke(xz, paint.y, 1.0), stroke(xz, paint.y, 2.0)) * 2.0 - 1.0;
+    vec2 w = vec2(fbm(xz / paint.y + 3.1), fbm(xz / paint.y + 41.7)) * 2.0 - 1.0;
     vec2 g = ((xz + w * paint.x) / grid.y + .5) * (grid.x - 1.0);
     if (g.x < 0.0 || g.y < 0.0 || g.x > grid.x - 1.0 || g.y > grid.x - 1.0) return fallback;
     ivec2 i = ivec2(floor(g));
@@ -112,6 +112,9 @@ int paintedBiome(vec2 xz, int fallback) {
         for (int c = 0; c < 4; c++) sum += b[c] == b[a] ? k[c] : 0.0;
         if (sum > top) { top = sum; best = b[a]; }
     }
+    // how far the winner leads, in screen pixels: a thin rim along the border
+    float lead = (top - .5) * 2.0;
+    border = top >= 1.0 ? 1.0 : smoothstep(0.0, fwidth(lead) * 3.0 + 1e-4, lead);
     return int(best);
 }
 
@@ -127,17 +130,33 @@ void main() {
     vec3 c = palette[biome];
     float shine = 0.0;
     if (biome > 1 && biome < ${N - 1}) {
-        float r = smoothstep(rock.x - rock.y, rock.x + rock.y, slope);
+        // painted: rock and snow edges are billowy wash edges (crisp) instead of a fade
+        float jag = paint.z > 0.0 ? fbm(vWorld.xz / (paint.y * .5) + 7.7) - .5 : 0.0;
+        float rs = slope - rock.x + jag * rock.y * 3.0, r = paint.z > 0.0 ? smoothstep(-fwidth(rs), fwidth(rs), rs) : smoothstep(rock.x - rock.y, rock.x + rock.y, slope);
         c = mix(c, rockColor, r);
         shine = r * gloss.x;
-        float s = smoothstep(snow.x - snow.y, snow.x + snow.y, vWorld.y) * (1.0 - smoothstep(snow.z - .05, snow.z + .05, slope));
+        float sh = vWorld.y - snow.x + jag * snow.y * 3.0;
+        float s = (paint.z > 0.0 ? smoothstep(-fwidth(sh), fwidth(sh), sh) : smoothstep(snow.x - snow.y, snow.x + snow.y, vWorld.y)) * (1.0 - smoothstep(snow.z - .05, snow.z + .05, slope));
         c = mix(c, snowColor, s);
     }
     if (!far) c *= 1.0 + (vShade - .5) * 2.0 * variation;
-    // light / dark brush strokes inside a biome, hard edged (a pixel of smoothing against shimmer)
+    // watercolour: layered washes deepen (cool) where they overlap, darker pigment at their rims, warm paper light between
     if (!far && paint.z > 0.0) {
-        float t = stroke(vWorld.xz, paint.y * .8, 3.0 + float(biome)), e = fwidth(t);
-        c *= 1.0 + paint.z * (smoothstep(.66 - e, .66 + e, t) - (1.0 - smoothstep(.34 - e, .34 + e, t)));
+        float deep = 0.0, rim = 0.0;
+        for (int l = 0; l < 3; l++) {
+            float fl = float(l), v = fbm(vWorld.xz / (paint.y * (1.0 + fl * .6)) + fl * 11.3 + float(biome) * 3.7), t = .52 + fl * .04, e = fwidth(v);
+            float m = smoothstep(t - e, t + e, v);
+            deep += m;
+            rim = max(rim, m * (1.0 - smoothstep(t + e, t + .03 + e * 2.0, v)));
+        }
+        deep /= 3.0;
+        vec3 warm = vec3(1.06, 1.0, .9), cool = vec3(.9, .96, 1.04);
+        c *= mix(vec3(1), mix(warm, cool, deep), wash.y);
+        c *= 1.0 - paint.z * .45 * deep;
+        c *= 1.0 - wash.x * .3 * max(rim, 1.0 - border);
+        // granulation: fine pigment speckle
+        float g = vnoise(vWorld.xz * 3.1) * .6 + vnoise(vWorld.xz * 9.7) * .4;
+        c *= 1.0 + wash.z * .1 * (g - .5);
     }
 
     if (debug == 1) c = palette[biome];

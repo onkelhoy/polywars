@@ -11,15 +11,15 @@ const DEBUG = { "": 0, biome: 1, height: 2, slope: 3, moisture: 4, temperature: 
 /** Low poly earthy palette; any field can be overridden. */
 export const TERRAIN_LOOK: TerrainLook = {
     colors: {
-        ocean: "#b9a57a", lake: "#8a8160", beach: "#e3d39b", grassland: "#7ea64a", savanna: "#c2b35e",
-        desert: "#dcbf7d", forest: "#4f7d3a", hills: "#8f9b52", plateau: "#a68e62", mountain: "#8a8077", snow: "#f2f4f7", river: "#7d7556",
+        ocean: "#bfa57a", lake: "#8f8160", beach: "#e8d49b", grassland: "#88a94b", savanna: "#cab35c",
+        desert: "#e2bf7a", forest: "#587f3b", hills: "#9a9d53", plateau: "#b08f60", mountain: "#918077", snow: "#f4f3f2", river: "#837556",
     },
-    rock: { color: "#7c746c", slope: .55, softness: .08 },
+    rock: { color: "#847670", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
-    paint: { edge: 7, size: 16, strokes: .08 },
+    paint: { edge: 10, size: 30, washes: .5, rim: .6, warmth: .5, grain: .3 },
     gloss: { rock: .2, wet: .22, reach: 6 },
-    variation: .06,
-    flat: true,
+    variation: .02,
+    flat: false,
     bands: 0,
     lighting: { wrap: .1, steepness: 1 },
     contours: 0,
@@ -110,7 +110,8 @@ export class TerrainMaterial {
         gl.uniform3fv(u("snowColor"), linear(o.snow.color));
         gl.uniform3f(u("snow"), o.snow.height, o.snow.softness, o.snow.slope);
         gl.uniform1f(u("variation"), o.variation);
-        gl.uniform3f(u("paint"), this.map ? o.paint.edge : 0, Math.max(1, o.paint.size), o.paint.strokes);
+        gl.uniform3f(u("paint"), this.map ? o.paint.edge : 0, Math.max(1, o.paint.size), o.paint.washes);
+        gl.uniform3f(u("wash"), o.paint.rim, o.paint.warmth, o.paint.grain);
         gl.uniform2f(u("grid"), this.map?.n ?? 0, this.map?.size ?? 1);
         gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, this.map?.texture ?? null);
