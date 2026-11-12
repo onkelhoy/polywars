@@ -3,27 +3,30 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sites | experiment</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-
-    <!-- Styles -->
+    <title>sites | experiment</title>
     <link rel="stylesheet" href="style.css" />
-
     <script defer type="module" src="main.js"></script>
 </head>
 
 <body>
-
-    <h1>Sites | experiment</h1>
-    <section>
-        <h2>Example</h2>
-        <pap-codeblock>
-            <undefined-sites></undefined-sites>
-        </pap-codeblock>
-    </section>
+    <canvas id="map"></canvas>
+    <aside>
+        <h1>sites</h1>
+        <output id="info">generating…</output>
+        <fieldset>
+            <legend>map</legend>
+            <label>terrain seed <input id="tseed" type="number" min="0" step="1" value="42" /></label>
+            <label>preset <select id="preset"></select></label>
+            <label>quality <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+            <label>sites seed <input id="seed" type="number" min="0" step="1" value="1" /></label>
+        </fieldset>
+        <fieldset id="counts">
+            <legend>counts</legend>
+        </fieldset>
+        <div class="legend" id="legend"></div>
+    </aside>
+    <div id="cursor"></div>
 </body>
 
 </html>
