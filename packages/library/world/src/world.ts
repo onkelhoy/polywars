@@ -88,8 +88,8 @@ export class World {
         return this.terrain.load(s.terrain ?? {});
     }
 
-    /** biome under a spot, ground height, ... are the terrain's */
-    heightAt(x: number, z: number) { return this.terrain.heightAt(x, z); }
+    /** biome under a spot, ground height, ... are the terrain's; `heightAt` is the ground as drawn */
+    heightAt(x: number, z: number) { return this.terrain.groundAt(x, z); }
 
     draw(view: View, light: Light, time: number) {
         this.terrain.draw(view, light, time);
@@ -118,7 +118,7 @@ export class World {
     private grow(data: TerrainData) {
         this.data = data;
         const look = this.terrain.material.look;
-        this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height });
+        this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z) });
     }
 
     /** ecosystem grown: hand props to the scatter and replant the grass */
@@ -135,7 +135,7 @@ export class World {
         this.grass.plant({
             area: { x: -d.size / 2, z: -d.size / 2, width: d.size, depth: d.size },
             seed: this.ecosystem.seed,
-            height: (x, z) => this.terrain.heightAt(x, z),
+            height: (x, z) => this.terrain.groundAt(x, z),
             grow: (x, z) => this.ecosystem.grassAt(x, z, out),
             window: WINDOW[this.v.quality],
         });

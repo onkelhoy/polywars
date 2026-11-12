@@ -69,7 +69,7 @@ export function place(g: Ground, c: Cover, list: NatureList, o: EcosystemOptions
             if (blocked) continue;
 
             // variant: snow when cold or on the snow cap, autumn in patches, moss where damp
-            const y0 = gr.floats ? sample(g, g.surface, x, z) : sample(g, g.height, x, z);
+            const y0 = gr.floats ? sample(g, g.surface, x, z) : g.groundAt ? g.groundAt(x, z) : sample(g, g.height, x, z);
             const t = sample(g, g.temperature, x, z), mo = sample(g, g.moisture, x, z);
             let variant: string | undefined;
             if (t < o.season.snow + (vary - .5) * .06 || (g.snowHeight !== undefined && y0 > g.snowHeight - vary * 30)) variant = "snow";

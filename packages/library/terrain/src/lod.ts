@@ -1,4 +1,4 @@
-import { errors, triangulate } from "./rtin";
+import { errors, meshHeight, triangulate } from "./rtin";
 import { upload, free, type Mesh } from "./mesh";
 import type { TerrainData } from "./types";
 
@@ -72,6 +72,17 @@ export class Ground {
         for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { h[j * s + i] = d.height[g(i, j)]; b[j * s + i] = d.biome[g(i, j)]; }
         const edges = this.edges;
         return c.errors = errors(h, s, edges > 0 ? (m, a, q) => b[m] !== b[a] || b[m] !== b[q] ? edges : 0 : undefined, this.adaptive);
+    }
+
+    /** height of the finest drawn ground (level 0 triangles) at world x / z; grass and props stand on this */
+    heightAt(x: number, z: number) {
+        const d = this.d, n = d.n, c = this.size, half = d.size / 2;
+        const gx = Math.min(n - 1, Math.max(0, (x + half) / d.cell)), gz = Math.min(n - 1, Math.max(0, (z + half) / d.cell));
+        const ci = Math.min(Math.floor(gx / c), (n - 1) / c - 1), cj = Math.min(Math.floor(gz / c), (n - 1) / c - 1);
+        const chunk = this.chunks[cj * ((n - 1) / c) + ci];
+        if (!chunk) return 0;
+        const s = c + 1;
+        return meshHeight(this.errorsOf(chunk), s, this.levelError(0), k => d.height[(chunk.j0 + Math.floor(k / s)) * n + chunk.i0 + k % s], gx - chunk.i0, gz - chunk.j0);
     }
 
     /** metres of error for a level */

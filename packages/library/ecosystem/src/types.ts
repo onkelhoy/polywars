@@ -28,6 +28,8 @@ export type Ground = {
     /** metres from water to the shore (0 on land) */
     toLand: Float32Array;
     cities: { x: number; z: number; radius: number }[];
+    /** height of the ground as drawn (props stand on it), default the `height` grid */
+    groundAt?: (x: number, z: number) => number;
     /** slope where the ground shows bare rock (terrain look), default .55 */
     rockSlope?: number;
     /** metres where the snow cap starts (terrain look), default none */

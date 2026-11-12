@@ -132,7 +132,7 @@ $('#minimap').onclick = e => {
 };
 
 // ---- play: first person on foot where the camera is (Esc back to the editor) ----
-demo.walking = { ground: (x, z) => terrain.heightAt(x, z) };
+demo.walking = { ground: (x, z) => terrain.groundAt(x, z) };
 $('#play').onclick = () => {
     const cam = demo.camera?.position;
     if (cam && Math.abs(cam[0]) > size() / 2 || cam && Math.abs(cam[2]) > size() / 2) stand(0, 0);
