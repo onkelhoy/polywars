@@ -31,12 +31,26 @@ const BLENDS = [
     ["Farm Buildings - Sept 2018/Blend", "buildings/farm"],
     ["castle/Blends", "buildings/castle"],
     ["dunguen/Blends", "buildings/dungeon"],
+    ["Train Pack - April 2019/Blends", "transport/train"],
+    ["Tank Pack - June 2019/Blends", "vehicles/tanks"],
+    ["Animated Fish Pack by @Quaternius/Blends", "animals/fish"],
+    ["Ultimate Animated Animals - July 2021/Blends", "animals/ultimate"],
+    ["Dinosaur Animated Pack - Dec 2018/Blends", "animals/dinosaurs"],
+    ["Knight by @Quaternius/Blends", "characters/knight"],
+    ["Ultimate Food Pack - Oct 2019/Blends", "props/food"],
 ];
 for (const [from, to] of BLENDS)
 {
     const src = join(STORE, from), pack = dirname(src);
     for (const f of files(src, [".blend"])) copy(join(src, f), join(MODELS, to, f));
     for (const f of files(pack, [".txt", ".png", ".jpg", ".gif"])) copy(join(pack, f), join(MODELS, to, "about", f));
+}
+
+// Graves ships one .glb
+{
+    const src = join(STORE, "Graves"), to = join(MODELS, "props/graves");
+    copy(join(src, "Graves by jrich01 - AVrXtzi4So.glb"), join(to, "Graves.glb"));
+    copy(join(src, "attribution.txt"), join(to, "about", "attribution.txt"));
 }
 
 // motorcycle ships a .blend with its texture next to it

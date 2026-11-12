@@ -1,0 +1,38 @@
+{
+ "bones": {
+  "Root": {
+   "length": 1.0,
+   "deform": true
+  },
+  "Spine1": {
+   "length": 1.5616,
+   "deform": true
+  },
+  "Spine2": {
+   "length": 1.659,
+   "deform": true
+  },
+  "Spine3": {
+   "length": 1.72481,
+   "deform": true
+  },
+  "Tail": {
+   "length": 1.22158,
+   "deform": true
+  },
+  "Face": {
+   "length": 1.07107,
+   "deform": true
+  },
+  "Bone": {
+   "length": 0.66547,
+   "deform": true
+  },
+  "Bone.001": {
+   "length": 0.66547,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

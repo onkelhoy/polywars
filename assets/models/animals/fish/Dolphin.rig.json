@@ -1,0 +1,58 @@
+{
+ "bones": {
+  "Root": {
+   "length": 0.57664,
+   "deform": true
+  },
+  "Spine1": {
+   "length": 0.89821,
+   "deform": true
+  },
+  "Spine2": {
+   "length": 1.76356,
+   "deform": true
+  },
+  "Spine3": {
+   "length": 1.60414,
+   "deform": true
+  },
+  "Spine4": {
+   "length": 1.41168,
+   "deform": true
+  },
+  "Tail": {
+   "length": 1.15551,
+   "deform": true
+  },
+  "TopFlipper.L": {
+   "length": 0.38374,
+   "deform": true
+  },
+  "MidFlipper.L": {
+   "length": 0.24562,
+   "deform": true
+  },
+  "BottomFlipper.L": {
+   "length": 0.4379,
+   "deform": true
+  },
+  "TopFlipper.R": {
+   "length": 0.4727,
+   "deform": true
+  },
+  "MidFlipper.R": {
+   "length": 0.30575,
+   "deform": true
+  },
+  "BottomFlipper.R": {
+   "length": 0.41411,
+   "deform": true
+  },
+  "Head": {
+   "length": 1.03561,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

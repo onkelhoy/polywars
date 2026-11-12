@@ -1,0 +1,186 @@
+{
+ "bones": {
+  "Root": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack22.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack11.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack10.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack12.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack9.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack8.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack14.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack13.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack15.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack16.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack6.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack7.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack18.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack17.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack5.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack4.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack2.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack3.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack19.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack20.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack1.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack21.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack22.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack11.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack10.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack12.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack9.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack8.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack14.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack13.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack15.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack16.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack6.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack7.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack18.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack17.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack5.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack4.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack2.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack3.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack19.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack20.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack1.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "TankTrack21.R": {
+   "length": 1.0,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

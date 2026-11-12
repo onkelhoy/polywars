@@ -1,0 +1,145 @@
+{
+ "bones": {
+  "Bone": {
+   "length": 0.26681,
+   "deform": true
+  },
+  "Foot.L": {
+   "length": 0.32555,
+   "deform": true
+  },
+  "Body": {
+   "length": 0.31092,
+   "deform": true
+  },
+  "Hips": {
+   "length": 0.39336,
+   "deform": true
+  },
+  "Abdomen": {
+   "length": 0.77068,
+   "deform": true
+  },
+  "Torso": {
+   "length": 0.68493,
+   "deform": true
+  },
+  "Neck": {
+   "length": 0.32515,
+   "deform": true
+  },
+  "Head": {
+   "length": 1.27331,
+   "deform": true
+  },
+  "Shoulder.L": {
+   "length": 0.37716,
+   "deform": true
+  },
+  "UpperArm.L": {
+   "length": 1.01546,
+   "deform": true
+  },
+  "LowerArm.L": {
+   "length": 1.09592,
+   "deform": true
+  },
+  "Palm.L": {
+   "length": 0.25787,
+   "deform": true
+  },
+  "MiddleHand.L": {
+   "length": 0.16064,
+   "deform": true
+  },
+  "Fingers.L": {
+   "length": 0.13147,
+   "deform": true
+  },
+  "Thumb.R": {
+   "length": 0.18766,
+   "deform": true
+  },
+  "Thumb2.R": {
+   "length": 0.19015,
+   "deform": true
+  },
+  "Shoulder.R": {
+   "length": 0.37716,
+   "deform": true
+  },
+  "UpperArm.R": {
+   "length": 0.93266,
+   "deform": true
+  },
+  "LowerArm.R": {
+   "length": 1.1792,
+   "deform": true
+  },
+  "Palm.R": {
+   "length": 0.25787,
+   "deform": true
+  },
+  "MiddleHand.R": {
+   "length": 0.16064,
+   "deform": true
+  },
+  "Fingers.R": {
+   "length": 0.13147,
+   "deform": true
+  },
+  "Thumb.L": {
+   "length": 0.18766,
+   "deform": true
+  },
+  "Thumb2.L": {
+   "length": 0.19015,
+   "deform": true
+  },
+  "UpperLeg.L": {
+   "length": 0.94692,
+   "deform": true
+  },
+  "LowerLeg.L": {
+   "length": 0.80104,
+   "deform": true
+  },
+  "UpperLeg.R": {
+   "length": 0.94692,
+   "deform": true
+  },
+  "LowerLeg.R": {
+   "length": 0.8927,
+   "deform": true
+  },
+  "PoleTarget.L": {
+   "length": 0.30912,
+   "deform": true
+  },
+  "Foot.R": {
+   "length": 0.32555,
+   "deform": true
+  },
+  "PoleTarget.R": {
+   "length": 0.30912,
+   "deform": true
+  }
+ },
+ "ik": [
+  {
+   "bone": "LowerLeg.L",
+   "chain": 2,
+   "target": "Foot.L",
+   "weight": 1.0,
+   "pole": "PoleTarget.L"
+  },
+  {
+   "bone": "LowerLeg.R",
+   "chain": 2,
+   "target": "Foot.R",
+   "weight": 1.0,
+   "pole": "PoleTarget.R"
+  }
+ ],
+ "copyRotation": []
+}

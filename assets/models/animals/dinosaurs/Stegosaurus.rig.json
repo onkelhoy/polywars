@@ -1,0 +1,147 @@
+{
+ "bones": {
+  "root": {
+   "length": 0.8,
+   "deform": true
+  },
+  "Body": {
+   "length": 1.0,
+   "deform": true
+  },
+  "BackLeg.R": {
+   "length": 0.8816,
+   "deform": true
+  },
+  "BackUpLeg.R": {
+   "length": 1.62172,
+   "deform": true
+  },
+  "BackLowLeg.R": {
+   "length": 1.46746,
+   "deform": true
+  },
+  "BackLeg.L": {
+   "length": 0.8816,
+   "deform": true
+  },
+  "BackUpLeg.L": {
+   "length": 1.62172,
+   "deform": true
+  },
+  "BackLowLeg.L": {
+   "length": 1.46746,
+   "deform": true
+  },
+  "Back": {
+   "length": 0.58906,
+   "deform": true
+  },
+  "Tail1": {
+   "length": 1.11995,
+   "deform": true
+  },
+  "Tail2": {
+   "length": 0.9628,
+   "deform": true
+  },
+  "Tail3": {
+   "length": 1.51454,
+   "deform": true
+  },
+  "Tail4": {
+   "length": 1.7881,
+   "deform": true
+  },
+  "Tail5": {
+   "length": 0.6748,
+   "deform": true
+  },
+  "Hips": {
+   "length": 0.69155,
+   "deform": true
+  },
+  "Torso": {
+   "length": 0.84824,
+   "deform": true
+  },
+  "Shoulders": {
+   "length": 1.00947,
+   "deform": true
+  },
+  "Neck": {
+   "length": 0.94525,
+   "deform": true
+  },
+  "Head": {
+   "length": 0.93909,
+   "deform": true
+  },
+  "FrontLeg.R": {
+   "length": 0.4521,
+   "deform": true
+  },
+  "FrontUpLeg.R": {
+   "length": 1.06229,
+   "deform": true
+  },
+  "FrontLowLeg.R": {
+   "length": 0.80075,
+   "deform": true
+  },
+  "FrontLeg.L": {
+   "length": 0.4521,
+   "deform": true
+  },
+  "FrontUpLeg.L": {
+   "length": 1.06229,
+   "deform": true
+  },
+  "FrontLowLeg.L": {
+   "length": 0.80075,
+   "deform": true
+  },
+  "BackFoot.R": {
+   "length": 0.64596,
+   "deform": true
+  },
+  "BackFoot.L": {
+   "length": 0.64596,
+   "deform": true
+  },
+  "FrontFoot.R": {
+   "length": 0.53559,
+   "deform": true
+  },
+  "FrontFoot.L": {
+   "length": 0.53559,
+   "deform": true
+  }
+ },
+ "ik": [
+  {
+   "bone": "BackLowLeg.R",
+   "chain": 3,
+   "target": "BackFoot.R",
+   "weight": 1.0
+  },
+  {
+   "bone": "BackLowLeg.L",
+   "chain": 3,
+   "target": "BackFoot.L",
+   "weight": 1.0
+  },
+  {
+   "bone": "FrontLowLeg.R",
+   "chain": 2,
+   "target": "FrontFoot.R",
+   "weight": 1.0
+  },
+  {
+   "bone": "FrontLowLeg.L",
+   "chain": 2,
+   "target": "FrontFoot.L",
+   "weight": 1.0
+  }
+ ],
+ "copyRotation": []
+}
