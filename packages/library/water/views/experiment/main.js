@@ -15,33 +15,61 @@ let scene = new WaterSample(layer), look = structuredClone(WATER_LOOK);
 const screen = new WaterScreen(layer);
 
 // ---- models: real sizes, standing on the ground ----
-const place = (x, z, yaw = 0, y) => {
-    const c = Math.cos(yaw), s = Math.sin(yaw);
-    return Matrix4.create([c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, x, y ?? scene.heightAt(x, z), z, 1]);
+const place = (x, z, yaw, y, k = 1) => {
+    const c = Math.cos(yaw) * k, s = Math.sin(yaw) * k;
+    return Matrix4.create([c, 0, -s, 0, 0, k, 0, 0, s, 0, c, 0, x, y, z, 1]);
 };
-const props = [];
-const load = async (url, spots) => {
+/** hooves: the lowest vertices, one cluster per quarter round the centre (mesh space x z) */
+const hooves = model => {
+    const { min, max } = model.bounds, low = min[1] + (max[1] - min[1]) * .06, cx = (min[0] + max[0]) / 2, cz = (min[2] + max[2]) / 2;
+    const sums = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
+    for (const mesh of model.gltf.meshes) for (const p of mesh.primitives)
+        for (let i = 0; i < p.positions.length; i += 3) if (p.positions[i + 1] < low)
+        {
+            const q = (p.positions[i] > cx ? 1 : 0) + (p.positions[i + 2] > cz ? 2 : 0);
+            sums[q][0] += p.positions[i]; sums[q][1] += p.positions[i + 2]; sums[q][2]++;
+        }
+    return sums.filter(s => s[2]).map(([x, z, n]) => [x / n, z / n]);
+};
+const props = [], legs = [];
+// assets in real metres: the farm pack is about 3.4 times too big, scaled to a 1.45 m cow here
+const load = async (url, spots, height) => {
     try
     {
-        const m = await Model.load(gl, url);
-        for (const [x, z, yaw] of spots) props.push({ model: m, matrix: place(x, z, yaw, scene.heightAt(x, z) - m.bounds.min[1]) });
+        const m = await Model.load(gl, url), { min, max } = m.bounds, k = height ? height / (max[1] - min[1]) : 1;
+        const feet = url.includes('animals') ? hooves(m) : [];
+        for (const [x, z, yaw] of spots)
+        {
+            props.push({ model: m, spot: [x, z], matrix: place(x, z, yaw, scene.heightAt(x, z) - min[1] * k, k) });
+            const c = Math.cos(yaw), s = Math.sin(yaw);
+            for (const [lx, lz] of feet)
+            {
+                const wx = x + (c * lx + s * lz) * k, wz = z + (-s * lx + c * lz) * k, w = scene.surfaceAt(wx, wz);
+                if (w !== null && scene.heightAt(wx, wz) < w) legs.push(wx, wz, .05);
+            }
+        }
     }
     catch (e) { console.warn('could not load', url, e); }
 };
-load('/assets/models/animals/farm/Cow.glb', [[-58, 6, 1.2], [-40, 30, 2.6], [30, -10, .4]]);
+// cows: two standing ankle deep at the beach (walk out from land until the water is `depth`), one on the grass
+const wade = (z, depth) => { let x = 0; while (x > -200 && scene.heightAt(x, z) > -depth) x -= .25; return x; };
+load('/assets/models/animals/farm/Cow.glb', [[wade(6, .3), 6, 1.2], [wade(30, .15), 30, 2.6], [30, -10, .4]], 1.45);
 load('/assets/models/buildings/farm/Silo_House.glb', [[20, 40, 0]]);
 
+window.water = { scene, legs, props };
 // ---- cameras ----
 const cams = {
     close: [[-80, 2.5, 30], [-70, 0, 20]],
-    cow: [[-66, 3, 14], [-58, 1, 6]],
+    cow: [[-4, 1.6, 2.5], [0, .3, 0]],
     river: [[-10, 8, 25], [-20, 0, 8]],
     mid: [[-200, 60, 160], [-50, 0, 0]],
     far: [[-900, 400, 700], [0, 0, 0]],
     under: [[-110, -4, 10], [-70, -2, 10]],
 };
 document.querySelectorAll('[data-cam]').forEach(b => b.onclick = () => {
-    const [from, to] = cams[b.dataset.cam];
+    let [from, to] = cams[b.dataset.cam];
+    // the cow camera looks at the first cow
+    if (b.dataset.cam === 'cow' && props[0]) { const m = props[0].spot; from = [m[0] - 4, 1.6, m[1] + 2.5]; to = [m[0], .3, m[1]]; }
     demo.mode = b.dataset.cam === 'under' ? 'fly' : demo.mode;
     demo.look(from, to);
 });
@@ -123,7 +151,7 @@ demo.draw = camera => {
     renderer.begin(camera, bg);
     scene.drawGround(camera, renderer.light, t);
     for (const p of props) p.model.draw(renderer, p.matrix);
-    scene.drawWater(camera, renderer.light, t);
+    scene.drawWater(camera, renderer.light, t, legs);
     screen.draw(surface !== null, t, surface !== null ? look.under.shallow : deep);
     $('#info').textContent = `eye ${eye.x.toFixed(1)} ${eye.y.toFixed(1)} ${eye.z.toFixed(1)} m${surface !== null ? `  ·  ${(surface - eye.y).toFixed(1)} m under` : ''}\nfly mode: WASD + mouse, dive below the surface`;
 };

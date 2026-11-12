@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { WaterMaterial, bindUnder } from "./material";
-import { CAUSTICS_GLSL, UNDER_GLSL } from "./shaders";
+import { UNDER_GLSL } from "./shaders";
 import type { Light, View, WaterLook } from "./types";
 
 type Mesh = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; indexed: boolean };
@@ -77,6 +77,24 @@ function distance(n: number, cell: number, source: (k: number) => boolean) {
     return d;
 }
 
+/** box blur, `r` nodes, rows then columns: smooth shore curves instead of grid steps */
+function blur(a: Float32Array, n: number, r: number) {
+    const tmp = new Float32Array(a.length), out = new Float32Array(a.length);
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++)
+    {
+        let sum = 0, c = 0;
+        for (let d = -r; d <= r; d++) { const x = i + d; if (x >= 0 && x < n) { sum += a[j * n + x]; c++; } }
+        tmp[j * n + i] = sum / c;
+    }
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++)
+    {
+        let sum = 0, c = 0;
+        for (let d = -r; d <= r; d++) { const y = j + d; if (y >= 0 && y < n) { sum += tmp[y * n + i]; c++; } }
+        out[j * n + i] = sum / c;
+    }
+    return out;
+}
+
 const GROUND_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 color;
@@ -93,10 +111,9 @@ in vec3 vWorld;
 flat in vec3 vColor;
 in float vSurface;
 uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye;
-uniform float sunStrength, ambient, fogDensity, time, caustics;
+uniform float sunStrength, ambient, fogDensity;
 uniform bool eyeUnder;
 ${UNDER_GLSL}
-${CAUSTICS_GLSL}
 out vec4 outColor;
 void main() {
     vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
@@ -106,15 +123,15 @@ void main() {
     vec3 light = mix(ground, sky, n.y * .5 + .5) * ambient + sunColor * sunStrength * sun;
     vec3 c = vColor * light;
     if (wet > 0.0) {
-        // under water: sunlight fades with depth and takes the water's colour; caustics on top
+        // under water: sunlight fades with depth and takes the water's colour
         c = mix(c, vColor * underColorAt(wet) * 1.4, 1.0 - exp(-wet * .25));
-        c += sunColor * sunStrength * causticsAt(vWorld.xz, time) * caustics * sun * exp(-wet * underSun * 1.5);
     }
     float dist = length(vWorld - eye);
     c = eyeUnder ? underFog(c, vWorld, eye) : mix(c, fogColor, 1.0 - exp(-dist * fogDensity));
     outColor = vec4(pow(c, vec3(1.0 / 2.2)), 1.0);
 }`;
 
+const ROCKS: [number, number, number][] = [[-75, 10, 4], [-82, -12, 2.5], [-70, 40, 1.6], [-90, 60, 3.2], [-64, -40, 1.2], [5, -12, 1.4], [-30, 13, 1.1], [100, -40, 3], [150, -95, 2]];
 const SAND: [number, number, number] = [.72, .64, .42], GRASS: [number, number, number] = [.3, .45, .18], MUD: [number, number, number] = [.42, .38, .27], ROCK: [number, number, number] = [.38, .37, .36];
 
 /**
@@ -127,7 +144,6 @@ export class WaterSample {
     readonly size: [number, number, number] = [EXTENT, 20, EXTENT];
     readonly seaLevel = SEA;
     readonly lakeLevel = LAKE;
-    caustics = true;
     private gl: WebGL2RenderingContext;
     private n = EXTENT / CELL + 1;
     private heights: Float32Array;
@@ -144,12 +160,14 @@ export class WaterSample {
         this.heights = new Float32Array(n * n);
         for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) this.heights[j * n + i] = shape(i * CELL - half, j * CELL - half);
         this.ground = this.buildGround();
+        // rocks poking out of the water get a foam ring
+        for (const [x, z, r] of ROCKS) { const w = this.surfaceAt(x, z); if (w !== null && this.heightAt(x, z) + r * 1.2 > w) this.contacts.push(x, z, r * .6); }
         // shore distances on a 1 m grid from the ground the eye sees (the triangles), signed: < 0 over land
         const fn = EXTENT + 1, at = (k: number) => this.heightAt((k % fn) - half, ((k / fn) | 0) - half);
         const signed = (wet: (k: number) => boolean) => {
             const toLand = distance(fn, 1, k => !wet(k)), toWater = distance(fn, 1, wet), out = new Float32Array(fn * fn);
             for (let k = 0; k < out.length; k++) out[k] = wet(k) ? toLand[k] - .5 : .5 - toWater[k];
-            return out;
+            return blur(blur(out, fn, 3), fn, 3);
         };
         const sea = signed(k => at(k) < SEA && (k % fn) - half < coast(((k / fn) | 0) - half) + 2);
         const lake = signed(k => { const x = (k % fn) - half, z = ((k / fn) | 0) - half; return at(k) < LAKE && Math.hypot(x - LAKE_AT[0], z - LAKE_AT[1]) < lakeRadius(x, z) + 6; });
@@ -205,15 +223,18 @@ export class WaterSample {
         gl.uniform1f(u("ambient"), light.ambient);
         gl.uniform3fv(u("fogColor"), light.fogColor);
         gl.uniform1f(u("fogDensity"), light.fogDensity);
-        gl.uniform1f(u("time"), time);
-        gl.uniform1f(u("caustics"), this.caustics ? this.material.look.under.caustics : 0);
         gl.uniform1i(u("eyeUnder"), surface !== null ? 1 : 0);
         bindUnder(gl, u, this.material.look.under, surface ?? 0);
         gl.enable(gl.DEPTH_TEST);
         this.mesh(this.ground);
     }
 
-    drawWater(view: View, light: Light, time: number) {
+    /** x z radius of every rock where it meets the water, for the foam rings */
+    readonly contacts: number[] = [];
+
+    /** `contacts`: more x z radius triples (e.g. legs of animals standing in the water) */
+    drawWater(view: View, light: Light, time: number, contacts: number[] = []) {
+        const all = this.contacts.concat(contacts);
         const gl = this.gl, e = view.worldPosition ?? { x: 0, y: 0, z: 0 }, surface = this.under(e);
         const cull = gl.isEnabled(gl.CULL_FACE);
         gl.disable(gl.CULL_FACE);
@@ -225,7 +246,7 @@ export class WaterSample {
         {
             // from below only the body the eye is in looks like a ceiling; the others draw as seen from above
             const under = surface !== null && (level === null ? false : Math.abs(surface - level) < .01);
-            if (m && this.material.use(view, light, time, { fresh, under, surface: surface ?? 0 })) this.mesh(m);
+            if (m && this.material.use(view, light, time, { fresh, under, surface: surface ?? 0, contacts: all })) this.mesh(m);
         }
         gl.depthMask(true);
         if (cull) gl.enable(gl.CULL_FACE);
@@ -256,7 +277,7 @@ export class WaterSample {
             if (i < n - 1 && j < n - 1) { const a = j * n + i; idx.push(a, a + n, a + 1, a + 1, a + n, a + n + 1); }
         }
         // rocks: low poly lumps in the shallows, the river and the lake
-        const rocks: [number, number, number][] = [[-75, 10, 4], [-82, -12, 2.5], [-70, 40, 1.6], [-90, 60, 3.2], [-64, -40, 1.2], [5, -12, 1.4], [-30, 13, 1.1], [100, -40, 3], [150, -95, 2]];
+        const rocks = ROCKS;
         let seed = 3;
         const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
         const t = (1 + Math.sqrt(5)) / 2, ico = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]];
@@ -285,11 +306,21 @@ export class WaterSample {
 
     /** a water surface at `level` over every cell near `shore` > 0 (1 m grid); the sea also gets an open ring to the horizon */
     private buildSurface(shore: Float32Array, level: number, ring: boolean) {
-        const fn = EXTENT + 1, half = EXTENT / 2, step = 3, pos: number[] = [], info: number[] = [], flow: number[] = [], idx: number[] = [];
-        const s = (x: number, z: number) => shore[Math.min(fn - 1, Math.max(0, Math.round(z + half))) * fn + Math.min(fn - 1, Math.max(0, Math.round(x + half)))];
+        const fn = EXTENT + 1, half = EXTENT / 2, step = 2, pos: number[] = [], info: number[] = [], flow: number[] = [], dir: number[] = [], idx: number[] = [];
+        const node = (i: number, j: number) => shore[Math.min(fn - 1, Math.max(0, j)) * fn + Math.min(fn - 1, Math.max(0, i))];
+        const s = (x: number, z: number) => {
+            const fx = x + half, fz = z + half, i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j;
+            return (node(i, j) * (1 - u) + node(i + 1, j) * u) * (1 - v) + (node(i, j + 1) * (1 - u) + node(i + 1, j + 1) * u) * v;
+        };
         const quad = (corners: [number, number, number, number][]) => {
             const b = pos.length / 3;
-            for (const [x, z, depth, sh] of corners) { pos.push(x, level, z); info.push(depth, sh); flow.push(x, z, 0, 1); }
+            for (const [x, z, depth, sh] of corners)
+            {
+                pos.push(x, level, z); info.push(depth, sh); flow.push(x, z, 0, 1);
+                // toward land: down the shore distance, over a few metres so it turns smoothly
+                const gx = sh > 1e3 ? 0 : s(x - 6, z) - s(x + 6, z), gz = sh > 1e3 ? 0 : s(x, z - 6) - s(x, z + 6);
+                dir.push(gx, gz);
+            }
             idx.push(b, b + 3, b + 1, b + 1, b + 3, b + 2);
         };
         for (let z = -half; z < half; z += step) for (let x = -half; x < half; x += step)
@@ -304,7 +335,7 @@ export class WaterSample {
             for (const [x0, z0, x1, z1] of [[-o, -o, -half, o], [-half, half, coast(half) + 2, o], [-half, -o, coast(-half) + 2, -half]])
                 quad([[x0, z0, deep, far], [x1, z0, deep, far], [x1, z1, deep, far], [x0, z1, deep, far]]);
         }
-        return idx.length ? this.upload([[pos, 3], [info, 2], [flow, 4]], idx) : undefined;
+        return idx.length ? this.upload([[pos, 3], [info, 2], [flow, 4], [dir, 2]], idx) : undefined;
     }
 
     /** a ribbon from the lake's edge to the sea: across / along metres and a speed from the slope */

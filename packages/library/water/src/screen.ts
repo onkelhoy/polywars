@@ -3,7 +3,7 @@ import { NOISE_GLSL } from "./shaders";
 import { linear } from "./material";
 
 /**
- * `blur` / `wobble` / `bubbles` 0..1+ under water; `rinse` seconds of drops running off the screen after surfacing (0 off);
+ * `blur` / `wobble` / `bubbles` 0..1+ (size) under water; `rinse` seconds of drops running off the screen after surfacing (0 off);
  * `tint` 0..1 how much the screen takes the water colour.
  */
 export type ScreenOptions = { enabled: boolean; blur: number; wobble: number; bubbles: number; rinse: number; tint: number };
@@ -37,22 +37,22 @@ void main() {
     if (under > .5) {
         vec2 w = vec2(sin(uv.y * 18.0 + time * 1.7), cos(uv.x * 14.0 + time * 1.3)) * .0025 * wobble;
         c = soft(uv + w, blur * 2.5);
-        // tiny bubbles rising near the edges and corners
-        vec2 cu = min(uv, 1.0 - uv) * vec2(res.x / res.y, 1);
-        float edge = 1.0 - smoothstep(.08, .3, length(cu));
-        for (int k = 0; k < 2; k++) {
-            float s = k == 0 ? .028 : .018, sp = k == 0 ? .07 : .11, layer = float(k) * 7.0;
-            vec2 p = a / s - vec2(0, time * sp / s);
-            p.x += sin(time * 1.3 + floor(p.y) * 2.1) * .15;
-            vec2 id = floor(p), f = fract(p);
-            float h = hash2(id + layer), keep = step(h, .3 * bubbles * edge);
-            vec2 ctr = vec2(.3 + .4 * hash2(id + layer + 3.0), .5);
-            float rr = .08 + .1 * hash2(id + layer + 5.0), d = length(f - ctr);
-            float body = (1.0 - smoothstep(rr * .85, rr, d)) * keep;
-            float rim = body * smoothstep(rr * .5, rr * .95, d);
-            float hi = (1.0 - smoothstep(0.0, rr * .3, length(f - ctr - vec2(-.35, .35) * rr))) * keep;
-            c.rgb = mix(c.rgb, texture(scene, uv + (f - ctr) * s * .4).rgb * 1.1, body);
-            c.rgb += rim * .25 + hi * .5;
+        // a few bubbles: five rising in the bottom left corner, two in the bottom right, fading in and out (never cut off)
+        float aspect = res.x / res.y;
+        for (int i = 0; i < 7; i++) {
+            float fi = float(i), right = step(4.5, fi);
+            float speed = .05 + .03 * hash2(vec2(fi, 1)), life = fract(time * speed + hash2(vec2(fi, 2)));
+            float x = mix(.035 + .1 * hash2(vec2(fi, 3)), aspect - .035 - .07 * hash2(vec2(fi, 3)), right);
+            x += sin(time * (1.1 + fi * .3) + fi * 2.0) * .008 * life;
+            float y = .02 + life * (.3 - right * .12), r = (.007 + .007 * hash2(vec2(fi, 4))) * bubbles * (.8 + life * .4);
+            float alpha = smoothstep(0.0, .12, life) * (1.0 - smoothstep(.55, 1.0, life)) * step(.01, bubbles);
+            vec2 d = (a - vec2(x, y)) / max(r, 1e-4);
+            float dist = length(d);
+            float body = (1.0 - smoothstep(.85, 1.0, dist)) * alpha;
+            float rim = body * smoothstep(.55, .95, dist);
+            float hi = (1.0 - smoothstep(0.0, .3, length(d - vec2(-.35, .35)))) * alpha;
+            c.rgb = mix(c.rgb, texture(scene, uv + d * r * .25).rgb * 1.08, body);
+            c.rgb += rim * .3 + hi * .55;
         }
         c.rgb *= 1.0 - .35 * pow(length(uv - .5) * 1.3, 2.0);
         c.rgb = mix(c.rgb, tintColor, tint * .4);

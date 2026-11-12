@@ -74,15 +74,16 @@ export function skirt(gl: WebGL2RenderingContext, d: TerrainData, level: number,
 
 /**
  * Water surfaces as quads: every cell (of `step` nodes) touching water of `kind` (1 ocean, 2 lake) at its surface level.
- * Water material attributes: 1 (depth, shore distance), 2 (world x z, no flow, swell). Swell fades out near the map
+ * Water material attributes: 1 (depth, shore distance), 2 (world x z, no flow, swell), 3 (toward land). Swell fades out near the map
  * border so the ocean ring (out to `skirt` metres, flat) meets it without gaps.
  */
 export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 2, step: number, skirtSize = 0) {
-    const n = d.n, half = d.size / 2, pos: number[] = [], info: number[] = [], flow: number[] = [], idx: number[] = [];
+    const n = d.n, half = d.size / 2, pos: number[] = [], info: number[] = [], flow: number[] = [], dir: number[] = [], idx: number[] = [];
     const fade = 12 * step;
+    const land = (i: number, j: number) => d.toLand[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))];
     const quad = (corners: number[][]) => {
         const b = pos.length / 3;
-        for (const [x, y, z, depth, shore, waves] of corners) { pos.push(x, y, z); info.push(depth, shore); flow.push(x, z, 0, waves); }
+        for (const [x, y, z, depth, shore, waves, gx = 0, gz = 0] of corners) { pos.push(x, y, z); info.push(depth, shore); flow.push(x, z, 0, waves); dir.push(gx, gz); }
         idx.push(b, b + 3, b + 1, b + 1, b + 3, b + 2);
     };
     for (let j = 0; j < n - 1; j += step) for (let i = 0; i < n - 1; i += step)
@@ -94,7 +95,9 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
         const xy = [[i, j], [i1, j], [i1, j1], [i, j1]];
         quad(ks.map((k, c) => {
             const [a, b] = xy[c], edge = Math.min(a, b, n - 1 - a, n - 1 - b);
-            return [a * d.cell - half, level, b * d.cell - half, level - d.height[k], d.toLand[k], d.waves[k] * Math.min(1, edge / fade)];
+            // toward land: down the shore distance, over a few nodes so it turns smoothly
+            const r = 3 * step, gx = land(a - r, b) - land(a + r, b), gz = land(a, b - r) - land(a, b + r);
+            return [a * d.cell - half, level, b * d.cell - half, level - d.height[k], d.toLand[k], d.waves[k] * Math.min(1, edge / fade), gx, gz];
         }));
     }
     if (kind === 1 && skirtSize > 0)
@@ -104,7 +107,7 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
             quad([[x0, y, z0, deep, far, 0], [x1, y, z0, deep, far, 0], [x1, y, z1, deep, far, 0], [x0, y, z1, deep, far, 0]]);
     }
     if (!idx.length) return null;
-    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
+    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4], [new Float32Array(dir), 2]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
 }
 
 /**

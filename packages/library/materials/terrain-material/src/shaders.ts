@@ -1,4 +1,4 @@
-import { CAUSTICS_GLSL, UNDER_GLSL } from "@polywar/water";
+import { UNDER_GLSL } from "@polywar/water";
 import { BIOMES } from "./types";
 
 const N = BIOMES.length;
@@ -71,9 +71,7 @@ uniform float variation, contours, seaLevel;
 uniform bool flatShade;
 uniform vec2 range;
 uniform int debug;
-uniform float caustics, time;
 ${COMMON}
-${CAUSTICS_GLSL}
 out vec4 outColor;
 
 vec3 ramp(float t) { return clamp(vec3(1.5 - abs(4.0 * t - 3.0), 1.5 - abs(4.0 * t - 2.0), 1.5 - abs(4.0 * t - 1.0)), 0.0, 1.0); }
@@ -103,11 +101,10 @@ void main() {
         float h = vWorld.y / contours, w = fwidth(h);
         c *= mix(.55, 1.0, smoothstep(0.0, w * 1.5, abs(fract(h + .5) - .5)));
     }
-    // under water: tinted with depth, caustic light on the bed
+    // under water: tinted with depth
     float wet = vSurface - vWorld.y, light = 0.0;
     if (wet > 0.0 && debug == 0) {
         c = mix(c, c * underColorAt(wet) * 1.4, 1.0 - exp(-wet * .25));
-        if (caustics > 0.0) light = causticsAt(vWorld.xz, time) * caustics * exp(-wet * underSun * 1.5) * max(dot(n, normalize(sunDirection)), 0.0);
     }
     vec3 shaded = debug == 0 ? lit(c, n, vWorld, light) : c * (.55 + .45 * max(dot(n, normalize(sunDirection)), 0.0));
     outColor = vec4(pow(shaded, vec3(1.0 / 2.2)), 1.0);

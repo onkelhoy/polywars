@@ -1,6 +1,6 @@
 # @polywar/terrain-material
 
-Rendering only for terrain: ground shader, biome palette, rock on slopes, snow caps, faceted low poly light, caustics + tint under water, underwater fog, debug views. Water surfaces are `@polywar/water`. Geometry is the caller's (`@polywar/terrain`).
+Rendering only for terrain: ground shader, biome palette, rock on slopes, snow caps, faceted low poly light, tint under water, underwater fog, debug views. Water surfaces are `@polywar/water`. Geometry is the caller's (`@polywar/terrain`).
 
 - `new TerrainMaterial(layer, look)`, `set(look)`, `useGround(view, light, underwater?)`
 - `TERRAIN_LOOK`, `TERRAIN_LOOKS`, `BIOMES` (palette order = `data.x` index)

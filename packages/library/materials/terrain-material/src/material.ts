@@ -41,7 +41,7 @@ export function linear(hex: string): [number, number, number] {
 
 /**
  * The terrain material: the ground program (biome palette, rock on slopes, snow caps, faceted light, debug views,
- * caustics and tint under water). Water itself is `@polywar/water`. Geometry is the caller's.
+ * tint under water). Water itself is `@polywar/water`. Geometry is the caller's.
  *
  * Ground attributes: 0 position, 1 normal, 2 data (biome index, slope, moisture, temperature), 3 flow, 4 water surface height.
  */
@@ -64,7 +64,7 @@ export class TerrainMaterial {
     /** Merge settings (nested objects merge too). Nothing to rebuild: all uniforms. */
     set(look: Partial<TerrainLook>) { this.o = merge(this.o, look); }
 
-    /** Bind the ground program. `water` adds caustics under water surfaces and the underwater fog. */
+    /** Bind the ground program. `water` adds the underwater tint and fog. */
     useGround(view: View, light: Light, water?: Underwater): boolean {
         const gl = this.gl, o = this.o, p = this.groundProgram;
         if (!p) return false;
@@ -81,8 +81,6 @@ export class TerrainMaterial {
         gl.uniform1i(u("flatShade"), o.flat ? 1 : 0);
         gl.uniform2f(u("range"), o.range[0], o.range[1]);
         gl.uniform1i(u("debug"), DEBUG[o.debug] ?? 0);
-        gl.uniform1f(u("caustics"), water?.under.caustics ?? 0);
-        gl.uniform1f(u("time"), water?.time ?? 0);
         gl.uniform1i(u("eyeUnder"), water?.eyeSurface != null ? 1 : 0);
         if (water) bindUnder(gl, u, water.under, water.eyeSurface ?? 0);
         return true;

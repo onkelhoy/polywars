@@ -14,21 +14,6 @@ float vnoise(vec2 p) {
 }
 `;
 
-/**
- * Caustics for any surface under water: `causticsAt(xz, time)` 0..1, thin moving light lines, procedural (no texture).
- * Paste into a fragment shader.
- */
-export const CAUSTICS_GLSL = `
-float causticsAt(vec2 xz, float time) {
-    // three wavy sine fields; light where two of them cancel: thin crossing lines that drift
-    vec2 p = xz / 1.6;
-    float a = sin(p.x + sin(p.y * .8 + time * .7) * 1.3 + time * .5);
-    float b = sin(p.y * 1.1 + sin(p.x * .9 - time * .6) * 1.3 - time * .4);
-    float c = sin((p.x - p.y) * .7 + sin(p.x * .5 + p.y * .6 + time * .3) * 1.2 + time * .6);
-    float l = max(1.0 - smoothstep(0.0, .22, abs(a + b)), 1.0 - smoothstep(0.0, .22, abs(b - c)));
-    return l * .7;
-}
-`;
 
 /**
  * The view under water, for any shader that has the polywar light uniforms (`sunColor`, `sunStrength`, `ambient`):
@@ -52,14 +37,17 @@ vec3 underFog(vec3 c, vec3 world, vec3 eye) {
 
 /**
  * Attributes: 0 position (the surface, flat), 1 info (depth metres, distance to the shore metres, < 0 over land),
- * 2 flow (u v in metres, flow speed m/s along v, open water 0..1: how many shore lines it gets).
+ * 2 flow (u v in metres, flow speed m/s along v, open water 0..1: how many shore lines it gets),
+ * 3 shore direction (x z toward the nearest land, any length; 0 0 or missing: the wind direction).
  * Still water passes world x z as u v and speed 0.
  */
 export const WATER_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 info;
 layout(location = 2) in vec4 flow;
+layout(location = 3) in vec2 shoreDir;
 uniform mat4 view, projection;
+out vec2 vDir;
 out vec3 vWorld;
 out vec2 vInfo;
 out vec4 vFlow;
@@ -68,6 +56,7 @@ void main() {
     vWorld = position;
     vInfo = info;
     vFlow = flow;
+    vDir = shoreDir;
     gl_Position = projection * view * vec4(position, 1.0);
 }`;
 
@@ -77,11 +66,14 @@ precision highp float;
 in vec3 vWorld;
 in vec2 vInfo;
 in vec4 vFlow;
+in vec2 vDir;
 uniform vec3 shallow, deep, foamColor;
 uniform float time, opacity, clarity, skyTint;
 uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar;
-uniform float foamRim, foamWobble, foamWobbleScale, foamLines, foamWidth, foamSpacing, foamSpeed, foamAmount, foamFar;
-uniform float streakAmount, streakLength, streakWidth;
+uniform float foamRim, foamWobble, foamWobbleScale, foamLines, foamWidth, foamSpacing, foamSpeed, foamPieces, foamAmount, foamFar;
+uniform float streakAmount, streakLength, streakWidth, foamContact;
+uniform vec3 contacts[32]; // x z radius: things standing in the water
+uniform int contactCount;
 uniform bool under;
 ${COMMON}
 ${NOISE_GLSL}
@@ -104,6 +96,17 @@ float dashes(vec2 p, vec2 cell, float halfLength, float thick, float keep, float
     m.y += sin(m.x / max(halfLength, .01) * 2.5 + h * 6.0) * thick * 1.2;
     float len = halfLength * (.5 + h2 * .7), taper = 1.0 - clamp(abs(m.x) / len, 0.0, 1.0);
     return inside(thick * sqrt(taper), abs(m.y), px) * step(h, keep);
+}
+
+/** like \`dashes\` in square cells \`cell\` metres, each dash lying across \`dir\` (unit), never past its cell */
+float rdashes(vec2 p, vec2 dir, float cell, float halfLength, float thick, float keep, float seed, float px) {
+    vec2 g = p / cell, id = floor(g), f = fract(g);
+    float h = hash2(id + seed), h2 = hash2(id + seed + 17.0);
+    vec2 m = (f - .5 - (vec2(h2, h) - .5) * .1) * cell;
+    float mx = dot(m, vec2(-dir.y, dir.x)), my = dot(m, dir);
+    float len = min(halfLength * (.5 + h2 * .6), cell * .4), taper = 1.0 - clamp(abs(mx) / len, 0.0, 1.0);
+    my += sin(mx / max(len, .01) * 2.5 + h * 6.0) * thick * 1.2;
+    return inside(thick * sqrt(taper), abs(my), px) * step(abs(mx), len) * step(h, keep);
 }
 
 void main() {
@@ -134,11 +137,22 @@ void main() {
         vec3 rr = reflect(-v, up);
         float w = glintLane * .35 + .01, side = acos(clamp(dot(normalize(rr.xz), normalize(l.xz)), -1.0, 1.0)), tilt = abs(asin(rr.y) - asin(l.y));
         float lane = (1.0 - smoothstep(w * .6, w, side)) * (1.0 - smoothstep(w * 2.0, w * 4.0, tilt));
-        // dashes lie across the wind (here: x after a turn), drifting slowly; rivers: across the stream
-        vec2 p = river > .5 ? vec2(vFlow.x, uv.y).yx : mat2(.87, .5, -.5, .87) * vFlow.xy + vec2(time * glintSpeed, 0);
-        float mpp = length(fwidth(vWorld.xz)), thick = glintScale * .05;
-        float d = max(dashes(p, vec2(glintLength * 1.8, glintScale), glintLength * .5, thick, .75, 0.0, mpp),
-                      dashes(p + glintScale * .5, vec2(glintLength * 2.3, glintScale * 1.3), glintLength * .4, thick, .6, 31.0, mpp));
+        float mpp = length(fwidth(vWorld.xz)), thick = glintScale * .05, d;
+        if (river > .5) {
+            // rivers: across the stream, carried with it
+            vec2 p = vec2(uv.y, vFlow.x);
+            d = max(dashes(p, vec2(glintScale, glintLength * 1.8), glintLength * .5, thick, .75, 0.0, mpp),
+                    dashes(p + glintScale * .5, vec2(glintScale * 1.3, glintLength * 2.3), glintLength * .4, thick, .6, 31.0, mpp));
+        } else {
+            // sea and lakes: along the shore, drifting in toward land. Two layers half a cycle apart cross fade
+            // (a flow map), so the drift never piles up and the dashes come and go gently
+            vec2 dir = dot(vDir, vDir) > 1e-4 ? normalize(vDir) : vec2(.87, .5);
+            float period = 6.0, ph = time / period, f1 = fract(ph), f2 = fract(ph + .5), w1 = 1.0 - abs(f1 * 2.0 - 1.0);
+            float cell = glintLength * 1.4;
+            float d1 = rdashes(vFlow.xy - dir * f1 * period * glintSpeed, dir, cell, glintLength * .5, thick, .7, floor(ph) * 7.0, mpp);
+            float d2 = rdashes(vFlow.xy - dir * f2 * period * glintSpeed + cell * .5, dir, cell, glintLength * .5, thick, .7, floor(ph + .5) * 7.0 + 31.0, mpp);
+            d = d1 * w1 + d2 * (1.0 - w1);
+        }
         d *= pixels(thick * 2.0, mpp) * near;
         c *= 1.0 - d * glintDark * (1.0 - lane);
         c = mix(c, white * 1.3, d * lane * glintStrength);
@@ -157,12 +171,23 @@ void main() {
         float wob = (vnoise(vWorld.xz / max(foamWobbleScale, .1) + time * .03) - .5) * 2.0 * foamWobble;
         float s = vInfo.y + wob, mpp = fwidth(s);
         if (river < .5) {
-            float rim = (1.0 - hard(foamRim, s)) * pixels(foamRim, mpp);
-            float phase = (s - foamRim) / max(foamSpacing, .01) + time * foamSpeed;
-            float dl = abs(fract(phase + .5) - .5) * foamSpacing;
-            float line = (1.0 - hard(foamWidth * .5, dl)) * pixels(foamWidth, mpp) * step(foamRim, s);
-            line *= 1.0 - smoothstep(foamSpacing * foamLines * .5, foamSpacing * foamLines, s - foamRim);
-            line *= hard(.42, vnoise(vWorld.xz / (foamSpacing * 2.5))) * clamp(vFlow.w + .3, 0.0, 1.0);
+            // the rim: a blobby edge with holes near its outer side (foam on rocks and sand)
+            float edge = foamRim * (.6 + .9 * vnoise(vWorld.xz / max(foamRim * 5.0, .05) + time * .05));
+            float holes = hard(.38, vnoise(vWorld.xz / max(foamRim * 1.6, .03) - time * .07));
+            float rim = (1.0 - hard(edge, s)) * max(holes, 1.0 - smoothstep(0.0, edge * .6, s)) * pixels(foamRim, mpp);
+            // waves: lines form offshore, run in to the rim and fade there; each its own pieces, not every one shows
+            float band = max(foamSpacing * foamLines, .01), sl = s - foamRim;
+            float phase = sl / max(foamSpacing, .01) + time * foamSpeed, k = floor(phase);
+            float dl = abs(fract(phase) - .5) * foamSpacing, life = sl / band;
+            float line = (1.0 - hard(foamWidth * .5, dl)) * pixels(foamWidth, mpp);
+            line *= smoothstep(1.0, .7, life) * smoothstep(0.0, .25, life) * step(hash2(vec2(k, 3.0)), .7);
+            line *= hard(foamPieces, vnoise(vWorld.xz / (foamSpacing * 3.0) + vec2(k * 7.31, k * 3.17))) * clamp(vFlow.w + .3, 0.0, 1.0);
+            // things in the water (rocks, legs): a thin ring of the same broken foam, far less than a shore
+            float cd = 1e4;
+            for (int i = 0; i < 32; i++) { if (i >= contactCount) break; cd = min(cd, length(vWorld.xz - contacts[i].xy) - contacts[i].z); }
+            float cedge = foamContact * (.5 + vnoise(vWorld.xz / max(foamContact * 4.0, .02) + time * .1));
+            float ring = (1.0 - hard(cedge, cd + wob * .15)) * hard(.42, vnoise(vWorld.xz / max(foamContact * 1.5, .02) + time * .12)) * pixels(foamContact, mpp);
+            rim = max(rim, ring);
             foam = max(rim, line);
         } else {
             // rivers: no shore lines, white dashes running with the stream, more where it is fast

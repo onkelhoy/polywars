@@ -28,7 +28,7 @@ export type TerrainLook = {
     debug: Debug;
 };
 
-/** What the ground needs from the water: its underwater look (bed tint, caustics, fog) and the surface over the eye (null: eye above water). */
+/** What the ground needs from the water: its underwater look (bed tint, fog) and the surface over the eye (null: eye above water). */
 export type Underwater = { time: number; under: WaterLook["under"]; eyeSurface: number | null };
 
 /** Same shape as the polywar `Renderer.light`, so that one can be passed in. Colours linear. */

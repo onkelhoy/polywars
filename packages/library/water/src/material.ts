@@ -14,27 +14,31 @@ export const WATER_LOOK: WaterLook = {
     opacity: .5,
     clarity: 6,
     sky: .4,
-    glints: { dark: .12, scale: .7, length: 1.4, lane: .4, strength: 1, specks: .35, speed: .15, far: 220 },
-    foam: { color: "#ffffff", rim: .35, wobble: .5, wobbleScale: 5, lines: 3, width: .14, spacing: 2.2, speed: .06, amount: 1, far: 300 },
+    glints: { dark: .08, scale: .7, length: 1.4, lane: .4, strength: 1, specks: .3, speed: .25, far: 220 },
+    foam: { color: "#ffffff", contact: .06, rim: .45, wobble: .4, wobbleScale: 6, lines: 3, width: .12, spacing: 2.5, speed: .3, pieces: .5, amount: .85, far: 300 },
     streaks: { amount: .8, length: 4, width: .2 },
-    under: { shallow: "#3aa7b8", deep: "#0b2e52", clarity: 14, density: .035, sun: .06, caustics: .7 },
+    under: { shallow: "#3aa7b8", deep: "#0b2e52", clarity: 14, density: .035, sun: .06 },
 };
 
 /** named looks on top of `WATER_LOOK`: from clear sea to swamp */
 export const WATER_LOOKS: Record<string, Partial<WaterLook>> = {
     sea: {},
-    calm: { glints: { ...WATER_LOOK.glints, dark: .07, specks: .2 }, foam: { ...WATER_LOOK.foam, lines: 1 } },
+    calm: { glints: { ...WATER_LOOK.glints, dark: .05, specks: .2, speed: .15 }, foam: { ...WATER_LOOK.foam, lines: 2, speed: .2, pieces: .6 } },
+    stormy: {
+        shallow: "#4a98a8", deep: "#173f63", glints: { ...WATER_LOOK.glints, dark: .14, speed: .6, length: 2.2 },
+        foam: { ...WATER_LOOK.foam, rim: .8, contact: .15, wobble: .2, wobbleScale: 14, lines: 5, width: .35, spacing: 4, speed: .45, pieces: .15, amount: 1 },
+    },
     tropical: { shallow: "#63d2cf", deep: "#2678b5", clarity: 12, opacity: .35, under: { ...WATER_LOOK.under, shallow: "#58cfd0", deep: "#145a8a", density: .02, clarity: 25 } },
     lake: { shallow: "#5a9fa0", deep: "#2a5a6e", fresh: { shallow: "#5a9fa0", deep: "#2a5a6e" }, under: { ...WATER_LOOK.under, shallow: "#4a8f8a", deep: "#173f4a", density: .06, clarity: 8 } },
     muddy: {
         shallow: "#8f8a5c", deep: "#5e5536", fresh: { shallow: "#8f8a5c", deep: "#5e5536" }, opacity: .85, clarity: 1.5,
         glints: { ...WATER_LOOK.glints, dark: .06, specks: .1 },
-        under: { shallow: "#7d744a", deep: "#3b3420", clarity: 2, density: .35, sun: .4, caustics: .1 },
+        under: { shallow: "#7d744a", deep: "#3b3420", clarity: 2, density: .35, sun: .4 },
     },
     swamp: {
         shallow: "#4d6b3c", deep: "#2b3a24", fresh: { shallow: "#4d6b3c", deep: "#2b3a24" }, opacity: .9, clarity: 1, sky: .2,
         glints: { ...WATER_LOOK.glints, dark: .04, specks: .05, lane: .2 }, foam: { ...WATER_LOOK.foam, amount: .3, lines: 0, color: "#c9cfa8" },
-        under: { shallow: "#3e5530", deep: "#141c10", clarity: 1.5, density: .5, sun: .6, caustics: 0 },
+        under: { shallow: "#3e5530", deep: "#141c10", clarity: 1.5, density: .5, sun: .6 },
     },
 };
 
@@ -74,7 +78,8 @@ export function bindUnder(gl: WebGL2RenderingContext, u: (name: string) => WebGL
  * show near the camera, dashes running with rivers, and the view from below. Procedural, no textures. Geometry is the caller's
  * (flat, few vertices).
  *
- * Attributes: 0 position, 1 info (depth m, shore distance m, < 0 over land), 2 flow (u v metres, speed m/s along v, open water 0..1).
+ * Attributes: 0 position, 1 info (depth m, shore distance m, < 0 over land), 2 flow (u v metres, speed m/s along v, open water 0..1),
+ * 3 shore direction (x z toward land, optional).
  * Draw after the opaque scene with premultiplied blending (`gl.ONE, gl.ONE_MINUS_SRC_ALPHA`), depth writes off.
  */
 export class WaterMaterial {
@@ -95,9 +100,9 @@ export class WaterMaterial {
 
     /**
      * Bind for the next draw. `fresh` uses the lake / river colours; `under`: the eye is below this water, whose surface is at
-     * `surface` metres there. False while linking.
+     * `surface` metres there. `contacts`: x z radius per thing standing in the water (up to 32) for a thin foam ring. False while linking.
      */
-    use(view: View, light: Light, time: number, { fresh = false, under = false, surface = 0 } = {}): boolean {
+    use(view: View, light: Light, time: number, { fresh = false, under = false, surface = 0, contacts = [] as ArrayLike<number> } = {}): boolean {
         const gl = this.gl, o = this.o, p = this.program;
         if (!p) return false;
         const u = p.u;
@@ -140,8 +145,13 @@ export class WaterMaterial {
         gl.uniform1f(u("foamWidth"), f.width);
         gl.uniform1f(u("foamSpacing"), f.spacing);
         gl.uniform1f(u("foamSpeed"), f.speed);
+        gl.uniform1f(u("foamPieces"), f.pieces);
         gl.uniform1f(u("foamAmount"), f.amount);
         gl.uniform1f(u("foamFar"), f.far);
+        gl.uniform1f(u("foamContact"), f.contact);
+        const count = Math.min(32, Math.floor(contacts.length / 3));
+        gl.uniform1i(u("contactCount"), count);
+        if (count) gl.uniform3fv(u("contacts[0]"), Float32Array.from(Array.prototype.slice.call(contacts, 0, count * 3)));
         gl.uniform1f(u("streakAmount"), o.streaks.amount);
         gl.uniform1f(u("streakLength"), o.streaks.length);
         gl.uniform1f(u("streakWidth"), o.streaks.width);
