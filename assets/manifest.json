@@ -5147,6 +5147,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/m1-garand/model.glb",
            "size": 335844
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/m1-garand/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5182,6 +5187,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/m1911/model.glb",
            "size": 211184
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/m1911/model.rig.json",
+           "size": 548
           }
          ]
         },
@@ -5217,6 +5227,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/mauser-c96/model.glb",
            "size": 218172
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/mauser-c96/model.rig.json",
+           "size": 548
           }
          ]
         },
@@ -5252,6 +5267,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/ppsh-41/model.glb",
            "size": 340792
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/ppsh-41/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5287,6 +5307,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/stg-44/model.glb",
            "size": 343212
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/stg-44/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5322,6 +5347,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/thompson-m1/model.glb",
            "size": 239872
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/thompson-m1/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5357,6 +5387,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/tt-pistol/model.glb",
            "size": 214460
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/tt-pistol/model.rig.json",
+           "size": 548
           }
          ]
         }
