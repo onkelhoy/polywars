@@ -31,12 +31,12 @@ function invert4(m: Float32Array) {
 }
 
 /** depth formats a blit may need to match the drawn framebuffer, most likely first */
-const DEPTH_FORMATS = (gl: WebGL2RenderingContext, stencil: boolean) => {
+const DEPTH_FORMATS = (gl: WebGL2RenderingContext) => {
     const d24 = [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, gl.DEPTH_ATTACHMENT];
     const d24s8 = [gl.DEPTH24_STENCIL8, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, gl.DEPTH_STENCIL_ATTACHMENT];
     const d32 = [gl.DEPTH_COMPONENT32F, gl.DEPTH_COMPONENT, gl.FLOAT, gl.DEPTH_ATTACHMENT];
     // browsers often back the default depth with depth24 stencil8 even without a stencil asked for
-    return stencil ? [d24s8, d24, d32] : [d24s8, d24, d32];
+    return [d24s8, d24, d32];
 };
 
 /** A clear low poly sea. Lengths in metres; any field can be overridden (nested objects merge). */
@@ -235,7 +235,7 @@ export class WaterMaterial {
         if (fresh)
         {
             // try the formats until a blit works (it needs the same depth format as the source)
-            const formats = DEPTH_FORMATS(gl, !!gl.getContextAttributes()?.stencil);
+            const formats = DEPTH_FORMATS(gl);
             this.freeDepth();
             for (let f = 0; f < formats.length; f++)
             {
