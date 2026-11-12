@@ -105,3 +105,6 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - `@papit/web-component`: a re-render builds the template's custom elements again and runs `firstRender` on the detached copies (pw-3d-asset-preview now guards; character-preview creates its preview outside the template).
 - `@papit/game-engine`: no lit mesh renderer (polywar has `@polywar/renderer`); `Layer3D.createProgram` keeps the shader objects after linking.
 - [ ] papit report: `@papit/game-engine` Layer has no render scale / max pixel ratio (polywar sets `layer.setting.width/height` from `pw-viewport max-pixel-ratio` as a workaround)
+
+## Roads (parked)
+- [ ] Continue `plan-road.md` (phase 2/3)
