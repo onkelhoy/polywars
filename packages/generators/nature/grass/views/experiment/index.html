@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>grass | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <canvas></canvas>
+    <aside>
+        <h1>grass</h1>
+        <output id="info"></output>
+        <fieldset>
+            <legend>preset</legend>
+            <label>quality <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+            <label>style <select id="style"><option>pixel</option><option>smooth</option></select></label>
+            <label>source <select id="source"><option value="">preset</option><option>sprite</option><option>cross</option><option>mesh</option></select></label>
+            <label>shape <select id="shape"><option>leaves</option><option>blades</option><option selected>mixed</option></select></label>
+            <label>mask <select id="mask"><option>everywhere</option><option>meadow</option><option>paths</option></select></label>
+            <label>area m <input id="area" type="number" min="5" max="200" value="40" /></label>
+            <label>debug <select id="debug"><option value="">off</option><option>wind</option><option>push</option></select></label>
+            <label>camera <select id="camera"><option>orbit</option><option>top</option><option>fps</option></select></label>
+            <label><input id="pushing" type="checkbox" checked /> walkers push</label>
+        </fieldset>
+        <fieldset id="json">
+            <legend>settings json</legend>
+            <div class="buttons">
+                <button id="export" type="button">download</button>
+                <button id="copy" type="button">copy</button>
+                <button id="import" type="button">open file</button>
+                <input id="file" type="file" accept=".json,application/json" hidden />
+            </div>
+            <textarea id="text" rows="4" placeholder="paste settings json, then apply"></textarea>
+            <div class="buttons"><button id="apply" type="button">apply</button><button id="reset" type="button">defaults</button></div>
+        </fieldset>
+        <fieldset id="numbers"><legend>tweak</legend></fieldset>
+        <fieldset id="colors"><legend>colours</legend></fieldset>
+    </aside>
+</body>
+
+</html>

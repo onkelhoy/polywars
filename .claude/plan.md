@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `city-generation-village-pack` (`init/assets` merged to `main`). City generator: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
+Branch `grass` (from `city-generation-village-pack`): `.claude/plan-grass.md`. City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
@@ -11,6 +11,10 @@ Branch `city-generation-village-pack` (`init/assets` merged to `main`). City gen
 - `game-mesh` has no textures → `export.py` bakes image textures into vertex colours.
 - Render code (Renderer, Model, Grid, gltfFromMesh) lives in `packages/ui/3d-asset-preview/src/render`, exported by `@polywar/3d-asset-preview`.
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
+
+## Next (set 2026-11-12, after grass look)
+- n1. [ ] Grass + preview: `@papit/matrix` / `@papit/vector` instead of hand math (`render/math.ts`, grass frustum), shaders via `Layer3D.createProgram`.
+- n2. [ ] `packages/utils/3d-demo`: shared demo stage on `@papit/game-engine` (camera, matrix, vector): fly-anywhere fps + pan-zoom from the current camera, switch between them, theme-aware dark/light background, UI panels never drive the camera. Used by grass view and `3d-asset-preview`.
 
 ## Tasks
 1. [x] Songs → `audio/songs/menu` + `audio/songs/game`.
