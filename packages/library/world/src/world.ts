@@ -8,14 +8,16 @@ import { DEFAULTS as TERRAIN, Terrain, decode, isCode, type TerrainData, type Te
 import { BIOMES } from "@polywar/terrain-material";
 import type { WorldSettings, WorldView } from "./types";
 
-/** grass draw window per quality, metres (about the grass draw distance) */
-const WINDOW = { low: 30, medium: 50, high: 75 };
+/** grass draw distance per quality, metres (further than the grass presets) */
+const DISTANCE = { low: 34, medium: 60, high: 90 };
+/** grass planting window per quality, metres (a bit past the draw distance) */
+const WINDOW = { low: 42, medium: 70, high: 100 };
 /** tuft cap per quality: the window is big, so more than the grass presets */
-const MAX_TUFTS = { low: 30_000, medium: 120_000, high: 260_000 };
+const MAX_TUFTS = { low: 50_000, medium: 220_000, high: 450_000 };
 
 /** the world's grass look (owner's code `g2.eyJ…`): bigger, fuller; density still follows the cover maps */
 export const GRASS: Partial<GrassOptions> = {
-    settings: { density: 32, sizeScale: 1.75, softBands: .25 },
+    settings: { density: 32, sizeScale: 2, softBands: .25 },
     look: { bands: 3 },
     bladeShare: .25,
     variation: .16,
@@ -112,7 +114,7 @@ export class World {
     // ---- internals ----
 
     private grassOptions(): Partial<GrassOptions> {
-        return { ...GRASS, settings: { ...GRASS.settings, maxTufts: MAX_TUFTS[this.v.quality] }, quality: this.v.quality, style: this.v.style };
+        return { ...GRASS, settings: { ...GRASS.settings, maxTufts: MAX_TUFTS[this.v.quality], distance: DISTANCE[this.v.quality] }, quality: this.v.quality, style: this.v.style };
     }
 
     private grow(data: TerrainData) {
