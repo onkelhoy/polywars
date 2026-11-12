@@ -17,6 +17,7 @@ export const TERRAIN_LOOK: TerrainLook = {
     rock: { color: "#7c746c", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
     paint: { edge: 7, size: 16, strokes: .08 },
+    gloss: { rock: .2, wet: .22, reach: 6 },
     variation: .06,
     flat: true,
     bands: 0,
@@ -52,7 +53,7 @@ export class TerrainMaterial {
     private groundProgram?: Program;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     private id = ids++;
-    private map?: { texture: WebGLTexture; n: number; size: number };
+    private map?: { texture: WebGLTexture; wet?: WebGLTexture; n: number; size: number };
 
     /** Programs come from the layer (async); `useGround` returns false until they are linked. */
     constructor(readonly layer: Layer3D, look: Partial<TerrainLook> = {}) {
@@ -69,7 +70,7 @@ export class TerrainMaterial {
     /** Biome grid for the painted borders (null: off, borders follow the mesh). */
     biomes(map: BiomeMap | null) {
         const gl = this.gl;
-        if (this.map) gl.deleteTexture(this.map.texture);
+        if (this.map) { gl.deleteTexture(this.map.texture); if (this.map.wet) gl.deleteTexture(this.map.wet); }
         this.map = undefined;
         if (!map) return;
         const texture = gl.createTexture()!;
@@ -79,8 +80,21 @@ export class TerrainMaterial {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8UI, map.n, map.n, 0, gl.RED_INTEGER, gl.UNSIGNED_BYTE, map.biome);
         for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST);
         for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+        let wet: WebGLTexture | undefined;
+        if (map.toWater)
+        {
+            // metres to water, 0..255 m in a byte, filtered
+            const bytes = new Uint8Array(map.n * map.n);
+            for (let k = 0; k < bytes.length; k++) bytes[k] = Math.min(255, Math.round(map.toWater[k]));
+            wet = gl.createTexture()!;
+            gl.activeTexture(gl.TEXTURE4);
+            gl.bindTexture(gl.TEXTURE_2D, wet);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, map.n, map.n, 0, gl.RED, gl.UNSIGNED_BYTE, bytes);
+            for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+            for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+        }
         gl.activeTexture(gl.TEXTURE0);
-        this.map = { texture, n: map.n, size: map.size };
+        this.map = { texture, wet, n: map.n, size: map.size };
     }
 
     /** Bind the ground program. `water` adds the underwater tint and fog. */
@@ -101,7 +115,12 @@ export class TerrainMaterial {
         gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, this.map?.texture ?? null);
         gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE4);
+        gl.bindTexture(gl.TEXTURE_2D, this.map?.wet ?? null);
+        gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(u("biomeMap"), 5);
+        gl.uniform1i(u("waterMap"), 4);
+        gl.uniform3f(u("gloss"), o.gloss.rock, this.map?.wet ? o.gloss.wet : 0, Math.max(.1, o.gloss.reach));
         gl.uniform1f(u("contours"), o.contours);
         gl.uniform1i(u("flatShade"), o.flat ? 1 : 0);
         gl.uniform2f(u("range"), o.range[0], o.range[1]);

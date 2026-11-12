@@ -22,6 +22,9 @@ export const GRASS: Partial<GrassOptions> = {
     patches: GRASS_DEFAULTS.patches.map((p, i) => i === 0 ? { ...p, scale: .023 } : p),
 };
 
+/** prop kinds with a slight sun highlight (the rest matte) */
+const GLOSS = { rock: .3 };
+
 /**
  * A whole world: terrain (with water), ecosystem (props + grass cover), drawn with `@polywar/scatter` and `@polywar/grass`.
  * One share code: `<terrain code>~<ecosystem code>`, e.g. `t1~e1` for the defaults.
@@ -41,7 +44,7 @@ export class World {
         this.v = { quality: "medium", grass: true, props: true, style: "pixel", ...view };
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
-        this.scatter = new Scatter(renderer, name => modelUrl(nature, name), { quality: this.v.quality });
+        this.scatter = new Scatter(renderer, name => modelUrl(nature, name), { quality: this.v.quality, gloss: GLOSS });
         this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
         this.terrain = new Terrain(layer, s.terrain ?? {});
