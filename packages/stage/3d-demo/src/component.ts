@@ -29,6 +29,11 @@ export class Demo3D extends CustomElement {
     /** hide the direction arrows (bottom-left); the bar's "axes" button toggles them too */
     @property({ type: Boolean, attribute: "no-axes", rerender: true }) noAxes: boolean = false;
 
+    /** hide the origin dot; the bar's "origin" button toggles it */
+    @property({ type: Boolean, attribute: "no-origin", rerender: true }) noOrigin: boolean = false;
+    /** where the origin dot sits, world space */
+    origin: [number, number, number] = [0, 0, 0];
+
     /** called every frame before drawing, `dt` in seconds */
     tick?: (dt: number, demo: Demo3D) => void;
     /** draw the scene; clear with `demo.background` */
@@ -56,7 +61,7 @@ export class Demo3D extends CustomElement {
         this.engine = engine;
         const demo = this;
         engine.add(new class extends GameObject {
-            override update(dt: number) { demo.time += dt; demo.tick?.(dt, demo); demo.updateAxes(); }
+            override update(dt: number) { demo.time += dt; demo.tick?.(dt, demo); demo.updateAxes(); demo.updateOrigin(); }
             override render(layer: any) { if (layer.camera) demo.draw?.(layer.camera, demo); }
         }());
         engine.on("theme", () => this.readBackground());
@@ -132,12 +137,32 @@ export class Demo3D extends CustomElement {
         });
     }
 
+    /** put the origin dot where `origin` lands on screen, hidden behind the camera */
+    private updateOrigin() {
+        const dot = this.noOrigin ? null : this.shadowRoot?.querySelector<HTMLElement>(".origin");
+        const camera = this.camera, stage = this.shadowRoot?.querySelector<HTMLElement>(".stage");
+        if (!dot || !camera || !stage) return;
+        const pitch = camera.rotation[0], yaw = camera.rotation[1], p = camera.position, o = this.origin;
+        const r = [Math.cos(yaw), 0, -Math.sin(yaw)];
+        const f = [-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
+        const u = [Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch)];
+        const d = [o[0] - p[0], o[1] - p[1], o[2] - p[2]];
+        const dot3 = (a: number[]) => a[0] * d[0] + a[1] * d[1] + a[2] * d[2];
+        const z = dot3(f);
+        if (z <= camera.near) { dot.style.display = "none"; return; }
+        const w = stage.clientWidth, h = stage.clientHeight, t = Math.tan(camera.fov / 2) / (camera.zoom || 1);
+        dot.style.display = "";
+        dot.style.transform = `translate(${w / 2 + dot3(r) / (z * t) * h / 2}px, ${h / 2 - dot3(u) / (z * t) * h / 2}px)`;
+    }
+
+    private handleorigin = () => { this.noOrigin = !this.noOrigin; };
     private handleaxes = () => { this.noAxes = !this.noAxes; };
     private handlemode = (mode: DemoMode) => () => { this.mode = mode; };
 
     render() {
         return html`
             <div class="stage" part="stage"><canvas part="canvas"></canvas></div>
+            ${this.noOrigin ? "" : html`<div class="origin" part="origin"></div>`}
             <div class="panel" part="panel"><slot></slot></div>
             ${this.noAxes ? "" : html`
                 <svg class="axes" part="axes" viewBox="-32 -32 64 64">
@@ -152,6 +177,7 @@ export class Demo3D extends CustomElement {
                     <button class="${this.mode === "pan" ? "on" : ""}" @click="${this.handlemode("pan")}">pan</button>
                     <button class="${this.mode === "fly" ? "on" : ""}" @click="${this.handlemode("fly")}">fly</button>
                     <button class="${this.noAxes ? "" : "on"}" @click="${this.handleaxes}">axes</button>
+                    <button class="${this.noOrigin ? "" : "on"}" @click="${this.handleorigin}">origin</button>
                     <span>${this.mode === "fly"
                         ? "click to look (esc frees) · right drag look · WASD · E/Q up/down · shift fast · wheel speed"
                         : "drag turn · right/shift drag pan · wheel zoom"}</span>

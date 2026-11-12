@@ -23,7 +23,7 @@ demo.tick = dt => { /* update */ };
 demo.draw = camera => { renderer.begin(camera, demo.background); /* draw */ };
 ```
 
-Properties: `mode` (`pan | fly`), `pan` (`ground | screen`), `speed`, `near`, `far`, `no-bar` (hide the mode bar), `no-axes` (hide the direction arrows bottom-left: X red, Y green, Z blue, faded = pointing away; the bar's `axes` button toggles them). Read: `engine`, `layer`, `gl`, `camera`, `time`, `background`.
+Properties: `mode` (`pan | fly`), `pan` (`ground | screen`), `speed`, `near`, `far`, `no-bar` (hide the mode bar), `no-axes` (hide the direction arrows bottom-left: X red, Y green, Z blue, faded = pointing away; the bar's `axes` button toggles them), `no-origin` (hide the origin dot: yellow, black ring, like Blender; the bar's `origin` button toggles it). Set `origin` (`[x, y, z]`, default `[0, 0, 0]`) to move the dot. Read: `engine`, `layer`, `gl`, `camera`, `time`, `background`.
 The controllers are exported too (`fly`, `panZoom`) for any engine `Camera`.
 
 Used by the grass view and `pw-3d-asset-preview`.

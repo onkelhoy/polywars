@@ -178,8 +178,10 @@ export class AssetPreview3D extends CustomElement {
         if (!this.model) return;
         const [cx, , cz] = this.model.center;
         const bottom = this.model.bounds.min[1];
-        // spin around the model's middle, standing on y = 0
-        this.model.draw(renderer, Matrix4.rotationY(this.yaw).translate(-cx, -bottom, -cz));
+        // spin around the model's middle, standing on y = 0; the origin dot sits on the asset's own origin
+        const m = Matrix4.rotationY(this.yaw).translate(-cx, -bottom, -cz);
+        if (this.demo) this.demo.origin = [m[12], m[13], m[14]];
+        this.model.draw(renderer, m);
     }
 
     // ---- input ----

@@ -91,3 +91,17 @@ canvas {
 .axes .y line, .axes .y circle { stroke: #46a758; fill: #46a758; }
 .axes .z line, .axes .z circle { stroke: #3e63dd; fill: #3e63dd; }
 .axes text { stroke: none; }
+
+/* Blender-like origin: yellow dot, black ring; top-left is moved onto the point, the margin centres it */
+.origin {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    margin: -5px 0 0 -5px;
+    border-radius: 50%;
+    background: #f5c518;
+    border: 1px solid #000;
+    pointer-events: none;
+}
