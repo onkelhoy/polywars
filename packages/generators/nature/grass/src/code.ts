@@ -5,7 +5,7 @@
  */
 const VERSION = "g2";
 /** older versions: the base they were made against, as changes to the current base */
-const OLD: Record<string, Record<string, unknown>> = { g1: { shape: "leaves" } };
+const OLD: Record<string, Record<string, unknown>> = { g1: { shape: "leaves", "clouds.speed": .01 } };
 
 type Data = unknown;
 const isObject = (v: Data): v is Record<string, Data> => typeof v === "object" && v !== null && !Array.isArray(v);

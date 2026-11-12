@@ -27,7 +27,7 @@ export const GRASS_LOOK: GrassLook = {
     wind: { direction: [0, 1], speed: .025, scale: .07, threshold: .365, diverge: 10, angle: 60, perspective: .3 },
     sway: { speed: .1, angle: 10 },
     push: { angle: 45, exponent: 1 },
-    clouds: { scale: 40, speed: .01, direction: [1, .3], height: 30, contrast: 2, threshold: .1, min: .45, diverge: 12 },
+    clouds: { scale: 40, speed: .05, direction: [1, .3], height: 30, contrast: 2, threshold: .1, min: .45, diverge: 12 },
     lighting: { wrap: 0, steepness: 1 },
     bands: 3,
     softBands: .2,
