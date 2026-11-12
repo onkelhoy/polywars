@@ -1,0 +1,68 @@
+{
+  "name": "@polywar/ecosystem",
+  "description": "Cover maps and prop placement from terrain data: trees, rocks, plants, grass fields",
+  "keywords": [
+    "papit",
+    "typescript",
+    "ecosystem"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build -- --error --ancestors",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "preversion": "papit-version",
+    "postversion": "papit-version"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/ecosystem",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/library/ecosystem"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/random": "*",
+    "@polywar/noise": "*",
+    "@polywar/nature": "*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "browser",
+    "main": "ecosystem"
+  }
+}
