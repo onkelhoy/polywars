@@ -1,36 +1,8 @@
 # @polywar/sites
 
-Map sites: villages, farms, landmarks
+Where things are: `generateSites(ground, towns, options)` → `Site[]` (`{ id, kind, x, z, y, radius, weight }`).
+Kinds: `city` (the terrain's towns), `village`, `farm` (round towns / villages), landmarks `peak`, `pass` (saddle), `viewpoint` (flat edge over a drop), `beach`, `lake` (shore, only when the ground has lakes).
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
+`Ground` = `{ n, cell, size, height, seaLevel, water? }`: terrain `RawGround` (before erosion) or `TerrainData` fit. Without `water`, below sea level is sea. Seeded: same input, same sites.
 
----
-
-![Type](https://img.shields.io/badge/Type-library-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/sites.svg?logo=npm)](https://www.npmjs.com/package/@polywar/sites)
-
----
-
-## installation
-
-```bash
-npm install @polywar/sites
-```
-
-## License
-
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
-
-**Key points:**
-
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
-
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+View: `views/experiment` (raw terrain via `shapeOnly`, counts per kind).

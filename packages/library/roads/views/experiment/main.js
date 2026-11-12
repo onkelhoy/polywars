@@ -1,6 +1,6 @@
-import { MAPS, shapeOnly } from '@polywar/terrain';
+import { MAPS, shapeOnly, generate } from '@polywar/terrain';
 import { generateSites } from '@polywar/sites';
-import { Roads, CLASSES, ERAS } from '@polywar/roads';
+import { Roads, CLASSES, ERAS, roadHooks } from '@polywar/roads';
 import { Map2D } from './map2d.js';
 
 const $ = s => document.querySelector(s);
@@ -51,8 +51,18 @@ async function load() {
     map.setGround(ground);
     rebuild();
 }
+async function full() {
+    $('#info').textContent = info + '\nfull terrain…';
+    const t = performance.now(), hooks = roadHooks(raw => generateSites(raw, raw.cities, { seed: +$('#seed').value }), options());
+    const data = await generate({ ...MAPS[$('#preset').value], seed: +$('#tseed').value, quality: $('#quality').value }, null, hooks);
+    sites = hooks.sites; roads = hooks.roads;
+    map.setGround(data);
+    $('#info').textContent = `${info}\nfull terrain ${(performance.now() - t) | 0} ms (roads before erosion, bridges after rivers)`;
+    map.draw();
+}
 function rebuild() {
     if (!ground) return;
+    if ($('#eroded').checked) return full();
     $('#info').textContent = info + '\nrouting…';
     setTimeout(() => {
         const t = performance.now();
@@ -140,6 +150,7 @@ for (const id of ['#tseed', '#preset', '#quality']) $(id).onchange = load;
 $('#seed').onchange = () => { sites = generateSites(ground, ground.cities, { seed: +$('#seed').value }); rebuild(); };
 for (const id of ['#cell', '#greed']) $(id).onchange = rebuild;
 $('#rebuild').onclick = rebuild;
+$('#eroded').onchange = () => $('#eroded').checked ? full() : load();
 $('#k').oninput = reroute;
 $('#sites').onchange = () => map.draw();
 $('#mode').onchange = () => { inspect = null; picks = []; routes = []; map.draw(); };

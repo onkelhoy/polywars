@@ -56,7 +56,10 @@
     "@polywar/nature": "*",
     "@polywar/grass": "*",
     "@polywar/scatter": "*",
-    "@polywar/renderer": "*"
+    "@polywar/renderer": "*",
+    "@polywar/roads": "*",
+    "@polywar/sites": "*",
+    "@papit/game-mesh": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

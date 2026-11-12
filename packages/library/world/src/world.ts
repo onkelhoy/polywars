@@ -6,6 +6,12 @@ import type { Light, Renderer, View } from "@polywar/renderer";
 import { Scatter } from "@polywar/scatter";
 import { DEFAULTS as TERRAIN, Terrain, decode, isCode, type TerrainData, type TerrainSettings } from "@polywar/terrain";
 import { BIOMES } from "@polywar/terrain-material";
+import { MeshBuilder, upload } from "@papit/game-mesh";
+import { roadEdge, roadHooks, ribbons, type RoadHooks } from "@polywar/roads";
+import { generateSites } from "@polywar/sites";
+
+/** road surface colours (linear-ish rgb) */
+const SURFACE: Record<string, [number, number, number]> = { asphalt: [.16, .16, .17], gravel: [.42, .38, .32], dirt: [.36, .27, .18], ballast: [.22, .2, .19] };
 import type { WorldSettings, WorldView } from "./types";
 
 /** grass draw distance per quality, metres (further than the grass presets) */
@@ -36,17 +42,21 @@ export class World {
     readonly scatter: Scatter;
     private v: WorldView;
     private data?: TerrainData;
+    /** sites + roads, built inside the terrain pipeline (before erosion) */
+    readonly roads: RoadHooks;
+    private roadMesh?: ReturnType<typeof upload>;
     /** after the nature is grown (terrain or ecosystem change) */
     onchange?: (world: World) => void;
 
     constructor(readonly layer: Layer3D, readonly renderer: Renderer, readonly nature: NatureList, settings: Partial<WorldSettings> | string = {}, view: Partial<WorldView> = {}) {
-        this.v = { quality: "medium", grass: true, props: true, style: "pixel", ...view };
+        this.v = { quality: "medium", grass: true, props: true, roads: true, style: "pixel", ...view };
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
         this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
-        this.terrain = new Terrain(layer, s.terrain ?? {});
+        this.roads = roadHooks(raw => generateSites(raw, raw.cities, s.sites ?? {}), s.roads ?? {}, JSON.stringify(s.sites ?? {}));
+        this.terrain = new Terrain(layer, s.terrain ?? {}, this.roads);
         this.terrain.onchange = data => this.grow(data);
     }
 
@@ -96,6 +106,7 @@ export class World {
         this.terrain.draw(view, light, time);
         p?.end();
         if (!this.data) return;
+        if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
         p?.begin("props");
         if (this.v.props) this.scatter.draw(view, time);
         p?.end();
@@ -129,7 +140,23 @@ export class World {
     private grow(data: TerrainData) {
         this.data = data;
         const look = this.terrain.material.look;
-        this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z) });
+        this.buildRoads();
+        const road = this.roads.roads ? roadEdge(this.roads.roads) : undefined;
+        this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
+    }
+
+    /** road strips draped a bit over the drawn ground */
+    private buildRoads() {
+        this.roadMesh = undefined;
+        const r = this.roads.roads;
+        if (!r) return;
+        const b = new MeshBuilder(), up = (p: number[]) => [p[0], Math.max(p[1], this.terrain.groundAt(p[0], p[2])) + .12, p[2]] as [number, number, number];
+        ribbons(r.network, (a, c, d, e, road) => {
+            const col = SURFACE[road.surface] ?? SURFACE.dirt, pa = up(a), pc = up(c), pd = up(d), pe = up(e);
+            b.quad(pa, pc, pd, pe, col);
+            b.quad(pe, pd, pc, pa, col);
+        }, 0);
+        this.roadMesh = upload(this.layer.gl, b.build());
     }
 
     /** ecosystem grown: hand props to the scatter and replant the grass */

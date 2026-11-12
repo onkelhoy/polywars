@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-`feature/roads`: tasks 0–10 done (2026-11-12). Next: 10b (carve + fix hooks), 10c (world), 11 (docs). Open tuning: rail zigzags (straight bridge/tunnel hops), raw shape is rough so roads wiggle, full network ~6 s at medium (road class ~3 s), a beach site can stay unconnected.
+`feature/roads`: phase 1 done (2026-11-12), owner review. Open: lakes form after roads (pre-erosion routing can't see them: roads cross big lakes as long bridges; fix = priority-flood basins on the raw map and avoid them), rail zigzags (straight bridge/tunnel hops), world ready ~12.5 s (roads ~6 s), bridges drawn as flat strips.
 
 ## Design (read before any task)
 
@@ -85,9 +85,9 @@ Drawing = plain 2D canvas lines, no meshes. Full world scale (3072 m default, ma
 - [x] 8. roads: shape (simplify, smooth by min radius, resample, graded bed height).
 - [x] 9. roads: classes + `ERAS.ww2` presets; topology per class; `generateRoads` full network. View draws all.
 - [x] 10. roads: junctions + `at(site)`, `nearest`, `mask`. View: hover shows nearest road; click site lists incoming roads.
-- [ ] 10b. roads: `features` (carve: bed flattened across width, cut/fill blended over shoulder, none under bridges / tunnels; `hard` mask) + `fix` (river / lake crossings). Roads view uses the hooks: before / after erosion toggle.
-- [ ] 10c. world: pass sites + roads hooks to the terrain; world code gets roads options.
-- [ ] 11. READMEs for both + facts.md section "Roads". Owner review.
+- [x] 10b. roads: `features` (carve: bed flattened across width, cut/fill blended over shoulder, none under bridges / tunnels; `hard` mask) + `fix` (river / lake crossings). Roads view uses the hooks: before / after erosion toggle.
+- [x] 10c. world: pass sites + roads hooks to the terrain; world code gets roads options.
+- [x] 11. READMEs for both + facts.md section "Roads". Owner review.
 
 ## Phase 2 (after review, not confirmed)
 - terrain mesh: RTIN `mesh.edges` along road edges so they stay sharp (like biome borders).

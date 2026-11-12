@@ -1,36 +1,10 @@
 # @polywar/pathfinding
 
-Grid and graph search: A*, headings, alternative routes
+Generic search, no game logic (candidate to move into papit, which has none).
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
+- `Heap`: binary min heap on typed arrays.
+- `Search` / `astar({ size, start, goal, neighbours(state, push), heuristic?, limit? })`: A* over any state space; `push(to, cost, tag?)`, tags (move kinds) come back on the path. A `Search` reuses its arrays between runs.
+- `GridSearch.find({ n, headings: 8 | 16, from, to, cost(from, to, heading, previous, turn), extra?(node, heading, push), minCost?, greed?, penalty?, limit? })`: (node, heading) states so turns can cost; `extra` adds long moves (bridges, tunnels); `greed` > 1 = weighted A* (faster, a bit worse).
+- `alternatives(gridOptions, { k, penalty, spread, overlap, tries })`: k different routes A → B (penalty method), best first.
 
----
-
-![Type](https://img.shields.io/badge/Type-utils-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/pathfinding.svg?logo=npm)](https://www.npmjs.com/package/@polywar/pathfinding)
-
----
-
-## installation
-
-```bash
-npm install @polywar/pathfinding
-```
-
-## License
-
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
-
-**Key points:**
-
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
-
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+View: `views/experiment` (noise grid, walls, click A then B).

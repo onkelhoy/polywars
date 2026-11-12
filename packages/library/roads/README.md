@@ -1,36 +1,17 @@
 # @polywar/roads
 
-Road networks between sites: highways, roads, lanes, paths, rail
+Road networks between sites, pure CPU. Classes `highway`, `road`, `lane`, `path`, `rail`; per class (era preset `ERAS.ww2`): width, shoulder, max grade, turn cost, min curve radius, bridge / tunnel cost + reach, reuse discount, surface.
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-library-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/roads.svg?logo=npm)](https://www.npmjs.com/package/@polywar/roads)
-
----
-
-## installation
-
-```bash
-npm install @polywar/roads
+```js
+const roads = new Roads(ground, { era: "ww2" });   // ground: { n, cell, size, height, seaLevel, water? }
+roads.build(sites);                                  // sites: @polywar/sites Site[]
+roads.network;        // { roads: [{ id, class, from, to, points [x y z], spans [{ kind ground|bridge|tunnel, from, to }], width, surface }], junctions }
+roads.at(siteId);     // junction at a site: every incoming road + angle (for town builders)
+roads.nearest(x, z);  roads.mask(m);  roads.route(ax, az, bx, bz, "road", 4);  // k alternatives
 ```
 
-## License
+How: topology per class (highways: Gabriel graph of cities, rail: spanning tree + loop, roads: villages to 2–3 nearest, lanes: farms, paths: landmarks) → A* on a coarse grid (`cell` m, 16 headings, `@polywar/pathfinding`): grade over the class max is very dear (switchbacks), turns cost, roads already built are cheaper (shared trunks, junctions where they part), bridges over water / deep valleys and tunnels through ridges as straight jumps → split at junctions → smoothed (Douglas–Peucker + Chaikin by min radius), resampled every `step` m, bed graded.
 
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
+Terrain: `roadHooks(sitesOf, options)` gives `@polywar/terrain` hooks: sites + roads on the raw map, `carve` (bed + banks, `hard` mask so erosion leaves it), after rivers `bridgeWater` (crossings → bridges). `roadEdge(roads)` = metres to the nearest road edge (ecosystem `Ground.road`), `ribbons(network, quad)` = surface strips.
 
-**Key points:**
-
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
-
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+View: `views/experiment` (raw terrain, all classes, A → B alternatives, inspect site junctions, class knobs, full terrain toggle).

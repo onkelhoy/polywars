@@ -71,6 +71,7 @@ export class Ecosystem {
         if (near(g, g.water, x, z) !== 0) return out;
         let density = bilinear(c.density, c.m, c.size, x, z);
         if (density <= .002) return out;
+        if (g.road) { const d = g.road(x, z); if (d <= 0) return out; density *= smoothstep(0, g.roadFade ?? 2.5, d); }
         let height = bilinear(c.height, c.m, c.size, x, z), dry = bilinear(c.dry, c.m, c.size, x, z);
         // bare rock on steep faces, none on snow
         const rs = g.rockSlope ?? .55;

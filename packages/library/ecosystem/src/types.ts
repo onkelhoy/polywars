@@ -30,6 +30,10 @@ export type Ground = {
     cities: { x: number; z: number; radius: number }[];
     /** height of the ground as drawn (props stand on it), default the `height` grid */
     groundAt?: (x: number, z: number) => number;
+    /** metres from the nearest road edge (<= 0 on a road), e.g. `@polywar/roads`: no props on roads, grass fades in over `roadFade` m */
+    road?: (x: number, z: number) => number;
+    /** metres of grass fade beside roads, default 2.5 */
+    roadFade?: number;
     /** slope where the ground shows bare rock (terrain look), default .55 */
     rockSlope?: number;
     /** metres where the snow cap starts (terrain look), default none */

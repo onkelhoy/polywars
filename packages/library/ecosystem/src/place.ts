@@ -63,6 +63,7 @@ export function place(g: Ground, c: Cover, list: NatureList, o: EcosystemOptions
             const s = (f.scale[0] + (f.scale[1] - f.scale[0]) * Math.pow(size, gr.small ?? 1)) * (gr.scale ?? 1) * mix(gr.core?.scale);
             const radius = f.radius * s, solid = radius * (gr.solid ?? SOLID[f.kind] ?? .5), space = radius * gr.spacing * mix(gr.core?.spacing);
             if (!gr.floats && sample(g, g.toWater, x, z) < solid) continue;
+            if (g.road && g.road(x, z) < solid + .5) continue;
             const blocked = hash.near(x, z, space + hash.reach, (id, dist) => hash.group[id] === gi
                 ? dist < (space + hash.space[id]) / 2
                 : dist < solid + hash.solid[id]);
