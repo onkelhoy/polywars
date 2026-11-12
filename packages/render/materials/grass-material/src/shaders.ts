@@ -30,7 +30,7 @@ vec3 patchedColor(vec2 xz) {
 float cloudLight(vec3 p) {
     vec3 l = normalize(sunDirection);
     vec2 hit = (p + (cloudHeight - p.y) / max(l.y, .05) * l).xz / cloudScale;
-    vec2 d = normalize(cloudDirection);
+    vec2 d = normalize(cloudDirection + vec2(1e-4, 0));
     float a = texture(noiseTex, hit - cloudTime * cloudSpeed * rotate2(d, cloudDiverge)).a;
     float b = texture(noiseTex, hit * .8 - cloudTime * cloudSpeed * rotate2(d, -cloudDiverge) * .89 * PI / 3.0).a;
     float v = clamp(a * b + cloudThreshold, 0.0, 1.0);
