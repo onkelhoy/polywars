@@ -225,6 +225,7 @@ export class Gallery extends CustomElement {
             preview.setAttribute("controls", "");
             preview.setAttribute("grid", "");
             preview.setAttribute("mode", "orbit");
+            preview.setAttribute("bones", "");
             const clip = item.src || item.gltf ? this.tiles.get(item)?.model : undefined;
             preview.setAttribute("animation", (clip && (clipOf(clip, this.animation) ?? clipOf(clip, "idle"))?.name) || this.animation);
             if (this.skin) preview.skin = this.skin;

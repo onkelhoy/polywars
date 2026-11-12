@@ -137,22 +137,55 @@ export class Demo3D extends CustomElement {
         });
     }
 
+    /** camera right, up, forward (world) */
+    private basis() {
+        const camera = this.camera!;
+        const pitch = camera.rotation[0], yaw = camera.rotation[1];
+        return {
+            r: [Math.cos(yaw), 0, -Math.sin(yaw)],
+            u: [Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch)],
+            f: [-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)],
+        };
+    }
+
+    /** where a world point lands: [x, y] css px from the stage's top left + depth, null behind the camera */
+    project(point: ArrayLike<number>): [number, number, number] | null {
+        const camera = this.camera, stage = this.shadowRoot?.querySelector<HTMLElement>(".stage");
+        if (!camera || !stage) return null;
+        const { r, u, f } = this.basis(), p = camera.position;
+        const d = [point[0] - p[0], point[1] - p[1], point[2] - p[2]];
+        const dot3 = (a: number[]) => a[0] * d[0] + a[1] * d[1] + a[2] * d[2];
+        const z = dot3(f);
+        if (z <= camera.near) return null;
+        const w = stage.clientWidth, h = stage.clientHeight, t = Math.tan(camera.fov / 2) / (camera.zoom || 1);
+        return [w / 2 + dot3(r) / (z * t) * h / 2, h / 2 - dot3(u) / (z * t) * h / 2, z];
+    }
+
+    /** world ray through a client point (e.g. a pointer event's clientX / clientY); `forward` is the camera's */
+    ray(clientX: number, clientY: number) {
+        const camera = this.camera, stage = this.shadowRoot?.querySelector<HTMLElement>(".stage");
+        if (!camera || !stage) return null;
+        const box = stage.getBoundingClientRect(), { r, u, f } = this.basis();
+        const t = Math.tan(camera.fov / 2) / (camera.zoom || 1), h = box.height / 2;
+        const x = (clientX - box.left - box.width / 2) / h * t, y = -(clientY - box.top - h) / h * t;
+        const dir = [0, 1, 2].map(i => f[i] + r[i] * x + u[i] * y), l = Math.hypot(dir[0], dir[1], dir[2]);
+        return { origin: [camera.position[0], camera.position[1], camera.position[2]], direction: dir.map(v => v / l), forward: f };
+    }
+
+    /** css px from a client point to the stage's top left */
+    local(clientX: number, clientY: number): [number, number] {
+        const box = this.shadowRoot?.querySelector<HTMLElement>(".stage")?.getBoundingClientRect();
+        return box ? [clientX - box.left, clientY - box.top] : [clientX, clientY];
+    }
+
     /** put the origin dot where `origin` lands on screen, hidden behind the camera */
     private updateOrigin() {
         const dot = this.noOrigin ? null : this.shadowRoot?.querySelector<HTMLElement>(".origin");
-        const camera = this.camera, stage = this.shadowRoot?.querySelector<HTMLElement>(".stage");
-        if (!dot || !camera || !stage) return;
-        const pitch = camera.rotation[0], yaw = camera.rotation[1], p = camera.position, o = this.origin;
-        const r = [Math.cos(yaw), 0, -Math.sin(yaw)];
-        const f = [-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
-        const u = [Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch)];
-        const d = [o[0] - p[0], o[1] - p[1], o[2] - p[2]];
-        const dot3 = (a: number[]) => a[0] * d[0] + a[1] * d[1] + a[2] * d[2];
-        const z = dot3(f);
-        if (z <= camera.near) { dot.style.display = "none"; return; }
-        const w = stage.clientWidth, h = stage.clientHeight, t = Math.tan(camera.fov / 2) / (camera.zoom || 1);
+        if (!dot) return;
+        const s = this.project(this.origin);
+        if (!s) { dot.style.display = "none"; return; }
         dot.style.display = "";
-        dot.style.transform = `translate(${w / 2 + dot3(r) / (z * t) * h / 2}px, ${h / 2 - dot3(u) / (z * t) * h / 2}px)`;
+        dot.style.transform = `translate(${s[0]}px, ${s[1]}px)`;
     }
 
     private handleorigin = () => { this.noOrigin = !this.noOrigin; };

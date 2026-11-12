@@ -39,20 +39,24 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/characters/characters",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/characters",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/library/characters/characters"
+    "directory": "packages/library/characters"
   },
   "sideEffects": true,
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/game-mesh": "*",
+    "@polywar/skeleton": "*",
+    "@polywar/3d-asset-preview": "*"
+  },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "playwright": "1.64.1",
@@ -69,12 +73,7 @@
   "papit": {
     "publish": true,
     "type": "browser",
-    "main": "characters",
-    "htmlprefix": "",
-    "components": {
-      "characters": {
-        "className": "Characters"
-      }
-    }
+    "main": "character",
+    "htmlprefix": ""
   }
 }

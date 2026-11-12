@@ -69,3 +69,9 @@ input[type=range] {
     width: 120px;
 }
 output.frame { min-width: 5.5em; text-align: center; font-variant-numeric: tabular-nums; }
+
+.bone {
+    align-self: center;
+    font-size: .8em;
+    opacity: .8;
+}

@@ -7,7 +7,7 @@ import { Matrix4 } from "@papit/matrix";
 import { Grid, Model, Renderer, type Drawable, type ModelOptions, type Scene, type TexturedGLTF } from "@polywar/renderer";
 import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
-import { RigGizmo, Skeleton } from "@polywar/skeleton";
+import { Poser, RigGizmo, Skeleton } from "@polywar/skeleton";
 
 // local
 import sheet from "./style.css" with { type: "css" };
@@ -17,7 +17,8 @@ import type { LoadEvent, Overlay, PreviewMode } from "./types";
  * Shows one 3D asset (.glb/.gltf) by path.
  * Modes: `turntable` (spins, drag to orbit), `orbit` (drag turn, right-drag/shift-drag pan, wheel zoom), `fps` (click, WASD + mouse).
  * With `controls`: mode switch, animation picker, play/pause, a time scrubber and frame stepping (`fps`).
- * Rigged models posed by a `Skeleton` (set `skin`, e.g. `Skeleton.skin`) get bones / IK / mesh toggles.
+ * Rigged models posed by a `Skeleton` (set `skin`, e.g. `Skeleton.skin`) get bones / IK / mesh toggles;
+ * with bones shown, drag a bone to pose it (IK targets, poles, roots move, the rest turn), on top of the clip.
  * Hooks: `skin` (e.g. `Skeleton.skin` for IK), `overlay` (draws over the model, e.g. bones), `hide-model`.
  */
 export class AssetPreview3D extends CustomElement {
@@ -63,6 +64,12 @@ export class AssetPreview3D extends CustomElement {
     private gridMesh?: Grid;
     private bulb?: GPUMesh;
     private gizmo?: RigGizmo;
+    /** hand posing of a `Skeleton` skin */
+    poser?: Poser;
+    /** armature space -> world, from the last draw, and back */
+    private boneMatrix?: Matrix4;
+    private boneInverse?: Matrix4;
+    private dragging?: number;
     /** the loaded model */
     model?: Model;
     private drawable?: Drawable;
@@ -83,6 +90,9 @@ export class AssetPreview3D extends CustomElement {
         this.bulb = upload(demo.gl, new MeshBuilder().sphere([1, .85, .6], {}, 1).build());
         demo.tick = dt => this.step(dt);
         demo.draw = camera => this.draw(camera);
+        demo.addEventListener("pointerdown", this.handlebonedown, { capture: true });
+        window.addEventListener("pointermove", this.handlebonemove);
+        window.addEventListener("pointerup", this.handleboneup);
         this.applyMode();
         this.load();
     }
@@ -110,6 +120,7 @@ export class AssetPreview3D extends CustomElement {
         const first = !this.model;
         this.model?.destroy();
         this.model = model;
+        this.poser = model.skin instanceof Skeleton ? new Poser(model.skin) : undefined;
         this.fitGrid();
         this.time = 0;
         if (!model.animation(this.animation)) this.animation = "";
@@ -165,6 +176,7 @@ export class AssetPreview3D extends CustomElement {
         if (this.playing) this.time += dt * this.speed;
         const anim = this.model?.animation(this.animation);
         this.model?.pose(anim, this.time);
+        this.poser?.apply();
         if (anim && this.controls)
         {
             const scrub = this.shadowRoot?.querySelector<HTMLInputElement>("input[type=range]");
@@ -207,12 +219,41 @@ export class AssetPreview3D extends CustomElement {
         if (skin instanceof Skeleton)
         {
             if (skin.ikEnabled !== this.ik) skin.ikEnabled = this.ik;
-            if (this.bones) (this.gizmo ??= new RigGizmo(renderer.gl)).draw(renderer, skin, m.clone.multiply(this.model.skeletonMatrix));
+            this.boneMatrix = m.clone.multiply(this.model.skeletonMatrix);
+            this.boneInverse = this.boneMatrix.clone.inverse();
+            const selected = this.poser?.selected ? new Set([this.poser.selected]) : undefined;
+            if (this.bones) (this.gizmo ??= new RigGizmo(renderer.gl)).draw(renderer, skin, this.boneMatrix, { selected });
         }
         this.overlay?.(renderer, this.model, m);
     }
 
     // ---- input ----
+
+    /** with bones shown: a press on a bone picks it and keeps the camera still */
+    private handlebonedown = (e: PointerEvent) => {
+        const demo = this.demo, poser = this.poser, M = this.boneMatrix;
+        if (!this.bones || !demo || !poser || !M || e.button !== 0 || this.mode === "fps") return;
+        const [x, y] = demo.local(e.clientX, e.clientY);
+        const bone = poser.pick(x, y, p => demo.project(transform(M, p, 1)));
+        this.requestUpdate();
+        if (!bone) return;
+        e.stopPropagation();
+        e.preventDefault();
+        this.dragging = e.pointerId;
+    };
+    private handlebonemove = (e: PointerEvent) => {
+        if (e.pointerId !== this.dragging) return;
+        const ray = this.demo?.ray(e.clientX, e.clientY), I = this.boneInverse;
+        if (!ray || !I) return;
+        this.poser?.drag(transform(I, ray.origin, 1), transform(I, ray.direction, 0), transform(I, ray.forward, 0));
+        this.requestUpdate();
+    };
+    private handleboneup = (e: PointerEvent) => {
+        if (e.pointerId !== this.dragging) return;
+        this.dragging = undefined;
+        this.poser?.release();
+    };
+    private handleposereset = () => { this.poser?.clear(); if (this.poser) this.poser.selected = undefined; this.requestUpdate(); };
 
     private handlemode = (mode: PreviewMode) => () => { this.mode = mode; };
     private handlelights = () => { this.lights = !this.lights; };
@@ -251,6 +292,8 @@ export class AssetPreview3D extends CustomElement {
                             <pap-button size="small" variant="${!this.hideModel ? "filled" : "outline"}" @click="${this.handletoggle("hideModel")}">mesh</pap-button>
                             <pap-button size="small" variant="${this.bones ? "filled" : "outline"}" @click="${this.handletoggle("bones")}">bones</pap-button>
                             <pap-button size="small" variant="${this.ik ? "filled" : "outline"}" @click="${this.handletoggle("ik")}">IK</pap-button>
+                            ${this.bones ? html`<span class="bone">${this.poser?.selected?.name ?? "drag a bone"}</span>` : ""}
+                            ${this.poser?.edits.size ? html`<pap-button size="small" variant="outline" @click="${this.handleposereset}">reset pose</pap-button>` : ""}
                         </div>
                     ` : ""}
                     ${names.length ? html`
@@ -287,4 +330,9 @@ declare global {
     interface HTMLElementTagNameMap {
         "pw-3d-asset-preview": AssetPreview3D;
     }
+}
+
+/** column major 4x4 times [x, y, z, w] (w 1 = point, 0 = direction) */
+function transform(m: ArrayLike<number>, p: ArrayLike<number>, w: number) {
+    return [0, 1, 2].map(i => m[i] * p[0] + m[4 + i] * p[1] + m[8 + i] * p[2] + m[12 + i] * w);
 }

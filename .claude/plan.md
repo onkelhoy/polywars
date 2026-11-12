@@ -24,11 +24,11 @@ Goal: base humanoid rig (Blender editable, IK controls), basic clips, bones draw
 
 ## Layout (2026-11-12)
 `animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{3d-demo, 3d-asset-preview, gallery, renderer}` · `network/*` · `tools/mesh-bake`.
-`npm run assets` serves `library/catalog` view `all`. Folder `catalog` (not `assets`: the dev server serves such folders raw).
+`npm run assets` serves `library/catalog` (`views/`, no sub views). Folder `catalog` (not `assets`: the dev server serves such folders raw).
 
 ## Next tasks
-- n1. [ ] `@polywar/characters` (`packages/library/characters`): one package for all characters: base rig specs (humanoid now), `character.json` loader (sockets, parts, skins), view.
-- n2. [ ] Skeleton view: click a bone, drag it (FK rotate / move IK targets) to play with the pose.
+- n1. [x] `@polywar/characters` (`packages/library/characters`): one package for all characters: base rig specs (humanoid now), `character.json` loader (sockets, parts, skins), view.
+- n2. [x] Skeleton view: click a bone, drag it (FK rotate / move IK targets) to play with the pose.
 - n3. [ ] Animal rigs: the farm pack glbs have a skin + clips (Idle, Walk, Run, ...) but bones show scattered: node scale (unsupported in papit `rig()` and `Skeleton`). Fix in Skeleton, then base rigs quadruped (cow) and biped (chicken).
 - n4. [ ] Guns in the catalog: show their rig bones (gun_rig.py), check clips.
 - n5. [ ] Bone map for downloaded humanoid models (Mixamo etc.) onto the base rig, once the owner has one.

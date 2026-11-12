@@ -46,7 +46,7 @@ if (!process.argv.includes("--no-serve"))
     const server = spawn("npx", ["@papit/server"], { cwd: join(ROOT, "packages/library/catalog"), stdio: ["inherit", "pipe", "inherit"] });
     server.stdout.on("data", chunk => {
         const port = /server: (\d+)/.exec(String(chunk))?.[1];
-        if (port) console.log(`gallery: http://localhost:${port}/views/all/`);
+        if (port) console.log(`gallery: http://localhost:${port}/views/`);
     });
     process.on("SIGINT", () => { server.kill(); process.exit(); });
 }
