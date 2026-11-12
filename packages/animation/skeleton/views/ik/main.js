@@ -1,8 +1,7 @@
 import '@polywar/3d-demo';
 import { Grid, Model, Renderer } from '@polywar/renderer';
 import { MeshBuilder, upload } from '@papit/game-mesh';
-import { Skeleton } from '@polywar/skeleton';
-import { RigGizmo } from '@polywar/rig-gizmo';
+import { Skeleton, RigGizmo } from '@polywar/skeleton';
 
 const $ = s => document.querySelector(s);
 const demo = $('#view');

@@ -42,14 +42,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/stage/gallery",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/viewport/gallery",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/stage/gallery"
+    "directory": "packages/ui/viewport/gallery"
   },
   "sideEffects": true,
   "engines": {
@@ -79,11 +79,7 @@
     "typescript": "5.9.3",
     "@papit/theme": "*",
     "@papit/translator": "*",
-    "@papit/codeblock": "*",
-    "@polywar/grass-material": "*",
-    "@polywar/shading": "*",
-    "@polywar/character-preview": "*",
-    "@polywar/skeleton": "*"
+    "@papit/codeblock": "*"
   },
   "browserslist": [
     "defaults",

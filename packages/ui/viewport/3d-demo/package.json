@@ -38,14 +38,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/stage/3d-demo",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/viewport/3d-demo",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/stage/3d-demo"
+    "directory": "packages/ui/viewport/3d-demo"
   },
   "sideEffects": true,
   "engines": {

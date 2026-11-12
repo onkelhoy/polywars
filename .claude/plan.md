@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `feat/character`: character rig c1-c5 done, c6 waits for a downloaded model (see "Character rig"). Older note: On `main`, task 8 next. `@polywar/renderer` + `@polywar/shading` done (materials gallery). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
+Branch `feat/character`: restructure done (folders below), next: "Next tasks". Older note: On `main`, task 8 next. `@polywar/renderer` + `@polywar/shading` done (materials gallery). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
@@ -9,7 +9,7 @@ Branch `feat/character`: character rig c1-c5 done, c6 waits for a downloaded mod
 - Pack script keeps existing files (hand edits); `--force` or delete one file to regenerate it.
 - Guns: muzzle +Y Blender (glTF -Z), up +Z. Bones: root > body > action, trigger, hammer?, mag > round, muzzle, eject. Moving parts = vertex groups in `gun.blend`. Actions: idle, fire, reload, reload-empty.
 - `game-mesh` has no textures → `export.py` bakes image textures into vertex colours.
-- Render code (Renderer, Model, Grid, gltfFromMesh) is `@polywar/renderer` (`packages/render/renderer`); shading styles + preview ball are `@polywar/shading`.
+- Render code (Renderer, Model, Grid, gltfFromMesh) is `@polywar/renderer` (`packages/ui/viewport/renderer`); shading styles + preview ball are `@polywar/shading`.
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
 
 ## Tasks
@@ -19,19 +19,26 @@ Branch `feat/character`: character rig c1-c5 done, c6 waits for a downloaded mod
 Goal: base humanoid rig (Blender editable, IK controls), basic clips, bones drawn like Blender, clip/frame picking in preview + gallery.
 - Per character: `assets/models/characters/<name>/model.blend` → `model.glb` + `model.rig.json` (written by export.py: lengths, IK, copy rotation, deform) + hand written `character.json` (skins, sockets, parts, weapons later).
 - papit gap: glTF bones point +Y, armature +X, `rig(gltf)` lengths 0 → papit IK can't run on glTF rigs. `@polywar/skeleton` converts (+X, real lengths).
-- c1. [x] Blender: `lib/human_rig.py` + `packs/characters.py`: ~45 bones (deform + IK targets/poles + prop sockets), IK constraints, mannequin skin (rigid parts per bone = detachable later), clips idle/walk/run/fps-idle.
-- c2. [x] export.py writes `<name>.rig.json` when an armature has constraints.
-- c3. [x] `@polywar/skeleton` (`packages/animation/skeleton`): glTF → papit +X rig, IK + copy rotation from rig.json, sample + blend, joint matrices. Renderer `Model` takes an optional skin.
-- c4. [x] `@polywar/rig-gizmo` (`packages/render/rig-gizmo`): Blender style bones (see-through octahedra, joint balls), dashed parent lines, IK chain/target/pole colours. View: base rig.
-- c5. [x] Preview: `overlay` hook, frame readout + step; `@polywar/character-preview` (stage): bones / mesh / IK toggles. Gallery: one clip picker for all tiles, custom opener for characters.
+- Done: base rig + clips (`tools/blender/lib/human_rig.py`), rig.json export, `@polywar/skeleton` (rig, IK, `RigGizmo` bone drawing, view `ik`), preview bones / IK / mesh toggles for any `Skeleton` skin, gallery clip picker (any case).
 - Notes: Blender check scripts live in the session only; `npm run assets` exports base. Limb bones are rolled to face their pole (Blender pole angle 90) so Blender and the runtime IK match (< 0.02).
-- c6. [ ] Bone map for downloaded models (Mixamo etc.) once the owner has one.
+
+## Layout (2026-11-12)
+`animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{3d-demo, 3d-asset-preview, gallery, renderer}` · `network/*` · `tools/mesh-bake`.
+`npm run assets` serves `library/catalog` view `all`. Folder `catalog` (not `assets`: the dev server serves such folders raw).
+
+## Next tasks
+- n1. [ ] `@polywar/characters` (`packages/library/characters`): one package for all characters: base rig specs (humanoid now), `character.json` loader (sockets, parts, skins), view.
+- n2. [ ] Skeleton view: click a bone, drag it (FK rotate / move IK targets) to play with the pose.
+- n3. [ ] Animal rigs: the farm pack glbs have a skin + clips (Idle, Walk, Run, ...) but bones show scattered: node scale (unsupported in papit `rig()` and `Skeleton`). Fix in Skeleton, then base rigs quadruped (cow) and biped (chicken).
+- n4. [ ] Guns in the catalog: show their rig bones (gun_rig.py), check clips.
+- n5. [ ] Bone map for downloaded humanoid models (Mixamo etc.) onto the base rig, once the owner has one.
+- n6. [ ] Weapons come alive (sniper scope, fire anims, flash, bullet, shell), FPS arms on hand IK; per weapon later.
 
 ## Medieval buildings + baked surfaces (confirmed 2026-11-11)
 Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
 - Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `color.png`, `normal.png`, `ao.png`, `spec.png` (glb references them). Rebake: `node tools/bake-village.mjs`.
 - mesh-bake: `papit.type` is `node` so `src/bin.ts` builds to `lib/bin.js` (browser type fails on `node:` imports); `lib/bundle.js` stays browser safe (bin is not exported from index).
-- b3. [ ] `packages/render/materials/textured`: albedo + normal + spec + ao, maps optional, own view.
+- b3. [ ] `packages/library/materials/textured`: albedo + normal + spec + ao, maps optional, own view.
 - b3b. [ ] mesh-bake GUI view: drop glb, live maps + lit preview, settings, download.
 - b5. [ ] Generator massing: main volume, wing, lean-to, jetty.
 - b6. [ ] Generator roofs: gable default, cross-gable, dormers, ridge/rake.

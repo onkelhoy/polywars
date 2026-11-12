@@ -1,4 +1,4 @@
-# @polywar/city-medieval
+# @polywar/building-builder
 
 Medieval houses from the Modular Village kit: seeded, every setting visible.
 
@@ -8,20 +8,20 @@ Medieval houses from the Modular Village kit: seeded, every setting visible.
 
 ![Type](https://img.shields.io/badge/Type-generators-orange)
 [![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/city-medieval.svg?logo=npm)](https://www.npmjs.com/package/@polywar/city-medieval)
+[![NPM version](https://img.shields.io/npm/v/@polywar/building-builder.svg?logo=npm)](https://www.npmjs.com/package/@polywar/building-builder)
 
 ---
 
 ## installation
 
 ```bash
-npm install @polywar/city-medieval
+npm install @polywar/building-builder
 ```
 
 ## usage
 
 ```js
-import { building, DEFAULTS, encode, medievalStyle, kitSource } from "@polywar/city-medieval";
+import { building, DEFAULTS, encode, medievalStyle, kitSource } from "@polywar/building-builder";
 const house = building({ ...DEFAULTS, floors: [2, 3], windmill: "on" }, 42); // { pieces: {piece, matrix}[], features }
 ```
 

@@ -37,14 +37,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/render/materials/shading",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/materials/shading",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/render/materials/shading"
+    "directory": "packages/library/materials/shading"
   },
   "sideEffects": true,
   "engines": {

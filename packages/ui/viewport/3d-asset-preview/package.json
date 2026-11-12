@@ -41,14 +41,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/stage/3d-asset-preview",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/viewport/3d-asset-preview",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/stage/3d-asset-preview"
+    "directory": "packages/ui/viewport/3d-asset-preview"
   },
   "sideEffects": true,
   "engines": {
@@ -61,7 +61,8 @@
     "@papit/game-mesh": "*",
     "@papit/matrix": "*",
     "@polywar/3d-demo": "*",
-    "@polywar/renderer": "*"
+    "@polywar/renderer": "*",
+    "@polywar/skeleton": "*"
   },
   "peerDependencies": {
     "react": "^19"

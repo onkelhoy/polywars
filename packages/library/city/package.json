@@ -39,14 +39,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/generators/city",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/city",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/generators/city"
+    "directory": "packages/library/city"
   },
   "sideEffects": true,
   "engines": {
@@ -63,7 +63,7 @@
     "@papit/theme": "*",
     "@papit/translator": "*",
     "@papit/codeblock": "*",
-    "@polywar/city-medieval": "*",
+    "@polywar/building-builder": "*",
     "@polywar/3d-asset-preview": "*"
   },
   "browserslist": [

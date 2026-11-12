@@ -10,7 +10,7 @@ Grouped by feature. `[ ]` open, `[x]` done.
 
 ## Rendering
 - [x] Pull Renderer / Model / Grid out of `@polywar/3d-asset-preview` into `packages/render/` (preview + gallery use it)
-- [ ] More materials as `render/materials/*` packages, each with a sample (`Drawable`) for the materials gallery
+- [ ] More materials as `library/materials/*` packages, each with a sample (`Drawable`) for the materials gallery
 - [ ] Lighting
 - [x] Toon shading (`@polywar/shading`)
 - [ ] Pixel style variant

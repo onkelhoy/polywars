@@ -40,14 +40,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/room",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/game/room",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/ui/room"
+    "directory": "packages/ui/game/room"
   },
   "sideEffects": true,
   "engines": {

@@ -110,7 +110,7 @@ export async function writeGLB(gltf: GLTF & { maps?: (MapUrls | undefined)[][] }
     };
     const roots = gltf.roots.map(copy);
     const json: any = {
-        asset: { version: "2.0", generator: "polywar city-medieval" },
+        asset: { version: "2.0", generator: "polywar building-builder" },
         scene: 0, scenes: [{ nodes: roots }], nodes, meshes, materials, accessors, bufferViews,
         buffers: [{ byteLength: length }],
     };

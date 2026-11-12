@@ -46,7 +46,7 @@ Methods: `open(item)`, `close()`. Event: `open` with `{ item }`.
 ## Manifest
 
 ```bash
-node packages/stage/gallery/bin/manifest.mjs <folder> [--prefix=/url/of/folder]
+node packages/ui/viewport/gallery/bin/manifest.mjs <folder> [--prefix=/url/of/folder]
 ```
 
 Writes `<folder>/manifest.json` as an `Assets` tree. Also importable: `writeManifest(folder, prefix)`, `count(tree)`.

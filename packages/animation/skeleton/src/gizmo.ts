@@ -1,7 +1,7 @@
 import type { Bone } from "@papit/armature";
 import { MeshBuilder, upload, type GPUMesh, type Mesh } from "@papit/game-mesh";
 import type { Renderer } from "@polywar/renderer";
-import type { GizmoColors, GizmoOptions, RGBA, RigView } from "./types";
+import type { GizmoColors, GizmoOptions, RGBA, RigView } from "./gizmo-types";
 
 // colours (linear) after Blender's bone theme
 export const GIZMO_COLORS: GizmoColors = {
@@ -76,7 +76,7 @@ export class RigGizmo {
             const size = Math.max(bone.length, .02) * .06 * scale;
             const tint: RGBA = selected?.has(bone) ? c.selected : c.joint;
             renderer.draw(this.ball, this.pointMatrix(matrix, bone.head, size), { tint, unlit: true });
-            if (bone.length > 0 && !bone.children.some(k => distance(k.head, bone.tail) < 1e-4))
+            if (bone.length > 0 && !bone.children.some((k: Bone) => distance(k.head, bone.tail) < 1e-4))
                 renderer.draw(this.ball, this.pointMatrix(matrix, bone.tail, size * .8), { tint, unlit: true });
         }
 

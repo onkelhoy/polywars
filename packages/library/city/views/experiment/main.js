@@ -1,6 +1,6 @@
 import '@polywar/3d-asset-preview';
 import { city, getStyle, registerStyle, styleNames } from '@polywar/city';
-import { kitSource, medievalStyle } from '@polywar/city-medieval';
+import { kitSource, medievalStyle } from '@polywar/building-builder';
 
 const $ = s => document.querySelector(s);
 const preview = $('pw-3d-asset-preview');

@@ -1,4 +1,4 @@
-# Plan: medieval house + village generator (`packages/generators/city-medieval`, `packages/generators/city`)
+# Plan: medieval house + village generator (`packages/library/building-builder`, `packages/library/city`)
 
 Owner goal: houses and villages like the store screenshots (`~/Desktop/*.png`, half-timber, gables, mill, bridge), every setting in the view must have a visible effect.
 State (2026-11-11): tasks 1-17 done (commits on `city-generation-village-pack`). Open notes: no `Stone_Steps` (base is never raised), roof valleys by intersection (no `Corner_Inner`), curbs stop short of crossings, houses fill one lot per block row on small blocks.
@@ -7,7 +7,7 @@ State (2026-11-11): tasks 1-17 done (commits on `city-generation-village-pack`).
 - Never place a piece from its name alone. Unknown piece → put it in a contact sheet, render, look once, write the fact down under "Kit facts".
 - Check loop, no browser: `node tools/blender/render-house.mjs /tmp/pw/h.jpg <seed> '<settings json>' yaw=55 pitch=15 width=800 height=620` then Read the jpg. yaw 0 = looking at the front (+Z). Always render small jpg, one image per change, batch several changes per render.
 - Contact sheet: write `[{piece, matrix}]` json (pieces 3 m apart) and run `/Applications/Blender.app/Contents/MacOS/Blender -b -P tools/blender/render_pieces.py -- in.json out.jpg yaw=60 pitch=25`.
-- Build: `npx @papit/build` (root). Node can import `packages/generators/city-medieval/lib/bundle.js`.
+- Build: `npx @papit/build` (root). Node can import `packages/library/building-builder/lib/bundle.js`.
 - Don't re-read files you wrote. No tests, no subagents, short messages (see CLAUDE.md).
 - Output stays `{piece, matrix}[]` (column-major, may contain scale). Seed + settings = same result. Game specifics stay out of `@polywar/city`.
 

@@ -40,14 +40,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/render/materials/grass-material",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/materials/grass-material",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/render/materials/grass-material"
+    "directory": "packages/library/materials/grass-material"
   },
   "sideEffects": true,
   "engines": {

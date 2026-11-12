@@ -139,7 +139,7 @@ export class Gallery extends CustomElement {
         ready?.then(m => {
             if (this.tiles.get(item) !== tile) return m.destroy();
             tile.model = m;
-            if (m.animations.some(a => a.name && !this.clips.has(a.name))) { m.animations.forEach(a => a.name && this.clips.add(a.name)); this.requestUpdate(); }
+            if (m.animations.some(a => a.name && !this.clips.has(a.name.toLowerCase()))) { m.animations.forEach(a => a.name && this.clips.add(a.name.toLowerCase())); this.requestUpdate(); }
         }).catch(e => console.warn("pw-gallery:", item.src, e));
     }
 
@@ -174,7 +174,7 @@ export class Gallery extends CustomElement {
                 continue;
             }
             if (!model) continue;
-            const clip = model.animation(this.animation) ?? model.animation("idle");
+            const clip = clipOf(model, this.animation) ?? clipOf(model, "idle");
             if (clip) model.pose(clip, time);
             // far enough that the bounding sphere fits the tile (fov .75 rad)
             const radius = Math.max(Math.hypot(...model.size) / 2, .01);
@@ -225,7 +225,8 @@ export class Gallery extends CustomElement {
             preview.setAttribute("controls", "");
             preview.setAttribute("grid", "");
             preview.setAttribute("mode", "orbit");
-            preview.setAttribute("animation", this.animation);
+            const clip = item.src || item.gltf ? this.tiles.get(item)?.model : undefined;
+            preview.setAttribute("animation", (clip && (clipOf(clip, this.animation) ?? clipOf(clip, "idle"))?.name) || this.animation);
             if (this.skin) preview.skin = this.skin;
             if (item.scene) preview.scene = item.scene;
             const gltf = toGLTF(item);
@@ -362,6 +363,12 @@ function toGLTF(item: GalleryItem): TexturedGLTF | null {
     if (item.gltf) return item.gltf;
     if (item.mesh) return gltfFromMesh(...(Array.isArray(item.mesh) ? item.mesh : [item.mesh]));
     return null;
+}
+
+/** clip by name, any case ("Idle" = "idle") */
+function clipOf(model: Model, name: string) {
+    const n = name.toLowerCase();
+    return model.animations.find(a => a.name?.toLowerCase() === n);
 }
 
 function playpreview(e: Event) { (e.currentTarget as HTMLVideoElement).play().catch(() => {}); }

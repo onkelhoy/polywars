@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 const ROOT = join(dirname(new URL(import.meta.url).pathname), "../..");
-const { building, DEFAULTS } = await import(join(ROOT, "packages/generators/city-medieval/lib/bundle.js"));
+const { building, DEFAULTS } = await import(join(ROOT, "packages/library/building-builder/lib/bundle.js"));
 const [out, seed = "1", settings = "{}", ...rest] = process.argv.slice(2);
 const b = building({ ...DEFAULTS, ...JSON.parse(settings) }, Number(seed));
 const baked = p => `assets/models/buildings/modular-village/baked/${p}/model.glb`;

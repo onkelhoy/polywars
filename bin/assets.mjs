@@ -1,12 +1,12 @@
 // npm run assets [-- --all] [-- --no-export] [-- --no-serve]
 // 1. exports every .blend in assets/ to .glb (when the .glb is older than any .blend in its folder, or --all)
 // 2. writes assets/manifest.json, a tree of every file (the gallery package's generator)
-// 3. serves the gallery of everything (packages/stage/gallery, view "everything") until Ctrl+C
+// 3. serves the gallery of everything (packages/library/catalog, its view) until Ctrl+C
 import { readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { spawnSync } from "node:child_process";
 import { spawn } from "node:child_process";
-import { writeManifest, count } from "../packages/stage/gallery/bin/manifest.mjs";
+import { writeManifest, count } from "../packages/ui/viewport/gallery/bin/manifest.mjs";
 
 const ROOT = join(dirname(new URL(import.meta.url).pathname), "..");
 const ASSETS = join(ROOT, "assets");
@@ -43,10 +43,10 @@ console.log(`manifest: ${count(writeManifest(ASSETS, "/assets"))} files`);
 
 if (!process.argv.includes("--no-serve"))
 {
-    const server = spawn("npx", ["@papit/server"], { cwd: join(ROOT, "packages/stage/gallery"), stdio: ["inherit", "pipe", "inherit"] });
+    const server = spawn("npx", ["@papit/server"], { cwd: join(ROOT, "packages/library/catalog"), stdio: ["inherit", "pipe", "inherit"] });
     server.stdout.on("data", chunk => {
         const port = /server: (\d+)/.exec(String(chunk))?.[1];
-        if (port) console.log(`gallery: http://localhost:${port}/views/everything/`);
+        if (port) console.log(`gallery: http://localhost:${port}/views/all/`);
     });
     process.on("SIGINT", () => { server.kill(); process.exit(); });
 }

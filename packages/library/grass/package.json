@@ -36,14 +36,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/generators/nature/grass",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/grass",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/generators/nature/grass"
+    "directory": "packages/library/grass"
   },
   "sideEffects": true,
   "engines": {

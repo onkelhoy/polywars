@@ -7,6 +7,7 @@ import { Matrix4 } from "@papit/matrix";
 import { Grid, Model, Renderer, type Drawable, type ModelOptions, type Scene, type TexturedGLTF } from "@polywar/renderer";
 import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
+import { RigGizmo, Skeleton } from "@polywar/skeleton";
 
 // local
 import sheet from "./style.css" with { type: "css" };
@@ -16,6 +17,7 @@ import type { LoadEvent, Overlay, PreviewMode } from "./types";
  * Shows one 3D asset (.glb/.gltf) by path.
  * Modes: `turntable` (spins, drag to orbit), `orbit` (drag turn, right-drag/shift-drag pan, wheel zoom), `fps` (click, WASD + mouse).
  * With `controls`: mode switch, animation picker, play/pause, a time scrubber and frame stepping (`fps`).
+ * Rigged models posed by a `Skeleton` (set `skin`, e.g. `Skeleton.skin`) get bones / IK / mesh toggles.
  * Hooks: `skin` (e.g. `Skeleton.skin` for IK), `overlay` (draws over the model, e.g. bones), `hide-model`.
  */
 export class AssetPreview3D extends CustomElement {
@@ -34,6 +36,10 @@ export class AssetPreview3D extends CustomElement {
     @property({ attribute: false }) overlay: Overlay | null = null;
     /** skip drawing the model (the overlay still draws) */
     @property({ type: Boolean, attribute: "hide-model" }) hideModel: boolean = false;
+    /** draw the bones (Blender style) of a `Skeleton` skin */
+    @property({ type: Boolean, rerender: true }) bones: boolean = false;
+    /** IK of a `Skeleton` skin on/off */
+    @property({ type: Boolean, rerender: true }) ik: boolean = true;
     /** frames per second for the frame readout and stepping */
     @property({ type: Number }) fps: number = 30;
     @property({ rerender: true, after: function (this: AssetPreview3D) { this.applyMode(); } }) mode: PreviewMode = "turntable";
@@ -56,6 +62,7 @@ export class AssetPreview3D extends CustomElement {
     private renderer?: Renderer;
     private gridMesh?: Grid;
     private bulb?: GPUMesh;
+    private gizmo?: RigGizmo;
     /** the loaded model */
     model?: Model;
     private drawable?: Drawable;
@@ -196,6 +203,12 @@ export class AssetPreview3D extends CustomElement {
         const m = Matrix4.rotationY(this.yaw).translate(-cx, -bottom, -cz);
         if (this.demo) this.demo.origin = [m[12], m[13], m[14]];
         if (!this.hideModel) this.model.draw(renderer, m);
+        const skin = this.model.skin;
+        if (skin instanceof Skeleton)
+        {
+            if (skin.ikEnabled !== this.ik) skin.ikEnabled = this.ik;
+            if (this.bones) (this.gizmo ??= new RigGizmo(renderer.gl)).draw(renderer, skin, m.clone.multiply(this.model.skeletonMatrix));
+        }
         this.overlay?.(renderer, this.model, m);
     }
 
@@ -207,6 +220,7 @@ export class AssetPreview3D extends CustomElement {
         this[name] = Number((e.target as HTMLInputElement).value);
     };
     private handleanimation = (e: Event) => { this.animation = (e.target as HTMLSelectElement).value; this.time = 0; };
+    private handletoggle = (name: "bones" | "ik" | "hideModel") => () => { this[name] = !this[name]; };
     private handleplay = () => { this.playing = !this.playing; this.requestUpdate(); };
     private handlestep = (n: number) => () => {
         this.playing = false;
@@ -232,6 +246,13 @@ export class AssetPreview3D extends CustomElement {
                             <pap-button size="small" variant="${m === this.mode ? "filled" : "outline"}" @click="${this.handlemode(m)}">${m}</pap-button>
                         `)}
                     </div>
+                    ${this.model?.skin instanceof Skeleton ? html`
+                        <div class="modes">
+                            <pap-button size="small" variant="${!this.hideModel ? "filled" : "outline"}" @click="${this.handletoggle("hideModel")}">mesh</pap-button>
+                            <pap-button size="small" variant="${this.bones ? "filled" : "outline"}" @click="${this.handletoggle("bones")}">bones</pap-button>
+                            <pap-button size="small" variant="${this.ik ? "filled" : "outline"}" @click="${this.handletoggle("ik")}">IK</pap-button>
+                        </div>
+                    ` : ""}
                     ${names.length ? html`
                         <select @change="${this.handleanimation}" aria-label="animation">
                             <option value="" ${!this.animation && "selected"}>rest pose</option>

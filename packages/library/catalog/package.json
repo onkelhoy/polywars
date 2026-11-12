@@ -52,7 +52,12 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@polywar/gallery": "*",
+    "@polywar/grass-material": "*",
+    "@polywar/shading": "*",
+    "@polywar/skeleton": "*"
+  },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "playwright": "1.64.1",
@@ -69,12 +74,7 @@
   "papit": {
     "publish": true,
     "type": "browser",
-    "main": "assets",
-    "htmlprefix": "",
-    "components": {
-      "assets": {
-        "className": "Assets"
-      }
-    }
+    "main": "catalog",
+    "htmlprefix": ""
   }
 }

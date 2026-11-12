@@ -1,5 +1,5 @@
 import '@polywar/gallery';
-import { DEFAULTS, ROOFS, SHAPES, TRI_KEYS, WINDOWS, building, compose, decode, encode, kitSource, randomSeed, variant, writeGLB } from '@polywar/city-medieval';
+import { DEFAULTS, ROOFS, SHAPES, TRI_KEYS, WINDOWS, building, compose, decode, encode, kitSource, randomSeed, variant, writeGLB } from '@polywar/building-builder';
 
 const $ = s => document.querySelector(s);
 const gallery = $('pw-gallery');
