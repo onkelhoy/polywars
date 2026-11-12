@@ -17,7 +17,7 @@ const MAX_TUFTS = { low: 50_000, medium: 220_000, high: 450_000 };
 
 /** the world's grass look (owner's code `g2.eyJ…`): bigger, fuller; density still follows the cover maps */
 export const GRASS: Partial<GrassOptions> = {
-    settings: { density: 32, sizeScale: 2, softBands: .25 },
+    settings: { density: 32, sizeScale: 2.6, softBands: .25 },
     look: { bands: 3 },
     bladeShare: .25,
     variation: .16,
