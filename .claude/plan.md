@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `grass` (from `city-generation-village-pack`): `.claude/plan-grass.md`. City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
+`main`. Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
@@ -12,38 +12,15 @@ Branch `grass` (from `city-generation-village-pack`): `.claude/plan-grass.md`. C
 - Render code (Renderer, Model, Grid, gltfFromMesh) lives in `packages/ui/3d-asset-preview/src/render`, exported by `@polywar/3d-asset-preview`.
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
 
-## Next (set 2026-11-12, after grass look)
-- n1. [x] Grass + preview: `@papit/matrix` / `@papit/vector` instead of hand math (`render/math.ts`, grass frustum), shaders via `Layer3D.createProgram`.
-- n2. [x] `packages/utils/3d-demo`: shared demo stage on `@papit/game-engine` (camera, matrix, vector): fly-anywhere fps + pan-zoom from the current camera, switch between them, theme-aware dark/light background, UI panels never drive the camera. Used by grass view and `3d-asset-preview`.
-
 ## Tasks
-1. [x] Songs → `audio/songs/menu` + `audio/songs/game`.
-2. [x] WW2 weapons pack → per gun/ammo/knife/grenade `.blend` files.
-3. [x] `convert` FBX/OBJ → `.blend` + `.glb`: WW2 tank, truck, motorcycle, fighter, bomber, Modular Village (156 OBJ).
-4. [x] Gun rigs + generated actions (in `model.blend`, exported into `model.glb`).
-5. [x] `npm run assets`.
-6. [x] `packages/ui/3d-asset-preview` (`pw-3d-asset-preview`): turntable / orbit (+ right/shift drag pan) / FPS, animation picker, play/pause, scrub, toon, grid.
-7. [x] gallery (now task 9): every asset, one shared canvas for 3D tiles, audio players, images, filter + search, click opens preview.
-9. [x] Generic gallery: rename `asset-gallery` → `packages/ui/gallery` (`pw-gallery`).
-   - `location` (default `/assets`): reads `<location>/manifest.json`, headings per folder (h2 top folder, h3 rest).
-   - `items` property: extra/generated entries `{ name, group, kind, src? | gltf? | mesh? }`, e.g. generated buildings. `location=""` shows items only.
-   - manifest generator ships with the package (`bin/manifest.mjs`, not a package `bin`: @papit/build bundles it for the browser), works on any folder.
-   - `pw-3d-asset-preview` gets a `gltf` property so generated items open in the preview too.
-   - views: `experiment` (root assets), `generated` (procedural houses via `items`).
-10. [x] All store packs copied (`tools/blender/packs/store.mjs`): nature, farm animals, farm buildings, castle, dungeon, vehicles, modular-village. Materials normalised to one Principled output on export.
-11. [x] Manifest is an `Assets` tree (`{ name, assets: (Asset | Assets)[] }`); gallery takes `tree`; `npm run assets` ends serving the gallery (view `everything`).
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
 
 ## Medieval buildings + baked surfaces (confirmed 2026-11-11)
 Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
 - Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `color.png`, `normal.png`, `ao.png`, `spec.png` (glb references them). Rebake: `node tools/bake-village.mjs`.
 - mesh-bake: `papit.type` is `node` so `src/bin.ts` builds to `lib/bin.js` (browser type fails on `node:` imports); `lib/bundle.js` stays browser safe (bin is not exported from index).
-- b1. [x] `tools/bake.mjs` (`npm run bake`): glb + axis + size → quad glb + albedo/normal/spec.
-- b2. [x] Bake cobblestone, dirt transitions, stone floors, stone walls.
 - b3. [ ] `packages/material/textured`: albedo + normal + spec + ao, maps optional, own view.
-- b3a. [x] `packages/tools/mesh-bake` (moves to papit later: no `@polywar/*` runtime deps, no village specifics): core (node + browser), CLI (`npm run bake`), ao as own map. `tools/bake.mjs` removed, `tools/bake-village.mjs` stays (game's piece list).
 - b3b. [ ] mesh-bake GUI view: drop glb, live maps + lit preview, settings, download.
-- b4. [x] Preview + gallery draw maps (`Model` reads glb maps, `compose` passes them).
 - b5. [ ] Generator massing: main volume, wing, lean-to, jetty.
 - b6. [ ] Generator roofs: gable default, cross-gable, dormers, ridge/rake.
 - b7. [ ] Generator facades: bays, aligned windows, timber frame rules.
