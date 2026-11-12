@@ -1,0 +1,127 @@
+{
+ "bones": {
+  "root": {
+   "length": 0.7,
+   "deform": true
+  },
+  "FrontFoot.R": {
+   "length": 1.0,
+   "deform": true
+  },
+  "Body": {
+   "length": 1.0,
+   "deform": true
+  },
+  "FrontLeg.R": {
+   "length": 0.60256,
+   "deform": true
+  },
+  "FrontUpLeg.R": {
+   "length": 1.23286,
+   "deform": true
+  },
+  "FrontLowLeg.R": {
+   "length": 1.07881,
+   "deform": true
+  },
+  "BackLeg.R": {
+   "length": 0.46958,
+   "deform": true
+  },
+  "BackUpLeg.R": {
+   "length": 1.08744,
+   "deform": true
+  },
+  "BackLowLeg.R": {
+   "length": 1.41393,
+   "deform": true
+  },
+  "FrontLeg.L": {
+   "length": 0.60256,
+   "deform": true
+  },
+  "FrontUpLeg.L": {
+   "length": 1.23286,
+   "deform": true
+  },
+  "FrontLowLeg.L": {
+   "length": 1.07881,
+   "deform": true
+  },
+  "BackLeg.L": {
+   "length": 0.46958,
+   "deform": true
+  },
+  "BackUpLeg.L": {
+   "length": 1.08744,
+   "deform": true
+  },
+  "BackLowLeg.L": {
+   "length": 1.41393,
+   "deform": true
+  },
+  "Back": {
+   "length": 0.9701,
+   "deform": true
+  },
+  "Shoulders": {
+   "length": 0.99959,
+   "deform": true
+  },
+  "Neck": {
+   "length": 0.96855,
+   "deform": true
+  },
+  "Head": {
+   "length": 1.30466,
+   "deform": true
+  },
+  "Hips": {
+   "length": 1.46717,
+   "deform": true
+  },
+  "Torso": {
+   "length": 1.15927,
+   "deform": true
+  },
+  "BackFoot.R": {
+   "length": 0.67454,
+   "deform": true
+  },
+  "FrontFoot.L": {
+   "length": 1.0,
+   "deform": true
+  },
+  "BackFoot.L": {
+   "length": 0.67454,
+   "deform": true
+  }
+ },
+ "ik": [
+  {
+   "bone": "FrontLowLeg.R",
+   "chain": 3,
+   "target": "FrontFoot.R",
+   "weight": 1.0
+  },
+  {
+   "bone": "BackLowLeg.R",
+   "chain": 3,
+   "target": "BackFoot.R",
+   "weight": 1.0
+  },
+  {
+   "bone": "FrontLowLeg.L",
+   "chain": 3,
+   "target": "FrontFoot.L",
+   "weight": 1.0
+  },
+  {
+   "bone": "BackLowLeg.L",
+   "chain": 3,
+   "target": "BackFoot.L",
+   "weight": 1.0
+  }
+ ],
+ "copyRotation": []
+}

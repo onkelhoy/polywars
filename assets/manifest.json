@@ -86,9 +86,19 @@
          "size": 970088
         },
         {
+         "name": "Cow.character.json",
+         "file": "/assets/models/animals/farm/Cow.character.json",
+         "size": 98
+        },
+        {
          "name": "Cow.glb",
          "file": "/assets/models/animals/farm/Cow.glb",
-         "size": 351752
+         "size": 332688
+        },
+        {
+         "name": "Cow.rig.json",
+         "file": "/assets/models/animals/farm/Cow.rig.json",
+         "size": 2135
         },
         {
          "name": "Horse.blend",
@@ -96,9 +106,19 @@
          "size": 975328
         },
         {
+         "name": "Horse.character.json",
+         "file": "/assets/models/animals/farm/Horse.character.json",
+         "size": 104
+        },
+        {
          "name": "Horse.glb",
          "file": "/assets/models/animals/farm/Horse.glb",
-         "size": 319808
+         "size": 304552
+        },
+        {
+         "name": "Horse.rig.json",
+         "file": "/assets/models/animals/farm/Horse.rig.json",
+         "size": 2135
         },
         {
          "name": "Llama.blend",
@@ -106,9 +126,19 @@
          "size": 928212
         },
         {
+         "name": "Llama.character.json",
+         "file": "/assets/models/animals/farm/Llama.character.json",
+         "size": 104
+        },
+        {
          "name": "Llama.glb",
          "file": "/assets/models/animals/farm/Llama.glb",
-         "size": 286428
+         "size": 272716
+        },
+        {
+         "name": "Llama.rig.json",
+         "file": "/assets/models/animals/farm/Llama.rig.json",
+         "size": 1918
         },
         {
          "name": "Pig.blend",
@@ -116,9 +146,19 @@
          "size": 904380
         },
         {
+         "name": "Pig.character.json",
+         "file": "/assets/models/animals/farm/Pig.character.json",
+         "size": 98
+        },
+        {
          "name": "Pig.glb",
          "file": "/assets/models/animals/farm/Pig.glb",
-         "size": 279520
+         "size": 265804
+        },
+        {
+         "name": "Pig.rig.json",
+         "file": "/assets/models/animals/farm/Pig.rig.json",
+         "size": 1903
         },
         {
          "name": "Pug.blend",
@@ -126,9 +166,19 @@
          "size": 859268
         },
         {
+         "name": "Pug.character.json",
+         "file": "/assets/models/animals/farm/Pug.character.json",
+         "size": 98
+        },
+        {
          "name": "Pug.glb",
          "file": "/assets/models/animals/farm/Pug.glb",
-         "size": 275464
+         "size": 261748
+        },
+        {
+         "name": "Pug.rig.json",
+         "file": "/assets/models/animals/farm/Pug.rig.json",
+         "size": 1902
         },
         {
          "name": "Sheep.blend",
@@ -136,9 +186,19 @@
          "size": 923936
         },
         {
+         "name": "Sheep.character.json",
+         "file": "/assets/models/animals/farm/Sheep.character.json",
+         "size": 104
+        },
+        {
          "name": "Sheep.glb",
          "file": "/assets/models/animals/farm/Sheep.glb",
-         "size": 279236
+         "size": 265524
+        },
+        {
+         "name": "Sheep.rig.json",
+         "file": "/assets/models/animals/farm/Sheep.rig.json",
+         "size": 1903
         },
         {
          "name": "Zebra.blend",
@@ -146,9 +206,19 @@
          "size": 981412
         },
         {
+         "name": "Zebra.character.json",
+         "file": "/assets/models/animals/farm/Zebra.character.json",
+         "size": 104
+        },
+        {
          "name": "Zebra.glb",
          "file": "/assets/models/animals/farm/Zebra.glb",
-         "size": 393152
+         "size": 377896
+        },
+        {
+         "name": "Zebra.rig.json",
+         "file": "/assets/models/animals/farm/Zebra.rig.json",
+         "size": 2135
         }
        ]
       }
@@ -2995,6 +3065,61 @@
      ]
     },
     {
+     "name": "characters",
+     "assets": [
+      {
+       "name": "base",
+       "assets": [
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/base/character.json",
+         "size": 416
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/base/model.blend",
+         "size": 126995
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/base/model.glb",
+         "size": 243076
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/base/model.rig.json",
+         "size": 3484
+        }
+       ]
+      },
+      {
+       "name": "bird",
+       "assets": [
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/bird/character.json",
+         "size": 104
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/bird/model.blend",
+         "size": 105116
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/bird/model.glb",
+         "size": 88192
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/bird/model.rig.json",
+         "size": 1594
+        }
+       ]
+      }
+     ]
+    },
+    {
      "name": "nature",
      "assets": [
       {
@@ -5047,6 +5172,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/m1-garand/model.glb",
            "size": 335844
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/m1-garand/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5082,6 +5212,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/m1911/model.glb",
            "size": 211184
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/m1911/model.rig.json",
+           "size": 548
           }
          ]
         },
@@ -5117,6 +5252,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/mauser-c96/model.glb",
            "size": 218172
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/mauser-c96/model.rig.json",
+           "size": 548
           }
          ]
         },
@@ -5152,6 +5292,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/ppsh-41/model.glb",
            "size": 340792
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/ppsh-41/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5187,6 +5332,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/stg-44/model.glb",
            "size": 343212
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/stg-44/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5222,6 +5372,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/thompson-m1/model.glb",
            "size": 239872
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/thompson-m1/model.rig.json",
+           "size": 492
           }
          ]
         },
@@ -5257,6 +5412,11 @@
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/tt-pistol/model.glb",
            "size": 214460
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/tt-pistol/model.rig.json",
+           "size": 548
           }
          ]
         }

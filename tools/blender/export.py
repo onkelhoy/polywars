@@ -6,9 +6,13 @@
 - Objects parented to a bone become skinned meshes: vertex groups named like a bone keep their
   weights, every other vertex goes to the parent bone. game-mesh then animates them via the rig.
 - Actions on NLA tracks (or the active one) export as glTF animations.
+- Trailing holds (keys that no longer change anything) are cut off each action.
 - Image textures are baked into vertex colours (game-mesh draws base colour x COLOR_0 only).
+- An armature also writes `<out>.rig.json` (glTF drops bone lengths and constraints):
+  { bones: { name: { length, deform } }, ik: [{ bone, chain, target, pole, weight }],
+    copyRotation: [{ bone, target, weight }] }. Weights are the rest values (actions may key them).
 """
-import bpy, os, sys
+import bpy, json, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import pw
 from mathutils import Matrix
@@ -112,11 +116,53 @@ def textures_to_vertex_colours():
                 bsdf.inputs["Base Color"].default_value = (1, 1, 1, 1)
 
 
+def trim_actions():
+    """Cuts trailing holds: a clip ends on the last frame where any curve still changes (packs key a still tail)."""
+    for a in bpy.data.actions:
+        curves = [c for layer in a.layers for strip in layer.strips for bag in strip.channelbags for c in bag.fcurves]
+        if not curves:
+            continue
+        start, end = (int(round(f)) for f in a.frame_range)
+        last = start
+        prev = [c.evaluate(start) for c in curves]
+        for f in range(start + 1, end + 1):
+            now = [c.evaluate(f) for c in curves]
+            if any(abs(x - y) > 1e-4 for x, y in zip(now, prev)):
+                last = f
+            prev = now
+        if start < last and end - last >= max(4, (end - start) // 5):  # small tails are loop seams
+            a.use_frame_range = True
+            a.frame_start, a.frame_end = start, last
+            print(f"trimmed {a.name}: {end} -> {last}")
+
+
+def write_rig(arm, out):
+    rig = {"bones": {}, "ik": [], "copyRotation": []}
+    for b in arm.data.bones:
+        rig["bones"][b.name] = {"length": round(b.length, 5), "deform": b.use_deform}
+    for pb in arm.pose.bones:
+        for c in pb.constraints:
+            if c.type == "IK" and c.subtarget:
+                ik = {"bone": pb.name, "chain": c.chain_count, "target": c.subtarget, "weight": round(c.influence, 4)}
+                if c.pole_subtarget:
+                    ik["pole"] = c.pole_subtarget
+                rig["ik"].append(ik)
+            elif c.type == "COPY_ROTATION" and c.subtarget:
+                rig["copyRotation"].append({"bone": pb.name, "target": c.subtarget, "weight": round(c.influence, 4)})
+    path = os.path.splitext(out)[0] + ".rig.json"
+    with open(path, "w") as f:
+        json.dump(rig, f, indent=1)
+    print("wrote", os.path.relpath(path, pw.ROOT))
+
+
 def export(out):
     arms = [o for o in bpy.context.scene.objects if o.type == "ARMATURE"]
+    for arm in arms[:1]:
+        write_rig(arm, out)
     for arm in arms:
         arm.data.pose_position = "REST"
     bpy.context.view_layer.update()
+    trim_actions()
     realize_instances()
     bones_to_skin()
     principled_materials()

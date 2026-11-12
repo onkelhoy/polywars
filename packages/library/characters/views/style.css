@@ -1,0 +1,13 @@
+@import "@papit/theme";
+
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: system-ui, sans-serif;
+}
+
+header { padding: .5rem; }
+
+pw-3d-asset-preview { flex: 1; }

@@ -1,0 +1,38 @@
+{
+ "bones": {
+  "root": {
+   "length": 0.02,
+   "deform": false
+  },
+  "body": {
+   "length": 0.02,
+   "deform": true
+  },
+  "action": {
+   "length": 0.02,
+   "deform": true
+  },
+  "trigger": {
+   "length": 0.02,
+   "deform": true
+  },
+  "mag": {
+   "length": 0.02,
+   "deform": true
+  },
+  "round": {
+   "length": 0.02,
+   "deform": true
+  },
+  "muzzle": {
+   "length": 0.02,
+   "deform": false
+  },
+  "eject": {
+   "length": 0.02,
+   "deform": false
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

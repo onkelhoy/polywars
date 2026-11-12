@@ -1,0 +1,6 @@
+{
+    "name": "Zebra",
+    "model": "Zebra.glb",
+    "rig": "Zebra.rig.json",
+    "base": "quadruped"
+}

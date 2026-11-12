@@ -1,0 +1,6 @@
+{
+    "name": "Llama",
+    "model": "Llama.glb",
+    "rig": "Llama.rig.json",
+    "base": "quadruped"
+}

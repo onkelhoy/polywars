@@ -1,0 +1,6 @@
+{
+    "name": "Sheep",
+    "model": "Sheep.glb",
+    "rig": "Sheep.rig.json",
+    "base": "quadruped"
+}

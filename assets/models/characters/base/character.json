@@ -1,0 +1,13 @@
+{
+    "name": "Base mannequin",
+    "model": "model.glb",
+    "rig": "model.rig.json",
+    "sockets": { "hand.R": "prop.R", "hand.L": "prop.L" },
+    "parts": {
+        "head": ["head", "neck"],
+        "arm.L": ["upper_arm.L", "forearm.L", "hand.L"],
+        "arm.R": ["upper_arm.R", "forearm.R", "hand.R"],
+        "leg.L": ["thigh.L", "shin.L", "foot.L"],
+        "leg.R": ["thigh.R", "shin.R", "foot.R"]
+    }
+}

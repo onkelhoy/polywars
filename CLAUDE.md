@@ -22,12 +22,12 @@ One rule per folder; put a new package where its role says.
 
 | folder | holds |
 | --- | --- |
-| `packages/stage/` | dev viewing: camera stage, asset preview, gallery |
-| `packages/render/` | render pieces; `render/materials/*` = shaders/materials |
-| `packages/generators/` | procedural content (city, nature, ...) |
+| `packages/library/` | the asset library: `catalog` (`@polywar/assets`, the one gallery of all assets), materials, grass, city, building-builder, characters |
+| `packages/ui/game/` | game UI (lobby, room, share) |
+| `packages/ui/viewport/` | viewing: 3d-demo stage, asset preview, gallery, renderer |
 | `packages/tools/` | offline/dev tools (bakers, exporters) |
-| `packages/ui/` | game UI |
 | `packages/network/` | networking |
+| `packages/animation/` | skeleton: rigs, IK, clips, bone drawing |
 
 ## Assets
 All assets live in root `assets/` (models, audio, textures, animations) so the owner edits them in one place. Packages reference them, never copy. Target format glTF 2.0 (rigged, animations baked in the file).
