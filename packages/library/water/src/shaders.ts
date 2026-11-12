@@ -70,7 +70,7 @@ in vec4 vFlow;
 in vec2 vDir;
 uniform vec3 shallow, deep, foamColor;
 uniform float time, opacity, clarity, skyTint;
-uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar, glintDensity, glintMelt, glintGlow, glintFade;
+uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar, glintDensity, glintMelt, glintGlow, glintFade, glintWind;
 uniform float foamRim, foamWobble, foamWobbleScale, foamLines, foamWidth, foamSpacing, foamSpeed, foamPieces, foamAmount, foamFar;
 uniform float streakAmount, streakLength, streakWidth, foamContact, paintAmount, paintScale, horizon;
 uniform vec3 contacts[32]; // x z radius: things standing in the water
@@ -156,16 +156,11 @@ void main() {
         waterDepth = mix(waterDepth, dv, trust);
         shoreRim = mix(shoreRim, max(toLine, 0.0), trust * (1.0 - smoothstep(expect, expect * 2.0, jump)));
     }
-    // the shore for the waves and the drift: a smooth map, bent a little by noise, so the lines run round, not along every facet
+    // the shore for the wave lines: a smooth map, bent a little by noise, so the lines run round, not along every facet
     float shore = vInfo.y;
-    vec2 dir = dot(vDir, vDir) > 1e-4 ? normalize(vDir) : vec2(.87, .5);
     if (hasShore && river < .5) {
         vec2 bend = (vec2(vnoise(vWorld.xz / max(foamWobbleScale * 3.0, .1)), vnoise(vWorld.xz / max(foamWobbleScale * 3.0, .1) + 9.1)) - .5) * foamWobble * 6.0;
         shore = shoreAt(vWorld.xz + bend);
-        float e = shoreRect.z * 1.5;
-        vec2 gr = vec2(shoreAt(vWorld.xz + vec2(e, 0)) - shoreAt(vWorld.xz - vec2(e, 0)), shoreAt(vWorld.xz + vec2(0, e)) - shoreAt(vWorld.xz - vec2(0, e)));
-        // one wind direction over open water, turning toward land only close to the shore (no swirls in bays)
-        if (dot(gr, gr) > 1e-8) dir = normalize(mix(vec2(.87, .5), -normalize(gr), 1.0 - smoothstep(4.0, 30.0, shore)) + 1e-4);
     }
 
     // flat colour: shallow to deep, lit as a plane; a little sky at grazing angles
@@ -208,11 +203,10 @@ void main() {
             d *= pixels(thick * 2.0, mpp) * near;
             shade = 1.0 - d * glintDark * (1.0 - lit);
         } else {
-            // sea and lakes: noise squashed along the shore, long soft streaks a bit darker and lighter, drifting in to land.
-            // The direction snaps to 16 headings, the two nearest blended, so the pattern never swirls where the shore turns
+            // sea and lakes: noise squashed across the wind, long soft streaks a bit darker and lighter, all one way (calm),
+            // drifting with the wind
             vec2 size = vec2(glintLength * 1.5, glintScale * .3);
-            float h = atan(dir.y, dir.x) / 6.2831853 * 16.0, h0 = floor(h), drift = time * glintSpeed;
-            float n = mix(streaks(vFlow.xy, h0, size, drift), streaks(vFlow.xy, h0 + 1.0, size, drift), h - h0);
+            float n = streaks(vFlow.xy, glintWind / 22.5, size, time * glintSpeed);
             n = mix(.5, n, pixels(size.y * 2.0, mpp) * near);
             // the streaks belong to the shallows: they fade out over deep water and with distance (calm, not busy from afar)
             float calm = exp(-waterDepth / max(glintFade, .1)) * (1.0 - smoothstep(glintFar * .15, glintFar * .5, dist));
