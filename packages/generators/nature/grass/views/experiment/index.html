@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <canvas></canvas>
+    <pw-3d-demo>
     <aside>
         <h1>grass</h1>
         <output id="info"></output>
@@ -23,7 +23,6 @@
             <label>mask <select id="mask"><option>everywhere</option><option>meadow</option><option>paths</option></select></label>
             <label>area m <input id="area" type="number" min="5" max="200" value="40" /></label>
             <label>debug <select id="debug"><option value="">off</option><option>wind</option><option>push</option></select></label>
-            <label>camera <select id="camera"><option>orbit</option><option>top</option><option>fps</option></select></label>
             <label><input id="pushing" type="checkbox" checked /> walkers push</label>
         </fieldset>
         <fieldset id="json">
@@ -40,6 +39,7 @@
         <fieldset id="numbers"><legend>tweak</legend></fieldset>
         <fieldset id="colors"><legend>colours</legend></fieldset>
     </aside>
+    </pw-3d-demo>
 </body>
 
 </html>

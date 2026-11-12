@@ -2,8 +2,8 @@
 
 :root { color-scheme: dark; }
 html, body { margin: 0; height: 100%; overflow: hidden; font: 13px system-ui, sans-serif; background: var(--background); color: var(--text); }
-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-aside { position: fixed; top: 8px; left: 8px; bottom: 8px; width: 380px; min-width: 260px; max-width: 70vw; resize: horizontal; box-sizing: border-box; overflow: auto; padding: 8px; background: color-mix(in oklch, var(--background) 92%, transparent); color: var(--text); border-radius: 6px; }
+pw-3d-demo { position: fixed; inset: 0; }
+aside { position: absolute; top: 8px; left: 8px; bottom: 8px; width: 380px; min-width: 260px; max-width: 70vw; resize: horizontal; box-sizing: border-box; overflow: auto; padding: 8px; background: color-mix(in oklch, var(--background) 92%, transparent); color: var(--text); border-radius: 6px; }
 h1 { margin: 0 0 4px; font-size: 16px; }
 fieldset { border: 1px solid color-mix(in oklch, var(--text) 20%, transparent); border-radius: 4px; margin: 6px 0; padding: 4px 6px; }
 legend { color: var(--text-secondary); }

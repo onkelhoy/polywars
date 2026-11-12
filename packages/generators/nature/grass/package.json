@@ -59,7 +59,8 @@
     "typescript": "5.9.3",
     "@papit/theme": "*",
     "@papit/game-mesh": "*",
-    "@polywar/3d-asset-preview": "*"
+    "@polywar/3d-asset-preview": "*",
+    "@polywar/3d-demo": "*"
   },
   "browserslist": [
     "defaults",

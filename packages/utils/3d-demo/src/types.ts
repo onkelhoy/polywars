@@ -1,0 +1,3 @@
+export type DemoMode = "pan" | "fly";
+/** rgba 0..1, screen (sRGB) colour */
+export type Color = [number, number, number, number];

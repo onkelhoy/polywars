@@ -1,11 +1,12 @@
-import { Camera, GameEngine, GameObject, fps, orbit } from '@papit/game-engine';
+import '@polywar/3d-demo';
 import { MeshBuilder, loadGLTF, upload } from '@papit/game-mesh';
 import { Renderer } from '@polywar/3d-asset-preview';
 import { Grass } from '@polywar/grass';
 
 const $ = s => document.querySelector(s);
-const engine = new GameEngine({ name: 'main', query: 'canvas', type: 'webgl2', documentElement: document });
-const layer = engine.layers.main;
+const demo = $('pw-3d-demo');
+await demo.ready;
+const layer = demo.layer;
 const gl = layer.gl;
 const renderer = new Renderer(layer);
 renderer.light.toon = 3;
@@ -138,54 +139,35 @@ $('#mask').onchange = plant;
 $('#area').onchange = plant;
 $('#debug').onchange = () => grass.set({ debug: $('#debug').value });
 
-// ---- camera ----
-const target = { position: { x: 0, y: 0, z: 0 } };
-const cameras = {
-    orbit: () => new Camera({ near: .05, far: 500, controllers: [orbit({ target, distance: 10, min: 1, max: 120, yaw: .6, pitch: .55, speed: .0015 })] }),
-    top: () => new Camera({ near: .05, far: 500, controllers: [orbit({ target, distance: 14, min: 2, max: 120, yaw: 0, pitch: 1.2, speed: .0015 })] }),
-    fps: () => { const c = new Camera({ near: .05, far: 500, controllers: [fps({ speed: 4 })] }); c.position.set([0, 1.7, 8]); return c; },
-};
-const camera = () => engine.layers.main.camera = cameras[$('#camera').value]();
-$('#camera').onchange = camera;
-
 // ---- loop ----
-let time = 0, frames = 0, clock = 0, rate = 0;
+let frames = 0, clock = 0, rate = 0;
 const placed = walkers.map(() => [0, 0, 0, 0]);
-engine.add(new class extends GameObject {
-    update(dt) {
-        time += dt;
+demo.tick = dt => {
+    const time = demo.time;
+    {
         frames++; clock += dt;
         if (clock > .5) { rate = frames / clock; frames = clock = 0; }
         walkers.forEach((w, i) => placed[i] = [Math.cos(time * w.speed) * w.r, w.size, Math.sin(time * w.speed) * w.r, w.size * 1.6]);
         grass.push($('#pushing').checked ? placed : []);
         $('#info').value = `${grass.count} planted · ${grass.drawn} drawn\n${rate.toFixed(0)} fps`;
     }
-    render(layer) {
-        renderer.begin(layer.camera, [.09, .09, .1, 1]);
-        grass.drawGround(layer.camera, renderer.light, time);
-        grass.draw(layer.camera, renderer.light, time);
+};
+demo.draw = camera => {
+    {
+        renderer.begin(camera, demo.background);
+        grass.drawGround(camera, renderer.light, demo.time);
+        grass.draw(camera, renderer.light, demo.time);
         if ($('#pushing').checked) for (const [x, y, z, r] of placed)
         {
             const k = r / 1.6;
             renderer.draw(walker, [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, x, y, z, 1]);
         }
     }
-}());
+};
 
 light();
-camera();
+demo.look([7, 5, 9], [0, 0, 0]);
 grass.set({ shape: $('#shape').value });
 plant();
 refresh();
-engine.start();
 
-// the engine listens on document/window: keep panel input (drag, scroll, typing) away from the camera,
-// but let a camera drag that started on the canvas keep going over the panel
-let panelDrag = false;
-const aside = $('aside');
-aside.addEventListener('pointerdown', () => panelDrag = true);
-addEventListener('pointerup', () => panelDrag = false);
-for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'wheel', 'keydown', 'keyup', 'touchstart', 'contextmenu'])
-    aside.addEventListener(type, e => e.stopPropagation(), { passive: true });
-for (const type of ['pointermove', 'mousemove', 'touchmove'])
-    aside.addEventListener(type, e => { if (panelDrag || !e.buttons) e.stopPropagation(); }, { passive: true });

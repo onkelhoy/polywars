@@ -14,7 +14,7 @@ Branch `grass` (from `city-generation-village-pack`): `.claude/plan-grass.md`. C
 
 ## Next (set 2026-11-12, after grass look)
 - n1. [x] Grass + preview: `@papit/matrix` / `@papit/vector` instead of hand math (`render/math.ts`, grass frustum), shaders via `Layer3D.createProgram`.
-- n2. [ ] `packages/utils/3d-demo`: shared demo stage on `@papit/game-engine` (camera, matrix, vector): fly-anywhere fps + pan-zoom from the current camera, switch between them, theme-aware dark/light background, UI panels never drive the camera. Used by grass view and `3d-asset-preview`.
+- n2. [x] `packages/utils/3d-demo`: shared demo stage on `@papit/game-engine` (camera, matrix, vector): fly-anywhere fps + pan-zoom from the current camera, switch between them, theme-aware dark/light background, UI panels never drive the camera. Used by grass view and `3d-asset-preview`.
 
 ## Tasks
 1. [x] Songs → `audio/songs/menu` + `audio/songs/game`.
@@ -60,4 +60,5 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 - `@papit/build`: a package `bin` entry gets bundled for the browser (fails on `node:` imports).
 - `@papit/quaternion`: `writeMatrix(out, position)` and `fromAxisAngle(axis)` are typed `{x,y,z}` but read `[0],[1],[2]` (NaN with objects).
 - `@papit/matrix`: static `Matrix4.multiply(a, b)` fails to type-check (`this` of `typeof Matrix4`); `multiply(Float32Array(16))` reads it as 16x1 (wrap in `Matrix4.create`); no point transform (`m.clone.multiply([x,y,z,1])` works).
+- `@papit/game-engine`: `fps` walks on the ground only and `pan` is 2D (3d-demo has its own `fly` / `panZoom`); theme custom properties come back unresolved (`light-dark()`), read a resolved colour instead.
 - `@papit/game-engine`: no lit mesh renderer (polywar keeps `Renderer` in 3d-asset-preview); `Layer3D.createProgram` keeps the shader objects after linking.
