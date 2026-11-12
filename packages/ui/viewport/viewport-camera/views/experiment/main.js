@@ -1,10 +1,10 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Renderer } from '@polywar/renderer';
 
-// the controllers in pw-3d-demo: a field of boxes to move around in
+// the controllers in pw-viewport: a field of boxes to move around in
 const $ = s => document.querySelector(s);
-const demo = $('pw-3d-demo');
+const demo = $('pw-viewport');
 await demo.ready;
 const renderer = new Renderer(demo.layer);
 const box = upload(demo.gl, new MeshBuilder().box([.6, .65, .7], {}).build());

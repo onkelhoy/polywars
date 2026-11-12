@@ -1,8 +1,9 @@
 // npm run assets [-- --all] [-- --no-export] [-- --no-serve]
 // 1. exports every .blend in assets/ to .glb (when the .glb is older than any .blend in its folder, or --all)
+// 1b. folders with a `lod.json` ({ "ratios": [0.4, 0.12] }) get <name>.lod1.glb, ... per .glb (tools/blender/lod.py), when stale
 // 2. writes assets/manifest.json, a tree of every file (the gallery package's generator)
 // 3. serves the gallery of everything (packages/library/catalog, its view) until Ctrl+C
-import { readdirSync, statSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { spawnSync } from "node:child_process";
 import { spawn } from "node:child_process";
@@ -36,6 +37,26 @@ if (!process.argv.includes("--no-export"))
         const ok = r.status === 0 && /exported/.test(r.stdout);
         console.log(ok ? "exported" : "FAILED  ", relative(ROOT, glb));
         if (!ok) console.log(r.stdout.split("\n").filter(l => /Error|Traceback/.test(l)).join("\n"), r.stderr);
+    }
+}
+
+if (!process.argv.includes("--no-export"))
+{
+    const files = walk(ASSETS);
+    for (const conf of files.filter(f => f.endsWith("/lod.json")))
+    {
+        const { ratios } = JSON.parse(readFileSync(conf, "utf8"));
+        const glbs = files.filter(f => dirname(f) === dirname(conf) && f.endsWith(".glb") && !/\.lod\d+\.glb$/.test(f));
+        for (const glb of glbs)
+        {
+            const outs = ratios.map((_, i) => glb.replace(/\.glb$/, `.lod${i + 1}.glb`));
+            const stale = Math.max(statSync(glb).mtimeMs, statSync(conf).mtimeMs);
+            if (!all && outs.every(o => existsSync(o) && statSync(o).mtimeMs >= stale)) continue;
+            const r = spawnSync(BLENDER, ["-b", "-P", join(ROOT, "tools/blender/lod.py"), "--", glb, ...ratios.map(String)], { encoding: "utf8" });
+            const ok = r.status === 0 && (r.stdout.match(/exported/g) ?? []).length === ratios.length;
+            console.log(ok ? "lods    " : "FAILED  ", relative(ROOT, glb));
+            if (!ok) console.log(r.stdout.split("\n").filter(l => /Error|Traceback/.test(l)).join("\n"), r.stderr);
+        }
     }
 }
 

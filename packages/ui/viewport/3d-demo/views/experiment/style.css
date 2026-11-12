@@ -1,7 +1,0 @@
-@import "@papit/theme";
-
-html, body { margin: 0; height: 100%; background: var(--background); color: var(--text); font: 13px system-ui, sans-serif; }
-pw-3d-demo { position: fixed; inset: 0; }
-aside { position: absolute; top: 8px; left: 8px; width: 240px; padding: 8px; border-radius: 6px; background: color-mix(in oklch, var(--background) 90%, transparent); }
-h1 { margin: 0 0 4px; font-size: 16px; }
-label { display: flex; justify-content: space-between; gap: 6px; margin: 4px 0; }

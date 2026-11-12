@@ -60,7 +60,7 @@
     "@papit/button": "*",
     "@papit/game-mesh": "*",
     "@papit/matrix": "*",
-    "@polywar/3d-demo": "*",
+    "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@polywar/skeleton": "*"
   },

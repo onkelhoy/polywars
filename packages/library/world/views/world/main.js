@@ -1,4 +1,4 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { Renderer } from '@polywar/renderer';
 import { loadNature } from '@polywar/nature';
 import { MAPS } from '@polywar/terrain';
@@ -7,18 +7,23 @@ import { WaterScreen } from '@polywar/water';
 import { World } from '@polywar/world';
 
 const $ = s => document.querySelector(s);
-const demo = $('pw-3d-demo');
+const demo = $('pw-viewport');
 await demo.ready;
 const layer = demo.layer;
 const renderer = new Renderer(layer);
-renderer.light.fogDensity = .00025;
+renderer.light.fogDensity = .0005;
 renderer.light.fogColor = linear('#a9bfd3');
 renderer.light.sunDirection = [.45, .64, .62];
 const waterScreen = new WaterScreen(layer);
 const nature = await loadNature();
 const hash = decodeURIComponent(location.hash.slice(1));
-const world = new World(layer, renderer, nature, hash || {});
+// phones / tablets start at low (touch screen or a small one)
+const phone = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 600;
+if (phone) { $('#quality').value = 'low'; document.body.classList.add('phone', 'folded'); }
+$('#menu').onclick = () => document.body.classList.toggle('folded');
+const world = new World(layer, renderer, nature, hash || {}, { quality: $('#quality').value });
 window.world = world;
+world.profile(true);
 const { terrain, ecosystem: eco } = world;
 
 // ---- nature sliders: [path, min, max, step] into the ecosystem options ----
@@ -70,7 +75,11 @@ $('#eco-random').onclick = () => eco.reseed();
 $('#apply').onclick = () => { try { world.load($('#code').value); } catch (e) { $('#info').value = String(e); } };
 $('#code').onkeydown = e => { if (e.key === 'Enter') $('#apply').onclick(); };
 $('#copy').onclick = () => navigator.clipboard?.writeText(world.code).catch(() => { });
-$('#quality').onchange = () => world.setView({ quality: $('#quality').value });
+// render scale per quality: phones are 3x screens, shading 9x the pixels is the biggest cost there
+const PIXEL_RATIO = { low: 1, medium: 1.5, high: 2 };
+const quality = q => { world.setView({ quality: q }); demo.maxPixelRatio = PIXEL_RATIO[q]; };
+$('#quality').onchange = () => quality($('#quality').value);
+quality($('#quality').value);
 $('#style').onchange = () => world.setView({ style: $('#style').value });
 $('#grass').onchange = () => world.setView({ grass: $('#grass').checked });
 $('#props').onchange = () => world.setView({ props: $('#props').checked });
@@ -137,6 +146,7 @@ $('#play').onclick = () => {
     const cam = demo.camera?.position;
     if (cam && Math.abs(cam[0]) > size() / 2 || cam && Math.abs(cam[2]) > size() / 2) stand(0, 0);
     demo.mode = 'walk';
+    document.body.classList.add('folded');
 };
 demo.addEventListener('walkexit', () => world.grass.push([]));
 
@@ -156,8 +166,9 @@ demo.tick = dt => {
     if (terrain.generating) return;
     const cam = demo.camera?.position, counts = Object.entries(eco.counts).filter(([, v]) => v).map(([k, v]) => `${k} ${v}`).join(' · ');
     $('#info').value = `${eco.total} props (${eco.batches.length} models) grown in ${eco.time.toFixed(0)} ms\n${counts}\n`
-        + `${world.scatter.drawn} props drawn · ${world.scatter.calls} calls · ${world.grass.drawn} tufts (${world.grass.count} planted)\n`
-        + `${rate.toFixed(0)} fps · ${cam ? terrain.biomeAt(cam[0], cam[2]) ?? '-' : '-'} below`;
+        + `${world.scatter.drawn} props drawn (lod ${world.scatter.perLod.join(" / ")}) · ${Math.round(world.scatter.triangles / 1000)}k tris · ${world.scatter.calls} calls · ${world.grass.drawn} tufts (${world.grass.count} planted)\n`
+        + Object.entries(world.stats).map(([k, s]) => `${k} ${s.calls} calls ${Math.round(s.triangles / 1000)}k tris ${s.ms.toFixed(1)} ms`).join(' · ') + '\n'
+        + `${demo.layer.width}×${demo.layer.height} px · ${rate.toFixed(0)} fps · ${cam ? terrain.biomeAt(cam[0], cam[2]) ?? '-' : '-'} below`;
 };
 demo.draw = camera => {
     const under = camera.worldPosition && terrain.underwater(camera.worldPosition);

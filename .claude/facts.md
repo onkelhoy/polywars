@@ -19,10 +19,11 @@ Knowledge that outlives a plan. Trust code over this.
 
 ## Terrain
 - Stages shape → erosion → water → cities → climate → biomes; `Generator` caches per stage (key = the options it reads), `Terrain.set` redoes only dirty stages, look changes are uniforms only.
+- Default map 3072 m; resolution low 512 / medium 1024 / high 2048 (medium ~6.5 s to world ready). World view fog .0005 (haze).
 - Grid heights in metres, `n = resolution + 1` nodes, centred on the origin. Erosion runs in grid units scaled by `resolution / 256`.
 - Skirt (far fields / sea floor) has flow -1: material draws it smooth, no face shades.
 - Ground mesh: one RTIN over the whole grid (needs 2^k + 1 nodes: `resolve` rounds `resolution`), cut into chunks by triangle centre. Biome borders add `mesh.edges` error so they stay sharp.
-- Camera: `pw-3d-demo` `pan="screen"` (default, full 3D) or `"ground"` (in-game RTS style), `max-distance` zoom limit.
+- Camera: `pw-viewport` `pan="screen"` (default, full 3D) or `"ground"` (in-game RTS style), `max-distance` zoom limit.
 
 ## Ecosystem
 - `@polywar/nature`: `assets/models/nature/nature.json` is hand kept (families, variants by index). `@polywar/ecosystem` (pure CPU: cover maps + placement, `grassAt`), `@polywar/scatter` (instanced props, `Renderer.drawInstanced`), `@polywar/world` (all together, world code `<terrain>~<ecosystem>`, view `world`).
@@ -30,11 +31,14 @@ Knowledge that outlives a plan. Trust code over this.
 - Stand things on `terrain.groundAt(x, z)` (height of the drawn RTIN triangles, finest level), not `heightAt` (smooth grid, up to ~2 m below the mesh: buried the grass).
 - Forest cores: `EcosystemOptions.core` (depth into a core biome) scales group size / density / spacing (`group.core`). Clearings: `biomes[b].open` share + `clearings` noise, only grass (ground not tinted).
 - Ground look: flat pixel patches in `terrain-material` (`look.paint`: washes, pixel cell size, rim + grain off by default, light bands bent into patch shapes, billowy biome borders from a biome grid texture `material.biomes(map)`); gloss `look.gloss` (rock, wet via `toWater`). Props: renderer `Surface` (bands, soft, grit, gloss) via scatter `surface` / `gloss` per kind.
-- Play: `walk` controller (viewport-camera), `pw-3d-demo` `mode="walk"` + `walking.ground`, Esc fires `walkexit`.
+- Prop LODs: folder `lod.json` (`ratios`) → `npm run assets` writes `<name>.lod<n>.glb` (`tools/blender/lod.py`, min 48 tris). Scatter `lods` (parts of the kind's distance, cell near edge) picks the level. Scatter frame: shared 64 m cells culled once, visible props packed per model + lod into one stream buffer (re-uploaded only when the pick changes), one call per model / lod / part; `modelUrl(list, name, lod)`.
+- Play: `walk` controller (viewport-camera), `pw-viewport` `mode="walk"` + `walking.ground`, Esc (or touch ✕) fires `walkexit`.
+- Viewport vs viewport-camera: `@polywar/viewport` (`<pw-viewport>`) is the stage element (canvas, engine, mode bar, overlay, touch controls via `@papit/joystick`); `@polywar/viewport-camera` only the controllers (`panZoom`, `fly`, `walk`, `TouchInput`), usable without the element.
+- Dev server import maps are built at start: restart it after adding a dependency or renaming a package.
 - Headless browser checks: playwright chromium is installed (`node_modules/playwright`).
 
 ## Layout (2026-11-12)
-`animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{3d-demo, 3d-asset-preview, gallery, renderer}` · `network/*` · `utils/{mesh-bake, noise}`.
+`animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{viewport, 3d-asset-preview, gallery, renderer}` · `network/*` · `utils/{mesh-bake, noise}`.
 `npm run assets` serves `library/catalog` (`views/`, no sub views). Folder `catalog` (not `assets`: the dev server serves such folders raw).
 
 ## Medieval buildings (facts)

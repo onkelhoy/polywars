@@ -2,7 +2,7 @@
 
 :root { color-scheme: dark; }
 html, body { margin: 0; height: 100%; overflow: hidden; font: 13px system-ui, sans-serif; background: var(--background); color: var(--text); }
-pw-3d-demo { position: fixed; inset: 0; }
+pw-viewport { position: fixed; inset: 0; }
 aside { position: absolute; top: 8px; left: 8px; width: 280px; padding: 8px; background: color-mix(in oklch, var(--background) 90%, transparent); border-radius: 6px; }
 aside label { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
 aside input[type=range] { flex: 1; }

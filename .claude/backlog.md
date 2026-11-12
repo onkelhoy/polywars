@@ -40,8 +40,8 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - [x] Biomes: classification done (terrain `biome` grid, `biomeAt`); props per biome: `@polywar/ecosystem`
 - [ ] Modular city/village builder (reusable, own package)
 - [x] Nature placement: `@polywar/nature` (hand kept `nature.json`), `@polywar/ecosystem`, `@polywar/scatter`, `@polywar/world`
-  - [ ] Far trees: low detail stand-ins / impostors (now they shrink away at the kind's distance)
-  - [ ] Fewer draw calls: merge chunks across rows / one buffer per frame (now ~300-600 calls)
+  - [x] Far trees: 3 LOD levels per nature model (`lod.json`, `tools/blender/lod.py`), picked per cell by distance
+  - [x] Fewer draw calls: one stream buffer per frame, one call per model / lod / part (~450)
   - [ ] Ecosystem grow in a worker (~0.2-0.4 s on the main thread)
   - [ ] Assets missing: mushrooms, ferns, reeds, desert shrubs, more flowers (listed in `nature.json` `missing`)
   - [ ] Grass colour matched to the terrain biome colour under it
@@ -99,8 +99,9 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - `@papit/build`: a package `bin` entry gets bundled for the browser (fails on `node:` imports).
 - `@papit/quaternion`: `writeMatrix(out, position)` and `fromAxisAngle(axis)` are typed `{x,y,z}` but read `[0],[1],[2]` (NaN with objects).
 - `@papit/matrix`: static `Matrix4.multiply(a, b)` fails to type-check (`this` of `typeof Matrix4`); `multiply(Float32Array(16))` reads it as 16x1 (wrap in `Matrix4.create`); no point transform (`m.clone.multiply([x,y,z,1])` works).
-- `@papit/game-engine`: `fps` walks on the ground only and `pan` is 2D (3d-demo has its own `fly` / `panZoom`); theme custom properties come back unresolved (`light-dark()`), read a resolved colour instead.
+- `@papit/game-engine`: `fps` walks on the ground only and `pan` is 2D (viewport has its own `fly` / `panZoom`); theme custom properties come back unresolved (`light-dark()`), read a resolved colour instead.
 - `@papit/game-mesh`: `rig(gltf)` bones get length 0 and point along +Y (glTF) while `armature` bones point +X, so papit IK can't run on glTF rigs (`@polywar/skeleton` converts). glTF `extras` are dropped. `SKINNING_GLSL` caps at 64 joints (Mixamo with fingers is ~65).
 - `@papit/armature`: IK turns chain bones the shortest way, so twist drifts and a knee's hinge axis leaves the bend plane (Blender keeps it on the root/target/pole plane); `@polywar/skeleton` corrects it.
 - `@papit/web-component`: a re-render builds the template's custom elements again and runs `firstRender` on the detached copies (pw-3d-asset-preview now guards; character-preview creates its preview outside the template).
 - `@papit/game-engine`: no lit mesh renderer (polywar has `@polywar/renderer`); `Layer3D.createProgram` keeps the shader objects after linking.
+- [ ] papit report: `@papit/game-engine` Layer has no render scale / max pixel ratio (polywar sets `layer.setting.width/height` from `pw-viewport max-pixel-ratio` as a workaround)

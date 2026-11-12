@@ -1,4 +1,4 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Grid, Renderer } from '@polywar/renderer';
 

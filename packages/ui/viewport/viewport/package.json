@@ -1,0 +1,94 @@
+{
+  "name": "@polywar/viewport",
+  "description": "Demo stage for 3D package views: engine canvas, fly + pan-zoom camera (switchable, keeps the pose), theme background, overlay panel that never drives the camera.",
+  "keywords": [
+    "papit",
+    "web-component",
+    "typescript",
+    "viewport"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build --error",
+    "analyse": "npx @papit/analyse",
+    "generate:react": "npx @papit/react",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "preversion": "papit-version",
+    "postversion": "papit-version",
+    "component": "npm create @papit -- --component"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/viewport/viewport",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/ui/viewport/viewport"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/game-engine": "*",
+    "@papit/joystick": "^0.0.1",
+    "@papit/vector": "*",
+    "@papit/web-component": "*",
+    "@polywar/viewport-camera": "*"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@papit/theme": "*",
+    "@playwright/test": "1.64.1",
+    "@polywar/3d-asset-preview": "*",
+    "@polywar/renderer": "*",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "web-component",
+    "main": "viewport",
+    "htmlprefix": "pw",
+    "components": {
+      "viewport": {
+        "className": "Viewport",
+        "htmlprefix": "pw"
+      }
+    }
+  }
+}

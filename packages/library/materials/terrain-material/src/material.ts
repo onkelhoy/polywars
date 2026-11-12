@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { bindUnder } from "@polywar/water";
-import { GROUND_FRAGMENT, GROUND_VERTEX } from "./shaders";
+import { GROUND_FRAGMENT, GROUND_VERTEX, NOISE_FRAGMENT, NOISE_SIZE, NOISE_VERTEX } from "./shaders";
 import { BIOMES, type BiomeMap, type Light, type TerrainLook, type Underwater, type View } from "./types";
 
 type Program = { name: string; program: WebGLProgram; u: (name: string) => WebGLUniformLocation | null };
@@ -17,7 +17,7 @@ export const TERRAIN_LOOK: TerrainLook = {
     rock: { color: "#847670", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
     paint: { edge: 10, size: 30, washes: .5, rim: 0, warmth: .5, grain: 0, pixel: .3 },
-    gloss: { rock: .2, wet: .22, reach: 6 },
+    gloss: { rock: 0, wet: .22, reach: 6 },
     variation: 0,
     flat: false,
     bands: 3,
@@ -60,7 +60,10 @@ export class TerrainMaterial {
         this.gl = layer.gl;
         this.o = merge(TERRAIN_LOOK, look);
         this.link(`terrain-material-${this.id}-ground`, GROUND_VERTEX, GROUND_FRAGMENT).then(p => this.groundProgram = p);
+        this.link(`terrain-material-${this.id}-noise`, NOISE_VERTEX, NOISE_FRAGMENT).then(p => { this.bake(p); this.layer.deleteProgram(p.name); });
     }
+
+    private noise?: WebGLTexture;
 
     get look(): Readonly<TerrainLook> { return this.o; }
 
@@ -100,7 +103,7 @@ export class TerrainMaterial {
     /** Bind the ground program. `water` adds the underwater tint and fog. */
     useGround(view: View, light: Light, water?: Underwater): boolean {
         const gl = this.gl, o = this.o, p = this.groundProgram;
-        if (!p) return false;
+        if (!p || !this.noise) return false;
         const u = p.u;
         gl.useProgram(p.program);
         this.common(p, view, light);
@@ -120,6 +123,10 @@ export class TerrainMaterial {
         gl.activeTexture(gl.TEXTURE4);
         gl.bindTexture(gl.TEXTURE_2D, this.map?.wet ?? null);
         gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE8);
+        gl.bindTexture(gl.TEXTURE_2D, this.noise ?? null);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(u("noiseMap"), 8);
         gl.uniform1i(u("biomeMap"), 5);
         gl.uniform1i(u("waterMap"), 4);
         gl.uniform3f(u("gloss"), o.gloss.rock, this.map?.wet ? o.gloss.wet : 0, Math.max(.1, o.gloss.reach));
@@ -134,6 +141,7 @@ export class TerrainMaterial {
 
     destroy() {
         this.biomes(null);
+        if (this.noise) this.gl.deleteTexture(this.noise);
         if (this.groundProgram) this.layer.deleteProgram(this.groundProgram.name);
     }
 
@@ -156,6 +164,32 @@ export class TerrainMaterial {
         gl.uniform1f(u("bands"), o.bands);
         gl.uniform1f(u("wrap"), o.lighting.wrap);
         gl.uniform1f(u("steepness"), o.lighting.steepness);
+    }
+
+    /** render the fbm once into an R8 texture (mirrored repeat: no seams) */
+    private bake(p: Program) {
+        const gl = this.gl, texture = gl.createTexture()!;
+        gl.activeTexture(gl.TEXTURE8);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, NOISE_SIZE, NOISE_SIZE, 0, gl.RED, gl.UNSIGNED_BYTE, null);
+        for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+        for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.MIRRORED_REPEAT);
+        gl.activeTexture(gl.TEXTURE0);
+        const target = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null, view = gl.getParameter(gl.VIEWPORT) as Int32Array;
+        const fbo = gl.createFramebuffer()!;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        gl.viewport(0, 0, NOISE_SIZE, NOISE_SIZE);
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
+        gl.useProgram(p.program);
+        gl.bindVertexArray(null);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.enable(gl.DEPTH_TEST);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target);
+        gl.viewport(view[0], view[1], view[2], view[3]);
+        gl.deleteFramebuffer(fbo);
+        this.noise = texture;
     }
 
     private async link(name: string, vertex: string, fragment: string): Promise<Program> {
