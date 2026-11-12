@@ -66,9 +66,16 @@ A game keeps one global quality setting and passes it on: `grass.quality = setti
 const json = grass.toJSON();      // plain data (no mesh, no image sprites)
 new Grass(layer, json);
 grass.load(json);                 // replace all, missing fields fall back to defaults
+
+const code = grass.code;          // share code: only what differs from the defaults, e.g. "g1" or "g1.eyJ..."
+grass.load(code);                 // load takes settings, json text or a code
 ```
 
+The view keeps the code in the url (`#g1...`), so a link opens the same grass.
+
 ## How it works
+
+- Randomness (planting, noise, sprites) comes from `@papit/random`, seeded, so the same seed gives the same grass.
 
 - One instanced draw per chunk. Tufts are shuffled inside a chunk, so far chunks draw a prefix (`lod`); chunks outside the view or `distance` are skipped.
 - Wind: one tileable noise sampled twice, scrolling apart at slightly different scale and speed, multiplied: no visible repeat. Tufts lean around the axis across the wind.

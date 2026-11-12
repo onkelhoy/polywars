@@ -21,3 +21,5 @@ Confirmed 2026-11-12. Reference: DylearnDev/Dylearn-3D-Pixel-Art-Grass-Demo (MIT
 10. [ ] Check by hand: `cross` + `mesh` sources, `smooth` style, quality switch, sprite PNG override.
 11. [ ] Optional `noise` texture (url/image) + shared noise cache.
 12. [x] README.
+13. [x] Share code: `grass.code` / `load(code)`, live in the view + url.
+14. [x] Randomness via `@papit/random` (planting, noise, sprites).

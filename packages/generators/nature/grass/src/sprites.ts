@@ -1,4 +1,4 @@
-import { hash } from "./noise";
+import { Random } from "@papit/random";
 
 export type Sprite = { width: number; height: number; data: Uint8Array };
 
@@ -32,15 +32,15 @@ export function sprite(kind: "leaves" | "tuft" | "flower" | "leafy", pixels: num
         }
     };
     const blades = kind === "leafy" ? 4 : kind === "flower" ? 3 : 7;
+    const rng = new Random(`${kind}:${seed}`);
     for (let b = 0; b < blades; b++)
     {
-        const r = (i: number) => hash(seed * 1000 + b * 13 + i);
         const side = (b / (blades - 1 || 1)) * 2 - 1;
-        const base = n / 2 + side * n * .18 + (r(1) - .5) * 2 * k;
-        const lean = side * n * (.15 + r(2) * .2);
-        const height = n * (kind === "leafy" ? .8 + r(3) * .2 : .5 + r(3) * .4) * (kind === "flower" ? .6 : 1);
+        const base = n / 2 + side * n * .18 + (rng.next() - .5) * 2 * k;
+        const lean = side * n * (.15 + rng.next() * .2);
+        const height = n * (kind === "leafy" ? .8 + rng.next() * .2 : .5 + rng.next() * .4) * (kind === "flower" ? .6 : 1);
         // neighbours alternate a little in shade so blades read apart
-        blade(base, lean, height, (kind === "leafy" ? 3 : 2) * k, (b % 2 ? .86 : 1) * (.94 + r(4) * .06));
+        blade(base, lean, height, (kind === "leafy" ? 3 : 2) * k, (b % 2 ? .86 : 1) * (.94 + rng.next() * .06));
     }
     if (kind === "flower")
     {
@@ -55,19 +55,19 @@ export function sprite(kind: "leaves" | "tuft" | "flower" | "leafy", pixels: num
 
 /** 3-4 leaves around the centre, each a pointed ellipse in its own shade, lighter towards the tip */
 function leaves(n: number, seed: number, data: Uint8Array): Sprite {
-    const count = 3 + (hash(seed * 77) > .5 ? 1 : 0);
-    const start = hash(seed * 91) * Math.PI * 2;
+    const rng = new Random(`leaves:${seed}`);
+    const count = 3 + (rng.chance(.5) ? 1 : 0);
+    const start = rng.float(0, Math.PI * 2);
     // drawn back to front: later leaves cover earlier ones
     for (let l = 0; l < count; l++)
     {
-        const r = (i: number) => hash(seed * 1000 + l * 17 + i);
-        const angle = start + l * Math.PI * 2 / count + (r(1) - .5) * .6;
-        const length = n * (.36 + r(2) * .12), width = length * (.34 + r(3) * .1);
+        const angle = start + l * Math.PI * 2 / count + (rng.next() - .5) * .6;
+        const length = n * (.36 + rng.next() * .12), width = length * (.34 + rng.next() * .1);
         const dx = Math.cos(angle), dy = Math.sin(angle);
         // leaf from near the centre outwards
         const cx = n / 2 + dx * length * .5, cy = n / 2 + dy * length * .5;
         // each leaf its own shade, neighbours alternate
-        const shade = (l % 2 ? .84 : 1) * (.94 + r(4) * .06);
+        const shade = (l % 2 ? .84 : 1) * (.94 + rng.next() * .06);
         for (let y = 0; y < n; y++) for (let x = 0; x < n; x++)
         {
             const px = x + .5 - cx, py = y + .5 - cy;

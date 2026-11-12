@@ -50,17 +50,18 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@papit/game-engine": "*",
     "@papit/matrix": "*",
-    "@papit/game-engine": "*"
+    "@papit/random": "*"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
-    "playwright": "1.64.1",
-    "typescript": "5.9.3",
-    "@papit/theme": "*",
     "@papit/game-mesh": "*",
+    "@papit/theme": "*",
+    "@playwright/test": "1.64.1",
     "@polywar/3d-asset-preview": "*",
-    "@polywar/3d-demo": "*"
+    "@polywar/3d-demo": "*",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3"
   },
   "browserslist": [
     "defaults",

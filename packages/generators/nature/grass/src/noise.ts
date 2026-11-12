@@ -1,3 +1,5 @@
+import { Random } from "@papit/random";
+
 /**
  * Tileable fractal noise, RGBA8, one pattern per channel:
  * r wind, g patch 1, b patch 2, a clouds. Each channel repeats seamlessly over the texture.
@@ -8,19 +10,19 @@ export function noise(size: number, seed = 1): Uint8Array {
     const periods = [4, 3, 5, 4];
     for (let c = 0; c < 4; c++)
     {
-        const field = fbm(size, periods[c], seed * 7919 + c * 104729);
+        const field = fbm(size, periods[c], new Random(seed).fork(`channel:${c}`));
         for (let i = 0; i < size * size; i++) out[i * 4 + c] = field[i];
     }
     return out;
 }
 
-function fbm(size: number, period: number, seed: number): Uint8Array {
+function fbm(size: number, period: number, rng: Random): Uint8Array {
     const sum = new Float32Array(size * size);
     let amplitude = 1, total = 0;
     for (let octave = 0; octave < 5; octave++, period *= 2, amplitude *= .5)
     {
         const lattice = new Float32Array(period * period);
-        for (let i = 0; i < lattice.length; i++) lattice[i] = hash(i + seed * 31 + octave * 977);
+        for (let i = 0; i < lattice.length; i++) lattice[i] = rng.next();
         for (let y = 0; y < size; y++) for (let x = 0; x < size; x++)
         {
             const fx = x / size * period, fy = y / size * period;
@@ -40,10 +42,3 @@ function fbm(size: number, period: number, seed: number): Uint8Array {
 }
 
 const smooth = (t: number) => t * t * (3 - 2 * t);
-
-/** 0..1 from an integer */
-export function hash(n: number) {
-    n = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b);
-    n = Math.imul(n ^ (n >>> 13), 0xc2b2ae35);
-    return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}
