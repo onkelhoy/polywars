@@ -16,11 +16,11 @@ export const TERRAIN_LOOK: TerrainLook = {
     },
     rock: { color: "#847670", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
-    paint: { edge: 10, size: 30, washes: .5, rim: .6, warmth: .5, grain: .3 },
+    paint: { edge: 10, size: 30, washes: .5, rim: 0, warmth: .5, grain: 0, pixel: .3 },
     gloss: { rock: .2, wet: .22, reach: 6 },
-    variation: .02,
+    variation: 0,
     flat: false,
-    bands: 0,
+    bands: 3,
     lighting: { wrap: .1, steepness: 1 },
     contours: 0,
     range: [0, 400],
@@ -112,6 +112,7 @@ export class TerrainMaterial {
         gl.uniform1f(u("variation"), o.variation);
         gl.uniform3f(u("paint"), this.map ? o.paint.edge : 0, Math.max(1, o.paint.size), o.paint.washes);
         gl.uniform3f(u("wash"), o.paint.rim, o.paint.warmth, o.paint.grain);
+        gl.uniform1f(u("pixel"), o.paint.pixel);
         gl.uniform2f(u("grid"), this.map?.n ?? 0, this.map?.size ?? 1);
         gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, this.map?.texture ?? null);

@@ -15,11 +15,12 @@ export type TerrainLook = {
     /** snow cap above this height in metres, softened over `softness` metres; snow avoids steep faces */
     snow: { color: string; height: number; softness: number; slope: number };
     /**
-     * Watercolour ground. `washes` 0..1: layered billowy blotches (about `size` metres) that deepen where they overlap,
-     * `rim` 0..1 darker pigment along wash edges, `warmth` 0..1 warm light / cool deep, `grain` 0..1 fine speckle.
+     * Painted ground in flat patches. `washes` 0..1: layered billowy blotches (about `size` metres), each overlap one flat colour,
+     * `rim` 0..1 darker line along patch edges, `warmth` 0..1 warm light / cool deep, `grain` 0..1 fine speckle,
+     * `pixel` metres per paint cell (0 smooth edges): everything steps like pixel art.
      * Biome borders (needs `material.biomes(map)`) bleed `edge` metres as the same billowy shapes (0: the mesh's borders).
      */
-    paint: { edge: number; size: number; washes: number; rim: number; warmth: number; grain: number };
+    paint: { edge: number; size: number; washes: number; rim: number; warmth: number; grain: number; pixel: number };
     /** sun highlight 0..1: steep rock faces, and ground `reach` metres from water (fading out; needs `toWater` in the biome map) */
     gloss: { rock: number; wet: number; reach: number };
     /** random brightness per face 0..1: the low poly look */
