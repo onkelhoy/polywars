@@ -1,1 +1,0 @@
-import '@polywar/rig-gizmo';

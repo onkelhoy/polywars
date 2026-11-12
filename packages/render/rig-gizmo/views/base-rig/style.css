@@ -1,8 +1,0 @@
-@import "@papit/theme";
-
-html, body { margin: 0; height: 100%; font: 13px system-ui, sans-serif; background: var(--background); color: var(--text); }
-#view { position: fixed; inset: 0; }
-aside { position: absolute; top: 8px; left: 8px; padding: 8px 12px; border-radius: 8px; background: color-mix(in oklch, var(--background, Canvas) 85%, transparent); }
-h1 { font-size: 15px; margin: 0 0 6px; }
-label { display: flex; gap: 8px; align-items: center; }
-select, input[type=range] { width: 160px; }
