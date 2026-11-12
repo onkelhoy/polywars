@@ -40,8 +40,8 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - [x] Biomes: classification done (terrain `biome` grid, `biomeAt`); props per biome: `@polywar/ecosystem`
 - [ ] Modular city/village builder (reusable, own package)
 - [x] Nature placement: `@polywar/nature` (hand kept `nature.json`), `@polywar/ecosystem`, `@polywar/scatter`, `@polywar/world`
-  - [ ] Far trees: low detail stand-ins / impostors (now they shrink away at the kind's distance)
-  - [ ] Fewer draw calls: merge chunks across rows / one buffer per frame (now ~300-600 calls)
+  - [x] Far trees: 3 LOD levels per nature model (`lod.json`, `tools/blender/lod.py`), picked per cell by distance
+  - [x] Fewer draw calls: one stream buffer per frame, one call per model / lod / part (~450)
   - [ ] Ecosystem grow in a worker (~0.2-0.4 s on the main thread)
   - [ ] Assets missing: mushrooms, ferns, reeds, desert shrubs, more flowers (listed in `nature.json` `missing`)
   - [ ] Grass colour matched to the terrain biome colour under it
