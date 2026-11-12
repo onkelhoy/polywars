@@ -18,19 +18,30 @@ Draws an @papit/armature like Blender: see-through octahedral bones, joint balls
 npm install @polywar/rig-gizmo
 ```
 
-## License
+## usage
 
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
+```js
+import { RigGizmo } from "@polywar/rig-gizmo";
 
-**Key points:**
+const gizmo = new RigGizmo(gl);
+renderer.begin(camera);
+model.draw(renderer, matrix);
+// armature space -> world: the model matrix * the skeleton's non-joint ancestors
+gizmo.draw(renderer, skeleton, matrix.clone.multiply(model.skeletonMatrix), { inFront: true });
+```
 
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
+Draws any `@papit/armature` (`{ armature, deform?, copies? }`, a `@polywar/skeleton` fits) the way Blender shows octahedral bones:
 
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
+- see-through octahedron per bone (head, square waist at 10%, tail), dark outline, a ball on every joint
+- dashed line to a parent the bone isn't connected to
+- IK: constrained bone yellow, its chain pale yellow, target orange, pole blue, dashed tip -> target and joint -> pole
+- copy rotation green, other controls (non-deforming) purple, `selected` bones highlighted
 
-## Related Components
+| option | default | |
+| --- | --- | --- |
+| `inFront` | `true` | draw over the mesh |
+| `lines` | `true` | outlines, parent and IK lines |
+| `selected` | none | `Set<Bone>` drawn highlighted |
+| `scale` | `1` | bone body thickness |
 
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+`gizmo.colors` holds the colours (linear RGBA). View `base-rig`: the base character with clips, mesh / bones / in front / IK toggles.

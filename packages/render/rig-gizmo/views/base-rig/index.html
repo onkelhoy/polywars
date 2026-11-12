@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RigGizmo | base rig</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-3d-demo id="view">
+        <aside>
+            <h1>rig gizmo · base rig</h1>
+            <label>clip <select id="clip"><option value="">rest pose</option></select></label>
+            <label>time <input id="time" type="range" min="0" max="1" step="0.001" value="0" /></label>
+            <label><input id="play" type="checkbox" checked /> play</label>
+            <label><input id="mesh" type="checkbox" checked /> mesh</label>
+            <label><input id="bones" type="checkbox" checked /> bones</label>
+            <label><input id="front" type="checkbox" checked /> in front</label>
+            <label><input id="ik" type="checkbox" checked /> IK</label>
+            <output id="info"></output>
+        </aside>
+    </pw-3d-demo>
+</body>
+
+</html>

@@ -18,19 +18,41 @@ glTF skin as a @papit/armature rig (+X bones, real lengths), IK and copy rotatio
 npm install @polywar/skeleton
 ```
 
-## License
+## usage
 
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
+```js
+import { Model } from "@polywar/renderer";
+import { Skeleton } from "@polywar/skeleton";
 
-**Key points:**
+// loads <model>.rig.json next to the .glb when there is one
+const model = await Model.load(gl, "/assets/models/characters/base/model.glb", { skin: Skeleton.skin });
+const skeleton = model.skin;
 
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
+model.pose("walk", time);          // rest + clip + FK + IK + copy rotation + joint matrices
+skeleton.ikEnabled = false;         // pure FK (what the clip baked)
+skeleton.setIK("forearm.R", 1);     // arm IK on, e.g. a hand on a weapon
 
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
+// by hand: blend clips, move IK targets, then update
+skeleton.reset();
+skeleton.sample(walk, t);
+skeleton.mix(run, t, .3);
+skeleton.armature.find("foot.ik.L").offset[2] += .1;
+skeleton.update();                  // -> skeleton.matrices for the skin shader
+```
 
-## Related Components
+## what it does
 
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+- glTF bones point along +Y, `@papit/armature` bones along +X, and `rig()` from `@papit/game-mesh` gives them length 0, so papit IK can't work on them. `Skeleton` builds the armature turned onto +X (local `C⁻¹ r C`, offsets `C⁻¹ t`) with lengths from `rig.json` (else the distance to a child straight along the bone) and puts `C⁻¹` into the bind matrices. FK matches `rig()` exactly.
+- `rig.json` (written by `tools/blender/export.py`): `bones` (length, deform), `ik` (bone, chain, target, pole, weight), `copyRotation` (bone, target, weight).
+- IK twist: papit turns chain bones the shortest way, so their twist drifts. Each chain bone keeps its rest relation to the plane (chain root, target, pole), like Blender. With limb rolls facing the pole (Blender pole angle 90) the result matches Blender's baked clip.
+- Copy rotation: after IK, `bone` takes `target`'s world rotation (same rest orientation).
+
+| member | |
+| --- | --- |
+| `armature`, `bones` (per joint), `nodes` (per glTF node) | the rig |
+| `deform`, `ik` (by bone name), `copies` | what `rig.json` says |
+| `pose(clip, time, loop?)` | rest + clip + `update()` |
+| `reset()`, `sample(clip, t)`, `mix(clip, t, weight)`, `update()` | build a pose by hand |
+| `ikEnabled`, `setIK(bone, weight)` | IK on/off, one IK's weight |
+| `matrices` | one 4x4 per joint |
+| `Skeleton.skin`, `Skeleton.rigFor(url)` | factory for `Model.load`, rig.json loader |

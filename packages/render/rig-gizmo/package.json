@@ -3,9 +3,10 @@
   "description": "Draws an @papit/armature like Blender: see-through octahedral bones, joint balls, dashed parent lines, IK chains, targets and poles coloured.",
   "keywords": [
     "papit",
-    "web-component",
     "typescript",
-    "rig-gizmo"
+    "armature",
+    "gizmo",
+    "bones"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -52,14 +53,20 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/armature": "*",
+    "@papit/game-mesh": "*",
+    "@polywar/renderer": "*"
+  },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "playwright": "1.64.1",
     "typescript": "5.9.3",
     "@papit/theme": "*",
     "@papit/translator": "*",
-    "@papit/codeblock": "*"
+    "@papit/codeblock": "*",
+    "@polywar/3d-demo": "*",
+    "@polywar/skeleton": "*"
   },
   "browserslist": [
     "defaults",
@@ -70,11 +77,6 @@
     "publish": true,
     "type": "browser",
     "main": "rig-gizmo",
-    "htmlprefix": "",
-    "components": {
-      "rig-gizmo": {
-        "className": "RigGizmo"
-      }
-    }
+    "htmlprefix": ""
   }
 }
