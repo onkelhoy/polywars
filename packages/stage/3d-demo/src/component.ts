@@ -36,7 +36,7 @@ export class Demo3D extends CustomElement {
     time = 0;
     /** page background as rgba 0..1, follows the light / dark theme */
     background: Color = [0, 0, 0, 1];
-    private start: { position: number[]; rotation: number[] } = { position: [6, 5, 8], rotation: [-.45, .65, 0] };
+    private start: { position: number[]; rotation: number[]; target?: [number, number, number] } = { position: [6, 5, 8], rotation: [-.45, .65, 0] };
     private resolveReady!: () => void;
     /** resolves once the engine and its layer exist */
     readonly ready = new Promise<void>(r => this.resolveReady = r);
@@ -66,11 +66,11 @@ export class Demo3D extends CustomElement {
         this.engine?.stop();
     }
 
-    /** Place the camera at `from` looking at `to` (keeps the current mode). */
+    /** Place the camera at `from` looking at `to` (keeps the current mode); pan turns around `to`. */
     look(from: [number, number, number], to: [number, number, number]) {
         const d = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
         const flat = Math.hypot(d[0], d[2]);
-        this.start = { position: [...from], rotation: [Math.atan2(d[1], flat), Math.atan2(-d[0], -d[2]), 0] };
+        this.start = { position: [...from], rotation: [Math.atan2(d[1], flat), Math.atan2(-d[0], -d[2]), 0], target: [...to] };
         this.applyMode(true);
     }
 
@@ -80,7 +80,8 @@ export class Demo3D extends CustomElement {
         if (!layer) return;
         const old = layer.camera;
         const pose = !reset && old ? { position: Array.from(old.position), rotation: Array.from(old.rotation) } : this.start;
-        const controller = this.mode === "fly" ? fly({ speed: this.speed }) : panZoom();
+        const target = reset || !old ? this.start.target : undefined;
+        const controller = this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target });
         const camera = new Camera({ near: this.near, far: this.far, controllers: [controller] });
         camera.position.set(pose.position);
         camera.rotation.set(pose.rotation);

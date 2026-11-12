@@ -100,11 +100,13 @@ export type PanZoomSetting = {
     sensitivity?: number;
     /** zoom per wheel pixel, as a fraction */
     speed?: number;
+    /** turn around this point (the distance is the camera's to it); default where the view hits the ground */
+    pivot?: [number, number, number];
 };
 
 /**
  * Map style. Left drag turns around the pivot, right drag (or shift drag) pans over the ground, wheel zooms.
- * Starts from the camera's current pose: the pivot is where it looks at the ground (y = 0), or `distance` ahead.
+ * Starts from the camera's current pose: the pivot is `pivot`, else where it looks at the ground (y = 0), or `distance` ahead.
  */
 export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivot: Vector3; distance: number } {
     const min = setting.min ?? .2, max = setting.max ?? 2000, sensitivity = setting.sensitivity ?? .005, speed = setting.speed ?? .0015;
@@ -116,7 +118,12 @@ export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivo
             const p = camera.position, r = camera.rotation;
             yaw = r.y; pitch = clampPitch(r.x);
             const f = forward(yaw, pitch);
-            if (f.y < -.05) controller.distance = Math.min(Math.max(-p.y / f.y, min), max);
+            if (setting.pivot)
+            {
+                const [x, y, z] = setting.pivot;
+                controller.distance = Math.min(Math.max(Math.hypot(x - p.x, y - p.y, z - p.z), min), max);
+            }
+            else if (f.y < -.05) controller.distance = Math.min(Math.max(-p.y / f.y, min), max);
             controller.pivot.set([p.x + f.x * controller.distance, p.y + f.y * controller.distance, p.z + f.z * controller.distance]);
             const element = stage(camera);
             let id: number | null = null, turn = false, x = 0, y = 0;
