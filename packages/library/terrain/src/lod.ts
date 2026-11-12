@@ -30,7 +30,13 @@ export class Ground {
     triangles = 0;
     readonly full: number;
 
-    constructor(private gl: WebGL2RenderingContext, private d: TerrainData, private error: number, private edges: number, chunk: number, private lod: LodOptions) {
+    private error = -1;
+
+    /**
+     * `detail` 0..1: share of the full grid's triangles to spend (level 0). `adaptive` 0..1 only decides where they go:
+     * 0 the same density everywhere, 1 all to where the shape needs it (mountains, ridges, borders).
+     */
+    constructor(private gl: WebGL2RenderingContext, private d: TerrainData, detail: number, private adaptive: number, private edges: number, chunk: number, private lod: LodOptions) {
         const n = d.n, cells = n - 1;
         this.size = Math.min(cells, 2 ** Math.round(Math.log2(Math.max(16, chunk))));
         this.full = cells * cells * 2;
@@ -43,11 +49,34 @@ export class Ground {
             const w = c * d.cell;
             this.chunks.push({ i0, j0, x: (i0 + c / 2) * d.cell - half, y: (lo + hi) / 2, z: (j0 + c / 2) * d.cell - half, radius: Math.hypot(w * .71, (hi - lo) / 2), levels: [] });
         }
+        if (detail < 1) this.error = this.threshold(detail);
+    }
+
+    /** the split priority that spends about `detail` of the full grid: each split node is ~2 triangles, so take the (detail/2)th quantile from the top */
+    private threshold(detail: number) {
+        const sample: number[] = [];
+        for (const c of this.chunks)
+        {
+            const e = this.errorsOf(c);
+            for (let k = 0; k < e.length; k += 3) sample.push(e[k]);
+        }
+        sample.sort((a, b) => b - a);
+        return sample[Math.min(sample.length - 1, Math.floor(sample.length * Math.max(0, detail) / 2))] ?? -1;
+    }
+
+    private errorsOf(c: Chunk) {
+        if (c.errors) return c.errors;
+        const d = this.d, n = d.n, s = this.size + 1;
+        const g = (i: number, j: number) => (c.j0 + j) * n + c.i0 + i;
+        const h = new Float32Array(s * s), b = new Uint8Array(s * s);
+        for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { h[j * s + i] = d.height[g(i, j)]; b[j * s + i] = d.biome[g(i, j)]; }
+        const edges = this.edges;
+        return c.errors = errors(h, s, edges > 0 ? (m, a, q) => b[m] !== b[a] || b[m] !== b[q] ? edges : 0 : undefined, this.adaptive);
     }
 
     /** metres of error for a level */
     levelError(level: number) {
-        return level === 0 ? this.error : Math.max(this.error, .25) * Math.pow(this.lod.factor, level);
+        return level === 0 ? this.error : Math.max(this.error, .05) * Math.pow(this.lod.factor, level);
     }
 
     /**
@@ -82,15 +111,7 @@ export class Ground {
 
     private build(c: Chunk, level: number): Mesh {
         const d = this.d, n = d.n, s = this.size + 1, half = d.size / 2;
-        const g = (i: number, j: number) => (c.j0 + j) * n + c.i0 + i;
-        if (!c.errors)
-        {
-            const h = new Float32Array(s * s), b = new Uint8Array(s * s);
-            for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { h[j * s + i] = d.height[g(i, j)]; b[j * s + i] = d.biome[g(i, j)]; }
-            const edges = this.edges;
-            c.errors = errors(h, s, edges > 0 ? (m, a, q) => b[m] !== b[a] || b[m] !== b[q] ? edges : 0 : undefined);
-        }
-        const { nodes, triangles } = triangulate(c.errors, s, this.levelError(level));
+        const { nodes, triangles } = triangulate(this.errorsOf(c), s, this.levelError(level));
 
         // skirt: border edges get a wall down, deep enough to cover a coarser neighbour
         const on = (k: number) => { const i = k % s, j = (k / s) | 0; return [i === 0, i === s - 1, j === 0, j === s - 1]; };

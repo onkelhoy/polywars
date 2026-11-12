@@ -31,10 +31,10 @@ export const DEFAULTS: TerrainOptions = {
         savanna: .5,
         forest: .68,
     },
-    rivers: { enabled: true, catchment: 120000, width: 5, maxWidth: 28, depth: 2, length: 250 },
+    rivers: { enabled: true, cut: 25, catchment: 120000, width: 5, maxWidth: 28, depth: 2, length: 250 },
     cities: { count: 6, radius: 90, spacing: 350, maxSlope: .12, flatten: .7, water: .4 },
     lod: { levels: 4, distance: 400, factor: 2.5 },
-    mesh: { adaptive: .5, chunk: 64, edges: 1.5, skirt: 6000 },
+    mesh: { detail: .3, adaptive: .8, chunk: 64, edges: 1.5, skirt: 6000 },
     water: {},
     look: {},
 };
@@ -65,8 +65,6 @@ export const MAPS: Record<string, Partial<TerrainOptions>> = {
     },
 };
 
-/** `mesh.adaptive` 0..1 to the RTIN error in metres: 0 none (full grid), .5 about 1 m, 1 about 24 m */
-export const meshError = (adaptive: number) => adaptive <= 0 ? -1 : Math.pow(24, adaptive * 2 - 1);
 
 export type Resolved = TerrainOptions & { q: QualitySettings };
 

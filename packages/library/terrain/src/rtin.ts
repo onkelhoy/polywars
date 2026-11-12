@@ -32,10 +32,10 @@ function table(size: number) {
 }
 
 /**
- * Error per node: how far the height there is from the edge it splits. `edge(k, a, b)` may add more
+ * Error per node (a split priority, metres when `adaptive` is 1): how far the height there is from the edge it splits. `edge(k, a, b)` may add more
  * (e.g. a biome border between node k and the corners a / b) so those edges always get split.
  */
-export function errors(height: Float32Array, size: number, edge?: (k: number, a: number, b: number) => number): Float32Array {
+export function errors(height: Float32Array, size: number, edge?: (k: number, a: number, b: number) => number, adaptive = 1): Float32Array {
     const { coords, count, parents } = table(size), out = new Float32Array(size * size);
     for (let i = count - 1; i >= 0; i--)
     {
@@ -44,6 +44,8 @@ export function errors(height: Float32Array, size: number, edge?: (k: number, a:
         const a = ay * size + ax, b = by * size + bx, m = my * size + mx;
         let e = Math.abs((height[a] + height[b]) / 2 - height[m]);
         if (edge) e = Math.max(e, edge(m, a, b));
+        // `adaptive` blends the triangle size (0: even grid) with the height error (1: detail where the shape needs it)
+        if (adaptive < 1) e = Math.pow(Math.abs(ax - bx) + Math.abs(ay - by), 1 - adaptive) * Math.pow(e + .05, adaptive);
         if (i < parents) e = Math.max(e, out[((ay + cy) >> 1) * size + ((ax + cx) >> 1)], out[((by + cy) >> 1) * size + ((bx + cx) >> 1)]);
         out[m] = Math.max(out[m], e);
     }

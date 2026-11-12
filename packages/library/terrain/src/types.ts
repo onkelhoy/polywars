@@ -95,15 +95,16 @@ export type TerrainOptions = {
         /** moisture above which land is forest */
         forest: number;
     };
-    /** rivers where the catchment passes `catchment` m²; `width` / `depth` metres at that size, growing downstream; shorter than `length` metres are dropped */
-    rivers: { enabled: boolean; catchment: number; width: number; maxWidth: number; depth: number; length: number };
+    /** rivers where the catchment passes `catchment` m²; `width` / `depth` metres at that size, growing downstream; shorter than `length` metres are dropped; `cut` metres a river may cut through a rim to reach the next lake / the sea */
+    rivers: { enabled: boolean; cut: number; catchment: number; width: number; maxWidth: number; depth: number; length: number };
     /** flat dry spots for towns, best first */
     cities: { count: number; radius: number; spacing: number; maxSlope: number; flatten: number; water: number };
     /**
-     * `adaptive` 0..1: 0 the full grid everywhere, .5 flat land thins out, 1 as few triangles as the shape allows.
+     * `detail` 0..1: share of the full grid's triangles the ground gets (1 = full grid).
+     * `adaptive` 0..1: where they go, 0 the same density everywhere, 1 to where the shape needs them (mountains get more, flats less).
      * `chunk` size in nodes; `edges`: metres of error a biome / shore border counts as (keeps it sharp, 0 off); `skirt` metres beyond the map.
      */
-    mesh: { adaptive: number; chunk: number; edges: number; skirt: number };
+    mesh: { detail: number; adaptive: number; chunk: number; edges: number; skirt: number };
     /** level of detail: past `distance` metres chunks drop a level every `factor` times farther, each level `factor` times coarser; `levels` 1 = off */
     lod: { levels: number; distance: number; factor: number };
     /** water material overrides (waves, foam, gloss, ripples, underwater ...) */

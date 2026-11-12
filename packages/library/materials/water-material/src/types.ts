@@ -10,18 +10,16 @@ export type WaterLook = {
     opacity: number;
     /** metres of water until it is mostly the deep colour */
     clarity: number;
-    /** Gerstner swell: `length` metres, `strength` 0..1 steepness, `direction` / `spread` degrees, `speed` time scale */
-    waves: { strength: number; length: number; speed: number; direction: number; spread: number };
-    /** sun highlight and sky reflection; `bands` > 0 gives a hard toon highlight */
-    gloss: { strength: number; shininess: number; fresnel: number; bands: number };
-    /** close up detail from the ripple texture: `scale` metres per tile, fades in between `far` and `near` metres */
-    ripples: { scale: number; strength: number; speed: number; near: number; far: number };
-    /** white lines running in to the shore within `width` metres, `spacing` metres apart; `shore` metres of steady foam on the edge */
-    foam: { color: string; width: number; spacing: number; speed: number; amount: number; shore: number };
+    /** sun on the water as hard white flecks (no smooth glare): `strength` 0..2, `size` 0..1 how much of the ripple catches it, `scale` metres per ripple, `far` metres they fade out by */
+    sparkle: { strength: number; size: number; scale: number; far: number };
+    /** sky tint at grazing angles 0..1 (keeps the flat colour, just lighter in the distance) */
+    sky: number;
+    /** white lines along the shore: a wobbly rim `shore` metres wide, lines within `width` metres, `spacing` apart, drifting in at `speed`; only within `far` metres of the camera */
+    foam: { color: string; width: number; spacing: number; speed: number; amount: number; shore: number; far: number };
+    /** rivers: white streaks running with the stream, `length` / `width` metres, `amount` 0..1 (more where it flows faster) */
+    streaks: { amount: number; length: number; width: number };
     /** looking from below the surface: fog colour and density; `caustics` light on the bed */
     under: { color: string; density: number; caustics: number };
-    /** faceted (low poly) or smooth wave normals */
-    flat: boolean;
 };
 
 /** Same shape as the polywar `Renderer.light`, so that one can be passed in. Colours linear. */

@@ -13,22 +13,20 @@ export const WATER_LOOK: WaterLook = {
     deep: "#1a476b",
     fresh: { shallow: "#4a9aa8", deep: "#24546a" },
     opacity: .55,
-    clarity: 6,
-    waves: { strength: .35, length: 55, speed: 1, direction: 35, spread: 50 },
-    gloss: { strength: .9, shininess: 140, fresnel: .04, bands: 0 },
-    ripples: { scale: 7, strength: .35, speed: 1, near: 25, far: 140 },
-    foam: { color: "#ffffff", width: 22, spacing: 7, speed: .22, amount: .95, shore: 2.5 },
+    clarity: 8,
+    sparkle: { strength: 1.2, size: .35, scale: 6, far: 250 },
+    sky: .5,
+    foam: { color: "#ffffff", width: 30, spacing: 9, speed: .05, amount: 1, shore: 2.5, far: 350 },
+    streaks: { amount: .6, length: 14, width: 1.2 },
     under: { color: "#1f6273", density: .045, caustics: .6 },
-    flat: true,
 };
 
 /** a few named looks on top of `WATER_LOOK` (views, gallery) */
 export const WATER_LOOKS: Record<string, Partial<WaterLook>> = {
     sea: {},
-    calm: { waves: { strength: .1, length: 40, speed: .6, direction: 35, spread: 30 }, foam: { ...WATER_LOOK.foam, amount: .5 } },
-    stormy: { waves: { strength: .7, length: 70, speed: 1.4, direction: 35, spread: 60 }, deep: "#14324a", foam: { ...WATER_LOOK.foam, spacing: 5, speed: .35 } },
-    toon: { gloss: { strength: 1, shininess: 60, fresnel: .04, bands: 2 }, flat: true },
-    smooth: { flat: false },
+    calm: { foam: { ...WATER_LOOK.foam, amount: .6, width: 15 }, sparkle: { ...WATER_LOOK.sparkle, size: .2 } },
+    stormy: { deep: "#14324a", foam: { ...WATER_LOOK.foam, spacing: 6, speed: .1, width: 45 } },
+    tropical: { shallow: "#5cc6c6", deep: "#2a72a8", clarity: 14 },
 };
 
 /** sRGB hex to linear rgb */
@@ -50,10 +48,10 @@ export function merge<T extends object>(base: T, over: Partial<T>): T {
 }
 
 /**
- * Water: Gerstner swell (scaled per vertex, so ponds stay calm), foam lines running in to the shore, sun gloss and sky
- * fresnel, close up ripples and river flow from a generated texture, and an underwater view. Geometry is the caller's.
+ * Low poly water: a flat plane in a depth colour, hard sun flecks, shore foam lines that show near the camera,
+ * streaks running with rivers, and an underwater view. Geometry is the caller's (flat, few vertices).
  *
- * Attributes: 0 position, 1 info (depth m, shore distance m), 2 flow (u v metres, speed m/s along v, wave scale 0..1).
+ * Attributes: 0 position, 1 info (depth m, shore distance m), 2 flow (u v metres, speed m/s along v, open water 0..1).
  * Draw after the opaque scene with premultiplied blending (`gl.ONE, gl.ONE_MINUS_SRC_ALPHA`), depth writes off.
  */
 export class WaterMaterial {
@@ -106,38 +104,28 @@ export class WaterMaterial {
         gl.uniform1f(u("fogDensity"), light.fogDensity);
         gl.uniform1f(u("time"), time);
 
-        const w = o.waves, base = w.direction * Math.PI / 180, spread = w.spread * Math.PI / 180;
-        // four swells around the wind direction, shorter ones less steep
-        const set = [[0, 1, 1], [.6, .62, .7], [-.7, .41, .55], [.25, .27, .4]].flatMap(([turn, len, steep]) => {
-            const a = base + turn * spread;
-            return [Math.cos(a), Math.sin(a), w.strength * steep * .25, w.length * len];
-        });
-        gl.uniform4fv(u("waves"), set);
-        gl.uniform1f(u("waveSpeed"), w.speed);
-
         const colors = fresh ? o.fresh : o;
         gl.uniform3fv(u("shallow"), linear(colors.shallow));
         gl.uniform3fv(u("deep"), linear(colors.deep));
         gl.uniform1f(u("opacity"), o.opacity);
         gl.uniform1f(u("clarity"), o.clarity);
-        gl.uniform1f(u("gloss"), o.gloss.strength);
-        gl.uniform1f(u("shininess"), o.gloss.shininess);
-        gl.uniform1f(u("fresnel"), o.gloss.fresnel);
-        gl.uniform1f(u("glossBands"), o.gloss.bands);
-        gl.uniform1f(u("rippleScale"), o.ripples.scale);
-        gl.uniform1f(u("rippleStrength"), o.ripples.strength);
-        gl.uniform1f(u("rippleSpeed"), o.ripples.speed);
-        gl.uniform1f(u("rippleNear"), o.ripples.near);
-        gl.uniform1f(u("rippleFar"), o.ripples.far);
+        gl.uniform1f(u("skyTint"), o.sky);
+        gl.uniform1f(u("sparkle"), o.sparkle.strength);
+        gl.uniform1f(u("sparkleSize"), o.sparkle.size);
+        gl.uniform1f(u("sparkleScale"), o.sparkle.scale);
+        gl.uniform1f(u("sparkleFar"), o.sparkle.far);
         gl.uniform3fv(u("foamColor"), linear(o.foam.color));
         gl.uniform1f(u("foamWidth"), o.foam.width);
         gl.uniform1f(u("foamSpacing"), o.foam.spacing);
         gl.uniform1f(u("foamSpeed"), o.foam.speed);
         gl.uniform1f(u("foamAmount"), o.foam.amount);
         gl.uniform1f(u("foamShore"), o.foam.shore);
+        gl.uniform1f(u("foamFar"), o.foam.far);
+        gl.uniform1f(u("streakAmount"), o.streaks.amount);
+        gl.uniform1f(u("streakLength"), o.streaks.length);
+        gl.uniform1f(u("streakWidth"), o.streaks.width);
         gl.uniform3fv(u("underColor"), linear(o.under.color));
         gl.uniform1f(u("underDensity"), o.under.density);
-        gl.uniform1i(u("flatShade"), o.flat ? 1 : 0);
         gl.uniform1i(u("under"), under ? 1 : 0);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);

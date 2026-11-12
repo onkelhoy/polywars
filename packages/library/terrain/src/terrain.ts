@@ -7,7 +7,7 @@ import { Cancelled } from "./pace";
 import { Generator } from "./generate";
 import { Ground } from "./lod";
 import { BIOME, free, riverMesh, skirt, waterMesh, type Mesh } from "./mesh";
-import { DEFAULTS, meshError, resolve, type Resolved } from "./presets";
+import { DEFAULTS, resolve, type Resolved } from "./presets";
 import { biomeAt, heightAt, nearest, slopeAt, waterAt } from "./query";
 import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./types";
 
@@ -189,7 +189,7 @@ export class Terrain {
     private build(d: TerrainData) {
         const gl = this.gl, o = this.o;
         this.clear();
-        this.ground = new Ground(gl, d, meshError(o.mesh.adaptive), o.mesh.edges, o.mesh.chunk, o.lod);
+        this.ground = new Ground(gl, d, o.mesh.detail, o.mesh.adaptive, o.mesh.edges, o.mesh.chunk, o.lod);
         this.triangles = { used: 0, full: this.ground.full };
         const step = Math.max(1, Math.round((d.n - 1) / 512));
         const edge = o.edge.type;

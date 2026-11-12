@@ -27,7 +27,7 @@ export class TerrainSample {
             range: [0, height], contours: look.contours ? height / 12 : 0,
             ...look,
         });
-        this.water = new WaterMaterial(layer, { waves: { strength: 0, length: 10, speed: 1, direction: 0, spread: 0 }, foam: { color: "#fff", width: 0, spacing: 1, speed: 0, amount: 0, shore: 0 }, ripples: { scale: .4, strength: .3, speed: 1, near: 2, far: 20 } });
+        this.water = new WaterMaterial(layer, { foam: { color: "#fff", width: 0, spacing: 1, speed: 0, amount: 0, shore: 0, far: 0 }, sparkle: { strength: 1, size: .3, scale: .4, far: 20 } });
         this.level = sea;
         this.size = [extent, height, extent];
         const n = simplex(seed), gl = this.gl, step = extent / cells, v = cells + 1;
