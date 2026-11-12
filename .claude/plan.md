@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `feat/character`: restructure done (folders below), next: "Next tasks". Older note: On `main`, task 8 next. `@polywar/renderer` + `@polywar/shading` done (materials gallery). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
+On `main`: character rig work merged (rigs, posing, characters, base rigs). Next: "Next tasks" n5 (needs a downloaded model) / n6, or task 8. `@polywar/renderer` + `@polywar/shading` done (materials gallery). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
@@ -15,30 +15,19 @@ Branch `feat/character`: restructure done (folders below), next: "Next tasks". O
 ## Tasks
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
 
-## Character rig (confirmed 2026-11-12)
-Goal: base humanoid rig (Blender editable, IK controls), basic clips, bones drawn like Blender, clip/frame picking in preview + gallery.
-- Per character: `assets/models/characters/<name>/model.blend` → `model.glb` + `model.rig.json` (written by export.py: lengths, IK, copy rotation, deform) + hand written `character.json` (skins, sockets, parts, weapons later).
-- papit gap: glTF bones point +Y, armature +X, `rig(gltf)` lengths 0 → papit IK can't run on glTF rigs. `@polywar/skeleton` converts (+X, real lengths).
-- Done: base rig + clips (`tools/blender/lib/human_rig.py`), rig.json export, `@polywar/skeleton` (rig, IK, `RigGizmo` bone drawing, view `ik`), preview bones / IK / mesh toggles for any `Skeleton` skin, gallery clip picker (any case).
-- Notes: Blender check scripts live in the session only; `npm run assets` exports base. Limb bones are rolled to face their pole (Blender pole angle 90) so Blender and the runtime IK match (< 0.02).
+## Characters / rigs (facts)
+- Per character: `model.blend` → `model.glb` + `model.rig.json` (export.py writes it for every armature: lengths, IK, copy rotation, deform) + hand written `character.json` (`@polywar/characters`). Farm animals: `<Name>.character.json`.
+- Base rigs: humanoid (`human_rig.py`, `characters/base`), quadruped (farm pack, Cow), biped (`bird_rig.py`, `characters/bird`). Specs in `@polywar/characters` `RIGS`.
+- papit gap: glTF bones point +Y, armature +X, `rig(gltf)` lengths 0. `@polywar/skeleton` converts. Posing by hand: `Poser` (tools select / move / rotate) in `pw-3d-asset-preview`.
+- export.py trims trailing holds off actions. Limb bones are rolled to face their pole so Blender and runtime IK match.
 
 ## Layout (2026-11-12)
 `animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{3d-demo, 3d-asset-preview, gallery, renderer}` · `network/*` · `tools/mesh-bake`.
 `npm run assets` serves `library/catalog` (`views/`, no sub views). Folder `catalog` (not `assets`: the dev server serves such folders raw).
 
 ## Next tasks
-- n1. [x] `@polywar/characters` (`packages/library/characters`): one package for all characters: base rig specs (humanoid now), `character.json` loader (sockets, parts, skins), view.
-- n2. [x] Skeleton view: click a bone, drag it (FK rotate / move IK targets) to play with the pose.
-- n3. [x] Animal rigs: the "scattered" bones were missing lengths (no node scale in the farm pack). export.py now always writes rig.json (lengths + the pack's leg IK); `QUADRUPED` base rig + `<Name>.character.json` per farm animal. Biped (chicken) open: no chicken/bird model in assets yet.
-- n4. [x] Guns in the catalog: bones show (rig.json per gun), all 7 have idle, fire, reload, reload-empty and parts move. Pistols: reload and reload-empty move the slide the same max distance, check by eye.
 - n5. [ ] Bone map for downloaded humanoid models (Mixamo etc.) onto the base rig, once the owner has one.
 - n6. [ ] Weapons come alive (sniper scope, fire anims, flash, bullet, shell), FPS arms on hand IK; per weapon later.
-
-## Rig editing (confirmed 2026-11-12, done)
-- [x] export.py trims trailing holds (farm Walk clips were half still).
-- [x] Preview: speed picker, loop toggle (off = play once, hold last frame).
-- [x] Poser tools select / move / rotate (S / G / R) for every bone: arrows, rings, view-plane drag.
-- [x] Skeleton view `views/`: base rigs humanoid, quadruped (Cow), biped (new `bird_rig.py`, `assets/models/characters/bird`) in the preview; `BIPED` spec.
 
 ## Medieval buildings + baked surfaces (confirmed 2026-11-11)
 Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
