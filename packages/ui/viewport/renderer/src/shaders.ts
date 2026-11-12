@@ -21,6 +21,43 @@ void main() {
     gl_Position = projection * view * world;
 }`;
 
+/**
+ * Instanced static meshes: `model` is the part's model space matrix, per instance 6 `x y z scale` and 7 `yaw tint sway _`.
+ * Sway bends the top along `wind.xy` (strength `wind.z`), more the higher (`swayHeight` model units = full);
+ * past `fade.x` metres instances shrink away until `fade.y`.
+ */
+const instanced = `#version 300 es
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 normal;
+layout(location = 2) in vec4 color;
+layout(location = 6) in vec4 instance;
+layout(location = 7) in vec4 extra;
+${TEXTURED_VERTEX_GLSL}
+uniform mat4 model, view, projection;
+uniform vec3 wind, eye;
+uniform vec2 fade;
+uniform float time, swayHeight;
+out vec3 vNormal;
+out vec4 vColor;
+out vec3 vWorld;
+void main() {
+    vec4 local = model * vec4(position, 1.0);
+    float c = cos(extra.x), s = sin(extra.x);
+    float shrink = fade.y > 0.0 ? 1.0 - smoothstep(fade.x, fade.y, length(instance.xyz - eye)) : 1.0;
+    vec3 p = local.xyz * instance.w * shrink;
+    vec3 r = vec3(p.x * c + p.z * s, p.y, -p.x * s + p.z * c);
+    float h = clamp(local.y / max(swayHeight, 1e-3), 0.0, 1.0);
+    float phase = dot(instance.xz, vec2(.37, .21));
+    r.xz += wind.xy * extra.z * wind.z * h * h * (.6 + .4 * sin(time * 1.7 + phase)) * instance.w;
+    vec4 world = vec4(r + instance.xyz, 1.0);
+    vWorld = world.xyz;
+    vec3 n = mat3(model) * normal;
+    vNormal = vec3(n.x * c + n.z * s, n.y, -n.x * s + n.z * c);
+    vColor = color * vec4(vec3(extra.y), 1.0);
+    texturedVertex();
+    gl_Position = projection * view * world;
+}`;
+
 const fragment = `#version 300 es
 precision highp float;
 in vec3 vNormal;
@@ -58,4 +95,5 @@ void main() {
 export const SHADERS = {
     mesh: { vertex: vertex(false), fragment },
     skin: { vertex: vertex(true), fragment },
+    instanced: { vertex: instanced, fragment },
 };
