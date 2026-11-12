@@ -32,7 +32,7 @@ if (material.useGround(camera, light, time)) { /* draw your floor */ }
 preview.scene = layer => new GrassPatch(layer, GRASS_LOOKS.dry);
 ```
 
-Tuft attributes: 0 position (base y 0, height 1), 1 normal, 2 uv (v 0 at the root), 4 instance `x y z scale`. Ground: 0 position.
+Tuft attributes: 0 position (base y 0, height 1), 1 normal, 2 uv (v 0 at the root), 4 instance `x y z scale`, 5 instance cover `height dry flowers _` (optional: off reads 1 0 0). Look `dry` (colour) and `flowers` (extra accent 1 chance) use it. Ground: 0 position.
 `GrassLook` holds every setting (size, colours, patches, accents, wind, sway, push, clouds or `null`, toon bands, pixel style, pushers, distance).
 `@polywar/grass` (the generator) plants, chunks and culls tufts with this material.
 
