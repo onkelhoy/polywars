@@ -27,7 +27,8 @@ class Heap {
     topKey() { return this.keys[0]; }
 }
 
-export type Water = { water: Uint8Array; surface: Float32Array };
+/** `down`: the node each node drains to (-1 off the map or into the sea), `acc`: nodes that drain through it (catchment) */
+export type Water = { water: Uint8Array; surface: Float32Array; down: Int32Array; acc: Float32Array };
 
 /**
  * Ocean: nodes below `sea` connected to the map border. Lakes: priority flood (Barnes 2014) from the ocean and border,
@@ -54,6 +55,9 @@ export async function water(h: Float32Array, n: number, sea: number, minDepth: n
     // priority flood: fill every basin to where it spills
     pace.begin("lakes");
     const filled = new Float32Array(total), seen = new Uint8Array(total), heap = new Heap(total);
+    // the flood's parent links form a drainage tree to the outlets; `order` is the visit order (outlets first)
+    const down = new Int32Array(total).fill(-1), order = new Int32Array(total);
+    let visited = 0;
     for (let k = 0; k < total; k++) if (kind[k] === 1) { filled[k] = sea; seen[k] = 1; }
     // ocean nodes next to land, and land on the border, start the flood
     for (let k = 0; k < total; k++) if (kind[k] === 1)
@@ -71,6 +75,8 @@ export async function water(h: Float32Array, n: number, sea: number, minDepth: n
             if (seen[m]) return;
             seen[m] = 1;
             filled[m] = Math.max(h[m], level);
+            down[m] = k;
+            order[visited++] = m;
             heap.push(filled[m], m);
         };
         if (i > 0) visit(k - 1); if (i < n - 1) visit(k + 1); if (j > 0) visit(k - n); if (j < n - 1) visit(k + n);
@@ -99,7 +105,15 @@ export async function water(h: Float32Array, n: number, sea: number, minDepth: n
         if (wet < minNodes) continue;
         for (let q = 0; q < tail; q++) if (h[queue[q]] < level) { kind[queue[q]] = 2; surface[queue[q]] = level; }
     }
-    return { water: kind, surface };
+    // catchment: every land node brings 1, passed downstream from the last visited (highest) back to the outlets
+    const acc = new Float32Array(total);
+    for (let q = visited - 1; q >= 0; q--)
+    {
+        const m = order[q];
+        if (kind[m] !== 1) acc[m] += 1;
+        if (down[m] >= 0) acc[down[m]] += acc[m];
+    }
+    return { water: kind, surface, down, acc };
 }
 
 /** metres from every node to the nearest node where `source` is true (two pass chamfer, 1 / √2) */

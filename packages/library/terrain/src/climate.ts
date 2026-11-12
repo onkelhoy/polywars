@@ -36,7 +36,7 @@ export function biomes(o: TerrainOptions, g: Classify): Uint8Array {
     for (let k = 0; k < out.length; k++)
     {
         const w = g.water[k];
-        if (w) { out[k] = w === 1 ? I.ocean : I.lake; continue; }
+        if (w) { out[k] = w === 1 ? I.ocean : w === 2 ? I.lake : I.river; continue; }
         const h = g.height[k], t = g.temperature[k], m = g.moisture[k], s = g.slope[k], h01 = h / Math.max(1, g.top);
         if (t < b.snow) out[k] = I.snow;
         else if (h01 > b.mountain.height || s > b.mountain.slope) out[k] = I.mountain;

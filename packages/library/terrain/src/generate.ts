@@ -1,6 +1,7 @@
 import { cities } from "./cities";
 import { biomes, climate } from "./climate";
 import { erode } from "./erosion";
+import { rivers } from "./rivers";
 import { Pace } from "./pace";
 import { resolve, type Resolved } from "./presets";
 import { shape } from "./shape";
@@ -12,6 +13,7 @@ const STAGES = {
     shape: (o: Resolved) => [o.seed, o.size, o.q.resolution, o.edge, o.base, o.hills, o.mountains, o.plateaus],
     erosion: (o: Resolved) => [o.erosion, o.q.droplets],
     water: (o: Resolved) => [o.sea, o.lakes, o.height, o.climate.moisture],
+    rivers: (o: Resolved) => [o.rivers],
     cities: (o: Resolved) => [o.cities],
     climate: (o: Resolved) => [o.climate],
     biomes: (o: Resolved) => [o.biomes],
@@ -22,7 +24,8 @@ const ORDER = Object.keys(STAGES) as Stage[];
 type Cache = Partial<{
     shape: { h: Float32Array; plateau: Float32Array };
     erosion: { h: Float32Array; flow: Float32Array };
-    water: { height: Float32Array; water: Uint8Array; surface: Float32Array; toWater: Float32Array; toOcean: Float32Array };
+    water: { height: Float32Array; water: Uint8Array; surface: Float32Array; down: Int32Array; acc: Float32Array; toOcean: Float32Array };
+    rivers: { height: Float32Array; water: Uint8Array; surface: Float32Array; toWater: Float32Array; rivers: TerrainData["rivers"] };
     cities: { height: Float32Array; slope: Float32Array; cities: TerrainData["cities"] };
     climate: { temperature: Float32Array; moisture: Float32Array };
     biomes: { biome: Uint8Array };
@@ -80,26 +83,33 @@ export class Generator {
         {
             const height = Float32Array.from(c.erosion!.h, v => v * top);
             const w = await water(height, n, seaLevel, o.lakes.depth, Math.ceil(o.lakes.area / (cell * cell)), o.lakes.level * Math.min(1, .3 + o.climate.moisture * 1.4), pace);
-            c.water = { height, ...w, toWater: distance(n, cell, k => w.water[k] > 0), toOcean: distance(n, cell, k => w.water[k] === 1) };
+            c.water = { height, ...w, toOcean: distance(n, cell, k => w.water[k] === 1) };
             this.keys.water = key;
+        }
+        if ((key = stale("rivers")))
+        {
+            const w = c.water!, r = { height: w.height.slice(), water: w.water.slice(), surface: w.surface.slice() };
+            const list = rivers(o.rivers, { n, cell, size: o.size, ...r, down: w.down, acc: w.acc });
+            c.rivers = { ...r, rivers: list, toWater: distance(n, cell, k => r.water[k] > 0) };
+            this.keys.rivers = key;
         }
         if ((key = stale("cities")))
         {
-            const w = c.water!, height = w.height.slice(), base = { n, cell, size: o.size, height, water: w.water, toWater: w.toWater, toOcean: w.toOcean, seaLevel, top };
+            const w = c.rivers!, height = w.height.slice(), base = { n, cell, size: o.size, height, water: w.water, toWater: w.toWater, toOcean: c.water!.toOcean, seaLevel, top };
             const spots = cities(o.cities, { ...base, slope: slopes(height, n, cell) });
             c.cities = { height, slope: slopes(height, n, cell), cities: spots };
             this.keys.cities = key;
         }
         if ((key = stale("climate")))
         {
-            c.climate = await climate(o, { n, size: o.size, height: c.cities!.height, seaLevel, top, water: c.water!.water, toWater: c.water!.toWater, flow: c.erosion!.flow }, pace);
+            c.climate = await climate(o, { n, size: o.size, height: c.cities!.height, seaLevel, top, water: c.rivers!.water, toWater: c.rivers!.toWater, flow: c.erosion!.flow }, pace);
             this.keys.climate = key;
         }
         if ((key = stale("biomes")))
         {
             c.biomes = {
                 biome: biomes(o, {
-                    n, height: c.cities!.height, seaLevel, top, water: c.water!.water, slope: c.cities!.slope,
+                    n, height: c.cities!.height, seaLevel, top, water: c.rivers!.water, slope: c.cities!.slope,
                     temperature: c.climate!.temperature, moisture: c.climate!.moisture, plateau: c.shape!.plateau, toOcean: c.water!.toOcean,
                 }),
             };
@@ -108,10 +118,10 @@ export class Generator {
         onProgress?.("done", 1);
         return {
             n, cell, size: o.size, seaLevel,
-            height: c.cities!.height, water: c.water!.water, surface: c.water!.surface, biome: c.biomes!.biome,
+            height: c.cities!.height, water: c.rivers!.water, surface: c.rivers!.surface, biome: c.biomes!.biome,
             slope: c.cities!.slope, moisture: c.climate!.moisture, temperature: c.climate!.temperature,
-            flow: c.erosion!.flow, plateau: c.shape!.plateau, toWater: c.water!.toWater, toOcean: c.water!.toOcean,
-            cities: c.cities!.cities,
+            flow: c.erosion!.flow, plateau: c.shape!.plateau, toWater: c.rivers!.toWater, toOcean: c.water!.toOcean,
+            cities: c.cities!.cities, rivers: c.rivers!.rivers,
         };
     }
 }

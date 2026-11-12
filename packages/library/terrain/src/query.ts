@@ -22,5 +22,5 @@ export function nearest(d: TerrainData, grid: ArrayLike<number>, x: number, z: n
 export const heightAt = (d: TerrainData, x: number, z: number) => sample(d, d.height, x, z);
 export const biomeAt = (d: TerrainData, x: number, z: number): Biome => BIOMES[nearest(d, d.biome, x, z)];
 export const slopeAt = (d: TerrainData, x: number, z: number) => sample(d, d.slope, x, z);
-/** "ocean", "lake" or null */
-export const waterAt = (d: TerrainData, x: number, z: number) => (["", "ocean", "lake"] as const)[nearest(d, d.water, x, z)] || null;
+/** "ocean", "lake", "river" or null */
+export const waterAt = (d: TerrainData, x: number, z: number) => (["", "ocean", "lake", "river"] as const)[nearest(d, d.water, x, z)] || null;

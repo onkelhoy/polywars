@@ -72,7 +72,7 @@ void main() {
     vec3 n = flatShade && !far ? face : normalize(vNormal);
     float slope = far ? 0.0 : 1.0 - clamp(face.y, 0.0, 1.0);
     vec3 c = palette[vBiome];
-    if (vBiome > 1) {
+    if (vBiome > 1 && vBiome < ${N - 1}) {
         c = mix(c, rockColor, smoothstep(rock.x - rock.y, rock.x + rock.y, slope));
         float s = smoothstep(snow.x - snow.y, snow.x + snow.y, vWorld.y) * (1.0 - smoothstep(snow.z - .05, snow.z + .05, slope));
         c = mix(c, snowColor, s);

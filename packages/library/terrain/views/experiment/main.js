@@ -26,6 +26,7 @@ const numbers = [
     ['plateaus.coverage', 0, 1, .01], ['plateaus.scale', 100, 4000, 10], ['plateaus.level', 0, 1, .01], ['plateaus.sharpness', .005, .3, .005], ['plateaus.steps', 0, 8, 1],
     ['erosion.lifetime', 4, 120, 1], ['erosion.inertia', 0, .9, .01], ['erosion.capacity', .5, 16, .1], ['erosion.minCapacity', 0, .1, .001], ['erosion.erode', 0, 1, .01],
     ['erosion.deposit', 0, 1, .01], ['erosion.evaporate', .001, .1, .001], ['erosion.gravity', .5, 20, .1], ['erosion.radius', 1, 60, 1],
+    ['rivers.enabled'], ['rivers.catchment', 10000, 2000000, 10000], ['rivers.width', 1, 30, .5], ['rivers.maxWidth', 2, 120, 1], ['rivers.depth', 0, 10, .1], ['rivers.length', 0, 2000, 10],
     ['lakes.depth', 0, 50, .5], ['lakes.area', 0, 50000, 100], ['lakes.level', 0, 1, .01],
     ['climate.temperature', 0, 1, .01], ['climate.moisture', 0, 1, .01], ['climate.scale', 100, 8000, 50], ['climate.variation', 0, 1, .01], ['climate.lapse', 0, 1.5, .01],
     ['climate.reach', 0, 1000, 5], ['climate.gradient.direction', 0, 360, 1], ['climate.gradient.strength', 0, 1, .01],
@@ -237,7 +238,7 @@ demo.tick = dt => {
     if (terrain.generating) return;
     const d = terrain.data, cam = demo.camera?.position;
     const t = terrain.triangles;
-    const counts = d ? `${d.n - 1}² cells · ${(d.cell).toFixed(1)} m · ${terrain.cities.length} cities\n${(t.used / 1000).toFixed(0)}k triangles drawn · full grid ${(t.full / 1000).toFixed(0)}k (${(t.used / t.full * 100).toFixed(1)}%)` : '';
+    const counts = d ? `${d.n - 1}² cells · ${(d.cell).toFixed(1)} m · ${terrain.cities.length} cities · ${terrain.rivers.length} rivers\n${(t.used / 1000).toFixed(0)}k triangles drawn · full grid ${(t.full / 1000).toFixed(0)}k (${(t.used / t.full * 100).toFixed(1)}%)` : '';
     const under = cam ? `${terrain.biomeAt(cam[0], cam[2]) ?? '-'} below` : '';
     $('#info').value = `${counts}\n${terrain.drawn} chunks · ${rate.toFixed(0)} fps · built in ${(generatedAt / 1000).toFixed(2)} s · ${under}`;
 };

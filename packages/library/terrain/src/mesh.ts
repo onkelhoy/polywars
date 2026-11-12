@@ -1,5 +1,5 @@
 import { BIOMES } from "@polywar/terrain-material";
-import type { TerrainData } from "./types";
+import type { River, TerrainData } from "./types";
 
 export type Mesh = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; x: number; y: number; z: number; radius: number };
 type Attribute = [Float32Array, number];
@@ -102,6 +102,47 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
     }
     if (!idx.length) return null;
     return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(depth), 1]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
+}
+
+/**
+ * Rivers as ribbons: the point lists smoothed (Chaikin), `width` wide at the surface level.
+ * Attributes: 0 position, 1 depth (metres), 2 flow uv (across 0..1, along in metres: scroll it to animate downstream).
+ */
+export function riverMesh(gl: WebGL2RenderingContext, rivers: River[]) {
+    const pos: number[] = [], depth: number[] = [], uv: number[] = [], idx: number[] = [];
+    for (const r of rivers)
+    {
+        let p = r.points;
+        for (let it = 0; it < 2 && p.length > 2; it++)
+        {
+            const next: typeof p = [p[0]];
+            for (let i = 0; i < p.length - 1; i++)
+            {
+                const a = p[i], b = p[i + 1];
+                next.push(a.map((v, k) => v * .75 + b[k] * .25) as any, a.map((v, k) => v * .25 + b[k] * .75) as any);
+            }
+            next.push(p[p.length - 1]);
+            p = next;
+        }
+        if (p.length < 2) continue;
+        let along = 0;
+        const base = pos.length / 3;
+        for (let i = 0; i < p.length; i++)
+        {
+            const a = p[Math.max(0, i - 1)], b = p[Math.min(p.length - 1, i + 1)];
+            let dx = b[0] - a[0], dz = b[2] - a[2];
+            const l = Math.hypot(dx, dz) || 1;
+            dx /= l; dz /= l;
+            if (i > 0) along += Math.hypot(p[i][0] - p[i - 1][0], p[i][2] - p[i - 1][2]);
+            const [x, y, z, w] = p[i], h = w / 2;
+            pos.push(x - dz * h, y, z + dx * h, x + dz * h, y, z - dx * h);
+            depth.push(.5, .5);
+            uv.push(0, along, 1, along);
+            if (i > 0) { const q = base + (i - 1) * 2; idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3); }
+        }
+    }
+    if (!idx.length) return null;
+    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(depth), 1], [new Float32Array(uv), 2]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
 }
 
 export const BIOME = (name: typeof BIOMES[number]) => BIOMES.indexOf(name);

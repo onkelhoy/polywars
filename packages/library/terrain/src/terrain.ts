@@ -5,7 +5,7 @@ import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
 import { Generator } from "./generate";
 import { Ground } from "./lod";
-import { BIOME, free, skirt, waterMesh, type Mesh } from "./mesh";
+import { BIOME, free, riverMesh, skirt, waterMesh, type Mesh } from "./mesh";
 import { DEFAULTS, meshError, resolve, type Resolved } from "./presets";
 import { biomeAt, heightAt, slopeAt, waterAt } from "./query";
 import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./types";
@@ -26,6 +26,7 @@ export class Terrain {
     private skirtMesh?: Mesh;
     private ocean: Mesh | null = null;
     private lakes: Mesh | null = null;
+    private riverWater: Mesh | null = null;
     private meshKey = "";
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     /** the current map, undefined until the first generation is done */
@@ -92,6 +93,7 @@ export class Terrain {
     slopeAt(x: number, z: number) { return this.data ? slopeAt(this.data, x, z) : 0; }
     waterAt(x: number, z: number) { return this.data ? waterAt(this.data, x, z) : null; }
     get cities() { return this.data?.cities ?? []; }
+    get rivers() { return this.data?.rivers ?? []; }
 
     draw(view: View, light: Light, time = 0) {
         const gl = this.gl, m = this.material;
@@ -110,7 +112,7 @@ export class Terrain {
             this.triangles.used = this.ground?.triangles ?? 0;
             if (this.skirtMesh) this.mesh(this.skirtMesh);
         }
-        for (const [w, lake] of [[this.lakes, true], [this.ocean, false]] as const)
+        for (const [w, lake] of [[this.riverWater, true], [this.lakes, true], [this.ocean, false]] as const)
         {
             if (!w || !m.useWater(view, light, time, lake)) continue;
             gl.enable(gl.BLEND);
@@ -175,14 +177,15 @@ export class Terrain {
             this.skirtMesh = skirt(gl, d, edge === "ocean" ? -.12 * o.height : o.edge.level * o.height, o.mesh.skirt, BIOME(edge === "ocean" ? "ocean" : "grassland"));
         this.ocean = waterMesh(gl, d, 1, step * 2, edge === "ocean" ? o.mesh.skirt : 0);
         this.lakes = waterMesh(gl, d, 2, step);
+        this.riverWater = riverMesh(gl, d.rivers);
         this.meshKey = this.meshOptions();
     }
 
     private clear() {
         const gl = this.gl;
         this.ground?.destroy();
-        free(gl, [...[this.skirtMesh, this.ocean, this.lakes].filter((m): m is Mesh => !!m)]);
-        this.ground = undefined; this.skirtMesh = undefined; this.ocean = this.lakes = null;
+        free(gl, [...[this.skirtMesh, this.ocean, this.lakes, this.riverWater].filter((m): m is Mesh => !!m)]);
+        this.ground = undefined; this.skirtMesh = undefined; this.ocean = this.lakes = this.riverWater = null;
     }
 
     private mesh(m: Mesh) {

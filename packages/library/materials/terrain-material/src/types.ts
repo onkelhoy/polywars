@@ -1,7 +1,7 @@
 export type Vec3 = [number, number, number];
 
 /** Biomes in palette order; the mesh `data.x` attribute is the index. */
-export const BIOMES = ["ocean", "lake", "beach", "grassland", "savanna", "desert", "forest", "hills", "plateau", "mountain", "snow"] as const;
+export const BIOMES = ["ocean", "lake", "beach", "grassland", "savanna", "desert", "forest", "hills", "plateau", "mountain", "snow", "river"] as const;
 export type Biome = typeof BIOMES[number];
 
 export type Debug = "" | "biome" | "height" | "slope" | "moisture" | "temperature" | "flow";

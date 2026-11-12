@@ -5,7 +5,7 @@ import type { TerrainData } from "./types";
 export type LodOptions = {
     /** detail levels, 1 = no LOD */
     levels: number;
-    /** metres per level: chunks this far away drop one level */
+    /** metres to the first coarser level; level k starts at `distance * factor^(k-1)` */
     distance: number;
     /** error multiplier per level */
     factor: number;
@@ -61,7 +61,9 @@ export class Ground {
         {
             if (!visible(c.x, c.y, c.z, c.radius)) continue;
             const dist = Math.max(0, Math.hypot(c.x - eye.x, c.y - eye.y, c.z - eye.z) - c.radius);
-            const want = Math.min(this.lod.levels - 1, Math.max(0, Math.floor(dist / Math.max(1, this.lod.distance))));
+            // geometric: the error grows with distance like the view shrinks it, so it looks the same on screen
+            const f = Math.max(1.01, this.lod.factor), ratio = dist / Math.max(1, this.lod.distance);
+            const want = ratio < 1 ? 0 : Math.min(this.lod.levels - 1, 1 + Math.floor(Math.log(ratio) / Math.log(f)));
             let m = c.levels[want];
             if (!m && budget > 0) { m = c.levels[want] = this.build(c, want); budget--; }
             m ??= c.levels.find(x => x);

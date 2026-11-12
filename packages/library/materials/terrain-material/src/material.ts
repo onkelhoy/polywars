@@ -11,7 +11,7 @@ const DEBUG = { "": 0, biome: 1, height: 2, slope: 3, moisture: 4, temperature: 
 export const TERRAIN_LOOK: TerrainLook = {
     colors: {
         ocean: "#b9a57a", lake: "#8a8160", beach: "#e3d39b", grassland: "#7ea64a", savanna: "#c2b35e",
-        desert: "#dcbf7d", forest: "#4f7d3a", hills: "#8f9b52", plateau: "#a68e62", mountain: "#8a8077", snow: "#f2f4f7",
+        desert: "#dcbf7d", forest: "#4f7d3a", hills: "#8f9b52", plateau: "#a68e62", mountain: "#8a8077", snow: "#f2f4f7", river: "#7d7556",
     },
     rock: { color: "#7c746c", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },

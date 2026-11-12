@@ -94,6 +94,8 @@ export type TerrainOptions = {
         /** moisture above which land is forest */
         forest: number;
     };
+    /** rivers where the catchment passes `catchment` m²; `width` / `depth` metres at that size, growing downstream; shorter than `length` metres are dropped */
+    rivers: { enabled: boolean; catchment: number; width: number; maxWidth: number; depth: number; length: number };
     /** flat dry spots for towns, best first */
     cities: { count: number; radius: number; spacing: number; maxSlope: number; flatten: number; water: number };
     /**
@@ -101,7 +103,7 @@ export type TerrainOptions = {
      * `chunk` size in nodes; `edges`: metres of error a biome / shore border counts as (keeps it sharp, 0 off); `skirt` metres beyond the map.
      */
     mesh: { adaptive: number; chunk: number; edges: number; skirt: number };
-    /** level of detail: chunks every `distance` metres away drop a level, each `factor` times coarser; `levels` 1 = off */
+    /** level of detail: past `distance` metres chunks drop a level every `factor` times farther, each level `factor` times coarser; `levels` 1 = off */
     lod: { levels: number; distance: number; factor: number };
     /** material overrides (colours, rock, snow, debug view ...) */
     look: Partial<TerrainLook>;
@@ -109,6 +111,9 @@ export type TerrainOptions = {
 
 /** Saveable settings: plain JSON. */
 export type TerrainSettings = TerrainOptions;
+
+/** a river from source to mouth: x y z (water surface) width, in metres */
+export type River = { points: [number, number, number, number][] };
 
 export type City = { x: number; z: number; y: number; radius: number; score: number; coast: boolean };
 
@@ -120,7 +125,7 @@ export type TerrainData = {
     size: number;
     /** metres */
     height: Float32Array;
-    /** 0 land, 1 ocean, 2 lake */
+    /** 0 land, 1 ocean, 2 lake, 3 river */
     water: Uint8Array;
     /** water surface, metres (sea level on land) */
     surface: Float32Array;
@@ -138,6 +143,7 @@ export type TerrainData = {
     toWater: Float32Array;
     toOcean: Float32Array;
     cities: City[];
+    rivers: River[];
     seaLevel: number;
 };
 
