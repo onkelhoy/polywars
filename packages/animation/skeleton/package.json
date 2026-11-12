@@ -67,7 +67,8 @@
     "@papit/translator": "*",
     "@papit/codeblock": "*",
     "@polywar/3d-demo": "*",
-    "@polywar/renderer": "*"
+    "@polywar/renderer": "*",
+    "@polywar/3d-asset-preview": "*"
   },
   "browserslist": [
     "defaults",

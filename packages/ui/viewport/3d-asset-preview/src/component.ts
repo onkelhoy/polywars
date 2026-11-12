@@ -7,7 +7,7 @@ import { Matrix4 } from "@papit/matrix";
 import { Grid, Model, Renderer, type Drawable, type ModelOptions, type Scene, type TexturedGLTF } from "@polywar/renderer";
 import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
-import { Poser, RigGizmo, Skeleton } from "@polywar/skeleton";
+import { Poser, RigGizmo, Skeleton, type PoseTool } from "@polywar/skeleton";
 
 // local
 import sheet from "./style.css" with { type: "css" };
@@ -18,7 +18,7 @@ import type { LoadEvent, Overlay, PreviewMode } from "./types";
  * Modes: `turntable` (spins, drag to orbit), `orbit` (drag turn, right-drag/shift-drag pan, wheel zoom), `fps` (click, WASD + mouse).
  * With `controls`: mode switch, animation picker, play/pause, a time scrubber and frame stepping (`fps`).
  * Rigged models posed by a `Skeleton` (set `skin`, e.g. `Skeleton.skin`) get bones / IK / mesh toggles;
- * with bones shown, press a bone to select it, drag it or its arrows (move) / rings (turn) to pose it, on top of the clip.
+ * with bones shown, press a bone to select it; tools select / move (G, arrows) / rotate (R, rings) pose it, on top of the clip.
  * Hooks: `skin` (e.g. `Skeleton.skin` for IK), `overlay` (draws over the model, e.g. bones), `hide-model`.
  */
 export class AssetPreview3D extends CustomElement {
@@ -49,7 +49,9 @@ export class AssetPreview3D extends CustomElement {
     @property({ type: Boolean }) grid: boolean = false;
     /** toon bands for the sun, 0 is smooth */
     @property({ type: Number }) toon: number = 0;
-    @property({ type: Number }) speed: number = 1;
+    @property({ type: Number, rerender: true }) speed: number = 1;
+    /** clips wrap; off = play once and hold the last frame */
+    @property({ type: Boolean, attribute: "no-loop", rerender: true }) noLoop: boolean = false;
     // light: ambient and sun strength, sun direction in degrees, lamp (point light) strength and angle around the model
     @property({ type: Number }) ambient: number = .6;
     @property({ type: Number }) sun: number = 1;
@@ -93,6 +95,7 @@ export class AssetPreview3D extends CustomElement {
         demo.addEventListener("pointerdown", this.handlebonedown, { capture: true });
         window.addEventListener("pointermove", this.handlebonemove);
         window.addEventListener("pointerup", this.handleboneup);
+        window.addEventListener("keydown", this.handlekey);
         this.applyMode();
         this.load();
     }
@@ -124,7 +127,8 @@ export class AssetPreview3D extends CustomElement {
         if (this.poser) this.poser.size = Math.max(...model.size) * .12;
         this.fitGrid();
         this.time = 0;
-        if (!model.animation(this.animation)) this.animation = "";
+        // keep the clip by name, any case ("Idle" = "idle")
+        if (!model.animation(this.animation)) this.animation = model.animations.find(c => c.name?.toLowerCase() === this.animation.toLowerCase())?.name ?? "";
         if (first || !this.keepView) this.frame();
         const triangles = model.gltf.meshes.flatMap(m => m.primitives).reduce((n, p) => n + (p.indices?.length ?? p.positions.length / 3) / 3, 0);
         this.dispatchEvent(new CustomEvent<LoadEvent>("load", {
@@ -174,17 +178,24 @@ export class AssetPreview3D extends CustomElement {
 
     private step(dt: number) {
         if (this.mode === "turntable") this.yaw += dt * .5;
-        if (this.playing) this.time += dt * this.speed;
         const anim = this.model?.animation(this.animation);
-        this.model?.pose(anim, this.time);
+        if (this.playing) this.time += dt * this.speed;
+        if (anim && this.noLoop && this.time >= anim.duration) { this.time = anim.duration; if (this.playing) { this.playing = false; this.requestUpdate(); } }
+        this.model?.pose(anim, this.time, !this.noLoop);
         this.poser?.apply();
         if (anim && this.controls)
         {
             const scrub = this.shadowRoot?.querySelector<HTMLInputElement>("input[type=range]");
-            if (scrub && document.activeElement !== this) scrub.value = String(anim.duration ? (this.time % anim.duration) / anim.duration : 0);
+            if (scrub && document.activeElement !== this) scrub.value = String(anim.duration ? this.clipTime(anim.duration) / anim.duration : 0);
             const frame = this.shadowRoot?.querySelector<HTMLOutputElement>("output.frame");
-            if (frame) frame.value = `${Math.round(((this.time % anim.duration) + anim.duration) % anim.duration * this.fps)} / ${Math.round(anim.duration * this.fps)}`;
+            if (frame) frame.value = `${Math.round(this.clipTime(anim.duration) * this.fps)} / ${Math.round(anim.duration * this.fps)}`;
         }
+    }
+
+    /** time inside the clip */
+    private clipTime(duration: number) {
+        if (this.noLoop) return Math.min(Math.max(this.time, 0), duration);
+        return ((this.time % duration) + duration) % duration;
     }
 
     private draw(camera: Camera) {
@@ -265,6 +276,14 @@ export class AssetPreview3D extends CustomElement {
         this.dragging = undefined;
         this.poser?.release();
     };
+    private handletool = (tool: PoseTool) => () => { if (this.poser) this.poser.tool = tool; this.requestUpdate(); };
+    /** G move, R rotate, S select (Blender keys), while bones show and nothing is typed into */
+    private handlekey = (e: KeyboardEvent) => {
+        if (!this.bones || !this.poser || !this.isConnected || e.ctrlKey || e.metaKey || e.altKey) return;
+        if ((e.target as HTMLElement)?.closest?.("input, select, textarea")) return;
+        const tool = ({ g: "move", r: "rotate", s: "select" } as Record<string, PoseTool>)[e.key.toLowerCase()];
+        if (tool) this.handletool(tool)();
+    };
     private handleposereset = () => { this.poser?.clear(); this.requestUpdate(); };
 
     private handlemode = (mode: PreviewMode) => () => { this.mode = mode; };
@@ -274,7 +293,15 @@ export class AssetPreview3D extends CustomElement {
     };
     private handleanimation = (e: Event) => { this.animation = (e.target as HTMLSelectElement).value; this.time = 0; };
     private handletoggle = (name: "bones" | "ik" | "hideModel") => () => { this[name] = !this[name]; };
-    private handleplay = () => { this.playing = !this.playing; this.requestUpdate(); };
+    private handleplay = () => {
+        const anim = this.model?.animation(this.animation);
+        // play once: at the end, play starts over
+        if (!this.playing && anim && this.noLoop && this.time >= anim.duration) this.time = 0;
+        this.playing = !this.playing;
+        this.requestUpdate();
+    };
+    private handlespeed = (e: Event) => { this.speed = Number((e.target as HTMLSelectElement).value); };
+    private handleloop = () => { this.noLoop = !this.noLoop; };
     private handlestep = (n: number) => () => {
         this.playing = false;
         this.time = (Math.round(this.time * this.fps) + n) / this.fps;
@@ -304,6 +331,9 @@ export class AssetPreview3D extends CustomElement {
                             <pap-button size="small" variant="${!this.hideModel ? "filled" : "outline"}" @click="${this.handletoggle("hideModel")}">mesh</pap-button>
                             <pap-button size="small" variant="${this.bones ? "filled" : "outline"}" @click="${this.handletoggle("bones")}">bones</pap-button>
                             <pap-button size="small" variant="${this.ik ? "filled" : "outline"}" @click="${this.handletoggle("ik")}">IK</pap-button>
+                            ${this.bones && this.poser ? (["select", "move", "rotate"] as PoseTool[]).map(t => html`
+                                <pap-button size="small" variant="${this.poser!.tool === t ? "filled" : "outline"}" @click="${this.handletool(t)}">${t}</pap-button>
+                            `) : ""}
                             ${this.bones ? html`<span class="bone">${this.poser?.selected?.name ?? "press a bone"}</span>` : ""}
                             ${this.poser?.edits.size ? html`<pap-button size="small" variant="outline" @click="${this.handleposereset}">reset pose</pap-button>` : ""}
                         </div>
@@ -314,6 +344,10 @@ export class AssetPreview3D extends CustomElement {
                             ${names.map(n => html`<option value="${n}" ${n === this.animation && "selected"}>${n}</option>`)}
                         </select>
                         <pap-button size="small" variant="outline" @click="${this.handleplay}">${this.playing ? "pause" : "play"}</pap-button>
+                        <select @change="${this.handlespeed}" aria-label="speed">
+                            ${[.1, .25, .5, 1, 1.5, 2].map(v => html`<option value="${v}" ${v === this.speed && "selected"}>${v}×</option>`)}
+                        </select>
+                        <pap-button size="small" variant="${this.noLoop ? "outline" : "filled"}" @click="${this.handleloop}">loop</pap-button>
                         <input type="range" min="0" max="1" step="0.001" value="0" aria-label="time" @input="${this.handlescrub}" />
                         <pap-button size="small" variant="outline" @click="${this.handlestep(-1)}" aria-label="previous frame">‹</pap-button>
                         <output class="frame" aria-label="frame"></output>

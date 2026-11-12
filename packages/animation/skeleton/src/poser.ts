@@ -8,17 +8,23 @@ export type PoseRay = { origin: V3; direction: V3; normal: V3 };
 export type PoseHandle = { kind: "move" | "turn"; axis: 0 | 1 | 2; origin: number[]; direction: number[]; size: number };
 type Project = (p: V3) => ArrayLike<number> | null;
 
+/** what a press and drag does: only select, move (arrows), rotate (rings) */
+export type PoseTool = "select" | "move" | "rotate";
+
 /**
- * Pose a `Skeleton` by hand, like Blender's pose mode. Press a bone to select it:
- * - IK targets, poles and roots: drag moves them on the view plane, arrows move along X / Y / Z.
- *   Moving a target or pole turns its IK on (rig.json may rest it at 0, e.g. arms).
- * - other bones: drag turns them around the view axis, rings turn them around their own X (twist) / Y / Z.
+ * Pose a `Skeleton` by hand, like Blender's pose mode. Press a bone to select it, then by `tool`:
+ * - move: drag moves it on the view plane, arrows along global X / Y / Z.
+ *   Moving an IK target or pole turns its IK on (rig.json may rest it at 0, e.g. arms).
+ * - rotate: drag turns it around the view axis, rings around its own X (twist) / Y / Z.
+ * - select: picks only, drags are left to the camera.
+ * Any bone can do both (bones an IK solves follow the IK while it is on).
  * Edits stay on top of any clip: `apply()` after each `pose()`. Points are armature space.
  */
 export class Poser {
     /** local pose per edited bone */
     readonly edits = new Map<Bone, { offset: number[]; rotation: number[] }>();
     selected?: Bone;
+    tool: PoseTool = "move";
     /** handle size, armature units (e.g. 15% of the model) */
     size = .2;
     /** handle being dragged */
@@ -29,7 +35,7 @@ export class Poser {
 
     constructor(readonly skeleton: Skeleton) { }
 
-    /** bones that move instead of turn: IK targets, poles and roots */
+    /** controls: IK targets, poles and roots (picked over the bone they sit on) */
     movable(bone: Bone) {
         return !bone.parent || !!this.ikOf(bone);
     }
@@ -44,8 +50,8 @@ export class Poser {
         const bone = this.selected;
         if (!bone) return [];
         const head = [...bone.head], out: PoseHandle[] = [];
-        if (this.movable(bone)) for (const axis of [0, 1, 2] as const) out.push({ kind: "move", axis, origin: head, direction: unitAxis(axis), size: this.size * 1.4 });
-        else for (const axis of [0, 1, 2] as const) out.push({ kind: "turn", axis, origin: head, direction: bone.worldRotation.rotate(unitAxis(axis)), size: this.size });
+        if (this.tool === "move") for (const axis of [0, 1, 2] as const) out.push({ kind: "move", axis, origin: head, direction: unitAxis(axis), size: this.size * 1.4 });
+        if (this.tool === "rotate") for (const axis of [0, 1, 2] as const) out.push({ kind: "turn", axis, origin: head, direction: bone.worldRotation.rotate(unitAxis(axis)), size: this.size });
         return out;
     }
 
@@ -72,11 +78,11 @@ export class Poser {
                 if (d < best) { best = d; bone = b; }
             }
             this.selected = bone;
-            if (!bone) return false;
+            if (!bone || this.tool === "select") return false;
         }
         const bone = this.selected!;
         this.active = handle;
-        if (this.movable(bone))
+        if (this.tool === "move")
         {
             const ik = this.ikOf(bone);
             const weight = ik ? this.skeleton.rig?.ik.find(c => c.bone === ik)?.weight ?? 1 : 1;
@@ -92,7 +98,7 @@ export class Poser {
             const axis = handle ? handle.direction : neg(ray.normal);
             const start = turnPoint(head, axis, ray);
             if (!start) return true;
-            this.grab = { mode: this.movable(bone) && !handle ? "move" : "turn", axis, head, start, world };
+            this.grab = { mode: this.tool === "move" ? "move" : "turn", axis, head, start, world };
         }
         return true;
     }

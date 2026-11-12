@@ -19,6 +19,7 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - [ ] Proper rigs (FK + IK), full animation control
 - [ ] Foot IK: walk cycle adapts legs to ground
 - [ ] Ragdoll physics
+- [ ] Base animation flows per rig (humanoid, quadruped, biped, later spiders etc.): shared clips/states (nice to have)
 
 ## World
 - [ ] Terrain

@@ -59,7 +59,7 @@ skeleton.update();                  // -> skeleton.matrices for the skin shader
 
 ## bones (RigGizmo)
 
-`new RigGizmo(gl).draw(renderer, skeleton, matrix * model.skeletonMatrix, { inFront, lines, selected, scale })`: Blender style octahedral bones, joint balls, dashed parent lines; IK bone yellow, chain pale yellow, target orange, pole blue, copy rotation green, controls purple. Works for any `{ armature, deform?, copies? }`. `pw-3d-asset-preview` uses it for its bones toggle. View `ik`: base character, clip + IK targets moved live.
+`new RigGizmo(gl).draw(renderer, skeleton, matrix * model.skeletonMatrix, { inFront, lines, selected, scale })`: Blender style octahedral bones, joint balls, dashed parent lines; IK bone yellow, chain pale yellow, target orange, pole blue, copy rotation green, controls purple. Works for any `{ armature, deform?, copies? }`. `pw-3d-asset-preview` uses it for its bones toggle. View (`views/`): the base rigs (humanoid, quadruped, biped) in `pw-3d-asset-preview`, with clips and posing.
 
 ## posing by hand (Poser)
 

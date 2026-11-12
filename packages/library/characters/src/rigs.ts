@@ -39,5 +39,19 @@ export const QUADRUPED: BaseRig = {
     sockets: { saddle: "Back", head: "Head" },
 };
 
+/** `tools/blender/lib/bird_rig.py`: two legged animal (chicken like), leg IK. */
+export const BIPED: BaseRig = {
+    name: "biped",
+    bones: ["root", "body", "neck", "head", "beak", "tail", ...sides(["wing", "thigh", "shin", "foot", "toe", "foot.ik", "knee.pole"])],
+    parts: {
+        head: ["head", "neck", "beak"],
+        torso: ["body", "tail"],
+        "wing.L": ["wing.L"], "wing.R": ["wing.R"],
+        "leg.L": ["thigh.L", "shin.L", "foot.L", "toe.L"],
+        "leg.R": ["thigh.R", "shin.R", "foot.R", "toe.R"],
+    },
+    sockets: { head: "head", back: "body" },
+};
+
 /** Base rigs by name (`character.json` `base`). */
-export const RIGS: Record<string, BaseRig> = { humanoid: HUMANOID, quadruped: QUADRUPED };
+export const RIGS: Record<string, BaseRig> = { humanoid: HUMANOID, quadruped: QUADRUPED, biped: BIPED };

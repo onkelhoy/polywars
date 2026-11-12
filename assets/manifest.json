@@ -93,7 +93,7 @@
         {
          "name": "Cow.glb",
          "file": "/assets/models/animals/farm/Cow.glb",
-         "size": 351752
+         "size": 332688
         },
         {
          "name": "Cow.rig.json",
@@ -113,7 +113,7 @@
         {
          "name": "Horse.glb",
          "file": "/assets/models/animals/farm/Horse.glb",
-         "size": 319808
+         "size": 304552
         },
         {
          "name": "Horse.rig.json",
@@ -133,7 +133,7 @@
         {
          "name": "Llama.glb",
          "file": "/assets/models/animals/farm/Llama.glb",
-         "size": 286428
+         "size": 272716
         },
         {
          "name": "Llama.rig.json",
@@ -153,7 +153,7 @@
         {
          "name": "Pig.glb",
          "file": "/assets/models/animals/farm/Pig.glb",
-         "size": 279520
+         "size": 265804
         },
         {
          "name": "Pig.rig.json",
@@ -173,7 +173,7 @@
         {
          "name": "Pug.glb",
          "file": "/assets/models/animals/farm/Pug.glb",
-         "size": 275464
+         "size": 261748
         },
         {
          "name": "Pug.rig.json",
@@ -193,7 +193,7 @@
         {
          "name": "Sheep.glb",
          "file": "/assets/models/animals/farm/Sheep.glb",
-         "size": 279236
+         "size": 265524
         },
         {
          "name": "Sheep.rig.json",
@@ -213,7 +213,7 @@
         {
          "name": "Zebra.glb",
          "file": "/assets/models/animals/farm/Zebra.glb",
-         "size": 393152
+         "size": 377896
         },
         {
          "name": "Zebra.rig.json",
@@ -3089,6 +3089,31 @@
          "name": "model.rig.json",
          "file": "/assets/models/characters/base/model.rig.json",
          "size": 3484
+        }
+       ]
+      },
+      {
+       "name": "bird",
+       "assets": [
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/bird/character.json",
+         "size": 104
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/bird/model.blend",
+         "size": 105116
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/bird/model.glb",
+         "size": 88192
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/bird/model.rig.json",
+         "size": 1594
         }
        ]
       }

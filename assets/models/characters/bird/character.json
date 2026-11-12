@@ -1,0 +1,6 @@
+{
+    "name": "Base bird",
+    "model": "model.glb",
+    "rig": "model.rig.json",
+    "base": "biped"
+}

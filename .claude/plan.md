@@ -34,6 +34,12 @@ Goal: base humanoid rig (Blender editable, IK controls), basic clips, bones draw
 - n5. [ ] Bone map for downloaded humanoid models (Mixamo etc.) onto the base rig, once the owner has one.
 - n6. [ ] Weapons come alive (sniper scope, fire anims, flash, bullet, shell), FPS arms on hand IK; per weapon later.
 
+## Rig editing (confirmed 2026-11-12, done)
+- [x] export.py trims trailing holds (farm Walk clips were half still).
+- [x] Preview: speed picker, loop toggle (off = play once, hold last frame).
+- [x] Poser tools select / move / rotate (S / G / R) for every bone: arrows, rings, view-plane drag.
+- [x] Skeleton view `views/`: base rigs humanoid, quadruped (Cow), biped (new `bird_rig.py`, `assets/models/characters/bird`) in the preview; `BIPED` spec.
+
 ## Medieval buildings + baked surfaces (confirmed 2026-11-11)
 Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
 - Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `color.png`, `normal.png`, `ao.png`, `spec.png` (glb references them). Rebake: `node tools/bake-village.mjs`.

@@ -1,0 +1,112 @@
+{
+ "bones": {
+  "root": {
+   "length": 0.1,
+   "deform": false
+  },
+  "body": {
+   "length": 0.16492,
+   "deform": true
+  },
+  "neck": {
+   "length": 0.11402,
+   "deform": true
+  },
+  "head": {
+   "length": 0.06708,
+   "deform": true
+  },
+  "beak": {
+   "length": 0.05099,
+   "deform": true
+  },
+  "tail": {
+   "length": 0.13454,
+   "deform": true
+  },
+  "wing.L": {
+   "length": 0.1631,
+   "deform": true
+  },
+  "wing.R": {
+   "length": 0.1631,
+   "deform": true
+  },
+  "thigh.L": {
+   "length": 0.1118,
+   "deform": true
+  },
+  "shin.L": {
+   "length": 0.13928,
+   "deform": true
+  },
+  "foot.L": {
+   "length": 0.04472,
+   "deform": true
+  },
+  "toe.L": {
+   "length": 0.07,
+   "deform": true
+  },
+  "thigh.R": {
+   "length": 0.1118,
+   "deform": true
+  },
+  "shin.R": {
+   "length": 0.13928,
+   "deform": true
+  },
+  "foot.R": {
+   "length": 0.04472,
+   "deform": true
+  },
+  "toe.R": {
+   "length": 0.07,
+   "deform": true
+  },
+  "foot.ik.L": {
+   "length": 0.04472,
+   "deform": false
+  },
+  "foot.ik.R": {
+   "length": 0.04472,
+   "deform": false
+  },
+  "knee.pole.L": {
+   "length": 0.04,
+   "deform": false
+  },
+  "knee.pole.R": {
+   "length": 0.04,
+   "deform": false
+  }
+ },
+ "ik": [
+  {
+   "bone": "shin.L",
+   "chain": 2,
+   "target": "foot.ik.L",
+   "weight": 1.0,
+   "pole": "knee.pole.L"
+  },
+  {
+   "bone": "shin.R",
+   "chain": 2,
+   "target": "foot.ik.R",
+   "weight": 1.0,
+   "pole": "knee.pole.R"
+  }
+ ],
+ "copyRotation": [
+  {
+   "bone": "foot.L",
+   "target": "foot.ik.L",
+   "weight": 1.0
+  },
+  {
+   "bone": "foot.R",
+   "target": "foot.ik.R",
+   "weight": 1.0
+  }
+ ]
+}
