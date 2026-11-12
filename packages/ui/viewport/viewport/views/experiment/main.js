@@ -1,9 +1,9 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Matrix4 } from '@papit/matrix';
 import { Grid, Renderer } from '@polywar/renderer';
 
-const demo = document.querySelector('pw-3d-demo');
+const demo = document.querySelector('pw-viewport');
 await demo.ready;
 const renderer = new Renderer(demo.layer);
 renderer.light.toon = 3;

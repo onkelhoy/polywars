@@ -1,11 +1,11 @@
 {
-  "name": "@polywar/3d-demo",
+  "name": "@polywar/viewport",
   "description": "Demo stage for 3D package views: engine canvas, fly + pan-zoom camera (switchable, keeps the pose), theme background, overlay panel that never drives the camera.",
   "keywords": [
     "papit",
     "web-component",
     "typescript",
-    "3d-demo"
+    "viewport"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -38,14 +38,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/viewport/3d-demo",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/viewport/viewport",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/ui/viewport/3d-demo"
+    "directory": "packages/ui/viewport/viewport"
   },
   "sideEffects": true,
   "engines": {
@@ -81,11 +81,11 @@
   "papit": {
     "publish": true,
     "type": "web-component",
-    "main": "3d-demo",
+    "main": "viewport",
     "htmlprefix": "pw",
     "components": {
-      "3d-demo": {
-        "className": "Demo3D",
+      "viewport": {
+        "className": "Viewport",
         "htmlprefix": "pw"
       }
     }

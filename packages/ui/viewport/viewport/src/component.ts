@@ -6,7 +6,7 @@ import { Camera, GameEngine, GameObject, type Layer3D } from "@papit/game-engine
 import sheet from "./style.css" with { type: "css" };
 import { fly, panZoom, walk } from "@polywar/viewport-camera";
 import type { PanMode, WalkSetting } from "@polywar/viewport-camera";
-import type { Color, DemoMode } from "./types";
+import type { Color, ViewportMode } from "./types";
 
 /**
  * Stage for 3D views: a WebGL2 canvas on `@papit/game-engine`, a camera you can switch between
@@ -15,20 +15,20 @@ import type { Color, DemoMode } from "./types";
  * Children are an overlay panel: pointer, wheel and typing in it never move the camera.
  * Set `draw` (and `tick`) to draw each frame; `background` follows the page theme.
  */
-export class Demo3D extends CustomElement {
+export class Viewport extends CustomElement {
     static sheet = sheet;
 
-    @property({ rerender: true, after: function (this: Demo3D) { this.applyMode(); } }) mode: DemoMode = "pan";
+    @property({ rerender: true, after: function (this: Viewport) { this.applyMode(); } }) mode: ViewportMode = "pan";
     /** pan mode drag: `screen` moves in the view plane (full 3D), `ground` slides over the ground (in-game style) */
-    @property({ after: function (this: Demo3D) { this.applyMode(); } }) pan: PanMode = "screen";
+    @property({ after: function (this: Viewport) { this.applyMode(); } }) pan: PanMode = "screen";
     /** pan mode: farthest zoom from the pivot */
-    @property({ type: Number, attribute: "max-distance", after: function (this: Demo3D) { this.applyMode(); } }) maxDistance: number = 2000;
+    @property({ type: Number, attribute: "max-distance", after: function (this: Viewport) { this.applyMode(); } }) maxDistance: number = 2000;
     /** fly speed, units per second (the wheel changes it while flying) */
     @property({ type: Number }) speed: number = 5;
     @property({ type: Number }) near: number = .05;
     @property({ type: Number }) far: number = 1000;
     /** render at most this many pixels per CSS pixel (phones are 3x: 9x the pixels to shade); 0 = the device's */
-    @property({ type: Number, attribute: "max-pixel-ratio", after: function (this: Demo3D) { this.applyScale(); } }) maxPixelRatio: number = 0;
+    @property({ type: Number, attribute: "max-pixel-ratio", after: function (this: Viewport) { this.applyScale(); } }) maxPixelRatio: number = 0;
     /** hide the mode bar */
     @property({ type: Boolean, attribute: "no-bar" }) noBar: boolean = false;
     /** hide the direction arrows (bottom-left); the bar's "axes" button toggles them too */
@@ -42,12 +42,12 @@ export class Demo3D extends CustomElement {
     /** what `walk` mode stands on (set it before switching to `walk`) */
     walking?: Omit<WalkSetting, "exit">;
     /** the mode `walk` returns to */
-    private walkFrom: DemoMode = "pan";
+    private walkFrom: ViewportMode = "pan";
 
     /** called every frame before drawing, `dt` in seconds */
-    tick?: (dt: number, demo: Demo3D) => void;
+    tick?: (dt: number, demo: Viewport) => void;
     /** draw the scene; clear with `demo.background` */
-    draw?: (camera: Camera, demo: Demo3D) => void;
+    draw?: (camera: Camera, demo: Viewport) => void;
 
     engine?: GameEngine<any>;
     /** seconds since start */
@@ -215,7 +215,7 @@ export class Demo3D extends CustomElement {
 
     private handleorigin = () => { this.noOrigin = !this.noOrigin; };
     private handleaxes = () => { this.noAxes = !this.noAxes; };
-    private handlemode = (mode: DemoMode) => () => { this.mode = mode; };
+    private handlemode = (mode: ViewportMode) => () => { this.mode = mode; };
 
     render() {
         return html`
@@ -248,6 +248,6 @@ export class Demo3D extends CustomElement {
 
 declare global {
     interface HTMLElementTagNameMap {
-        "pw-3d-demo": Demo3D;
+        "pw-viewport": Viewport;
     }
 }

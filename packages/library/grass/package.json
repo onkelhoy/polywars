@@ -60,7 +60,7 @@
     "@papit/theme": "*",
     "@playwright/test": "1.64.1",
     "@polywar/3d-asset-preview": "*",
-    "@polywar/3d-demo": "*",
+    "@polywar/viewport": "*",
     "playwright": "1.64.1",
     "typescript": "5.9.3",
     "@polywar/renderer": "*"

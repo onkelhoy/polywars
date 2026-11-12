@@ -20,7 +20,7 @@ npm install @polywar/mesh-bake
 
 ## GUI (view `experiment`)
 
-Drop a .glb (or `#/assets/…/piece.glb` in the url): the mesh shows right away in `pw-3d-asset-preview` (3d-demo camera, direction arrows, light panel).
+Drop a .glb (or `#/assets/…/piece.glb` in the url): the mesh shows right away in `pw-3d-asset-preview` (viewport camera, direction arrows, light panel).
 Pick settings, hit **bake**: maps, lit preview (baked quad repeated, original, or both) and downloads (`model.glb`, folder .zip).
 Changing settings after a bake turns the button orange: bake again to see them.
 

@@ -1,4 +1,4 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Renderer } from '@polywar/renderer';
 import { loadNature, modelUrl } from '@polywar/nature';
@@ -6,7 +6,7 @@ import { Scatter } from '@polywar/scatter';
 
 // random nature props on a flat field: every family, by its scale range
 const $ = s => document.querySelector(s);
-const demo = $('pw-3d-demo');
+const demo = $('pw-viewport');
 await demo.ready;
 const renderer = new Renderer(demo.layer);
 renderer.light.fogDensity = .002;

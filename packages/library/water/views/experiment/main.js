@@ -1,4 +1,4 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { Matrix4 } from '@papit/matrix';
 import { Model, Renderer } from '@polywar/renderer';
 import { WATER_LOOK, WATER_LOOKS, WaterSample, WaterScreen, merge } from '@polywar/water';

@@ -1,7 +1,7 @@
 # Plan: optimise + bigger world
 
 ## Where we are
-`feature/ecosystem` merged into `main` (2026-11-12). All done (o1-o5, p1-p5); waiting for the owner (phone check, then "prepare PR"). Branch: `feature/optimise`.
+`feature/ecosystem` merged into `main` (2026-11-12). o + p done. Now: viewport rename + touch (r1, j1-j3). Branch: `feature/optimise`.
 
 ## Tasks
 - o1. [x] No rock gloss: rock props matte (world `GLOSS`), steep rock ground gloss 0 (terrain-material `look.gloss.rock`). Wet ground by water keeps its slight gloss.
@@ -16,3 +16,9 @@
 - p3. [x] Props: pack visible instances per model + lod into one stream buffer each frame → one call per model / lod / part.
 - p4. [x] Terrain shader: fbm baked once into a 2048² R8 texture (mirrored), 8 fetches instead of ~160 hashes per ground pixel.
 - p5. [x] Phones start at low quality (touch / small screen), low = cheaper everywhere.
+
+## Viewport + touch (confirmed 2026-11-12)
+- r1. [ ] Rename `3d-demo` → `viewport` (`@polywar/viewport`, `<pw-viewport>`), all users, docs, facts.
+- j1. [ ] viewport-camera: controllers take a touch input (`{ x, y }` stick + look drag + buttons; `@papit/joystick` fits, no dependency). walk: stick moves, drag looks, jump / run. fly: same + up / down. pan: one finger turns, two pan + pinch zoom.
+- j2. [ ] viewport: on touch screens a `@papit/joystick` overlay per mode (walk / fly), wired to j1.
+- j3. [ ] World view on phones: panel folds behind a button, play reachable.

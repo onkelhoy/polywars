@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "typescript": "5.9.3",
-    "@polywar/3d-demo": "*",
+    "@polywar/viewport": "*",
     "@polywar/nature": "*",
     "@papit/game-mesh": "*",
     "@papit/theme": "*"

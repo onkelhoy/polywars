@@ -1,8 +1,8 @@
 // system
 import { CustomElement, html, property } from "@papit/web-component";
 import type { Camera } from "@papit/game-engine";
-import "@polywar/3d-demo";
-import type { Demo3D } from "@polywar/3d-demo";
+import "@polywar/viewport";
+import type { Viewport } from "@polywar/viewport";
 import { Matrix4 } from "@papit/matrix";
 import { Grid, Model, Renderer, type Drawable, type ModelOptions, type Scene, type TexturedGLTF } from "@polywar/renderer";
 import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
@@ -61,7 +61,7 @@ export class AssetPreview3D extends CustomElement {
     @property({ type: Number, attribute: "lamp-angle" }) lampAngle: number = 120;
     @property({ type: Boolean, rerender: true }) lights: boolean = false;
 
-    private demo?: Demo3D;
+    private demo?: Viewport;
     private renderer?: Renderer;
     private gridMesh?: Grid;
     private bulb?: GPUMesh;
@@ -83,7 +83,7 @@ export class AssetPreview3D extends CustomElement {
 
     async firstRender() {
         super.firstRender();
-        const demo = this.shadowRoot!.querySelector<Demo3D>("pw-3d-demo")!;
+        const demo = this.shadowRoot!.querySelector<Viewport>("pw-viewport")!;
         this.demo = demo;
         await demo.ready;
         // a copy a template made and dropped never gets a layer
@@ -319,7 +319,7 @@ export class AssetPreview3D extends CustomElement {
     render() {
         const names = this.model?.animations.map(a => a.name ?? "") ?? [];
         return html`
-            <pw-3d-demo no-bar part="demo">
+            <pw-viewport no-bar part="demo">
             ${this.controls ? html`
                 <div class="bar" part="controls">
                     <div class="modes">
@@ -368,7 +368,7 @@ export class AssetPreview3D extends CustomElement {
                     ` : ""}
                 </div>
             ` : ""}
-            </pw-3d-demo>
+            </pw-viewport>
         `;
     }
 }

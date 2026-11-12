@@ -1,4 +1,4 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { Renderer } from '@polywar/renderer';
 import { loadNature } from '@polywar/nature';
 import { MAPS } from '@polywar/terrain';
@@ -7,7 +7,7 @@ import { WaterScreen } from '@polywar/water';
 import { World } from '@polywar/world';
 
 const $ = s => document.querySelector(s);
-const demo = $('pw-3d-demo');
+const demo = $('pw-viewport');
 await demo.ready;
 const layer = demo.layer;
 const renderer = new Renderer(layer);

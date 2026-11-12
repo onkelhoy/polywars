@@ -1,10 +1,10 @@
-import '@polywar/3d-demo';
+import '@polywar/viewport';
 import { MeshBuilder, loadGLTF, upload } from '@papit/game-mesh';
 import { Renderer } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 
 const $ = s => document.querySelector(s);
-const demo = $('pw-3d-demo');
+const demo = $('pw-viewport');
 await demo.ready;
 const layer = demo.layer;
 const gl = layer.gl;

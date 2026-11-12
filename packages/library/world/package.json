@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "typescript": "5.9.3",
-    "@polywar/3d-demo": "*",
+    "@polywar/viewport": "*",
     "@papit/theme": "*"
   },
   "browserslist": [

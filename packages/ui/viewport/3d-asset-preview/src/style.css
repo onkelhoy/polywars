@@ -5,7 +5,7 @@
     color: var(--text);
 }
 
-pw-3d-demo {
+pw-viewport {
     display: block;
     width: 100%;
     height: 100%;
@@ -14,7 +14,7 @@ pw-3d-demo {
 
 .bar {
     position: absolute;
-    /* left clear of the 3d-demo direction arrows */
+    /* left clear of the viewport direction arrows */
     inset: auto var(--gap-small, 8px) var(--gap-small, 8px) 92px;
     display: flex;
     flex-wrap: wrap;

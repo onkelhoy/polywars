@@ -1,6 +1,6 @@
-# @polywar/3d-demo
+# @polywar/viewport
 
-`<pw-3d-demo>`: the stage for 3D package views. A WebGL2 canvas on `@papit/game-engine`, a camera with two modes that switch without losing the pose, a background that follows the light / dark theme, and an overlay panel (the children) whose pointer, wheel and typing never move the camera.
+`<pw-viewport>`: the stage for 3D package views. A WebGL2 canvas on `@papit/game-engine`, a camera with two modes that switch without losing the pose, a background that follows the light / dark theme, and an overlay panel (the children) whose pointer, wheel and typing never move the camera.
 
 | Mode | Input |
 | --- | --- |
@@ -8,14 +8,14 @@
 | `fly` | click to look (Esc frees) or right drag, WASD / arrows along the view, E / space up, Q / C down, shift 4x, wheel = speed |
 
 ```html
-<pw-3d-demo mode="pan">
+<pw-viewport mode="pan">
     <aside>…controls…</aside>
-</pw-3d-demo>
+</pw-viewport>
 ```
 
 ```js
-import "@polywar/3d-demo";
-const demo = document.querySelector("pw-3d-demo");
+import "@polywar/viewport";
+const demo = document.querySelector("pw-viewport");
 await demo.ready;
 const renderer = new Renderer(demo.layer);        // any drawing on demo.layer (Layer3D) / demo.gl
 demo.look([6, 5, 8], [0, 0, 0]);                  // camera pose

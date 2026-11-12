@@ -217,7 +217,7 @@ $('#downloads').innerHTML = '<button id="zip" type="button">folder (.zip)</butto
 $('#zip').onclick = async () => { if (result) save(`${name}.zip`, zip((await bakeFiles(result, name)).map(f => ({ name: `${name}/${f.name}`, data: f.data })))); };
 $('#glb').onclick = async () => { if (result) save('model.glb', (await bakeFiles(result, name))[0].data); };
 
-// ---------- 3D preview (pw-3d-asset-preview: 3d-demo camera + light panel) ----------
+// ---------- 3D preview (pw-3d-asset-preview: viewport camera + light panel) ----------
 /** original mesh as a game-mesh Mesh: flat normals, material colours */
 function originalMesh() {
     const p = mesh.positions, n = mesh.material.length;
