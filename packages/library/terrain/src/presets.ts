@@ -1,16 +1,16 @@
 import type { Quality, QualitySettings, TerrainOptions } from "./types";
 
 export const QUALITY: Record<Quality, QualitySettings> = {
-    low: { resolution: 256, droplets: .7 },
-    medium: { resolution: 512, droplets: 1 },
-    high: { resolution: 1024, droplets: 1.2 },
+    low: { resolution: 512, droplets: .7 },
+    medium: { resolution: 1024, droplets: 1 },
+    high: { resolution: 2048, droplets: 1.2 },
 };
 
 export const DEFAULTS: TerrainOptions = {
     seed: 1,
     quality: "medium",
     settings: {},
-    size: 2048,
+    size: 3072,
     height: 420,
     edge: { type: "ocean", shape: "round", width: .35, direction: 0, noise: .5, level: .12 },
     base: { scale: 900, height: .32, octaves: 5, gain: .5, lacunarity: 2, warp: .6 },

@@ -19,6 +19,7 @@ Knowledge that outlives a plan. Trust code over this.
 
 ## Terrain
 - Stages shape → erosion → water → cities → climate → biomes; `Generator` caches per stage (key = the options it reads), `Terrain.set` redoes only dirty stages, look changes are uniforms only.
+- Default map 3072 m; resolution low 512 / medium 1024 / high 2048 (medium ~6.5 s to world ready). World view fog .0005 (haze).
 - Grid heights in metres, `n = resolution + 1` nodes, centred on the origin. Erosion runs in grid units scaled by `resolution / 256`.
 - Skirt (far fields / sea floor) has flow -1: material draws it smooth, no face shades.
 - Ground mesh: one RTIN over the whole grid (needs 2^k + 1 nodes: `resolve` rounds `resolution`), cut into chunks by triangle centre. Biome borders add `mesh.edges` error so they stay sharp.

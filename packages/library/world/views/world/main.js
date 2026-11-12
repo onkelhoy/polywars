@@ -11,7 +11,7 @@ const demo = $('pw-3d-demo');
 await demo.ready;
 const layer = demo.layer;
 const renderer = new Renderer(layer);
-renderer.light.fogDensity = .00025;
+renderer.light.fogDensity = .0005;
 renderer.light.fogColor = linear('#a9bfd3');
 renderer.light.sunDirection = [.45, .64, .62];
 const waterScreen = new WaterScreen(layer);
