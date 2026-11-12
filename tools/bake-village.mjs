@@ -1,5 +1,5 @@
 // node tools/bake-village.mjs: bakes the flat stone/ground pieces of the Modular Village kit
-// into assets/models/buildings/modular-village/baked/<Piece>/ (see packages/tools/mesh-bake/lib/bin.js).
+// into assets/models/buildings/modular-village/baked/<Piece>/ (see packages/utils/mesh-bake/lib/bin.js).
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 
@@ -11,4 +11,4 @@ const SETS = [
     { pieces: [1, 2, 3, 4, 5].map(n => `Stone_Wall_${n}`), args: ["--axis", "+x", "--size", "1x1"] },
 ];
 for (const set of SETS)
-    spawnSync("node", [join(ROOT, "packages/tools/mesh-bake/lib/bin.js"), ...set.pieces.map(p => join(KIT, p + ".glb")), ...set.args, "--out", join(KIT, "baked")], { stdio: "inherit" });
+    spawnSync("node", [join(ROOT, "packages/utils/mesh-bake/lib/bin.js"), ...set.pieces.map(p => join(KIT, p + ".glb")), ...set.args, "--out", join(KIT, "baked")], { stdio: "inherit" });

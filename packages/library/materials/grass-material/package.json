@@ -55,7 +55,8 @@
   },
   "dependencies": {
     "@papit/game-engine": "*",
-    "@papit/random": "*"
+    "@papit/random": "*",
+    "@polywar/noise": "*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

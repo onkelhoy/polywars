@@ -56,7 +56,9 @@
     "@polywar/gallery": "*",
     "@polywar/grass-material": "*",
     "@polywar/shading": "*",
-    "@polywar/skeleton": "*"
+    "@polywar/skeleton": "*",
+    "@polywar/terrain": "*",
+    "@polywar/terrain-material": "*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

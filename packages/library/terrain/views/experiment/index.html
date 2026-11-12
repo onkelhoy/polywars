@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>terrain | editor</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-3d-demo near="1" far="40000" speed="80">
+    <aside>
+        <h1>terrain</h1>
+        <output id="info"></output>
+        <progress id="progress" max="1" value="0"></progress>
+        <fieldset>
+            <legend>map</legend>
+            <div class="row">seed <input id="seed" type="number" min="0" step="1" /><button id="random" type="button">random</button></div>
+            <label>preset <select id="map"></select></label>
+            <label>quality <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+            <label>edge <select id="edge"><option>ocean</option><option>fields</option><option>none</option></select></label>
+            <label>edge shape <select id="shape"><option>round</option><option>square</option><option>coast</option></select></label>
+            <label><input id="erosion" type="checkbox" checked /> erosion</label>
+        </fieldset>
+        <fieldset>
+            <legend>view</legend>
+            <label>look <select id="look"></select></label>
+            <label>debug <select id="debug"><option value="">off</option><option>biome</option><option>height</option><option>slope</option><option>moisture</option><option>temperature</option><option>flow</option></select></label>
+            <label><input id="markers" type="checkbox" checked /> city spots</label>
+            <label><input id="grass" type="checkbox" /> grass at the first city (grassland only)</label>
+            <div class="buttons"><button id="overview" type="button">overview</button><button id="city" type="button">next city</button></div>
+            <canvas id="minimap" title="click to fly there"></canvas>
+        </fieldset>
+        <fieldset id="share">
+            <legend>code</legend>
+            <input id="code" type="text" spellcheck="false" aria-label="terrain code" />
+            <div class="buttons"><button id="copy-code" type="button">copy</button><button id="apply-code" type="button">apply</button></div>
+        </fieldset>
+        <fieldset id="json">
+            <legend>settings json</legend>
+            <div class="buttons">
+                <button id="export" type="button">download</button>
+                <button id="copy" type="button">copy</button>
+                <button id="import" type="button">open file</button>
+                <input id="file" type="file" accept=".json,application/json" hidden />
+            </div>
+            <textarea id="text" rows="4" placeholder="paste settings json or a code, then apply"></textarea>
+            <div class="buttons"><button id="apply" type="button">apply</button><button id="reset" type="button">defaults</button></div>
+            <div class="buttons"><button id="png-height" type="button">height png</button><button id="png-biome" type="button">biome png</button><button id="data" type="button">data json</button></div>
+        </fieldset>
+        <fieldset id="numbers"><legend>tweak</legend></fieldset>
+        <fieldset id="colors"><legend>colours</legend></fieldset>
+    </aside>
+    </pw-3d-demo>
+</body>
+
+</html>

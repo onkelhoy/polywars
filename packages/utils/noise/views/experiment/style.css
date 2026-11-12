@@ -1,0 +1,7 @@
+@import "@papit/theme";
+:root { color-scheme: dark; }
+body { font: 13px system-ui, sans-serif; background: var(--background); color: var(--text); margin: 12px; }
+label { margin-right: 12px; }
+main { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+figure { margin: 0; }
+canvas { display: block; image-rendering: pixelated; }

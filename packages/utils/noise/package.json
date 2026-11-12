@@ -1,13 +1,12 @@
 {
-  "name": "@polywar/mesh-bake",
-  "description": "Bakes a relief mesh into one quad plus colour, normal, ambient occlusion and spec maps. Core for node and browser, CLI and GUI.",
+  "name": "@polywar/noise",
+  "description": "Seeded noise: value, simplex, fbm, ridged, warp, tileable",
   "keywords": [
     "papit",
-    "mesh",
-    "bake",
-    "normal-map",
-    "ambient-occlusion",
-    "texture"
+    "typescript",
+    "noise",
+    "simplex",
+    "fbm"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -15,9 +14,7 @@
     "watch": "tsc -w",
     "start": "npx @papit/server --info --live",
     "preversion": "papit-version",
-    "postversion": "papit-version",
-    "component": "npm create @papit -- --component",
-    "bake": "node lib/bin.js"
+    "postversion": "papit-version"
   },
   "main": "./lib/bundle.js",
   "types": "./lib/bundle.d.ts",
@@ -39,34 +36,25 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/tools/mesh-bake",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/utils/noise",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/tools/mesh-bake"
+    "directory": "packages/utils/noise"
   },
   "sideEffects": true,
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/arguments": "*",
-    "@papit/terminal": "*"
+    "@papit/random": "*"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
-    "playwright": "1.64.1",
     "typescript": "5.9.3",
-    "@papit/theme": "*",
-    "@papit/translator": "*",
-    "@papit/codeblock": "*",
-    "@polywar/3d-asset-preview": "*",
-    "@polywar/textured": "*",
-    "@papit/game-mesh": "*",
-    "@types/node": "*"
+    "@papit/theme": "*"
   },
   "browserslist": [
     "defaults",
@@ -75,16 +63,7 @@
   ],
   "papit": {
     "publish": true,
-    "type": "node",
-    "main": "mesh-bake",
-    "htmlprefix": "",
-    "components": {
-      "mesh-bake": {
-        "className": "MeshBake"
-      }
-    }
-  },
-  "bin": {
-    "mesh-bake": "lib/bin.js"
+    "type": "browser",
+    "main": "noise"
   }
 }

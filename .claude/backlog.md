@@ -22,12 +22,18 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - [ ] Base animation flows per rig (humanoid, quadruped, biped, later spiders etc.): shared clips/states (nice to have)
 
 ## World
-- [ ] Terrain
+- [x] Terrain generator + editor: `@polywar/terrain` (+ `terrain-material`, `@polywar/noise`)
+  - [ ] Generation in a worker (now sliced on the main thread; high = ~6 s)
+  - [ ] Chunk LOD by distance (skirts against cracks)
+  - [ ] Rivers from the erosion flow map
+  - [ ] Real water (waves, shore foam)
+  - [ ] Share code helper shared by grass + terrain (copied now)
+  - [ ] Mountains still a bit spiky at defaults: tune by hand
 - [x] Grass field (owner's YouTube reference): `@polywar/grass`
   - [ ] `cross` + `mesh` sources
   - [ ] Check by hand: `cross` + `mesh`, `smooth` style, quality switch, sprite PNG override
   - [ ] Optional `noise` texture (url/image) + shared noise cache
-- [ ] Biomes
+- [ ] Biomes: classification done (terrain `biome` grid, `biomeAt`); props per biome open
 - [ ] Modular city/village builder (reusable, own package)
 - [ ] Nature placement
 

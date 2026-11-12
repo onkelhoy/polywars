@@ -1,6 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
+Branch `feature/terrain`: `packages/tools` → `packages/utils`; `@polywar/noise` (utils, grass-material uses it), `@polywar/terrain-material`, `@polywar/terrain` (generator + editor view), catalog shows terrain looks + map presets. Waiting on owner review.
 On `main`: character rig work merged (rigs, posing, characters, base rigs). Next: "Next tasks" n5 (needs a downloaded model) / n6, or task 8. `@polywar/renderer` + `@polywar/shading` done (materials gallery). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
@@ -21,8 +22,14 @@ On `main`: character rig work merged (rigs, posing, characters, base rigs). Next
 - papit gap: glTF bones point +Y, armature +X, `rig(gltf)` lengths 0. `@polywar/skeleton` converts. Posing by hand: `Poser` (tools select / move / rotate) in `pw-3d-asset-preview`.
 - export.py trims trailing holds off actions. Limb bones are rolled to face their pole so Blender and runtime IK match.
 
+## Terrain (facts)
+- Stages shape → erosion → water → cities → climate → biomes; `Generator` caches per stage (key = the options it reads), `Terrain.set` redoes only dirty stages, look changes are uniforms only.
+- Grid heights in metres, `n = resolution + 1` nodes, centred on the origin. Erosion runs in grid units scaled by `resolution / 256`.
+- Skirt (far fields / sea floor) has flow -1: material draws it smooth, no face shades.
+- `pw-3d-demo` pan mode zooms out to 2000 m max (hard coded in `panZoom`); fine for 2 km maps.
+
 ## Layout (2026-11-12)
-`animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{3d-demo, 3d-asset-preview, gallery, renderer}` · `network/*` · `tools/mesh-bake`.
+`animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{3d-demo, 3d-asset-preview, gallery, renderer}` · `network/*` · `utils/{mesh-bake, noise}`.
 `npm run assets` serves `library/catalog` (`views/`, no sub views). Folder `catalog` (not `assets`: the dev server serves such folders raw).
 
 ## Next tasks
