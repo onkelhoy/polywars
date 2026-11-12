@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>world | editor</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-3d-demo near=".3" far="40000" speed="40" max-distance="20000">
+    <aside>
+        <h1>world</h1>
+        <output id="info"></output>
+        <fieldset>
+            <legend>world code</legend>
+            <div class="row"><input id="code" spellcheck="false" /><button id="apply" type="button">apply</button><button id="copy" type="button">copy</button></div>
+        </fieldset>
+        <fieldset>
+            <legend>terrain</legend>
+            <div class="row">seed <input id="terrain-seed" type="number" min="0" step="1" /><button id="terrain-random" type="button">random</button></div>
+            <label>preset <select id="map"></select></label>
+            <label>quality <select id="terrain-quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+        </fieldset>
+        <fieldset id="nature">
+            <legend>nature</legend>
+            <div class="row">seed <input id="eco-seed" type="number" min="0" step="1" /><button id="eco-random" type="button">random</button></div>
+        </fieldset>
+        <fieldset>
+            <legend>view (per player)</legend>
+            <label>quality <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+            <label>grass style <select id="style"><option selected>pixel</option><option>smooth</option></select></label>
+            <label><input id="grass" type="checkbox" checked /> grass</label>
+            <label><input id="props" type="checkbox" checked /> props</label>
+            <label>wind <input id="wind" type="range" min="0" max=".12" step=".005" value=".03" /></label>
+        </fieldset>
+        <fieldset>
+            <legend>go</legend>
+            <div class="row"><button id="overview" type="button">overview</button><button id="forest" type="button">forest</button><button id="meadow" type="button">meadow</button><button id="dry" type="button">dry edge</button><button id="city" type="button">town</button></div>
+            <label>map <select id="layer"><option value="biome">biomes</option><option value="trees">trees</option><option value="density">grass</option><option value="height">grass height</option><option value="dry">dry</option><option value="flowers">flowers</option></select></label>
+            <canvas id="minimap" title="click to go there"></canvas>
+        </fieldset>
+    </aside>
+    </pw-3d-demo>
+</body>
+
+</html>

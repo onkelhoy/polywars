@@ -1,0 +1,76 @@
+{
+  "name": "@polywar/world",
+  "description": "Terrain + water + ecosystem + grass + props as one world with one share code",
+  "keywords": [
+    "papit",
+    "typescript",
+    "world"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build -- --error --ancestors",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "preversion": "papit-version",
+    "postversion": "papit-version"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/world",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/library/world"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/game-engine": "*",
+    "@polywar/terrain": "*",
+    "@polywar/terrain-material": "*",
+    "@polywar/water": "*",
+    "@polywar/ecosystem": "*",
+    "@polywar/nature": "*",
+    "@polywar/grass": "*",
+    "@polywar/scatter": "*",
+    "@polywar/renderer": "*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@polywar/3d-demo": "*",
+    "@papit/theme": "*"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "browser",
+    "main": "world"
+  }
+}

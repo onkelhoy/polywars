@@ -72,7 +72,8 @@ export function place(g: Ground, c: Cover, list: NatureList, o: EcosystemOptions
             const t = sample(g, g.temperature, x, z), mo = sample(g, g.moisture, x, z);
             let variant: string | undefined;
             if (t < o.season.snow + (vary - .5) * .06 || (g.snowHeight !== undefined && y0 > g.snowHeight - vary * 30)) variant = "snow";
-            else if (f.kind === "tree" && (fbm(autumn, x / 350, z / 350, { octaves: 2 }) * .5 + .5) > 1 - o.season.autumn * 1.6 + vary * .2) variant = "autumn";
+            // autumn: about `season.autumn` of the broadleaf trees, in patches (twice as likely in a patch, none between)
+            else if (f.kind === "tree" && !f.tags.includes("conifer") && vary < o.season.autumn * 2 * smoothstep(-.25, .25, fbm(autumn, x / 350, z / 350, { octaves: 2 }))) variant = "autumn";
             else if ((f.kind === "rock" || f.kind === "deadwood") && (mo > .55 || biome === "forest") && vary < .7) variant = "moss";
             const models = (variant && f.variants?.[variant]) || f.models;
             const model = models[Math.min(models.length - 1, Math.floor(which * models.length))];

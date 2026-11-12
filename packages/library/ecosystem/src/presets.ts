@@ -33,7 +33,7 @@ export const DEFAULTS: EcosystemOptions = {
         beach: { props: { palm: 6, willow: 1, rock: 3, clump: 12 }, grass: g(.12, .7, .5, 0) },
         hills: { props: { conifer: 25, broadleaf: 14, rock: 25, bush: 14, deadwood: 3, flower: 40, clump: 60 }, grass: g(.85, .8, .22, .25) },
         plateau: { props: { broadleaf: 5, conifer: 6, rock: 20, bush: 8, flower: 50, clump: 50 }, grass: g(.7, .7, .38, .3) },
-        mountain: { props: { conifer: 10, rock: 55, bush: 4 }, grass: g(.35, .5, .3, .08) },
+        mountain: { props: { conifer: 10, rock: 55, bush: 4 }, grass: g(.2, .5, .3, .06) },
         snow: { props: { conifer: 12, dead: 3, rock: 20, bush: 2 }, grass: g(0, .4, .2, 0) },
         lake: { props: { lilypad: 140 }, grass: g(0, 1, 0, 0) },
         river: { props: { lilypad: 60, willow: 10 }, grass: g(.5, 1.3, 0, .1) },
