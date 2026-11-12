@@ -71,7 +71,11 @@ $('#eco-random').onclick = () => eco.reseed();
 $('#apply').onclick = () => { try { world.load($('#code').value); } catch (e) { $('#info').value = String(e); } };
 $('#code').onkeydown = e => { if (e.key === 'Enter') $('#apply').onclick(); };
 $('#copy').onclick = () => navigator.clipboard?.writeText(world.code).catch(() => { });
-$('#quality').onchange = () => world.setView({ quality: $('#quality').value });
+// render scale per quality: phones are 3x screens, shading 9x the pixels is the biggest cost there
+const PIXEL_RATIO = { low: 1, medium: 1.5, high: 2 };
+const quality = q => { world.setView({ quality: q }); demo.maxPixelRatio = PIXEL_RATIO[q]; };
+$('#quality').onchange = () => quality($('#quality').value);
+quality($('#quality').value);
 $('#style').onchange = () => world.setView({ style: $('#style').value });
 $('#grass').onchange = () => world.setView({ grass: $('#grass').checked });
 $('#props').onchange = () => world.setView({ props: $('#props').checked });

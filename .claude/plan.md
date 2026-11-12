@@ -12,7 +12,7 @@
 
 ## Phone performance (confirmed 2026-11-12: "do everything you can, must run on a phone")
 - p1. [x] Stats per system (terrain / water / props / grass: calls, tris, ms) in the world view, to see what costs.
-- p2. [ ] Render scale: cap the pixel ratio (phones render at 3x now?), lower on low quality.
+- p2. [x] Render scale: cap the pixel ratio (phones render at 3x now?), lower on low quality.
 - p3. [ ] Props: pack visible instances per model + lod into one stream buffer each frame → one call per model / lod / part.
 - p4. [ ] Fix the next biggest cost p1 shows (terrain chunks, water, grass).
 - p5. [ ] Phones start at low quality (touch / small screen), low = cheaper everywhere.

@@ -27,6 +27,8 @@ export class Demo3D extends CustomElement {
     @property({ type: Number }) speed: number = 5;
     @property({ type: Number }) near: number = .05;
     @property({ type: Number }) far: number = 1000;
+    /** render at most this many pixels per CSS pixel (phones are 3x: 9x the pixels to shade); 0 = the device's */
+    @property({ type: Number, attribute: "max-pixel-ratio", after: function (this: Demo3D) { this.applyScale(); } }) maxPixelRatio: number = 0;
     /** hide the mode bar */
     @property({ type: Boolean, attribute: "no-bar" }) noBar: boolean = false;
     /** hide the direction arrows (bottom-left); the bar's "axes" button toggles them too */
@@ -75,8 +77,20 @@ export class Demo3D extends CustomElement {
         engine.on("theme", () => this.readBackground());
         this.readBackground();
         this.applyMode();
+        new ResizeObserver(() => this.applyScale()).observe(this.layer!.element);
+        this.applyScale();
         engine.start();
         this.resolveReady();
+    }
+
+    /** canvas size from the CSS size and `max-pixel-ratio` (papit's layer has no render scale: its fixed size setting is used) */
+    private applyScale() {
+        const layer = this.layer;
+        if (!layer) return;
+        const el = layer.element, cap = this.maxPixelRatio, ratio = cap > 0 ? Math.min(devicePixelRatio, cap) : 0;
+        layer.setting.width = ratio ? Math.max(1, Math.round(el.clientWidth * ratio)) : 0;
+        layer.setting.height = ratio ? Math.max(1, Math.round(el.clientHeight * ratio)) : 0;
+        layer.resize();
     }
 
     disconnectedCallback() {
