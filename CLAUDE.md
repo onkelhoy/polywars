@@ -17,6 +17,18 @@ Full scale low poly war game on papit. Second goal: every system is a small, dec
 - No runtime deps outside papit without asking.
 - Hosted on GitHub Pages via `@papit/static`.
 
+## Package folders
+One rule per folder; put a new package where its role says.
+
+| folder | holds |
+| --- | --- |
+| `packages/stage/` | dev viewing: camera stage, asset preview, gallery |
+| `packages/render/` | render pieces; `render/materials/*` = shaders/materials |
+| `packages/generators/` | procedural content (city, nature, ...) |
+| `packages/tools/` | offline/dev tools (bakers, exporters) |
+| `packages/ui/` | game UI |
+| `packages/network/` | networking |
+
 ## Assets
 All assets live in root `assets/` (models, audio, textures, animations) so the owner edits them in one place. Packages reference them, never copy. Target format glTF 2.0 (rigged, animations baked in the file).
 
