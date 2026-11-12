@@ -24,7 +24,7 @@ One rule per folder; put a new package where its role says.
 | --- | --- |
 | `packages/library/` | the asset library: `catalog` (`@polywar/assets`, the one gallery of all assets), materials, grass, city, building-builder, characters |
 | `packages/ui/game/` | game UI (lobby, room, share) |
-| `packages/ui/viewport/` | viewing: 3d-demo stage, asset preview, gallery, renderer |
+| `packages/ui/viewport/` | viewing: viewport-camera (controllers), 3d-demo stage, asset preview, gallery, renderer |
 | `packages/utils/` | offline/dev tools and pure helpers (bakers, exporters, noise) |
 | `packages/network/` | networking |
 | `packages/animation/` | skeleton: rigs, IK, clips, bone drawing |

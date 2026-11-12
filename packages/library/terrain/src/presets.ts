@@ -1,9 +1,9 @@
 import type { Quality, QualitySettings, TerrainOptions } from "./types";
 
 export const QUALITY: Record<Quality, QualitySettings> = {
-    low: { resolution: 256, droplets: .7, step: 1 },
-    medium: { resolution: 512, droplets: 1, step: 1 },
-    high: { resolution: 1024, droplets: 1.2, step: 1 },
+    low: { resolution: 256, droplets: .7, error: 2.5 },
+    medium: { resolution: 512, droplets: 1, error: 1 },
+    high: { resolution: 1024, droplets: 1.2, error: .75 },
 };
 
 export const DEFAULTS: TerrainOptions = {
@@ -32,7 +32,7 @@ export const DEFAULTS: TerrainOptions = {
         forest: .68,
     },
     cities: { count: 6, radius: 90, spacing: 350, maxSlope: .12, flatten: .7, water: .4 },
-    mesh: { chunk: 64, skirt: 6000 },
+    mesh: { chunk: 128, edges: 1.5, skirt: 6000 },
     look: {},
 };
 
@@ -66,5 +66,8 @@ export type Resolved = TerrainOptions & { q: QualitySettings };
 
 export function resolve(options: Partial<TerrainOptions> = {}): Resolved {
     const o = { ...DEFAULTS, ...options };
-    return { ...o, q: { ...QUALITY[o.quality], ...o.settings } };
+    const q = { ...QUALITY[o.quality], ...o.settings };
+    // the adaptive mesh needs a power of two
+    q.resolution = 2 ** Math.round(Math.log2(Math.min(2048, Math.max(32, q.resolution))));
+    return { ...o, q };
 }

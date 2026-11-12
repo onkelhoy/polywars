@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `feature/terrain`: `packages/tools` → `packages/utils`; `@polywar/noise` (utils, grass-material uses it), `@polywar/terrain-material`, `@polywar/terrain` (generator + editor view), catalog shows terrain looks + map presets. Waiting on owner review.
+Branch `feature/terrain`: `packages/tools` → `packages/utils`; `@polywar/noise` (utils, grass-material uses it), `@polywar/terrain-material`, `@polywar/terrain` (generator + editor view), catalog shows terrain looks + map presets. Adaptive RTIN ground mesh (`quality.error`, `mesh.edges`). Camera controllers moved to `@polywar/viewport-camera`; `pw-3d-demo` pans in the view plane by default. Waiting on owner review.
 On `main`: character rig work merged (rigs, posing, characters, base rigs). Next: "Next tasks" n5 (needs a downloaded model) / n6, or task 8. `@polywar/renderer` + `@polywar/shading` done (materials gallery). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
@@ -26,7 +26,8 @@ On `main`: character rig work merged (rigs, posing, characters, base rigs). Next
 - Stages shape → erosion → water → cities → climate → biomes; `Generator` caches per stage (key = the options it reads), `Terrain.set` redoes only dirty stages, look changes are uniforms only.
 - Grid heights in metres, `n = resolution + 1` nodes, centred on the origin. Erosion runs in grid units scaled by `resolution / 256`.
 - Skirt (far fields / sea floor) has flow -1: material draws it smooth, no face shades.
-- `pw-3d-demo` pan mode zooms out to 2000 m max (hard coded in `panZoom`); fine for 2 km maps.
+- Ground mesh: one RTIN over the whole grid (needs 2^k + 1 nodes: `resolve` rounds `resolution`), cut into chunks by triangle centre. Biome borders add `mesh.edges` error so they stay sharp.
+- Camera: `pw-3d-demo` `pan="screen"` (default, full 3D) or `"ground"` (in-game RTS style), `max-distance` zoom limit.
 
 ## Layout (2026-11-12)
 `animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{3d-demo, 3d-asset-preview, gallery, renderer}` · `network/*` · `utils/{mesh-bake, noise}`.

@@ -4,8 +4,8 @@ import { Camera, GameEngine, GameObject, type Layer3D } from "@papit/game-engine
 
 // local
 import sheet from "./style.css" with { type: "css" };
-import { fly, panZoom } from "./controllers";
-import type { PanMode } from "./controllers";
+import { fly, panZoom } from "@polywar/viewport-camera";
+import type { PanMode } from "@polywar/viewport-camera";
 import type { Color, DemoMode } from "./types";
 
 /**
@@ -18,8 +18,10 @@ export class Demo3D extends CustomElement {
     static sheet = sheet;
 
     @property({ rerender: true, after: function (this: Demo3D) { this.applyMode(); } }) mode: DemoMode = "pan";
-    /** pan mode drag: `ground` slides over the ground, `screen` moves in the view plane */
-    @property({ after: function (this: Demo3D) { this.applyMode(); } }) pan: PanMode = "ground";
+    /** pan mode drag: `screen` moves in the view plane (full 3D), `ground` slides over the ground (in-game style) */
+    @property({ after: function (this: Demo3D) { this.applyMode(); } }) pan: PanMode = "screen";
+    /** pan mode: farthest zoom from the pivot */
+    @property({ type: Number, attribute: "max-distance", after: function (this: Demo3D) { this.applyMode(); } }) maxDistance: number = 2000;
     /** fly speed, units per second (the wheel changes it while flying) */
     @property({ type: Number }) speed: number = 5;
     @property({ type: Number }) near: number = .05;
@@ -92,7 +94,7 @@ export class Demo3D extends CustomElement {
         const pose = !reset && old ? { position: Array.from(old.position), rotation: Array.from(old.rotation) } : this.start;
         const kept = this.pivot ? Array.from(this.pivot) as [number, number, number] : undefined;
         const target = reset || !old ? this.start.target : kept;
-        const controller = this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target, pan: this.pan });
+        const controller = this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target, pan: this.pan, max: this.maxDistance });
         this.pivot = "pivot" in controller ? controller.pivot : undefined;
         const camera = new Camera({ near: this.near, far: this.far, controllers: [controller] });
         camera.position.set(pose.position);

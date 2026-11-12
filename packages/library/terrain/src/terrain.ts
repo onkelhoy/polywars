@@ -22,7 +22,6 @@ export class Terrain {
     readonly gl: WebGL2RenderingContext;
     private generator = new Generator();
     private chunks: Mesh[] = [];
-    private indices?: WebGLBuffer;
     private skirtMesh?: Mesh;
     private ocean: Mesh | null = null;
     private lakes: Mesh | null = null;
@@ -36,6 +35,8 @@ export class Terrain {
     generating = false;
     /** chunks drawn last frame */
     drawn = 0;
+    /** ground triangles, and what the full grid would have */
+    triangles = { used: 0, full: 0 };
     /** called after each finished generation */
     onchange?: (data: TerrainData, terrain: Terrain) => void;
     /** called while generating */
@@ -138,7 +139,7 @@ export class Terrain {
         };
     }
 
-    private meshOptions() { return JSON.stringify([this.o.mesh, this.o.q.step, this.o.edge.type, this.o.edge.level]); }
+    private meshOptions() { return JSON.stringify([this.o.mesh, this.o.q.error, this.o.edge.type, this.o.edge.level]); }
 
     private async regenerate(): Promise<TerrainData> {
         this.generating = true;
@@ -163,10 +164,10 @@ export class Terrain {
     private build(d: TerrainData) {
         const gl = this.gl, o = this.o;
         this.clear();
-        const step = Math.max(1, Math.min(o.q.step, (d.n - 1) / 16));
-        const g = ground(gl, d, step, o.mesh.chunk);
+        const g = ground(gl, d, o.q.error, o.mesh.edges, o.mesh.chunk);
         this.chunks = g.meshes;
-        this.indices = g.indices;
+        this.triangles = { used: g.triangles, full: g.full };
+        const step = Math.max(1, Math.round((d.n - 1) / 256));
         const edge = o.edge.type;
         if (edge !== "none" && o.mesh.skirt > 0)
             this.skirtMesh = skirt(gl, d, edge === "ocean" ? -.12 * o.height : o.edge.level * o.height, o.mesh.skirt, BIOME(edge === "ocean" ? "ocean" : "grassland"));
@@ -178,8 +179,7 @@ export class Terrain {
     private clear() {
         const gl = this.gl;
         free(gl, [...this.chunks, ...[this.skirtMesh, this.ocean, this.lakes].filter((m): m is Mesh => !!m)]);
-        if (this.indices) gl.deleteBuffer(this.indices);
-        this.chunks = []; this.skirtMesh = undefined; this.ocean = this.lakes = null; this.indices = undefined;
+        this.chunks = []; this.skirtMesh = undefined; this.ocean = this.lakes = null;
     }
 
     private mesh(m: Mesh) {

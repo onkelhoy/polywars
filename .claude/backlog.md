@@ -24,7 +24,8 @@ Grouped by feature. `[ ]` open, `[x]` done.
 ## World
 - [x] Terrain generator + editor: `@polywar/terrain` (+ `terrain-material`, `@polywar/noise`)
   - [ ] Generation in a worker (now sliced on the main thread; high = ~6 s)
-  - [ ] Chunk LOD by distance (skirts against cracks)
+  - [x] Adaptive mesh (RTIN): flat land few triangles, ridges full detail
+  - [ ] LOD by distance (RTIN error per chunk + crack fix)
   - [ ] Rivers from the erosion flow map
   - [ ] Real water (waves, shore foam)
   - [ ] Share code helper shared by grass + terrain (copied now)

@@ -6,3 +6,4 @@ export { Cancelled } from "./pace";
 export { sample, nearest, heightAt, biomeAt, slopeAt, waterAt } from "./query";
 export { encode, decode, isCode } from "./code";
 export { BIOMES, TerrainMaterial, TERRAIN_LOOK } from "@polywar/terrain-material";
+export { errors, triangulate } from "./rtin";

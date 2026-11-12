@@ -1,7 +1,7 @@
 import { Demo3D } from './component.js';
 
 export * from "./component.js";
-export * from "./controllers.js";
+export * from "@polywar/viewport-camera";
 export * from "./types.js";
 
 if (!window.customElements) throw new Error('Custom Elements not supported');

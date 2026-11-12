@@ -1,7 +1,7 @@
 import type { Gallery, GalleryItem } from "@polywar/gallery";
 import { GRASS_LOOKS, GrassPatch } from "@polywar/grass-material";
 import { SHADINGS, ShadingBall } from "@polywar/shading";
-import { MAPS, Terrain } from "@polywar/terrain";
+import { DEFAULTS, MAPS, Terrain } from "@polywar/terrain";
 import { TERRAIN_LOOKS, TerrainSample } from "@polywar/terrain-material";
 import { Skeleton } from "@polywar/skeleton";
 
@@ -40,7 +40,7 @@ export async function catalog(gallery: Gallery, location = "/assets") {
     }));
     const terrains: GalleryItem[] = Object.entries(MAPS).map(([name, map]) => ({
         name, group: "terrain", kind: "model", note: "@polywar/terrain",
-        scene: layer => new Terrain(layer, { ...map, quality: "low", mesh: { chunk: 64, skirt: 0 } }),
+        scene: layer => new Terrain(layer, { ...map, quality: "low", mesh: { ...DEFAULTS.mesh, skirt: 0 } }),
     }));
     const textured: GalleryItem[] = files.filter(f => /\/model\.glb$/.test(f) && known.has(f.replace(/model\.glb$/, "color.png"))).map(file => {
         const parts = file.split("/");

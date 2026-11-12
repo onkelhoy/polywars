@@ -172,6 +172,7 @@ export class AssetPreview3D extends CustomElement {
         const y = (this.size?.[1] ?? 0) / 2, d = this.fit;
         demo.near = this.reach * .01;
         demo.far = this.reach * 200;
+        demo.maxDistance = Math.max(2000, this.reach * 20);
         demo.speed = this.reach * 1.5;
         demo.look([Math.sin(.7) * Math.cos(.35) * d, y + Math.sin(.35) * d, Math.cos(.7) * Math.cos(.35) * d], [0, y, 0]);
     }
@@ -318,7 +319,7 @@ export class AssetPreview3D extends CustomElement {
     render() {
         const names = this.model?.animations.map(a => a.name ?? "") ?? [];
         return html`
-            <pw-3d-demo no-bar pan="screen" part="demo">
+            <pw-3d-demo no-bar part="demo">
             ${this.controls ? html`
                 <div class="bar" part="controls">
                     <div class="modes">

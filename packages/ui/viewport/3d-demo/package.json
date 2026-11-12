@@ -54,7 +54,8 @@
   "dependencies": {
     "@papit/web-component": "*",
     "@papit/game-engine": "*",
-    "@papit/vector": "*"
+    "@papit/vector": "*",
+    "@polywar/viewport-camera": "*"
   },
   "peerDependencies": {
     "react": "^19"

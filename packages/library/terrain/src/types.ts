@@ -8,8 +8,8 @@ export type QualitySettings = {
     resolution: number;
     /** erosion droplets per cell */
     droplets: number;
-    /** simulation cells per mesh cell: 1 full detail, 2 half */
-    step: number;
+    /** metres the adaptive mesh may stray from the heights: small = more triangles */
+    error: number;
 };
 
 export type EdgeType = "ocean" | "fields" | "none";
@@ -98,8 +98,8 @@ export type TerrainOptions = {
     };
     /** flat dry spots for towns, best first */
     cities: { count: number; radius: number; spacing: number; maxSlope: number; flatten: number; water: number };
-    /** chunk size in mesh cells; skirt metres beyond the map (ocean / fields) */
-    mesh: { chunk: number; skirt: number };
+    /** chunk size in nodes; `edges`: metres of error a biome / shore border counts as (keeps it sharp, 0 off); skirt metres beyond the map */
+    mesh: { chunk: number; edges: number; skirt: number };
     /** material overrides (colours, rock, snow, debug view ...) */
     look: Partial<TerrainLook>;
 };
