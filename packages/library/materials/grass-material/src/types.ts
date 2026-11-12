@@ -83,6 +83,10 @@ export type GrassLook = {
     patches: Patch[];
     /** up to 2 */
     accents: Accent[];
+    /** colour of dry grass: tufts with a `dry` cover (instance 5) fade to it */
+    dry: string;
+    /** extra chance of accent 1 (the flower) at full `flowers` cover (instance 5) */
+    flowers: number;
     wind: Wind;
     sway: Sway;
     push: Push;

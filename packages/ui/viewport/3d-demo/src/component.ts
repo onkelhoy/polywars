@@ -4,13 +4,14 @@ import { Camera, GameEngine, GameObject, type Layer3D } from "@papit/game-engine
 
 // local
 import sheet from "./style.css" with { type: "css" };
-import { fly, panZoom } from "@polywar/viewport-camera";
-import type { PanMode } from "@polywar/viewport-camera";
+import { fly, panZoom, walk } from "@polywar/viewport-camera";
+import type { PanMode, WalkSetting } from "@polywar/viewport-camera";
 import type { Color, DemoMode } from "./types";
 
 /**
  * Stage for 3D views: a WebGL2 canvas on `@papit/game-engine`, a camera you can switch between
- * `pan` (map style pan / turn / zoom) and `fly` (free flight), keeping where it is.
+ * `pan` (map style pan / turn / zoom) and `fly` (free flight), keeping where it is, or `walk` (first person on `walking.ground`;
+ * Esc goes back to the mode before and fires `walkexit`).
  * Children are an overlay panel: pointer, wheel and typing in it never move the camera.
  * Set `draw` (and `tick`) to draw each frame; `background` follows the page theme.
  */
@@ -35,6 +36,11 @@ export class Demo3D extends CustomElement {
     @property({ type: Boolean, attribute: "no-origin", rerender: true }) noOrigin: boolean = false;
     /** where the origin dot sits, world space */
     origin: [number, number, number] = [0, 0, 0];
+
+    /** what `walk` mode stands on (set it before switching to `walk`) */
+    walking?: Omit<WalkSetting, "exit">;
+    /** the mode `walk` returns to */
+    private walkFrom: DemoMode = "pan";
 
     /** called every frame before drawing, `dt` in seconds */
     tick?: (dt: number, demo: Demo3D) => void;
@@ -94,7 +100,10 @@ export class Demo3D extends CustomElement {
         const pose = !reset && old ? { position: Array.from(old.position), rotation: Array.from(old.rotation) } : this.start;
         const kept = this.pivot ? Array.from(this.pivot) as [number, number, number] : undefined;
         const target = reset || !old ? this.start.target : kept;
-        const controller = this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target, pan: this.pan, max: this.maxDistance });
+        if (this.mode === "walk" && !this.walking) { this.mode = "pan"; return; }
+        if (this.mode !== "walk") this.walkFrom = this.mode;
+        const controller = this.mode === "walk" ? walk({ ...this.walking!, exit: () => { this.mode = this.walkFrom; this.dispatchEvent(new Event("walkexit")); } })
+            : this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target, pan: this.pan, max: this.maxDistance });
         this.pivot = "pivot" in controller ? controller.pivot : undefined;
         const camera = new Camera({ near: this.near, far: this.far, controllers: [controller] });
         camera.position.set(pose.position);
@@ -213,7 +222,8 @@ export class Demo3D extends CustomElement {
                     <button class="${this.mode === "fly" ? "on" : ""}" @click="${this.handlemode("fly")}">fly</button>
                     <button class="${this.noAxes ? "" : "on"}" @click="${this.handleaxes}">axes</button>
                     <button class="${this.noOrigin ? "" : "on"}" @click="${this.handleorigin}">origin</button>
-                    <span>${this.mode === "fly"
+                    <span>${this.mode === "walk" ? "click to look · WASD walk · shift run · space jump · esc back"
+                        : this.mode === "fly"
                         ? "click to look (esc frees) · right drag look · WASD · E/Q up/down · shift fast · wheel speed"
                         : "drag turn · right/shift drag pan · wheel zoom"}</span>
                 </div>

@@ -173,3 +173,90 @@ export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivo
     };
     return controller;
 }
+
+export type WalkSetting = {
+    /** ground height at x / z (the feet stand on it) */
+    ground: (x: number, z: number) => number;
+    /** eye above the feet, units */
+    eye?: number;
+    /** walk speed, units per second; shift runs at `run` times it */
+    speed?: number;
+    run?: number;
+    /** take off speed, units per second */
+    jump?: number;
+    gravity?: number;
+    /** radians per mouse pixel */
+    sensitivity?: number;
+    /** the player let go of the view (Esc): the host switches back */
+    exit?: () => void;
+};
+
+/**
+ * First person on foot. Click the view to look with the mouse; WASD / arrows walk where the view faces (level),
+ * shift runs, space jumps, gravity pulls the feet to `ground`. Esc frees the mouse and calls `exit`.
+ * `feet` is where the walker stands (for grass pushing, sounds, ...).
+ */
+export function walk(setting: WalkSetting): CameraController & { feet: Vector3; grounded: boolean } {
+    const sensitivity = setting.sensitivity ?? .002, eye = setting.eye ?? 1.7, speed = setting.speed ?? 4.5, run = setting.run ?? 2.2;
+    const jump = setting.jump ?? 5, gravity = setting.gravity ?? 18;
+    let dx = 0, dy = 0, fall = 0, vx = 0, vz = 0, cleanup: (() => void) | undefined;
+    const controller = {
+        feet: new Vector3(0, 0, 0),
+        grounded: true,
+        start(camera: Camera) {
+            const canvas = camera.surface!.element as HTMLElement, element = stage(camera);
+            const p = camera.position;
+            controller.feet.set([p.x, setting.ground(p.x, p.z), p.z]);
+            const root = () => canvas.getRootNode() as Document | ShadowRoot;
+            const locked = () => root().pointerLockElement === canvas;
+            let was = false;
+            const lock = () => canvas.requestPointerLock()?.catch?.(() => { });
+            const click = (e: MouseEvent) => { if (e.button === 0 && !locked()) lock(); };
+            const move = (e: MouseEvent) => { if (locked()) { dx += e.movementX; dy += e.movementY; } };
+            // Esc frees the pointer (the browser does it); losing the lock after having it is the way out
+            const change = () => { if (locked()) was = true; else if (was) setting.exit?.(); };
+            const key = (e: KeyboardEvent) => { if (e.key === "Escape" && !locked() && !typing()) setting.exit?.(); };
+            element.addEventListener("click", click);
+            document.addEventListener("mousemove", move);
+            document.addEventListener("pointerlockchange", change);
+            window.addEventListener("keydown", key);
+            lock();
+            cleanup = () => {
+                element.removeEventListener("click", click);
+                document.removeEventListener("mousemove", move);
+                document.removeEventListener("pointerlockchange", change);
+                window.removeEventListener("keydown", key);
+                if (locked()) document.exitPointerLock();
+            };
+        },
+        update(camera: Camera, dt: number) {
+            dt = Math.min(dt, .1);
+            const r = camera.rotation;
+            r.y -= dx * sensitivity;
+            r.x = clampPitch(r.x - dy * sensitivity);
+            dx = dy = 0;
+            const keys = camera.engine!.input.keyboard;
+            const k = (...names: string[]) => !typing() && names.some(n => keys.key(n)?.pressed) ? 1 : 0;
+            // level forward / right, eased so starts and stops aren't instant
+            const ahead = k("w", "arrowup") - k("s", "arrowdown"), side = k("d", "arrowright") - k("a", "arrowleft");
+            const l = Math.hypot(ahead, side) || 1, v = speed * (k("shift") ? run : 1);
+            const fx = -Math.sin(r.y), fz = -Math.cos(r.y), rx = Math.cos(r.y), rz = -Math.sin(r.y);
+            const tx = (fx * ahead + rx * side) / l * v, tz = (fz * ahead + rz * side) / l * v;
+            const ease = 1 - Math.exp(-dt * (controller.grounded ? 14 : 3));
+            vx += (tx - vx) * ease; vz += (tz - vz) * ease;
+            const f = controller.feet;
+            let x = f.x + vx * dt, z = f.z + vz * dt, y = f.y;
+            if (controller.grounded && k(" ")) { fall = jump; controller.grounded = false; }
+            fall -= gravity * dt;
+            y += fall * dt;
+            const g = setting.ground(x, z);
+            // walking down a slope keeps the feet on it; only a jump or a ledge leaves the ground
+            if (y <= g || (controller.grounded && fall <= 0 && y - g < .6)) { y = g; fall = 0; controller.grounded = true; }
+            else controller.grounded = false;
+            f.set([x, y, z]);
+            camera.position.set([x, y + eye, z]);
+        },
+        destroy() { cleanup?.(); },
+    };
+    return controller;
+}

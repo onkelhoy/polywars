@@ -69,6 +69,10 @@ export type GrassOptions = {
     patches: Patch[];
     /** up to 2 */
     accents: Accent[];
+    /** colour dry tufts fade to (planting `grow` gives the dryness) */
+    dry: string;
+    /** extra chance of accent 1 (flower) at full `flowers` (planting `grow`) */
+    flowers: number;
     wind: Wind;
     sway: Sway;
     push: Push;
@@ -87,10 +91,19 @@ export type GrassOptions = {
 /** Saveable settings: everything but the mesh and image sprites (sprite urls stay). Pass it as options. */
 export type GrassSettings = Omit<GrassOptions, "mesh" | "sprites"> & { sprites?: (string | null)[] };
 
-/** Where to plant. `mask` 0..1 is the chance a tuft grows, `height` the ground y. */
+/** Grass at a spot: chance a tuft grows 0..1, height (times), dry 0..1, flowers 0..1. `@polywar/ecosystem` `grassAt` fits. */
+export type GrassAt = { density: number; height: number; dry: number; flowers: number };
+
+/**
+ * Where to plant. `mask` 0..1 is the chance a tuft grows, `height` the ground y.
+ * `grow` replaces `mask` and also sets each tuft's height, dryness and flowers.
+ * `window` (metres): plant only the chunks this far round the point given to `grass.follow(x, z)`, for big maps.
+ */
 export type Planting = {
     area: { x: number; z: number; width: number; depth: number };
     seed?: number;
     mask?: (x: number, z: number) => number;
     height?: (x: number, z: number) => number;
+    grow?: (x: number, z: number) => GrassAt;
+    window?: number;
 };

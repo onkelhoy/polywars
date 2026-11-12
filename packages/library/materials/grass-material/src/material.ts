@@ -24,6 +24,8 @@ export const GRASS_LOOK: GrassLook = {
         { chance: .004, color: "#e8d36a", height: .12, scale: 1.2 },
         { chance: .02, color: "#8fc456", height: .05, scale: 1 },
     ],
+    dry: "#c4ad62",
+    flowers: .1,
     wind: { direction: [0, 1], speed: .025, scale: .07, threshold: .365, diverge: 10, angle: 60, perspective: .3 },
     sway: { speed: .1, angle: 10 },
     push: { angle: 45, exponent: 1 },
@@ -64,7 +66,8 @@ export function linear(hex: string): [number, number, number] {
  * The grass material: tuft and ground programs, the noise texture (wind, patches, clouds) and the sprites.
  * Geometry is the caller's. `useTufts` / `useGround` bind everything for the next draw.
  *
- * Tuft attributes: 0 position (base at y 0, height 1), 1 normal, 2 uv (v 0 at the root), 4 instance `x y z scale`.
+ * Tuft attributes: 0 position (base at y 0, height 1), 1 normal, 2 uv (v 0 at the root), 4 instance `x y z scale`,
+ * 5 instance cover `height dry flowers _` (optional: height 1, not dry, no flowers).
  * Ground attributes: 0 position.
  */
 export class GrassMaterial {
@@ -137,6 +140,10 @@ export class GrassMaterial {
         if (this.pushers.length) gl.uniform4fv(u("pushers"), this.pushers);
         const a = [o.accents[0], o.accents[1]];
         gl.uniform2f(u("accentChance"), a[0]?.chance ?? 0, a[1]?.chance ?? 0);
+        gl.uniform1f(u("flowerChance"), a[0] ? o.flowers : 0);
+        gl.uniform3fv(u("dryColor"), linear(o.dry));
+        // without a cover buffer (attribute 5 off) every tuft reads this
+        gl.vertexAttrib4f(5, 1, 0, 0, 0);
         gl.uniform2f(u("accentHeight"), a[0]?.height ?? 0, a[1]?.height ?? 0);
         gl.uniform2f(u("accentScale"), a[0]?.scale ?? 1, a[1]?.scale ?? 1);
         gl.uniform3fv(u("accentColor"), [...linear(a[0]?.color ?? o.color), ...linear(a[1]?.color ?? o.color)]);

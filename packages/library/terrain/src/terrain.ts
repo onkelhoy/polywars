@@ -94,6 +94,8 @@ export class Terrain {
 
     // ---- queries (world metres) ----
     heightAt(x: number, z: number) { return this.data ? heightAt(this.data, x, z) : 0; }
+    /** height of the ground as drawn (finest level): stand things on this, `heightAt` is the smooth grid */
+    groundAt(x: number, z: number) { return this.ground ? this.ground.heightAt(x, z) : this.heightAt(x, z); }
     biomeAt(x: number, z: number): Biome | null { return this.data ? biomeAt(this.data, x, z) : null; }
     slopeAt(x: number, z: number) { return this.data ? slopeAt(this.data, x, z) : 0; }
     waterAt(x: number, z: number) { return this.data ? waterAt(this.data, x, z) : null; }
@@ -193,6 +195,7 @@ export class Terrain {
         const gl = this.gl, o = this.o;
         this.clear();
         this.ground = new Ground(gl, d, o.mesh.detail, o.mesh.adaptive, o.mesh.edges, o.mesh.chunk, o.lod);
+        this.material.biomes({ n: d.n, size: d.size, biome: d.biome, toWater: d.toWater });
         this.triangles = { used: 0, full: this.ground.full };
         const step = Math.max(1, Math.round((d.n - 1) / 512));
         const edge = o.edge.type;

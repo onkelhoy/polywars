@@ -32,6 +32,8 @@ export const DEFAULTS: GrassOptions = {
         { chance: .004, color: "#e8d36a", height: .12, scale: 1.2 },
         { chance: .02, color: "#8fc456", height: .05, scale: 1 },
     ],
+    dry: "#c4ad62",
+    flowers: .1,
     wind: { direction: [0, 1], speed: .025, scale: .07, threshold: .365, diverge: 10, angle: 60, perspective: .3 },
     sway: { speed: .1, angle: 10 },
     push: { angle: 45, exponent: 1 },
@@ -57,7 +59,7 @@ export function look(o: Resolved): GrassLook {
     return {
         size: [o.size[0] * q.sizeScale, o.size[1] * q.sizeScale],
         color: o.color, shape: o.shape, bladeShare: o.bladeShare, variation: o.variation,
-        patches: o.patches, accents: o.accents, wind: o.wind, sway: o.sway, push: o.push,
+        patches: o.patches, accents: o.accents, dry: o.dry, flowers: o.flowers, wind: o.wind, sway: o.sway, push: o.push,
         clouds: q.clouds ? o.clouds : null, lighting: o.lighting,
         bands: s.bands, softBands: q.softBands, pixelated: s.pixelated, pixels: s.pixels, stepped: s.stepped, framerate: s.framerate,
         noiseSize: q.noiseSize, pushers: q.pushers, source: q.source, distance: q.distance,

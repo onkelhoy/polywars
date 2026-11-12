@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>scatter | forest</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-3d-demo near=".5" far="4000" speed="30">
+    <aside>
+        <h1>scatter</h1>
+        <output id="info"></output>
+        <label>props <input id="count" type="range" min="1000" max="200000" step="1000" value="20000" /><span></span></label>
+        <label>quality <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+        <label>wind <input id="wind" type="range" min="0" max=".15" step=".005" value=".03" /></label>
+    </aside>
+    </pw-3d-demo>
+</body>
+
+</html>

@@ -25,6 +25,21 @@ grass.drawGround(camera, light, time);              // optional floor with the s
 grass.draw(camera, light, time);
 ```
 
+### Big maps: grow + window
+
+```js
+grass.plant({
+    area: { x: -1024, z: -1024, width: 2048, depth: 2048 },
+    height: (x, z) => terrain.heightAt(x, z),
+    grow: (x, z) => eco.grassAt(x, z),   // { density, height, dry, flowers } per spot (@polywar/ecosystem)
+    window: 70,                           // only chunks this close to follow(x, z)
+});
+// each frame
+grass.follow(camera.x, camera.z);         // plants / drops chunks when the set changes (seeded per chunk, so the same every time)
+```
+
+`grow` sets each tuft's height (times `size`), dryness (fades to `dry`) and flowers (more accent 1, `flowers`). No floor in window mode (the terrain is the floor).
+
 - `camera`: anything with `viewMatrix`, `projectionMatrix`, `worldPosition` (`@papit/game-engine` `Camera` fits).
 - `light`: same shape as the polywar `Renderer.light` (sun, sky/ground ambient, fog), colours linear.
 
@@ -42,6 +57,7 @@ grass.draw(camera, light, time);
 | `size`, `sizeJitter` | tuft width/height in metres, random spread |
 | `color`, `patches`, `variation` | base colour (sRGB hex), noise patches `{ color, scale, threshold, softness }`, per-tuft shade |
 | `accents` | up to 2 rare tufts `{ chance, color, height, scale }` (flower, tall blades) |
+| `dry`, `flowers` | colour dry tufts fade to; extra accent 1 chance at full flowers (both from planting `grow`) |
 | `wind` | `direction`, `speed`, `scale`, `threshold`, `diverge`, `angle`, `perspective` |
 | `sway`, `push` | own sway `{ speed, angle }`, push `{ angle, exponent }` |
 | `clouds`, `lighting` | cloud shadows, toon `wrap` / `steepness` |

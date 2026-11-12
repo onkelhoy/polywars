@@ -14,6 +14,15 @@ export type TerrainLook = {
     rock: { color: string; slope: number; softness: number };
     /** snow cap above this height in metres, softened over `softness` metres; snow avoids steep faces */
     snow: { color: string; height: number; softness: number; slope: number };
+    /**
+     * Painted ground in flat patches. `washes` 0..1: layered billowy blotches (about `size` metres), each overlap one flat colour,
+     * `rim` 0..1 darker line along patch edges, `warmth` 0..1 warm light / cool deep, `grain` 0..1 fine speckle,
+     * `pixel` metres per paint cell (0 smooth edges): everything steps like pixel art.
+     * Biome borders (needs `material.biomes(map)`) bleed `edge` metres as the same billowy shapes (0: the mesh's borders).
+     */
+    paint: { edge: number; size: number; washes: number; rim: number; warmth: number; grain: number; pixel: number };
+    /** sun highlight 0..1: steep rock faces, and ground `reach` metres from water (fading out; needs `toWater` in the biome map) */
+    gloss: { rock: number; wet: number; reach: number };
     /** random brightness per face 0..1: the low poly look */
     variation: number;
     /** true: one normal per face (faceted); false: smooth normals */
@@ -27,6 +36,9 @@ export type TerrainLook = {
     range: [number, number];
     debug: Debug;
 };
+
+/** Biome (and water distance) per grid node (row major, z rows, node 0 at -size/2), what the painted borders read. `@polywar/terrain`'s data fits. */
+export type BiomeMap = { n: number; size: number; biome: Uint8Array; /** metres to the nearest water (wet ground gloss) */ toWater?: Float32Array };
 
 /** What the ground needs from the water: its underwater look (bed tint, fog) and the surface over the eye (null: eye above water). */
 export type Underwater = { time: number; under: WaterLook["under"]; eyeSurface: number | null };

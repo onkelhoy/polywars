@@ -4,7 +4,8 @@ Full scale low poly war game on papit. Second goal: every system is a small, dec
 
 ## Start here
 - `.claude/plan.md`: current confirmed tasks. "Where we are" says what's next.
-- `.claude/backlog.md`: everything else, grouped by feature/bug. Don't read it unless needed.
+- `.claude/facts.md`: lasting knowledge (pipelines, conventions, how systems fit). Read the part you need.
+- `.claude/backlog.md`: everything else, grouped by feature/bug (incl. paused tasks, papit reports). Don't read it unless needed.
 - `.claude/bugs.md`: known bugs + workarounds (create when first needed).
 
 ## How we work

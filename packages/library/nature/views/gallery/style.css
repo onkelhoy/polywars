@@ -1,0 +1,7 @@
+@import "@papit/theme";
+
+body { margin: 0; font-family: system-ui, sans-serif; }
+header { padding: .6rem 1rem; }
+header h1 { margin: 0; font-size: 1.2rem; }
+header p { margin: .2rem 0 0; opacity: .7; font-size: .85rem; white-space: pre-line; }
+pw-gallery { display: block; }

@@ -151,6 +151,14 @@ export class Model {
         this.rig.update();
     }
 
+    /** static mesh parts with their model space matrix and maps (skinned parts left out), e.g. for `Renderer.drawInstanced` */
+    get parts(): { mesh: GPUMesh; matrix: Matrix4; maps?: Maps }[] {
+        return this.items.filter(item => !item.skinned).flatMap(item => {
+            const meshIndex = this.gltf.nodes[item.node].mesh!;
+            return this.gpu[meshIndex].map((mesh, i) => ({ mesh, matrix: item.world, maps: this.textures[meshIndex]?.[i] }));
+        });
+    }
+
     draw(renderer: Renderer, matrix: Matrix4 = Matrix4.create(), options: DrawOptions = {}) {
         for (const item of this.items)
         {

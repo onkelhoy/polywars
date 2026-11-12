@@ -72,6 +72,7 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec2 uv;
 layout(location = 4) in vec4 tuft; // x y z scale
+layout(location = 5) in vec4 cover; // height (times), dry 0..1, flowers 0..1
 uniform mat4 view, projection;
 uniform int mode; // 0 sprite, 1 cross, 2 mesh
 uniform float time, framerate, maxDistance;
@@ -85,6 +86,7 @@ uniform vec4 pushers[PUSHERS];
 uniform int pusherCount;
 uniform float pushAngle, pushExponent;
 uniform vec2 accentChance;
+uniform float flowerChance;
 uniform vec2 accentHeight, accentScale;
 uniform vec4 spriteAnchor; // part of the sprite below the root, per slot (leaves, accent 1, accent 2, blades)
 uniform float bladeShare;
@@ -93,7 +95,7 @@ out vec2 vUv;
 out vec3 vNormal, vWorld;
 flat out vec3 vOrigin;
 flat out int vAccent, vSlot;
-flat out float vWind, vPush, vVary;
+flat out float vWind, vPush, vVary, vDry;
 out vec3 vDebug;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -117,7 +119,7 @@ void main() {
     }
 
     int accent = 0;
-    if (hash(origin.xz + 17.31) < accentChance.x) accent = 1;
+    if (hash(origin.xz + 17.31) < accentChance.x + cover.z * flowerChance) accent = 1;
     else if (hash(origin.xz + 41.77) < accentChance.y) accent = 2;
 
     vec3 p = position;
@@ -127,6 +129,7 @@ void main() {
     p.y -= anchor;
     if (mode != 2) p.xy *= size;
     else p *= size.y;
+    p.y *= cover.x;
     if (accent > 0) {
         p *= accentScale[accent - 1];
         p.y += accentHeight[accent - 1] * uv.y;
@@ -183,7 +186,8 @@ void main() {
     vWind = wind * dot(f, d);
     vPush = dot(f, push);
 
-    vec3 world = origin + offset + vec3(0, anchor * size.y * tuft.w * fade * .6, 0);
+    vec3 world = origin + offset + vec3(0, anchor * size.y * cover.x * tuft.w * fade * .6, 0);
+    vDry = cover.y;
     vVary = hash(origin.xz + 3.7);
     vUv = uv;
     vNormal = n;
@@ -202,9 +206,10 @@ in vec2 vUv;
 in vec3 vNormal, vWorld;
 flat in vec3 vOrigin;
 flat in int vAccent, vSlot;
-flat in float vWind, vPush, vVary;
+flat in float vWind, vPush, vVary, vDry;
 in vec3 vDebug;
 uniform int mode, debug;
+uniform vec3 dryColor;
 uniform float variation;
 uniform float perspective;
 uniform sampler2D sprite0, sprite1, sprite2, sprite3;
@@ -216,7 +221,8 @@ out vec4 outColor;
 void main() {
     // per tuft: a little brighter or darker and a touch warmer or cooler, so tufts read apart from the ground
     float warm = fract(vVary * 7.31) - .5;
-    vec3 base = patchedColor(vOrigin.xz) * (1.0 + (vVary - .5) * 2.0 * variation) * (1.0 + vec3(warm, 0, -warm) * variation);
+    vec3 tone = (1.0 + (vVary - .5) * 2.0 * variation) * (1.0 + vec3(warm, 0, -warm) * variation);
+    vec3 base = mix(patchedColor(vOrigin.xz), dryColor, vDry) * tone;
     vec3 albedo;
     if (mode == 2) albedo = base * (.6 + .4 * clamp(vUv.y, 0.0, 1.0));
     else {

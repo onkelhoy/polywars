@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
-import { place, type Placed } from "./place";
+import { TUFT, chunkCount, pack, place, plantChunk, type ChunkTufts, type Placed } from "./place";
 import { GrassMaterial } from "@polywar/grass-material";
 import { decode, encode, isCode } from "./code";
 import { DEFAULTS, look, resolve, type Resolved } from "./presets";
@@ -24,6 +24,10 @@ export class Grass {
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     /** tufts drawn last frame */
     drawn = 0;
+    /** window planting: chunks kept by key, the keys in the buffer now, the last followed point */
+    private cache = new Map<string, ChunkTufts>();
+    private shown = "";
+    private center?: [number, number];
 
     readonly gl: WebGL2RenderingContext;
 
@@ -70,17 +74,66 @@ export class Grass {
         const q = this.o.q, b = before.q;
         this.material.set(look(this.o));
         if (q.source !== b.source || q.planes !== b.planes || this.o.mesh !== before.mesh) this.buildGeometry();
-        if (this.planting && (q.density !== b.density || q.maxTufts !== b.maxTufts || this.o.chunk !== before.chunk || this.o.sizeJitter !== before.sizeJitter)) this.plant(this.planting);
+        if (this.planting && (q.density !== b.density || q.distance !== b.distance || q.maxTufts !== b.maxTufts || this.o.chunk !== before.chunk || this.o.sizeJitter !== before.sizeJitter)) this.plant(this.planting);
     }
 
-    /** Grow grass over an area. Replaces what was planted. */
+    /** Grow grass over an area. Replaces what was planted. With a `window` nothing grows until `follow`. */
     plant(planting: Planting) {
-        const gl = this.gl;
         this.planting = planting;
-        this.placed = place(planting, this.o.q.density, this.o.chunk, this.o.q.maxTufts, this.o.sizeJitter);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.instances);
-        gl.bufferData(gl.ARRAY_BUFFER, this.placed.data, gl.STATIC_DRAW);
+        this.cache.clear();
+        this.shown = "";
+        if (planting.window)
+        {
+            this.placed = undefined;
+            if (this.center) this.follow(...this.center);
+            return;
+        }
+        this.upload(place(planting, this.o.q.density, this.o.chunk, this.o.q.maxTufts, this.o.sizeJitter));
         this.buildGround();
+    }
+
+    /**
+     * Window planting: keep the chunks within `window` metres of x / z planted (call it each frame with the camera;
+     * it only works when the chunk set changes). Chunks come out the same every time (seeded per chunk).
+     */
+    follow(x: number, z: number) {
+        this.center = [x, z];
+        const pl = this.planting;
+        if (!pl?.window) return;
+        const chunk = this.o.chunk, r = pl.window, [cx, cz] = chunkCount(pl, chunk);
+        const i0 = Math.max(0, Math.floor((x - r - pl.area.x) / chunk)), i1 = Math.min(cx - 1, Math.floor((x + r - pl.area.x) / chunk));
+        const j0 = Math.max(0, Math.floor((z - r - pl.area.z) / chunk)), j1 = Math.min(cz - 1, Math.floor((z + r - pl.area.z) / chunk));
+        const key = `${i0},${i1},${j0},${j1}`;
+        if (key === this.shown) return;
+        this.shown = key;
+        // round window: skip corner chunks wholly outside
+        const inside: [number, number][] = [];
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++)
+        {
+            const dx = Math.max(0, Math.abs(pl.area.x + (i + .5) * chunk - x) - chunk / 2), dz = Math.max(0, Math.abs(pl.area.z + (j + .5) * chunk - z) - chunk / 2);
+            if (dx * dx + dz * dz <= r * r) inside.push([i, j]);
+        }
+        // density so a full window (the chunks really kept) stays under the cap
+        const density = Math.min(this.o.q.density, this.o.q.maxTufts / Math.max(1, inside.length * chunk * chunk));
+        const keep: ChunkTufts[] = [], wanted = new Set<string>();
+        for (const [i, j] of inside)
+        {
+            const k = `${i}:${j}`;
+            wanted.add(k);
+            let c = this.cache.get(k);
+            if (!c) this.cache.set(k, c = plantChunk(pl, density, chunk, i, j, this.o.sizeJitter));
+            keep.push(c);
+        }
+        // forget chunks well outside
+        for (const [k, c] of this.cache) if (!wanted.has(k) && Math.hypot(pl.area.x + (c.i + .5) * chunk - x, pl.area.z + (c.j + .5) * chunk - z) > r * 1.5 + chunk) this.cache.delete(k);
+        this.upload(pack(pl, chunk, keep, density, density < this.o.q.density));
+    }
+
+    private upload(placed: Placed) {
+        const gl = this.gl;
+        this.placed = placed;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.instances);
+        gl.bufferData(gl.ARRAY_BUFFER, placed.data, gl.DYNAMIC_DRAW);
     }
 
     /** Characters that bend grass: x y z radius each. Only the first `pushers` (quality) count. */
@@ -108,7 +161,8 @@ export class Grass {
             const d = Math.max(0, Math.hypot(c.x - eye.x, c.y - eye.y, c.z - eye.z) - c.radius);
             if (d > q.distance || !visible(planes, c.x, c.y, c.z, c.radius + o.size[1] * 2)) continue;
             const n = Math.ceil(c.count * (1 - (1 - q.lod) * d / q.distance));
-            gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 16, c.offset * 16);
+            gl.vertexAttribPointer(4, 4, gl.FLOAT, false, TUFT * 4, c.offset * TUFT * 4);
+            gl.vertexAttribPointer(5, 4, gl.FLOAT, false, TUFT * 4, c.offset * TUFT * 4 + 16);
             if (geo.indexed !== undefined) gl.drawElementsInstanced(gl.TRIANGLES, geo.count, geo.indexed, 0, n);
             else gl.drawArraysInstanced(gl.TRIANGLES, 0, geo.count, n);
             this.drawn += n;
@@ -136,7 +190,7 @@ export class Grass {
 
     // ---- internals ----
 
-    /** One tuft: a quad, crossed quads or the given mesh. Attributes: 0 position, 1 normal, 2 uv, 4 tuft (instanced). */
+    /** One tuft: a quad, crossed quads or the given mesh. Attributes: 0 position, 1 normal, 2 uv, 4 tuft + 5 cover (instanced). */
     private buildGeometry() {
         const gl = this.gl, q = this.o.q;
         let positions: number[] = [], normals: number[] = [], uvs: number[] = [];
@@ -179,8 +233,11 @@ export class Grass {
         attribute(2, uvs, 2);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.instances);
         gl.enableVertexAttribArray(4);
-        gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 16, 0);
+        gl.vertexAttribPointer(4, 4, gl.FLOAT, false, TUFT * 4, 0);
         gl.vertexAttribDivisor(4, 1);
+        gl.enableVertexAttribArray(5);
+        gl.vertexAttribPointer(5, 4, gl.FLOAT, false, TUFT * 4, 16);
+        gl.vertexAttribDivisor(5, 1);
         let indexed: number | undefined;
         if (indices)
         {

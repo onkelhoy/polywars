@@ -60,10 +60,23 @@ export type Scene = (layer: Layer3D) => Drawable;
 /** `maps`: albedo / normal / spec / ao textures (see @polywar/textured), none = vertex colour only */
 export type DrawOptions = { joints?: Float32Array; tint?: [number, number, number, number]; unlit?: boolean; maps?: Maps };
 
+/**
+ * Instances for `drawInstanced`: `STRIDE` floats each (x y z scale yaw tint sway, one free) in `buffer`, from instance `first`.
+ * `wind`: x z direction + strength, `swayHeight`: model height that sways fully, `fade`: start / end metres (instances shrink away), `time` seconds.
+ */
+export type Instances = { buffer: WebGLBuffer; first: number; count: number; time?: number; wind?: Vec3; swayHeight?: number; fade?: [number, number]; surface?: Partial<Surface> };
+/**
+ * Instanced prop surface: `bands` toon bands with `soft` edges 0..1 (0 = light's own `toon` / smooth),
+ * `grit` brightness noise in world space 0..1 (a few % is plenty), `gloss` sun highlight 0..1.
+ * Given a surface, the default view highlight is off (matte unless `gloss`).
+ */
+export type Surface = { bands: number; soft: number; grit: number; gloss: number };
+export const INSTANCE_STRIDE = 8;
+
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
-    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", ...TEXTURED_UNIFORMS];
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", ...TEXTURED_UNIFORMS];
 
 let renderers = 0;
 
@@ -73,7 +86,7 @@ export class Renderer {
     readonly gl: WebGL2RenderingContext;
     /** resolves once the shader programs are linked; draws before that are skipped */
     readonly ready: Promise<void>;
-    private programs?: { mesh: Program; skin: Program };
+    private programs?: { mesh: Program; skin: Program; instanced: Program };
     private current?: Program;
     private view?: View;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16), model: new Float32Array(16) };
@@ -81,8 +94,8 @@ export class Renderer {
     constructor(readonly layer: Layer3D) {
         this.gl = layer.gl;
         const id = `pw-renderer-${renderers++}`;
-        this.ready = Promise.all([this.compile(id + "-mesh", SHADERS.mesh), this.compile(id + "-skin", SHADERS.skin)])
-            .then(([mesh, skin]) => { this.programs = { mesh, skin }; });
+        this.ready = Promise.all([this.compile(id + "-mesh", SHADERS.mesh), this.compile(id + "-skin", SHADERS.skin), this.compile(id + "-instanced", SHADERS.instanced)])
+            .then(([mesh, skin, instanced]) => { this.programs = { mesh, skin, instanced }; });
     }
 
     /** Clear (optional colour) and set the camera for the next draws. */
@@ -117,6 +130,43 @@ export class Renderer {
         if (mode === undefined) return mesh.draw();
         gl.bindVertexArray(mesh.vao);
         gl.drawArrays(mode, 0, mesh.count);
+        gl.bindVertexArray(null);
+    }
+
+    /** Many copies of one static mesh: `model` is the part's model space matrix, the instances place, turn (y) and scale it. */
+    drawInstanced(mesh: GPUMesh, model: ArrayLike<number>, instances: Instances, options: Omit<DrawOptions, "joints"> = {}) {
+        if (!this.programs || instances.count <= 0) return;
+        const p = this.use(this.programs.instanced), gl = this.gl, i = instances;
+        this.f32.model.set(model);
+        gl.uniformMatrix4fv(p.uniforms.model, false, this.f32.model);
+        gl.uniform4fv(p.uniforms.tint, options.tint ?? [1, 1, 1, 1]);
+        gl.uniform1i(p.uniforms.unlit, options.unlit ? 1 : 0);
+        gl.uniform1i(p.uniforms.mirrored, 0);
+        gl.uniform3fv(p.uniforms.wind, i.wind ?? [1, 0, 0]);
+        gl.uniform2fv(p.uniforms.fade, i.fade ?? [0, 0]);
+        gl.uniform1f(p.uniforms.time, i.time ?? 0);
+        gl.uniform1f(p.uniforms.swayHeight, i.swayHeight ?? 1);
+        const f = i.surface ?? {};
+        gl.uniform1f(p.uniforms.bands, f.bands ?? 0);
+        gl.uniform1f(p.uniforms.soft, f.soft ?? 0);
+        gl.uniform1f(p.uniforms.grit, f.grit ?? 0);
+        gl.uniform1f(p.uniforms.gloss, f.gloss ?? 0);
+        gl.uniform1i(p.uniforms.surfaced, i.surface ? 1 : 0);
+        bindMaps(gl, p.uniforms, options.maps);
+        gl.bindVertexArray(mesh.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, i.buffer);
+        const bytes = INSTANCE_STRIDE * 4, at = i.first * bytes;
+        gl.enableVertexAttribArray(6);
+        gl.vertexAttribPointer(6, 4, gl.FLOAT, false, bytes, at);
+        gl.vertexAttribDivisor(6, 1);
+        gl.enableVertexAttribArray(7);
+        gl.vertexAttribPointer(7, 4, gl.FLOAT, false, bytes, at + 16);
+        gl.vertexAttribDivisor(7, 1);
+        if (mesh.indexType === null) gl.drawArraysInstanced(gl.TRIANGLES, 0, mesh.count, i.count);
+        else gl.drawElementsInstanced(gl.TRIANGLES, mesh.count, mesh.indexType, 0, i.count);
+        // leave the mesh's VAO as upload made it
+        gl.disableVertexAttribArray(6);
+        gl.disableVertexAttribArray(7);
         gl.bindVertexArray(null);
     }
 
