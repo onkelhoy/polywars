@@ -15,6 +15,8 @@ export type Cover = {
     groups: Record<string, Float32Array>;
     /** every tree group summed, per hectare */
     trees: Float32Array;
+    /** depth into a core biome 0 (border) .. 1 */
+    core: Float32Array;
 };
 
 export function cover(g: Ground, o: EcosystemOptions): Cover {
@@ -41,6 +43,12 @@ export function cover(g: Ground, o: EcosystemOptions): Cover {
             groups[name][k] = per * band(t, gr.temperature) * band(mo, gr.moisture) * reach;
         }
     }
+    // core depth: core biome share blurred over `reach`, 0 at its border
+    const core = new Float32Array(count), cores = new Set(o.core.biomes);
+    for (let j = 0, k = 0; j < m; j++) for (let i = 0; i < m; i++, k++) core[k] = cores.has(g.biomes[near(g, g.biome, -g.size / 2 + i * cell, -g.size / 2 + j * cell)]) ? 1 : 0;
+    blur(core, m, Math.max(0, Math.round(o.core.reach / cell / 2)));
+    for (let k = 0; k < count; k++) core[k] = smoothstep(.5, .9, core[k]);
+
     const r = Math.max(0, Math.round(o.cover.blend / cell / 2));
     for (const map of [...Object.values(grass), ...Object.values(groups)]) blur(map, m, r);
 
@@ -63,7 +71,7 @@ export function cover(g: Ground, o: EcosystemOptions): Cover {
 
     const trees = new Float32Array(count);
     for (const name of names) if (o.groups[name].layer === 0) groups[name].forEach((v, k) => trees[k] += v);
-    return { m, size: g.size, ...grass, groups, trees };
+    return { m, size: g.size, ...grass, groups, trees, core };
 }
 
 /** box blur of radius `r` nodes, twice (close to a gaussian), edges clamped */

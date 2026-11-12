@@ -31,7 +31,7 @@ export function place(g: Ground, c: Cover, list: NatureList, o: EcosystemOptions
         counts[name] = 0;
         let top = 0;
         for (const v of map) top = Math.max(top, v);
-        const dmax = top * o.density / 1e4;
+        const boost = Math.max(1, gr.core?.density ?? 1), dmax = top * o.density / 1e4 * boost;
         if (dmax <= 0 || !families.length) return;
         const gi = names.indexOf(name), rng = root.fork(name), clump = simplex(rng.uint());
         const step = 1 / Math.sqrt(dmax), n = Math.ceil(g.size / step), half = g.size / 2;
@@ -42,7 +42,8 @@ export function place(g: Ground, c: Cover, list: NatureList, o: EcosystemOptions
             const x = -half + (i + rng.next()) * step, z = -half + (j + rng.next()) * step;
             const accept = rng.next(), pick = rng.next(), which = rng.next(), size = rng.next(), yaw = rng.next(), shade = rng.next(), vary = rng.next();
             if (x > half || z > half) continue;
-            const d = bilinear(map, c.m, c.size, x, z) * o.density / 1e4 / dmax;
+            const deep = gr.core ? bilinear(c.core, c.m, c.size, x, z) : 0, mix = (to = 1) => 1 + (to - 1) * deep;
+            const d = bilinear(map, c.m, c.size, x, z) * o.density / 1e4 / dmax * mix(gr.core?.density);
             if (d <= 0) continue;
             const k = gr.cluster.amount, cl = 1 + k * (smoothstep(-.35, .35, fbm(clump, x / gr.cluster.scale, z / gr.cluster.scale, { octaves: 2 })) * 2 - 1);
             if (accept >= d * cl) continue;
@@ -59,8 +60,8 @@ export function place(g: Ground, c: Cover, list: NatureList, o: EcosystemOptions
             const slope = sample(g, g.slope, x, z);
             if (!gr.floats && slope > f.slope) continue;
 
-            const s = f.scale[0] + (f.scale[1] - f.scale[0]) * Math.pow(size, gr.small ?? 1);
-            const radius = f.radius * s, solid = radius * (gr.solid ?? SOLID[f.kind] ?? .5), space = radius * gr.spacing;
+            const s = (f.scale[0] + (f.scale[1] - f.scale[0]) * Math.pow(size, gr.small ?? 1)) * (gr.scale ?? 1) * mix(gr.core?.scale);
+            const radius = f.radius * s, solid = radius * (gr.solid ?? SOLID[f.kind] ?? .5), space = radius * gr.spacing * mix(gr.core?.spacing);
             if (!gr.floats && sample(g, g.toWater, x, z) < solid) continue;
             const blocked = hash.near(x, z, space + hash.reach, (id, dist) => hash.group[id] === gi
                 ? dist < (space + hash.space[id]) / 2

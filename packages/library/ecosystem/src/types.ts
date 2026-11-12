@@ -54,6 +54,10 @@ export type Group = {
     water?: number;
     /** floats on shallow lake / river water by the shore */
     floats?: boolean;
+    /** size times this (on top of the family's scale range) */
+    scale?: number;
+    /** deep in a core biome (`EcosystemOptions.core`): size, density and spacing times these at full depth, fading to the edges */
+    core?: { scale: number; density: number; spacing?: number };
     /** scale bias: > 1 more small ones (rocks) */
     small?: number;
     /** part of the ground hidden under the prop that stops grass, times radius (default by kind) */
@@ -77,6 +81,8 @@ export type EcosystemOptions = {
     cities: { clear: number; grass: number; height: number };
     /** grass at props: `ring` size (times canopy), how much taller, share of props with a bare spot instead */
     around: { ring: number; taller: number; bare: number };
+    /** core biomes (e.g. forest): depth 0 at the border .. 1 `reach` metres in; groups' `core` scales with it */
+    core: { biomes: string[]; reach: number };
     groups: Record<string, Group>;
     biomes: Record<string, BiomeRule>;
 };
