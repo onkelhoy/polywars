@@ -108,7 +108,7 @@ export class Demo3D extends CustomElement {
                     <button class="${this.mode === "fly" ? "on" : ""}" @click="${this.handlemode("fly")}">fly</button>
                     <span>${this.mode === "fly"
                         ? "click to look (esc frees) · right drag look · WASD · E/Q up/down · shift fast · wheel speed"
-                        : "drag pan · right/shift drag turn · wheel zoom"}</span>
+                        : "drag turn · right/shift drag pan · wheel zoom"}</span>
                 </div>
             `}
         `;

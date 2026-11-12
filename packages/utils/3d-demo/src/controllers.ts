@@ -44,11 +44,13 @@ export function fly(setting: FlySetting = {}): CameraController & { speed: numbe
         start(camera: Camera) {
             const canvas = camera.surface!.element as HTMLElement, element = stage(camera);
             let dragging: number | null = null;
+            // inside a shadow root `document.pointerLockElement` is the host, the root node knows the canvas
+            const locked = () => (canvas.getRootNode() as Document | ShadowRoot).pointerLockElement === canvas;
             const click = (e: MouseEvent) => { if (e.button === 0) canvas.requestPointerLock()?.catch?.(() => { }); };
             const down = (e: PointerEvent) => { if (e.button === 2) dragging = e.pointerId; };
             const up = (e: PointerEvent) => { if (e.pointerId === dragging) dragging = null; };
             const move = (e: MouseEvent) => {
-                if (document.pointerLockElement !== canvas && dragging === null) return;
+                if (!locked() && dragging === null) return;
                 dx += e.movementX; dy += e.movementY;
             };
             const wheel = (e: WheelEvent) => { e.preventDefault(); controller.speed = Math.min(Math.max(controller.speed * Math.exp(-e.deltaY * .001), .1), 1000); };
@@ -66,7 +68,7 @@ export function fly(setting: FlySetting = {}): CameraController & { speed: numbe
                 element.removeEventListener("contextmenu", menu);
                 window.removeEventListener("pointerup", up);
                 document.removeEventListener("mousemove", move);
-                if (document.pointerLockElement === canvas) document.exitPointerLock();
+                if (locked()) document.exitPointerLock();
             };
         },
         update(camera: Camera, dt: number) {
@@ -101,7 +103,7 @@ export type PanZoomSetting = {
 };
 
 /**
- * Map style. Left drag pans over the ground, right drag (or shift drag) turns around the pivot, wheel zooms.
+ * Map style. Left drag turns around the pivot, right drag (or shift drag) pans over the ground, wheel zooms.
  * Starts from the camera's current pose: the pivot is where it looks at the ground (y = 0), or `distance` ahead.
  */
 export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivot: Vector3; distance: number } {
@@ -120,7 +122,7 @@ export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivo
             let id: number | null = null, turn = false, x = 0, y = 0;
             const down = (e: PointerEvent) => {
                 if (e.button !== 0 && e.button !== 2) return;
-                id = e.pointerId; turn = e.button === 2 || e.shiftKey; x = e.clientX; y = e.clientY;
+                id = e.pointerId; turn = e.button === 0 && !e.shiftKey; x = e.clientX; y = e.clientY;
             };
             const move = (e: PointerEvent) => {
                 if (e.pointerId !== id) return;

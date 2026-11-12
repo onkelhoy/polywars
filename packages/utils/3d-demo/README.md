@@ -4,7 +4,7 @@
 
 | Mode | Input |
 | --- | --- |
-| `pan` | drag pans over the ground, right / shift drag turns around the pivot, wheel zooms |
+| `pan` | drag turns around the pivot, right / shift drag pans over the ground, wheel zooms |
 | `fly` | click to look (Esc frees) or right drag, WASD / arrows along the view, E / space up, Q / C down, shift 4x, wheel = speed |
 
 ```html
