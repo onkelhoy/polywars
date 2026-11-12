@@ -14,7 +14,8 @@ pw-3d-demo {
 
 .bar {
     position: absolute;
-    inset: auto var(--gap-small, 8px) var(--gap-small, 8px);
+    /* left clear of the 3d-demo direction arrows */
+    inset: auto var(--gap-small, 8px) var(--gap-small, 8px) 92px;
     display: flex;
     flex-wrap: wrap;
     gap: var(--gap-small, 8px);

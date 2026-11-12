@@ -71,8 +71,8 @@ canvas {
 }
 
 .axes .ring {
-    fill: color-mix(in oklch, var(--background) 70%, transparent);
-    stroke: color-mix(in oklch, var(--text) 20%, transparent);
+    fill: color-mix(in oklch, var(--background, Canvas) 70%, transparent);
+    stroke: color-mix(in oklch, var(--text, CanvasText) 20%, transparent);
 }
 
 .axes line {

@@ -1,10 +1,13 @@
 import { AXES, DEFAULTS, bakeFiles, encodePNG, rasterise, readGLB, rectangle, shade, FRAMES } from '@polywar/mesh-bake';
-import { TEXTURED_FRAGMENT_GLSL, TEXTURED_UNIFORMS, TEXTURED_VERTEX_GLSL, bindMaps, textureFrom } from '@polywar/textured';
+import '@polywar/3d-asset-preview';
 
 const $ = s => document.querySelector(s);
+const preview = $('#view');
 const STORE = 'mesh-bake.settings';
 let settings = { ...structuredClone(DEFAULTS), ...JSON.parse(localStorage.getItem(STORE) ?? '{}') };
 let mesh = null, name = 'baked', raster = null, rasterKey = '', result = null;
+/** `baked`: the preview shows the last bake; `stale`: settings changed since; `bakedAxis`: the axis of that bake */
+let baked = false, stale = false, bakedAxis = settings.axis, refit = false;
 
 // ---------- settings form ----------
 // [key, label, kind, ...]: slider = min, max, step
@@ -68,9 +71,9 @@ form.oninput = e => {
     readForm();
     // the rectangle fields follow the axis and the auto switch
     if (['axis', 'auto', 'snap'].includes(e.target.name)) renderForm();
-    schedule();
+    markStale();
 };
-$('#reset').onclick = () => { settings = structuredClone(DEFAULTS); localStorage.removeItem(STORE); renderForm(); schedule(); };
+$('#reset').onclick = () => { settings = structuredClone(DEFAULTS); localStorage.removeItem(STORE); renderForm(); markStale(); };
 
 // ---------- load ----------
 const info = $('#info');
@@ -81,11 +84,14 @@ function open(bytes, label) {
         mesh = readGLB(bytes);
         if (!mesh.material.length) throw new Error('the file has no triangles');
         name = label.replace(/^.*\//, '').replace(/\.glb$/i, '') || 'baked';
-        raster = null;
-        buildOriginal();
+        raster = null; result = null; baked = false; stale = false;
+        info.className = '';
+        info.value = `${name}\n${mesh.material.length} triangles\nchoose settings, then bake`;
         renderForm();
-        fit();
-        schedule();
+        refit = true;
+        scene();
+        clearMaps();
+        updateBake();
     }
     catch (e) { fail(`${label}: ${e.message}`); }
 }
@@ -112,11 +118,24 @@ drop.ondrop = async e => {
 };
 $('#url').onchange = e => { if (e.target.value) { location.hash = e.target.value; openUrl(e.target.value); } };
 
-// ---------- bake (debounced; the slow raster step only when its inputs change) ----------
-let timer = 0;
-function schedule() { clearTimeout(timer); timer = setTimeout(run, 120); }
+// ---------- bake (on the button; the slow raster step only when its inputs change) ----------
+const bakeButton = $('#bake');
+function updateBake() {
+    bakeButton.disabled = !mesh;
+    bakeButton.classList.toggle('stale', stale);
+    bakeButton.textContent = !mesh ? 'bake (load a mesh first)' : stale ? 'bake (settings changed)' : baked ? 'bake again' : 'bake';
+    for (const b of $('#downloads').querySelectorAll('button')) b.disabled = !result;
+}
+function markStale() { if (baked) stale = true; updateBake(); }
+bakeButton.onclick = () => {
+    bakeButton.disabled = true;
+    bakeButton.textContent = 'baking…';
+    // let the button paint before the slow work
+    setTimeout(run, 30);
+};
+preview.addEventListener('load', () => { if (refit) { refit = false; preview.frame(); } });
 function run() {
-    if (!mesh) return;
+    if (!mesh) return updateBake();
     try
     {
         const t0 = performance.now();
@@ -127,15 +146,18 @@ function run() {
         info.className = '';
         info.value = `${name}\n${result.triangles} → 2 triangles\n${result.size.join(' x ')} m, ${result.width} x ${result.height} px\nrelief ${(result.depth * 100).toFixed(1)} cm`
             + (result.coverage < .999 ? `\n${(result.coverage * 100).toFixed(1)}% covered, the rest is filled from its neighbours` : '') + `\nbaked in ${ms} ms`;
+        bakedAxis = settings.axis; baked = true; stale = false;
         showMaps();
-        uploadMaps();
+        scene();
     }
     catch (e) { fail(e.message); }
+    updateBake();
 }
 
 // ---------- 2D maps + downloads ----------
 const MAPS = [['color', 3], ['normal', 3], ['ao', 1], ['spec', 1], ['relief', 1]];
 $('#maps').innerHTML = MAPS.map(([k]) => `<figure><canvas data-map="${k}"></canvas><figcaption><span>${k}</span><a href="#" data-save="${k}">save</a></figcaption></figure>`).join('');
+function clearMaps() { for (const c of document.querySelectorAll('[data-map]')) { c.width = c.height = 0; } }
 function showMaps() {
     for (const [key, channels] of MAPS)
     {
@@ -195,174 +217,82 @@ $('#downloads').innerHTML = '<button id="zip" type="button">folder (.zip)</butto
 $('#zip').onclick = async () => { if (result) save(`${name}.zip`, zip((await bakeFiles(result, name)).map(f => ({ name: `${name}/${f.name}`, data: f.data })))); };
 $('#glb').onclick = async () => { if (result) save('model.glb', (await bakeFiles(result, name))[0].data); };
 
-// ---------- 3D preview ----------
-const canvas = $('#view'), gl = canvas.getContext('webgl2', { antialias: true });
-const VERTEX = `#version 300 es
-layout(location = 0) in vec3 position;
-layout(location = 1) in vec3 normal;
-layout(location = 2) in vec3 color;
-${TEXTURED_VERTEX_GLSL}
-uniform mat4 viewProjection;
-uniform vec3 offset;
-out vec3 vWorld, vNormal, vColor;
-void main() {
-    texturedVertex();
-    vWorld = position + offset; vNormal = normal; vColor = color;
-    gl_Position = viewProjection * vec4(vWorld, 1.0);
-}`;
-const FRAGMENT = `#version 300 es
-precision highp float;
-${TEXTURED_FRAGMENT_GLSL}
-in vec3 vWorld, vNormal, vColor;
-uniform vec3 light, eye;
-out vec4 outColor;
-void main() {
-    vec3 n = normalize(gl_FrontFacing ? vNormal : -vNormal);
-    n = texturedNormal(n, vWorld);
-    vec4 base = texturedColor(vec4(vColor, 1.0));
-    float sun = max(dot(n, light), 0.0);
-    vec3 ambient = mix(vec3(0.32, 0.3, 0.26), vec3(0.6, 0.66, 0.75), n.y * 0.5 + 0.5) * 0.6 * texturedAo();
-    float shine = pow(max(dot(n, normalize(light + normalize(eye - vWorld))), 0.0), 32.0) * 0.25 * texturedSpec();
-    vec3 lit = base.rgb * (ambient + vec3(1.0, 0.95, 0.85) * sun) + shine * step(0.0, sun);
-    outColor = vec4(pow(lit, vec3(1.0 / 2.2)), 1.0);
-}`;
-function compile() {
-    const shader = (type, text) => {
-        const s = gl.createShader(type);
-        gl.shaderSource(s, text); gl.compileShader(s);
-        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-        return s;
-    };
-    const p = gl.createProgram();
-    gl.attachShader(p, shader(gl.VERTEX_SHADER, VERTEX)); gl.attachShader(p, shader(gl.FRAGMENT_SHADER, FRAGMENT));
-    gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
-    const uniforms = {};
-    for (const n of ['viewProjection', 'offset', 'light', 'eye', ...TEXTURED_UNIFORMS]) uniforms[n] = gl.getUniformLocation(p, n);
-    return { program: p, uniforms };
-}
-const program = gl ? compile() : null;
-if (!gl) fail('WebGL2 is not available: the maps still bake, the 3D preview is off');
-
-/** interleaved position 3, normal 3, colour 3, uv 2 */
-function buffer(data) {
-    const vao = gl.createVertexArray(), b = gl.createBuffer();
-    gl.bindVertexArray(vao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, b);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    [[0, 3, 0], [1, 3, 12], [2, 3, 24], [3, 2, 36]].forEach(([loc, size, at]) => { gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 44, at); });
-    gl.bindVertexArray(null);
-    return { vao, buffer: b, count: data.length / 11 };
-}
-const free = m => { if (m) { gl.deleteVertexArray(m.vao); gl.deleteBuffer(m.buffer); } };
-let original = null, quad = null, maps = null;
-function buildOriginal() {
-    if (!gl) return;
-    free(original);
-    const p = mesh.positions, data = new Float32Array(mesh.material.length * 33);
-    for (let t = 0; t < mesh.material.length; t++)
+// ---------- 3D preview (pw-3d-asset-preview: 3d-demo camera + light panel) ----------
+/** original mesh as a game-mesh Mesh: flat normals, material colours */
+function originalMesh() {
+    const p = mesh.positions, n = mesh.material.length;
+    const normals = new Float32Array(n * 9), colors = new Float32Array(n * 12);
+    for (let t = 0; t < n; t++)
     {
-        const o = t * 9, c = mesh.materials[mesh.material[t]]?.color ?? [1, 1, 1];
+        const o = t * 9, c = mesh.materials[mesh.material[t]]?.color ?? [1, 1, 1, 1];
         const ux = p[o + 3] - p[o], uy = p[o + 4] - p[o + 1], uz = p[o + 5] - p[o + 2], vx = p[o + 6] - p[o], vy = p[o + 7] - p[o + 1], vz = p[o + 8] - p[o + 2];
         let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
         const l = Math.hypot(nx, ny, nz) || 1;
-        nx /= l; ny /= l; nz /= l;
-        for (let k = 0; k < 3; k++) data.set([p[o + k * 3], p[o + k * 3 + 1], p[o + k * 3 + 2], nx, ny, nz, c[0], c[1], c[2], 0, 0], t * 33 + k * 11);
+        for (let k = 0; k < 3; k++) { normals.set([nx / l, ny / l, nz / l], o + k * 3); colors.set([c[0], c[1], c[2], 1], t * 12 + k * 4); }
     }
-    original = buffer(data);
+    return { positions: p, normals, colors, bounds: bounds(p) };
 }
-function uploadMaps() {
-    if (!gl) return;
-    free(quad);
-    if (maps) Object.values(maps).forEach(t => gl.deleteTexture(t));
-    const q = result.quad, data = [];
-    for (const i of [0, 1, 2, 0, 2, 3]) data.push(...q.positions[i], ...q.normal, 1, 1, 1, ...q.uvs[i]);
-    quad = buffer(new Float32Array(data));
-    const { width: w, height: h } = result;
-    maps = { albedo: textureFrom(gl, result.color, w, h, 3, true), normal: textureFrom(gl, result.normal, w, h, 3), ao: textureFrom(gl, result.ao, w, h, 1), spec: textureFrom(gl, result.spec, w, h, 1) };
+function bounds(p) {
+    const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < p.length; i++) { const k = i % 3; min[k] = Math.min(min[k], p[i]); max[k] = Math.max(max[k], p[i]); }
+    return { min, max, radius: Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 2 };
 }
+function quadMesh() {
+    const q = result.quad, positions = [], normals = [], colors = [], uvs = [];
+    for (const i of [0, 1, 2, 0, 2, 3]) { positions.push(...q.positions[i]); normals.push(...q.normal); colors.push(1, 1, 1, 1); uvs.push(...q.uvs[i]); }
+    const p = new Float32Array(positions);
+    return { positions: p, normals: new Float32Array(normals), colors: new Float32Array(colors), uvs: new Float32Array(uvs), bounds: bounds(p) };
+}
+const node = (m, t) => ({ mesh: m, children: [], translation: t, rotation: [0, 0, 0, 1], scale: [1, 1, 1] });
 
 // map switches
 const use = { albedo: true, normal: true, ao: true, spec: true };
 $('#toggles').innerHTML = Object.keys(use).map(k => `<label><input type="checkbox" data-use="${k}" checked /> ${k === 'albedo' ? 'color' : k}</label>`).join('');
-$('#toggles').onchange = e => { use[e.target.dataset.use] = e.target.checked; };
+$('#toggles').onchange = e => { use[e.target.dataset.use] = e.target.checked; scene(); };
+$('#show').onchange = scene;
+$('#repeat').onchange = scene;
 
-// orbit camera
-const camera = { yaw: .6, pitch: .7, distance: 4, target: [0, 0, 0] };
-function fit() {
-    const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
-    for (let i = 0; i < mesh.positions.length; i++) { const k = i % 3; min[k] = Math.min(min[k], mesh.positions[i]); max[k] = Math.max(max[k], mesh.positions[i]); }
-    camera.target = min.map((v, k) => (v + max[k]) / 2);
-    camera.distance = Math.max(1, Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) * 1.6);
-    // look at the baked side
-    const n = FRAMES[settings.axis][2];
-    camera.yaw = Math.atan2(n[0], n[2]) + .5;
-    camera.pitch = n[1] > 0 ? .8 : n[1] < 0 ? -.8 : .25;
-}
-let drag = null;
-canvas.onpointerdown = e => { drag = [e.clientX, e.clientY]; canvas.setPointerCapture(e.pointerId); };
-canvas.onpointerup = () => { drag = null; };
-canvas.onpointermove = e => {
-    if (!drag) return;
-    camera.yaw -= (e.clientX - drag[0]) * .008;
-    camera.pitch = Math.max(-1.55, Math.min(1.55, camera.pitch + (e.clientY - drag[1]) * .008));
-    drag = [e.clientX, e.clientY];
-};
-canvas.onwheel = e => { e.preventDefault(); camera.distance = Math.max(.2, Math.min(200, camera.distance * Math.exp(e.deltaY * .001))); };
-
-function matrices(aspect) {
-    const { yaw, pitch, distance, target } = camera;
-    const eye = [target[0] + Math.sin(yaw) * Math.cos(pitch) * distance, target[1] + Math.sin(pitch) * distance, target[2] + Math.cos(yaw) * Math.cos(pitch) * distance];
-    const norm = v => { const l = Math.hypot(...v) || 1; return v.map(x => x / l); };
-    const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-    const z = norm(eye.map((v, k) => v - target[k])), x = norm(cross([0, 1, 0], z)), y = cross(z, x);
-    const d = a => -(a[0] * eye[0] + a[1] * eye[1] + a[2] * eye[2]);
-    const view = [x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, d(x), d(y), d(z), 1];
-    const f = 1 / Math.tan(.4), near = distance * .02, far = distance * 50;
-    const proj = [f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0];
-    const out = new Float32Array(16);
-    for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++)
-        out[c * 4 + r] = proj[r] * view[c * 4] + proj[4 + r] * view[c * 4 + 1] + proj[8 + r] * view[c * 4 + 2] + proj[12 + r] * view[c * 4 + 3];
-    return { viewProjection: out, eye };
-}
-
-function frame(time) {
-    requestAnimationFrame(frame);
-    if (!gl) return;
-    const w = Math.round(canvas.clientWidth * devicePixelRatio), h = Math.round(canvas.clientHeight * devicePixelRatio);
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-    gl.viewport(0, 0, w, h);
-    gl.clearColor(.125, .14, .17, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if (!result || !quad) return;
-    gl.enable(gl.DEPTH_TEST);
-    gl.useProgram(program.program);
-    const { viewProjection, eye } = matrices(w / Math.max(1, h));
-    gl.uniformMatrix4fv(program.uniforms.viewProjection, false, viewProjection);
-    gl.uniform3fv(program.uniforms.eye, eye);
-    // the light circles above the baked side
-    const [T, B, N] = FRAMES[settings.axis], a = $('#spin').checked ? time * .0006 : .9;
-    const l = [0, 1, 2].map(k => N[k] * .75 + (T[k] * Math.cos(a) + B[k] * Math.sin(a)) * .66);
-    gl.uniform3fv(program.uniforms.light, l);
-    const repeat = Math.max(1, Math.min(7, Number($('#repeat').value) || 1)), show = $('#show').value;
-    const draw = (m, shift, textured) => {
-        bindMaps(gl, program.uniforms, textured ? Object.fromEntries(Object.entries(maps).filter(([k]) => use[k])) : undefined);
-        gl.bindVertexArray(m.vao);
+/** the scene as one glTF: the baked quad repeated, the original next to it, or both */
+function scene() {
+    if (!mesh) return;
+    const show = baked ? $('#show').value : 'original';
+    const meshes = [], nodes = [], maps = [];
+    if (show !== 'baked') { meshes.push({ primitives: [originalMesh()] }); maps.push([undefined]); }
+    let gap = 0;
+    if (show !== 'original')
+    {
+        const [T, B] = FRAMES[bakedAxis], repeat = Math.max(1, Math.min(7, Number($('#repeat').value) || 1));
+        const { width: w, height: h } = result, px = (data, channels) => ({ pixels: data, width: w, height: h, channels });
+        const all = { albedo: px(result.color, 3), normal: px(result.normal, 3), ao: px(result.ao, 1), spec: px(result.spec, 1) };
+        meshes.push({ primitives: [quadMesh()] });
+        maps.push([Object.fromEntries(Object.entries(all).filter(([k]) => use[k]))]);
+        gap = show === 'both' ? repeat * result.size[0] / 2 + result.size[0] * .1 : 0;
+        const q = meshes.length - 1;
         for (let i = 0; i < repeat; i++) for (let j = 0; j < repeat; j++)
         {
-            const u = (i - (repeat - 1) / 2) * result.size[0] + shift, v = (j - (repeat - 1) / 2) * result.size[1];
-            gl.uniform3f(program.uniforms.offset, T[0] * u + B[0] * v, T[1] * u + B[1] * v, T[2] * u + B[2] * v);
-            gl.drawArrays(gl.TRIANGLES, 0, m.count);
+            const u = (i - (repeat - 1) / 2) * result.size[0] - gap, v = (j - (repeat - 1) / 2) * result.size[1];
+            nodes.push(node(q, [0, 1, 2].map(k => T[k] * u + B[k] * v)));
         }
-    };
-    const gap = show === 'both' ? repeat * result.size[0] / 2 + result.size[0] * .1 : 0;
-    if (show !== 'original') draw(quad, -gap, true);
-    if (show !== 'baked' && original) draw(original, gap, false);
-    gl.bindVertexArray(null);
+    }
+    if (show !== 'baked')
+    {
+        const T = FRAMES[baked ? bakedAxis : settings.axis][0];
+        nodes.push(node(0, T.map(k => k * gap)));
+    }
+    preview.gltf = { meshes, nodes, roots: nodes.map((_, i) => i), skins: [], animations: [], maps };
 }
-requestAnimationFrame(frame);
+
+// moving light: the sun goes round
+let last = 0;
+function spin(time) {
+    requestAnimationFrame(spin);
+    if ($('#spin').checked && last) preview.sunAzimuth = (preview.sunAzimuth + (time - last) * .03) % 360;
+    last = time;
+}
+requestAnimationFrame(spin);
 
 // start: url from the hash, e.g. #/assets/models/buildings/modular-village/Stone_Floor_1.glb
 renderForm();
+updateBake();
 const start = decodeURIComponent(location.hash.slice(1));
 if (start) { $('#url').value = start; openUrl(start); }
