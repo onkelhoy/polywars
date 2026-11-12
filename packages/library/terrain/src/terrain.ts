@@ -193,6 +193,7 @@ export class Terrain {
         const gl = this.gl, o = this.o;
         this.clear();
         this.ground = new Ground(gl, d, o.mesh.detail, o.mesh.adaptive, o.mesh.edges, o.mesh.chunk, o.lod);
+        this.material.biomes(d);
         this.triangles = { used: 0, full: this.ground.full };
         const step = Math.max(1, Math.round((d.n - 1) / 512));
         const edge = o.edge.type;

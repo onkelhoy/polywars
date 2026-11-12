@@ -14,6 +14,11 @@ export type TerrainLook = {
     rock: { color: string; slope: number; softness: number };
     /** snow cap above this height in metres, softened over `softness` metres; snow avoids steep faces */
     snow: { color: string; height: number; softness: number; slope: number };
+    /**
+     * Painted ground (needs `material.biomes(map)`): biome borders are ragged brush stroke edges `edge` metres deep (0: the mesh's
+     * triangle borders), strokes about `size` metres long; `strokes` 0..1 hard edged light / dark stroke patches inside a biome.
+     */
+    paint: { edge: number; size: number; strokes: number };
     /** random brightness per face 0..1: the low poly look */
     variation: number;
     /** true: one normal per face (faceted); false: smooth normals */
@@ -27,6 +32,9 @@ export type TerrainLook = {
     range: [number, number];
     debug: Debug;
 };
+
+/** Biome per grid node (row major, z rows, node 0 at -size/2), what the painted borders read. `@polywar/terrain`'s data fits. */
+export type BiomeMap = { n: number; size: number; biome: Uint8Array };
 
 /** What the ground needs from the water: its underwater look (bed tint, fog) and the surface over the eye (null: eye above water). */
 export type Underwater = { time: number; under: WaterLook["under"]; eyeSurface: number | null };

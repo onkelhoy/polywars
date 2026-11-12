@@ -69,10 +69,49 @@ uniform vec2 rock; // slope, softness
 uniform vec3 snow; // height, softness, max slope
 uniform float variation, contours, seaLevel;
 uniform bool flatShade;
+uniform highp usampler2D biomeMap;
+uniform vec2 grid; // nodes per side (0: no map), metres
+uniform vec3 paint; // border edge metres (0: mesh borders), stroke size metres, stroke patch strength
 uniform vec2 range;
 uniform int debug;
 ${COMMON}
 out vec4 outColor;
+
+float hash2f(vec2 p) { vec3 q = fract(vec3(p.xyx) * .1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash2f(i), hash2f(i + vec2(1, 0)), f.x), mix(hash2f(i + vec2(0, 1)), hash2f(i + vec2(1, 1)), f.x), f.y);
+}
+/** brush stroke noise: dabs long along a direction (fixed per seed, bent by a warp), thin across; 0..1 */
+float stroke(vec2 p, float size, float seed) {
+    vec2 q = p / size;
+    q += (vec2(vnoise(q * .3 + seed * 5.3), vnoise(q * .3 + seed * 9.1)) - .5) * 2.5;
+    float a = seed * 2.39996;
+    vec2 d = vec2(cos(a), sin(a));
+    q = vec2(dot(q, d), dot(q, vec2(-d.y, d.x)));
+    return vnoise(q * vec2(1.0, 2.6) + seed * 13.7) * .75 + vnoise(q * vec2(2.2, 5.0) + seed * 3.3) * .25;
+}
+uint biomeNode(ivec2 c) { int n = int(grid.x); return texelFetch(biomeMap, clamp(c, ivec2(0), ivec2(n - 1)), 0).r; }
+/** biome at a spot, borders pushed about by strokes: the biome with the most bilinear weight wins (hard edge) */
+int paintedBiome(vec2 xz, int fallback) {
+    if (grid.x < 2.0 || paint.x <= 0.0) return fallback;
+    vec2 w = vec2(stroke(xz, paint.y, 1.0), stroke(xz, paint.y, 2.0)) * 2.0 - 1.0;
+    vec2 g = ((xz + w * paint.x) / grid.y + .5) * (grid.x - 1.0);
+    if (g.x < 0.0 || g.y < 0.0 || g.x > grid.x - 1.0 || g.y > grid.x - 1.0) return fallback;
+    ivec2 i = ivec2(floor(g));
+    vec2 f = fract(g);
+    uint b[4] = uint[4](biomeNode(i), biomeNode(i + ivec2(1, 0)), biomeNode(i + ivec2(0, 1)), biomeNode(i + ivec2(1, 1)));
+    float k[4] = float[4]((1.0 - f.x) * (1.0 - f.y), f.x * (1.0 - f.y), (1.0 - f.x) * f.y, f.x * f.y);
+    uint best = b[0];
+    float top = -1.0;
+    for (int a = 0; a < 4; a++) {
+        float sum = 0.0;
+        for (int c = 0; c < 4; c++) sum += b[c] == b[a] ? k[c] : 0.0;
+        if (sum > top) { top = sum; best = b[a]; }
+    }
+    return int(best);
+}
 
 vec3 ramp(float t) { return clamp(vec3(1.5 - abs(4.0 * t - 3.0), 1.5 - abs(4.0 * t - 2.0), 1.5 - abs(4.0 * t - 1.0)), 0.0, 1.0); }
 
@@ -82,15 +121,21 @@ void main() {
     bool far = vFlow < 0.0;
     vec3 n = flatShade && !far ? face : normalize(vNormal);
     float slope = far ? 0.0 : 1.0 - clamp(face.y, 0.0, 1.0);
-    vec3 c = palette[vBiome];
-    if (vBiome > 1 && vBiome < ${N - 1}) {
+    int biome = far ? vBiome : paintedBiome(vWorld.xz, vBiome);
+    vec3 c = palette[biome];
+    if (biome > 1 && biome < ${N - 1}) {
         c = mix(c, rockColor, smoothstep(rock.x - rock.y, rock.x + rock.y, slope));
         float s = smoothstep(snow.x - snow.y, snow.x + snow.y, vWorld.y) * (1.0 - smoothstep(snow.z - .05, snow.z + .05, slope));
         c = mix(c, snowColor, s);
     }
     if (!far) c *= 1.0 + (vShade - .5) * 2.0 * variation;
+    // light / dark brush strokes inside a biome, hard edged (a pixel of smoothing against shimmer)
+    if (!far && paint.z > 0.0) {
+        float t = stroke(vWorld.xz, paint.y * .8, 3.0 + float(biome)), e = fwidth(t);
+        c *= 1.0 + paint.z * (smoothstep(.66 - e, .66 + e, t) - (1.0 - smoothstep(.34 - e, .34 + e, t)));
+    }
 
-    if (debug == 1) c = palette[vBiome];
+    if (debug == 1) c = palette[biome];
     else if (debug == 2) c = ramp(clamp((vWorld.y - range.x) / max(range.y - range.x, 1e-3), 0.0, 1.0));
     else if (debug == 3) c = ramp(slope);
     else if (debug == 4) c = ramp(vData.z);

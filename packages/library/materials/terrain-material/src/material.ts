@@ -1,7 +1,7 @@
 import type { Layer3D } from "@papit/game-engine";
 import { bindUnder } from "@polywar/water";
 import { GROUND_FRAGMENT, GROUND_VERTEX } from "./shaders";
-import { BIOMES, type Light, type TerrainLook, type Underwater, type View } from "./types";
+import { BIOMES, type BiomeMap, type Light, type TerrainLook, type Underwater, type View } from "./types";
 
 type Program = { name: string; program: WebGLProgram; u: (name: string) => WebGLUniformLocation | null };
 
@@ -16,6 +16,7 @@ export const TERRAIN_LOOK: TerrainLook = {
     },
     rock: { color: "#7c746c", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
+    paint: { edge: 7, size: 16, strokes: .08 },
     variation: .06,
     flat: true,
     bands: 0,
@@ -51,6 +52,7 @@ export class TerrainMaterial {
     private groundProgram?: Program;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     private id = ids++;
+    private map?: { texture: WebGLTexture; n: number; size: number };
 
     /** Programs come from the layer (async); `useGround` returns false until they are linked. */
     constructor(readonly layer: Layer3D, look: Partial<TerrainLook> = {}) {
@@ -63,6 +65,23 @@ export class TerrainMaterial {
 
     /** Merge settings (nested objects merge too). Nothing to rebuild: all uniforms. */
     set(look: Partial<TerrainLook>) { this.o = merge(this.o, look); }
+
+    /** Biome grid for the painted borders (null: off, borders follow the mesh). */
+    biomes(map: BiomeMap | null) {
+        const gl = this.gl;
+        if (this.map) gl.deleteTexture(this.map.texture);
+        this.map = undefined;
+        if (!map) return;
+        const texture = gl.createTexture()!;
+        gl.activeTexture(gl.TEXTURE5);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8UI, map.n, map.n, 0, gl.RED_INTEGER, gl.UNSIGNED_BYTE, map.biome);
+        for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST);
+        for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+        gl.activeTexture(gl.TEXTURE0);
+        this.map = { texture, n: map.n, size: map.size };
+    }
 
     /** Bind the ground program. `water` adds the underwater tint and fog. */
     useGround(view: View, light: Light, water?: Underwater): boolean {
@@ -77,6 +96,12 @@ export class TerrainMaterial {
         gl.uniform3fv(u("snowColor"), linear(o.snow.color));
         gl.uniform3f(u("snow"), o.snow.height, o.snow.softness, o.snow.slope);
         gl.uniform1f(u("variation"), o.variation);
+        gl.uniform3f(u("paint"), this.map ? o.paint.edge : 0, Math.max(1, o.paint.size), o.paint.strokes);
+        gl.uniform2f(u("grid"), this.map?.n ?? 0, this.map?.size ?? 1);
+        gl.activeTexture(gl.TEXTURE5);
+        gl.bindTexture(gl.TEXTURE_2D, this.map?.texture ?? null);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(u("biomeMap"), 5);
         gl.uniform1f(u("contours"), o.contours);
         gl.uniform1i(u("flatShade"), o.flat ? 1 : 0);
         gl.uniform2f(u("range"), o.range[0], o.range[1]);
@@ -87,6 +112,7 @@ export class TerrainMaterial {
     }
 
     destroy() {
+        this.biomes(null);
         if (this.groundProgram) this.layer.deleteProgram(this.groundProgram.name);
     }
 
