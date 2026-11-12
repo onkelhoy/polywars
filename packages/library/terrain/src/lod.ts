@@ -101,7 +101,7 @@ export class Ground {
             if (oa.some((v, q) => v && ob[q])) walls.push([a, b]);
         }
         const count = nodes.length, total = count + walls.length * 4;
-        const pos = new Float32Array(total * 3), nor = new Float32Array(total * 3), data = new Float32Array(total * 4), flow = new Float32Array(total);
+        const pos = new Float32Array(total * 3), nor = new Float32Array(total * 3), data = new Float32Array(total * 4), flow = new Float32Array(total), surface = new Float32Array(total);
         const hh = (i: number, j: number) => d.height[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))];
         const put = (q: number, k: number, drop: number, wall = false) => {
             const i = c.i0 + k % s, j = c.j0 + ((k / s) | 0), gk = j * n + i;
@@ -111,6 +111,7 @@ export class Ground {
             data.set([d.biome[gk], d.slope[gk], d.moisture[gk], d.temperature[gk]], q * 4);
             // walls: flow -1 so the material lights them like the ground above (no dark seams)
             flow[q] = wall ? -1 : d.flow[gk];
+            surface[q] = d.surface[gk];
         };
         for (let v = 0; v < count; v++) put(v, nodes[v], 0);
         const drop = this.levelError(this.lod.levels - 1) * 2 + 2, idx = new Uint32Array(triangles.length + walls.length * 6);
@@ -121,6 +122,6 @@ export class Ground {
             put(q, nodes[a], 0, true); put(q + 1, nodes[b], 0, true); put(q + 2, nodes[a], drop, true); put(q + 3, nodes[b], drop, true);
             idx.set([q, q + 2, q + 1, q + 1, q + 2, q + 3], triangles.length + w * 6);
         });
-        return { ...upload(this.gl, [[pos, 3], [nor, 3], [data, 4], [flow, 1]], idx), x: c.x, y: c.y, z: c.z, radius: c.radius };
+        return { ...upload(this.gl, [[pos, 3], [nor, 3], [data, 4], [flow, 1], [surface, 1]], idx), x: c.x, y: c.y, z: c.z, radius: c.radius };
     }
 }

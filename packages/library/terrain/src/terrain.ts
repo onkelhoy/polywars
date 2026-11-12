@@ -1,13 +1,14 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
 import { TerrainMaterial, type Biome, type Light, type TerrainLook, type View } from "@polywar/terrain-material";
+import { WaterMaterial } from "@polywar/water-material";
 import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
 import { Generator } from "./generate";
 import { Ground } from "./lod";
 import { BIOME, free, riverMesh, skirt, waterMesh, type Mesh } from "./mesh";
 import { DEFAULTS, meshError, resolve, type Resolved } from "./presets";
-import { biomeAt, heightAt, slopeAt, waterAt } from "./query";
+import { biomeAt, heightAt, nearest, slopeAt, waterAt } from "./query";
 import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./types";
 
 /**
@@ -20,6 +21,7 @@ import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./t
 export class Terrain {
     private o: Resolved;
     readonly material: TerrainMaterial;
+    readonly water: WaterMaterial;
     readonly gl: WebGL2RenderingContext;
     private generator = new Generator();
     private ground?: Ground;
@@ -48,6 +50,7 @@ export class Terrain {
         this.gl = layer.gl;
         this.o = resolve(options);
         this.material = new TerrainMaterial(layer, this.look());
+        this.water = new WaterMaterial(layer, this.o.water);
         this.ready = this.regenerate();
     }
 
@@ -79,6 +82,7 @@ export class Terrain {
         const { q: _q, ...before } = this.o;
         this.o = resolve({ ...before, ...options });
         this.material.set(this.look());
+        this.water.set(this.o.water);
         if (this.generator.dirty(this.o)) this.ready = this.regenerate();
         else if (this.data && this.meshKey !== this.meshOptions()) this.build(this.data);
         return this.ready;
@@ -95,6 +99,22 @@ export class Terrain {
     get cities() { return this.data?.cities ?? []; }
     get rivers() { return this.data?.rivers ?? []; }
 
+    /** water surface height at x / z, or null on land (outside the map: the sea when the edge is ocean) */
+    surfaceAt(x: number, z: number): number | null {
+        const d = this.data;
+        if (!d) return null;
+        const half = d.size / 2;
+        if (Math.abs(x) > half || Math.abs(z) > half) return this.o.edge.type === "ocean" ? d.seaLevel : null;
+        const w = this.waterAt(x, z);
+        return w ? nearest(d, d.surface, x, z) : null;
+    }
+
+    /** true when `eye` is below a water surface (draw a water coloured background then) */
+    underwater(eye: { x: number; y: number; z: number }) {
+        const s = this.surfaceAt(eye.x, eye.z);
+        return s !== null && eye.y < s;
+    }
+
     draw(view: View, light: Light, time = 0) {
         const gl = this.gl, m = this.material;
         if (!this.data) return;
@@ -102,19 +122,19 @@ export class Terrain {
         gl.disable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
         this.drawn = 0;
-        if (m.useGround(view, light))
+        const eye = view.worldPosition ?? { x: 0, y: 0, z: 0 }, under = this.underwater(eye), wl = this.water.look;
+        if (m.useGround(view, light, { texture: this.water.texture, time, caustics: wl.under.caustics, color: wl.under.color, density: wl.under.density, eyeUnder: under }))
         {
             this.f32.view.set(view.viewMatrix);
             this.f32.projection.set(view.projectionMatrix);
             const planes = frustum(this.f32.projection, this.f32.view);
-            const eye = view.worldPosition ?? { x: 0, y: 0, z: 0 };
             this.drawn = this.ground?.draw(eye, (x, y, z, r) => visible(planes, x, y, z, r), m => this.mesh(m)) ?? 0;
             this.triangles.used = this.ground?.triangles ?? 0;
             if (this.skirtMesh) this.mesh(this.skirtMesh);
         }
-        for (const [w, lake] of [[this.riverWater, true], [this.lakes, true], [this.ocean, false]] as const)
+        for (const [w, fresh] of [[this.riverWater, true], [this.lakes, true], [this.ocean, false]] as const)
         {
-            if (!w || !m.useWater(view, light, time, lake)) continue;
+            if (!w || !this.water.use(view, light, time, { fresh, under })) continue;
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.depthMask(false);
@@ -128,6 +148,7 @@ export class Terrain {
     destroy() {
         this.clear();
         this.material.destroy();
+        this.water.destroy();
         this.data = undefined;
     }
 
@@ -138,7 +159,6 @@ export class Terrain {
         const o = this.o, l = o.look;
         return {
             ...l,
-            sea: { ...this.material?.look.sea, ...l.sea, level: o.sea * o.height },
             range: l.range ?? [0, o.height],
             snow: { color: "#f2f4f7", height: o.height * .82, softness: o.height * .05, slope: .6, ...l.snow },
         };
@@ -171,11 +191,11 @@ export class Terrain {
         this.clear();
         this.ground = new Ground(gl, d, meshError(o.mesh.adaptive), o.mesh.edges, o.mesh.chunk, o.lod);
         this.triangles = { used: 0, full: this.ground.full };
-        const step = Math.max(1, Math.round((d.n - 1) / 256));
+        const step = Math.max(1, Math.round((d.n - 1) / 512));
         const edge = o.edge.type;
         if (edge !== "none" && o.mesh.skirt > 0)
             this.skirtMesh = skirt(gl, d, edge === "ocean" ? -.12 * o.height : o.edge.level * o.height, o.mesh.skirt, BIOME(edge === "ocean" ? "ocean" : "grassland"));
-        this.ocean = waterMesh(gl, d, 1, step * 2, edge === "ocean" ? o.mesh.skirt : 0);
+        this.ocean = waterMesh(gl, d, 1, step, edge === "ocean" ? o.mesh.skirt : 0);
         this.lakes = waterMesh(gl, d, 2, step);
         this.riverWater = riverMesh(gl, d.rivers);
         this.meshKey = this.meshOptions();

@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
-import { GROUND_FRAGMENT, GROUND_VERTEX, WATER_FRAGMENT, WATER_VERTEX } from "./shaders";
-import { BIOMES, type Light, type TerrainLook, type View } from "./types";
+import { GROUND_FRAGMENT, GROUND_VERTEX } from "./shaders";
+import { BIOMES, type Light, type TerrainLook, type Underwater, type View } from "./types";
 
 type Program = { name: string; program: WebGLProgram; u: (name: string) => WebGLUniformLocation | null };
 
@@ -19,8 +19,6 @@ export const TERRAIN_LOOK: TerrainLook = {
     flat: true,
     bands: 0,
     lighting: { wrap: .1, steepness: 1 },
-    sea: { color: "#3f8fa8", deep: "#1c4a6e", opacity: .75, level: 0 },
-    lake: "#3a87a0",
     contours: 0,
     range: [0, 400],
     debug: "",
@@ -41,26 +39,23 @@ export function linear(hex: string): [number, number, number] {
 }
 
 /**
- * The terrain material: ground program (biome palette, rock on slopes, snow caps, faceted light, debug views)
- * and water program (sea and lakes, depth tint, see through). Geometry is the caller's.
+ * The terrain material: the ground program (biome palette, rock on slopes, snow caps, faceted light, debug views,
+ * caustics and tint under water). Water itself is `@polywar/water-material`. Geometry is the caller's.
  *
- * Ground attributes: 0 position, 1 normal, 2 data (biome index, slope, moisture, temperature), 3 flow.
- * Water attributes: 0 position, 1 depth.
+ * Ground attributes: 0 position, 1 normal, 2 data (biome index, slope, moisture, temperature), 3 flow, 4 water surface height.
  */
 export class TerrainMaterial {
     readonly gl: WebGL2RenderingContext;
     private o: TerrainLook;
     private groundProgram?: Program;
-    private waterProgram?: Program;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     private id = ids++;
 
-    /** Programs come from the layer (async); `useGround` / `useWater` return false until they are linked. */
+    /** Programs come from the layer (async); `useGround` returns false until they are linked. */
     constructor(readonly layer: Layer3D, look: Partial<TerrainLook> = {}) {
         this.gl = layer.gl;
         this.o = merge(TERRAIN_LOOK, look);
         this.link(`terrain-material-${this.id}-ground`, GROUND_VERTEX, GROUND_FRAGMENT).then(p => this.groundProgram = p);
-        this.link(`terrain-material-${this.id}-water`, WATER_VERTEX, WATER_FRAGMENT).then(p => this.waterProgram = p);
     }
 
     get look(): Readonly<TerrainLook> { return this.o; }
@@ -68,7 +63,8 @@ export class TerrainMaterial {
     /** Merge settings (nested objects merge too). Nothing to rebuild: all uniforms. */
     set(look: Partial<TerrainLook>) { this.o = merge(this.o, look); }
 
-    useGround(view: View, light: Light): boolean {
+    /** Bind the ground program. `water` adds caustics under water surfaces and the underwater fog. */
+    useGround(view: View, light: Light, water?: Underwater): boolean {
         const gl = this.gl, o = this.o, p = this.groundProgram;
         if (!p) return false;
         const u = p.u;
@@ -81,28 +77,25 @@ export class TerrainMaterial {
         gl.uniform3f(u("snow"), o.snow.height, o.snow.softness, o.snow.slope);
         gl.uniform1f(u("variation"), o.variation);
         gl.uniform1f(u("contours"), o.contours);
-        gl.uniform1f(u("seaLevel"), o.sea.level);
         gl.uniform1i(u("flatShade"), o.flat ? 1 : 0);
         gl.uniform2f(u("range"), o.range[0], o.range[1]);
         gl.uniform1i(u("debug"), DEBUG[o.debug] ?? 0);
-        return true;
-    }
-
-    /** Bind the water program; `lake` picks the lake colour. Draw with blending (premultiplied), after the ground. */
-    useWater(view: View, light: Light, time: number, lake = false): boolean {
-        const gl = this.gl, o = this.o, p = this.waterProgram;
-        if (!p) return false;
-        gl.useProgram(p.program);
-        this.common(p, view, light);
-        gl.uniform3fv(p.u("shallow"), linear(lake ? o.lake : o.sea.color));
-        gl.uniform3fv(p.u("deep"), linear(o.sea.deep));
-        gl.uniform1f(p.u("opacity"), o.sea.opacity);
-        gl.uniform1f(p.u("time"), time);
+        gl.uniform1f(u("caustics"), water?.texture ? water.caustics : 0);
+        gl.uniform1f(u("time"), water?.time ?? 0);
+        gl.uniform3fv(u("underColor"), linear(water?.color ?? "#1f6273"));
+        gl.uniform1f(u("underDensity"), water?.density ?? 0);
+        gl.uniform1i(u("eyeUnder"), water?.eyeUnder ? 1 : 0);
+        if (water?.texture)
+        {
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, water.texture);
+            gl.uniform1i(u("waterTex"), 0);
+        }
         return true;
     }
 
     destroy() {
-        [this.groundProgram, this.waterProgram].forEach(p => p && this.layer.deleteProgram(p.name));
+        if (this.groundProgram) this.layer.deleteProgram(this.groundProgram.name);
     }
 
     private common(p: Program, view: View, light: Light) {

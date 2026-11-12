@@ -51,7 +51,8 @@
   },
   "dependencies": {
     "@papit/game-engine": "*",
-    "@polywar/noise": "*"
+    "@polywar/noise": "*",
+    "@polywar/water-material": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

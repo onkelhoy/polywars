@@ -20,16 +20,15 @@ export type TerrainLook = {
     /** toon bands, 0 smooth */
     bands: number;
     lighting: { wrap: number; steepness: number };
-    /** sea plane colour and opacity; `level` in metres */
-    sea: { color: string; deep: string; opacity: number; level: number };
-    /** lake surface colour */
-    lake: string;
     /** contour line every n metres, 0 off */
     contours: number;
     /** height range for the height debug, metres */
     range: [number, number];
     debug: Debug;
 };
+
+/** What the ground needs from the water: its texture (caustics), and the underwater fog when the eye is below the surface. */
+export type Underwater = { texture: WebGLTexture | null; time: number; caustics: number; color: string; density: number; eyeUnder: boolean };
 
 /** Same shape as the polywar `Renderer.light`, so that one can be passed in. Colours linear. */
 export type Light = {

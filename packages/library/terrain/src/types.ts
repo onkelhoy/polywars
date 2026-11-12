@@ -1,4 +1,5 @@
 import type { Biome, TerrainLook } from "@polywar/terrain-material";
+import type { WaterLook } from "@polywar/water-material";
 
 export type Quality = "low" | "medium" | "high";
 
@@ -105,6 +106,8 @@ export type TerrainOptions = {
     mesh: { adaptive: number; chunk: number; edges: number; skirt: number };
     /** level of detail: past `distance` metres chunks drop a level every `factor` times farther, each level `factor` times coarser; `levels` 1 = off */
     lod: { levels: number; distance: number; factor: number };
+    /** water material overrides (waves, foam, gloss, ripples, underwater ...) */
+    water: Partial<WaterLook>;
     /** material overrides (colours, rock, snow, debug view ...) */
     look: Partial<TerrainLook>;
 };
@@ -142,6 +145,10 @@ export type TerrainData = {
     /** metres to the nearest water / ocean */
     toWater: Float32Array;
     toOcean: Float32Array;
+    /** metres from water to the shore (0 on land and rivers) */
+    toLand: Float32Array;
+    /** swell per sea / lake node 0..1 (big open water rolls, ponds stay flat) */
+    waves: Float32Array;
     cities: City[];
     rivers: River[];
     seaLevel: number;

@@ -152,3 +152,27 @@ export function slopes(h: Float32Array, n: number, cell: number): Float32Array {
     }
     return s;
 }
+
+/**
+ * How much swell each sea / lake node gets, 0..1: by the widest open water of its body (its farthest point from land),
+ * so the ocean rolls and ponds stay flat.
+ */
+export function waveScale(water: Uint8Array, toLand: Float32Array, n: number, calm = 30, rough = 250): Float32Array {
+    const out = new Float32Array(n * n), seen = new Uint8Array(n * n), queue = new Int32Array(n * n);
+    for (let k = 0; k < n * n; k++)
+    {
+        if (seen[k] || (water[k] !== 1 && water[k] !== 2)) continue;
+        let head = 0, tail = 0, widest = 0;
+        queue[tail++] = k; seen[k] = 1;
+        while (head < tail)
+        {
+            const c = queue[head++], i = c % n, j = (c / n) | 0;
+            widest = Math.max(widest, toLand[c]);
+            const visit = (m: number) => { if (!seen[m] && water[m] === water[k]) { seen[m] = 1; queue[tail++] = m; } };
+            if (i > 0) visit(c - 1); if (i < n - 1) visit(c + 1); if (j > 0) visit(c - n); if (j < n - 1) visit(c + n);
+        }
+        const t = Math.min(1, Math.max(0, (widest - calm) / (rough - calm))), v = t * t * (3 - 2 * t);
+        for (let q = 0; q < tail; q++) out[queue[q]] = v;
+    }
+    return out;
+}

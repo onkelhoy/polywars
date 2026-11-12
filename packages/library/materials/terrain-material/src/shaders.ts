@@ -1,3 +1,4 @@
+import { CAUSTICS_GLSL } from "@polywar/water-material";
 import { BIOMES } from "./types";
 
 const N = BIOMES.length;
@@ -11,25 +12,35 @@ float toon(float d) {
     return clamp(ceil(d * bands) / bands, 0.0, 1.0);
 }
 
-vec3 lit(vec3 albedo, vec3 n, vec3 world) {
+uniform vec3 underColor;
+uniform float underDensity;
+uniform bool eyeUnder;
+
+vec3 lit(vec3 albedo, vec3 n, vec3 world, float extra) {
     float d = (dot(n, normalize(sunDirection)) + wrap) * steepness;
     vec3 hemi = mix(ground, sky, n.y * .5 + .5) * ambient;
-    vec3 c = albedo * (hemi + sunColor * sunStrength * toon(d));
-    float fog = 1.0 - exp(-length(world - eye) * fogDensity);
-    return mix(c, fogColor, fog);
+    vec3 c = albedo * (hemi + sunColor * sunStrength * toon(d)) + sunColor * sunStrength * extra;
+    float dist = length(world - eye);
+    // under water the fog is the water's
+    if (eyeUnder) return mix(c, underColor, 1.0 - exp(-dist * underDensity));
+    return mix(c, fogColor, 1.0 - exp(-dist * fogDensity));
 }
 `;
 
-/** Ground attributes: 0 position, 1 normal, 2 data (biome index, slope 0..1, moisture 0..1, temperature 0..1), 3 flow 0..1 (< 0: far ground and chunk walls, smooth and plain). */
+/**
+ * Ground attributes: 0 position, 1 normal, 2 data (biome index, slope 0..1, moisture 0..1, temperature 0..1),
+ * 3 flow 0..1 (< 0: far ground and chunk walls, smooth and plain), 4 water surface height (ground below it is under water).
+ */
 export const GROUND_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec4 data;
 layout(location = 3) in float flow;
+layout(location = 4) in float surface;
 uniform mat4 view, projection;
 out vec3 vWorld, vNormal;
 out vec4 vData;
-out float vFlow;
+out float vFlow, vSurface;
 flat out int vBiome;
 flat out float vShade;
 float hash2(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -40,6 +51,7 @@ void main() {
     vNormal = normal;
     vData = data;
     vFlow = flow;
+    vSurface = surface;
     vBiome = int(data.x + .5);
     gl_Position = projection * view * vec4(position, 1.0);
 }`;
@@ -49,7 +61,7 @@ precision highp float;
 precision highp int;
 in vec3 vWorld, vNormal;
 in vec4 vData;
-in float vFlow;
+in float vFlow, vSurface;
 flat in int vBiome;
 flat in float vShade;
 uniform vec3 palette[${N}];
@@ -60,7 +72,10 @@ uniform float variation, contours, seaLevel;
 uniform bool flatShade;
 uniform vec2 range;
 uniform int debug;
+uniform sampler2D waterTex;
+uniform float caustics, time;
 ${COMMON}
+${CAUSTICS_GLSL}
 out vec4 outColor;
 
 vec3 ramp(float t) { return clamp(vec3(1.5 - abs(4.0 * t - 3.0), 1.5 - abs(4.0 * t - 2.0), 1.5 - abs(4.0 * t - 1.0)), 0.0, 1.0); }
@@ -90,37 +105,13 @@ void main() {
         float h = vWorld.y / contours, w = fwidth(h);
         c *= mix(.55, 1.0, smoothstep(0.0, w * 1.5, abs(fract(h + .5) - .5)));
     }
-    vec3 shaded = debug == 0 ? lit(c, n, vWorld) : c * (.55 + .45 * max(dot(n, normalize(sunDirection)), 0.0));
+    // under water: tinted with depth, caustic light on the bed
+    float wet = vSurface - vWorld.y, light = 0.0;
+    if (wet > 0.0 && debug == 0) {
+        c = mix(c, underColor, (1.0 - exp(-wet * .12)) * .7);
+        if (caustics > 0.0) light = causticsAt(waterTex, vWorld.xz, time) * caustics * exp(-wet * .08) * max(dot(n, normalize(sunDirection)), 0.0);
+    }
+    vec3 shaded = debug == 0 ? lit(c, n, vWorld, light) : c * (.55 + .45 * max(dot(n, normalize(sunDirection)), 0.0));
     outColor = vec4(pow(shaded, vec3(1.0 / 2.2)), 1.0);
 }`;
 
-/** Water attributes: 0 position (y is the surface), 1 depth (metres below the surface, < 0 above ground). */
-export const WATER_VERTEX = `#version 300 es
-layout(location = 0) in vec3 position;
-layout(location = 1) in float depth;
-uniform mat4 view, projection;
-out vec3 vWorld;
-out float vDepth;
-void main() {
-    vWorld = position;
-    vDepth = depth;
-    gl_Position = projection * view * vec4(position, 1.0);
-}`;
-
-export const WATER_FRAGMENT = `#version 300 es
-precision highp float;
-in vec3 vWorld;
-in float vDepth;
-uniform vec3 shallow, deep;
-uniform float opacity, time;
-${COMMON}
-out vec4 outColor;
-void main() {
-    float t = 1.0 - exp(-max(vDepth, 0.0) * .04);
-    vec3 c = mix(shallow, deep, t);
-    vec3 v = normalize(eye - vWorld);
-    float fresnel = pow(1.0 - max(v.y, 0.0), 4.0);
-    c = lit(c, vec3(0, 1, 0), vWorld) + sky * fresnel * .3;
-    float a = clamp(mix(opacity * .6, 1.0, t) + fresnel * .2, 0.0, 1.0);
-    outColor = vec4(pow(c, vec3(1.0 / 2.2)) * a, a);
-}`;

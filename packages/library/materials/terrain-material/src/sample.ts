@@ -1,5 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { fbm, ridged, simplex } from "@polywar/noise";
+import { WaterMaterial } from "@polywar/water-material";
 import { TerrainMaterial } from "./material";
 import { BIOMES, type Biome, type Light, type TerrainLook, type View } from "./types";
 
@@ -11,20 +12,23 @@ type Mesh = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number
  */
 export class TerrainSample {
     readonly material: TerrainMaterial;
+    readonly water: WaterMaterial;
     readonly size: [number, number, number];
     private gl: WebGL2RenderingContext;
     private ground: Mesh;
-    private water: Mesh;
+    private sea: Mesh;
+    private level: number;
 
     constructor(layer: Layer3D, look: Partial<TerrainLook> = {}, { extent = 4, cells = 48, seed = 3 } = {}) {
         this.gl = layer.gl;
         const height = extent * .45, sea = height * .18;
         this.material = new TerrainMaterial(layer, {
             snow: { color: "#f2f4f7", height: height * .8, softness: height * .05, slope: .6 },
-            sea: { ...lookSea(look), level: sea },
             range: [0, height], contours: look.contours ? height / 12 : 0,
-            ...withoutSea(look),
+            ...look,
         });
+        this.water = new WaterMaterial(layer, { waves: { strength: 0, length: 10, speed: 1, direction: 0, spread: 0 }, foam: { color: "#fff", width: 0, spacing: 1, speed: 0, amount: 0, shore: 0 }, ripples: { scale: .4, strength: .3, speed: 1, near: 2, far: 20 } });
+        this.level = sea;
         this.size = [extent, height, extent];
         const n = simplex(seed), gl = this.gl, step = extent / cells, v = cells + 1;
         const h = new Float32Array(v * v);
@@ -35,7 +39,7 @@ export class TerrainSample {
             const m = ridged(n, x * 1.2 + 3, z * 1.2, { octaves: 4 }) * Math.max(0, x + .3);
             h[j * v + i] = Math.max(0, height * fall * (.25 + .2 * fbm(n, x * 2, z * 2) + m * .9));
         }
-        const pos: number[] = [], nor: number[] = [], data: number[] = [], flow: number[] = [];
+        const pos: number[] = [], nor: number[] = [], data: number[] = [], flow: number[] = [], surface: number[] = [];
         for (let j = 0; j < v; j++) for (let i = 0; i < v; i++)
         {
             const y = h[j * v + i], at = (a: number, b: number) => h[Math.min(v - 1, Math.max(0, b)) * v + Math.min(v - 1, Math.max(0, a))];
@@ -49,30 +53,33 @@ export class TerrainSample {
             nor.push(-dx / l, 1 / l, -dz / l);
             data.push(BIOMES.indexOf(biome), slope, moist, temp);
             flow.push(0);
+            surface.push(sea);
         }
-        this.ground = this.upload([[pos, 3], [nor, 3], [data, 4], [flow, 1]], grid(cells));
-        const e = extent / 2;
-        this.water = this.upload([[[-e, sea, -e, e, sea, -e, e, sea, e, -e, sea, e], 3], [[height * .3, height * .3, height * .3, height * .3], 1]], new Uint32Array([0, 2, 1, 0, 3, 2]));
+        this.ground = this.upload([[pos, 3], [nor, 3], [data, 4], [flow, 1], [surface, 1]], grid(cells));
+        const e = extent / 2, d = height * .3;
+        this.sea = this.upload([[[-e, sea, -e, e, sea, -e, e, sea, e, -e, sea, e], 3], [[d, 9, d, 9, d, 9, d, 9], 2], [[-e, -e, 0, 0, e, -e, 0, 0, e, e, 0, 0, -e, e, 0, 0], 4]], new Uint32Array([0, 2, 1, 0, 3, 2]));
     }
 
     draw(view: View, light: Light, time: number) {
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
-        if (this.material.useGround(view, light)) this.drawMesh(this.ground);
-        if (this.material.useWater(view, light, time))
+        const under = { texture: this.water.texture, time, caustics: .6, color: this.water.look.under.color, density: this.water.look.under.density, eyeUnder: (view.worldPosition?.y ?? 1) < this.level };
+        if (this.material.useGround(view, light, under)) this.drawMesh(this.ground);
+        if (this.water.use(view, light, time, { under: under.eyeUnder }))
         {
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.depthMask(false);
-            this.drawMesh(this.water);
+            this.drawMesh(this.sea);
             gl.depthMask(true);
             gl.disable(gl.BLEND);
         }
     }
 
     destroy() {
-        for (const m of [this.ground, this.water]) { this.gl.deleteVertexArray(m.vao); m.buffers.forEach(b => this.gl.deleteBuffer(b)); }
+        for (const m of [this.ground, this.sea]) { this.gl.deleteVertexArray(m.vao); m.buffers.forEach(b => this.gl.deleteBuffer(b)); }
         this.material.destroy();
+        this.water.destroy();
     }
 
     private drawMesh(m: Mesh) {
@@ -115,5 +122,3 @@ export function grid(cells: number): Uint32Array {
     return out;
 }
 
-const lookSea = (look: Partial<TerrainLook>) => ({ color: "#3f8fa8", deep: "#1c4a6e", opacity: .75, ...look.sea });
-const withoutSea = ({ sea: _, ...rest }: Partial<TerrainLook>) => rest;

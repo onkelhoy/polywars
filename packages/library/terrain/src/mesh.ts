@@ -68,19 +68,21 @@ export function skirt(gl: WebGL2RenderingContext, d: TerrainData, level: number,
             idx.push(a, a + 1, a + 2, a + 2, a + 1, a + 3);
         }
     }
-    const m = upload(gl, [[new Float32Array(pos), 3], [new Float32Array(nor), 3], [new Float32Array(data), 4], [new Float32Array(pos.length / 3).fill(-1), 1]], new Uint32Array(idx));
+    const m = upload(gl, [[new Float32Array(pos), 3], [new Float32Array(nor), 3], [new Float32Array(data), 4], [new Float32Array(pos.length / 3).fill(-1), 1], [new Float32Array(pos.length / 3).fill(d.seaLevel), 1]], new Uint32Array(idx));
     return { ...m, x: 0, y: level, z: 0, radius: outer * 1.5 };
 }
 
 /**
  * Water surfaces as quads: every cell (of `step` nodes) touching water of `kind` (1 ocean, 2 lake) at its surface level.
- * `depth` per vertex for the tint. Ocean also gets a ring out to `skirt` metres.
+ * Water material attributes: 1 (depth, shore distance), 2 (world x z, no flow, swell). Swell fades out near the map
+ * border so the ocean ring (out to `skirt` metres, flat) meets it without gaps.
  */
 export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 2, step: number, skirtSize = 0) {
-    const n = d.n, half = d.size / 2, pos: number[] = [], depth: number[] = [], idx: number[] = [];
-    const quad = (corners: [number, number, number, number][]) => {
+    const n = d.n, half = d.size / 2, pos: number[] = [], info: number[] = [], flow: number[] = [], idx: number[] = [];
+    const fade = 12 * step;
+    const quad = (corners: number[][]) => {
         const b = pos.length / 3;
-        for (const [x, y, z, dp] of corners) { pos.push(x, y, z); depth.push(dp); }
+        for (const [x, y, z, depth, shore, waves] of corners) { pos.push(x, y, z); info.push(depth, shore); flow.push(x, z, 0, waves); }
         idx.push(b, b + 3, b + 1, b + 1, b + 3, b + 2);
     };
     for (let j = 0; j < n - 1; j += step) for (let i = 0; i < n - 1; i += step)
@@ -90,26 +92,27 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
         for (const k of ks) if (d.water[k] === kind) level = Math.max(level, d.surface[k]);
         if (level === -Infinity) continue;
         const xy = [[i, j], [i1, j], [i1, j1], [i, j1]];
-        quad(ks.map((k, c) => [xy[c][0] * d.cell - half, level, xy[c][1] * d.cell - half, level - d.height[k]]) as any);
+        quad(ks.map((k, c) => {
+            const [a, b] = xy[c], edge = Math.min(a, b, n - 1 - a, n - 1 - b);
+            return [a * d.cell - half, level, b * d.cell - half, level - d.height[k], d.toLand[k], d.waves[k] * Math.min(1, edge / fade)];
+        }));
     }
     if (kind === 1 && skirtSize > 0)
     {
-        const o = half + skirtSize, y = d.seaLevel, deep = d.seaLevel + d.size;
-        quad([[-o, y, -o, deep], [o, y, -o, deep], [o, y, -half, deep], [-o, y, -half, deep]]);
-        quad([[-o, y, half, deep], [o, y, half, deep], [o, y, o, deep], [-o, y, o, deep]]);
-        quad([[-o, y, -half, deep], [-half, y, -half, deep], [-half, y, half, deep], [-o, y, half, deep]]);
-        quad([[half, y, -half, deep], [o, y, -half, deep], [o, y, half, deep], [half, y, half, deep]]);
+        const o = half + skirtSize, y = d.seaLevel, deep = d.seaLevel + d.size, far = 1e4;
+        for (const [x0, z0, x1, z1] of [[-o, -o, o, -half], [-o, half, o, o], [-o, -half, -half, half], [half, -half, o, half]])
+            quad([[x0, y, z0, deep, far, 0], [x1, y, z0, deep, far, 0], [x1, y, z1, deep, far, 0], [x0, y, z1, deep, far, 0]]);
     }
     if (!idx.length) return null;
-    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(depth), 1]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
+    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
 }
 
 /**
  * Rivers as ribbons: the point lists smoothed (Chaikin), `width` wide at the surface level.
- * Attributes: 0 position, 1 depth (metres), 2 flow uv (across 0..1, along in metres: scroll it to animate downstream).
+ * Water material attributes: 1 (depth, metres to the bank), 2 (across and along in metres, flow speed from the slope, no swell).
  */
 export function riverMesh(gl: WebGL2RenderingContext, rivers: River[]) {
-    const pos: number[] = [], depth: number[] = [], uv: number[] = [], idx: number[] = [];
+    const pos: number[] = [], info: number[] = [], flow: number[] = [], idx: number[] = [];
     for (const r of rivers)
     {
         let p = r.points;
@@ -135,14 +138,17 @@ export function riverMesh(gl: WebGL2RenderingContext, rivers: River[]) {
             dx /= l; dz /= l;
             if (i > 0) along += Math.hypot(p[i][0] - p[i - 1][0], p[i][2] - p[i - 1][2]);
             const [x, y, z, w] = p[i], h = w / 2;
-            pos.push(x - dz * h, y, z + dx * h, x + dz * h, y, z - dx * h);
-            depth.push(.5, .5);
-            uv.push(0, along, 1, along);
-            if (i > 0) { const q = base + (i - 1) * 2; idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3); }
+            // steeper runs flow faster
+            const drop = Math.max(0, a[1] - b[1]) / l, speed = .6 + Math.min(3, drop * 60);
+            pos.push(x - dz * h, y, z + dx * h, x, y, z, x + dz * h, y, z - dx * h);
+            info.push(.2, 0, 1.2, h, .2, 0);
+            flow.push(0, along, speed, 0, h, along, speed, 0, w, along, speed, 0);
+            // three across (bank, middle, bank) so the bank foam and depth have something to blend
+            if (i > 0) { const q = base + (i - 1) * 3; idx.push(q, q + 3, q + 1, q + 1, q + 3, q + 4, q + 1, q + 4, q + 2, q + 2, q + 4, q + 5); }
         }
     }
     if (!idx.length) return null;
-    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(depth), 1], [new Float32Array(uv), 2]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
+    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
 }
 
 export const BIOME = (name: typeof BIOMES[number]) => BIOMES.indexOf(name);

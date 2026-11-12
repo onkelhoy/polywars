@@ -35,6 +35,7 @@ export const DEFAULTS: TerrainOptions = {
     cities: { count: 6, radius: 90, spacing: 350, maxSlope: .12, flatten: .7, water: .4 },
     lod: { levels: 4, distance: 400, factor: 2.5 },
     mesh: { adaptive: .5, chunk: 64, edges: 1.5, skirt: 6000 },
+    water: {},
     look: {},
 };
 

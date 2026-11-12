@@ -55,7 +55,8 @@
     "@papit/matrix": "*",
     "@papit/random": "*",
     "@polywar/noise": "*",
-    "@polywar/terrain-material": "*"
+    "@polywar/terrain-material": "*",
+    "@polywar/water-material": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

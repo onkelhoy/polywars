@@ -6,7 +6,7 @@ import { Pace } from "./pace";
 import { resolve, type Resolved } from "./presets";
 import { shape } from "./shape";
 import type { TerrainData, TerrainOptions } from "./types";
-import { distance, slopes, water } from "./water";
+import { distance, slopes, water, waveScale } from "./water";
 
 /** pipeline stages in order; each names the options it reads */
 const STAGES = {
@@ -25,7 +25,7 @@ type Cache = Partial<{
     shape: { h: Float32Array; plateau: Float32Array };
     erosion: { h: Float32Array; flow: Float32Array };
     water: { height: Float32Array; water: Uint8Array; surface: Float32Array; down: Int32Array; acc: Float32Array; toOcean: Float32Array };
-    rivers: { height: Float32Array; water: Uint8Array; surface: Float32Array; toWater: Float32Array; rivers: TerrainData["rivers"] };
+    rivers: { height: Float32Array; water: Uint8Array; surface: Float32Array; toWater: Float32Array; toLand: Float32Array; waves: Float32Array; rivers: TerrainData["rivers"] };
     cities: { height: Float32Array; slope: Float32Array; cities: TerrainData["cities"] };
     climate: { temperature: Float32Array; moisture: Float32Array };
     biomes: { biome: Uint8Array };
@@ -90,7 +90,8 @@ export class Generator {
         {
             const w = c.water!, r = { height: w.height.slice(), water: w.water.slice(), surface: w.surface.slice() };
             const list = rivers(o.rivers, { n, cell, size: o.size, ...r, down: w.down, acc: w.acc });
-            c.rivers = { ...r, rivers: list, toWater: distance(n, cell, k => r.water[k] > 0) };
+            const toLand = distance(n, cell, k => r.water[k] === 0 || r.water[k] === 3);
+            c.rivers = { ...r, rivers: list, toWater: distance(n, cell, k => r.water[k] > 0), toLand, waves: waveScale(r.water, toLand, n) };
             this.keys.rivers = key;
         }
         if ((key = stale("cities")))
@@ -120,7 +121,7 @@ export class Generator {
             n, cell, size: o.size, seaLevel,
             height: c.cities!.height, water: c.rivers!.water, surface: c.rivers!.surface, biome: c.biomes!.biome,
             slope: c.cities!.slope, moisture: c.climate!.moisture, temperature: c.climate!.temperature,
-            flow: c.erosion!.flow, plateau: c.shape!.plateau, toWater: c.rivers!.toWater, toOcean: c.water!.toOcean,
+            flow: c.erosion!.flow, plateau: c.shape!.plateau, toWater: c.rivers!.toWater, toOcean: c.water!.toOcean, toLand: c.rivers!.toLand, waves: c.rivers!.waves,
             cities: c.cities!.cities, rivers: c.rivers!.rivers,
         };
     }

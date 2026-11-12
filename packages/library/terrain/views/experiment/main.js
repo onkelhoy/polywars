@@ -36,10 +36,12 @@ const numbers = [
     ['mesh.adaptive', 0, 1, .01], ['lod.levels', 1, 6, 1], ['lod.distance', 50, 2000, 10], ['lod.factor', 1.5, 6, .1], ['mesh.chunk', 16, 512, 16], ['mesh.edges', 0, 10, .1], ['mesh.skirt', 0, 20000, 100],
     ['look.variation', 0, .3, .01], ['look.flat'], ['look.bands', 0, 6, 1], ['look.lighting.wrap', -1, 1, .05], ['look.lighting.steepness', .5, 4, .05],
     ['look.rock.slope', 0, 1, .01], ['look.rock.softness', 0, .3, .01], ['look.snow.height', 0, 2000, 5], ['look.snow.softness', 0, 200, 1], ['look.snow.slope', 0, 1, .01],
-    ['look.sea.opacity', 0, 1, .01], ['look.contours', 0, 100, 1],
+    ['water.opacity', 0, 1, .01], ['water.clarity', .5, 30, .5], ['water.waves.strength', 0, 1, .01], ['water.waves.length', 10, 200, 1], ['water.waves.speed', 0, 3, .05], ['water.waves.direction', 0, 360, 1],
+    ['water.foam.width', 0, 80, 1], ['water.foam.spacing', 1, 30, .5], ['water.foam.speed', 0, 1, .01], ['water.foam.amount', 0, 1, .01], ['water.gloss.strength', 0, 2, .05], ['water.gloss.bands', 0, 4, 1],
+    ['water.ripples.strength', 0, 1, .01], ['water.ripples.scale', 1, 30, .5], ['water.under.caustics', 0, 2, .05], ['water.flat'], ['look.contours', 0, 100, 1],
     ['sun.elevation', 5, 90, 1], ['sun.azimuth', 0, 360, 1], ['fog', 0, 6, .05],
 ];
-const colors = [...BIOMES.map(b => 'look.colors.' + b), 'look.rock.color', 'look.snow.color', 'look.sea.color', 'look.sea.deep', 'look.lake'];
+const colors = [...BIOMES.map(b => 'look.colors.' + b), 'look.rock.color', 'look.snow.color', 'water.shallow', 'water.deep', 'water.fresh.shallow', 'water.fresh.deep', 'water.foam.color', 'water.under.color'];
 const sun = { elevation: 40, azimuth: 35 };
 
 /** effective value: the option, else (look) the material's current look */
@@ -47,7 +49,7 @@ const read = path => {
     const keys = path.split('.');
     if (keys[0] === 'sun') return sun[keys[1]];
     if (keys[0] === 'fog') return renderer.light.fogDensity * 1e4;
-    const head = keys[0] === 'look' ? terrain.material.look : keys[0] === 'settings' ? terrain.options.q : null;
+    const head = keys[0] === 'look' ? terrain.material.look : keys[0] === 'water' ? terrain.water.look : keys[0] === 'settings' ? terrain.options.q : null;
     let v = head ?? terrain.options;
     for (const k of head ? keys.slice(1) : keys) v = v?.[k];
     return v;
@@ -60,8 +62,8 @@ const write = (path, value) => {
     const root = structuredClone(terrain.options[head]) ?? {};
     let v = root;
     // a look field starts from what the material shows now
-    let shown = terrain.material.look;
-    for (const k of rest.slice(0, -1)) { shown = shown?.[k]; v = v[k] ??= structuredClone(head === 'look' && shown ? shown : {}); }
+    let shown = head === 'water' ? terrain.water.look : terrain.material.look;
+    for (const k of rest.slice(0, -1)) { shown = shown?.[k]; v = v[k] ??= structuredClone((head === 'look' || head === 'water') && shown ? shown : {}); }
     v[rest.at(-1)] = value;
     terrain.set({ [head]: root });
 };
@@ -86,7 +88,7 @@ for (const [path, min, max, step] of numbers)
         const v = bool ? input.checked : Number(input.value);
         span.textContent = +v.toFixed(4);
         // looks are instant, the rest regenerates (or remeshes) after a short pause
-        if (parts[0] === 'look' || parts[0] === 'sun' || parts[0] === 'fog') { write(path, v); code(); }
+        if (parts[0] === 'look' || parts[0] === 'water' || parts[0] === 'sun' || parts[0] === 'fog') { write(path, v); code(); }
         else later(() => { write(path, v); code(); });
     };
     inputs.push(sync);
@@ -243,7 +245,8 @@ demo.tick = dt => {
     $('#info').value = `${counts}\n${terrain.drawn} chunks · ${rate.toFixed(0)} fps · built in ${(generatedAt / 1000).toFixed(2)} s · ${under}`;
 };
 demo.draw = camera => {
-    renderer.begin(camera, [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
+    const under = camera.worldPosition && terrain.underwater(camera.worldPosition);
+    renderer.begin(camera, under ? [...linear(terrain.water.look.under.color).map(c => Math.pow(c, 1 / 2.2)), 1] : [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
     terrain.draw(camera, renderer.light, demo.time);
     if (grass) { grass.drawGround(camera, renderer.light, demo.time); grass.draw(camera, renderer.light, demo.time); }
     if ($('#markers').checked) for (const c of terrain.cities)
