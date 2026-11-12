@@ -20,7 +20,7 @@ vec3 lit(vec3 albedo, vec3 n, vec3 world) {
 }
 `;
 
-/** Ground attributes: 0 position, 1 normal, 2 data (biome index, slope 0..1, moisture 0..1, temperature 0..1), 3 flow 0..1 (< 0: far ground, smooth and plain). */
+/** Ground attributes: 0 position, 1 normal, 2 data (biome index, slope 0..1, moisture 0..1, temperature 0..1), 3 flow 0..1 (< 0: far ground and chunk walls, smooth and plain). */
 export const GROUND_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
@@ -31,7 +31,11 @@ out vec3 vWorld, vNormal;
 out vec4 vData;
 out float vFlow;
 flat out int vBiome;
+flat out float vShade;
+float hash2(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
+    // one random shade per face: the provoking (last) vertex decides it for the whole triangle
+    vShade = hash2(floor(position.xz * 4.0) + .5);
     vWorld = position;
     vNormal = normal;
     vData = data;
@@ -47,6 +51,7 @@ in vec3 vWorld, vNormal;
 in vec4 vData;
 in float vFlow;
 flat in int vBiome;
+flat in float vShade;
 uniform vec3 palette[${N}];
 uniform vec3 rockColor, snowColor;
 uniform vec2 rock; // slope, softness
@@ -58,12 +63,11 @@ uniform int debug;
 ${COMMON}
 out vec4 outColor;
 
-float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 vec3 ramp(float t) { return clamp(vec3(1.5 - abs(4.0 * t - 3.0), 1.5 - abs(4.0 * t - 2.0), 1.5 - abs(4.0 * t - 1.0)), 0.0, 1.0); }
 
 void main() {
     vec3 face = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
-    // flow < 0 marks far ground (skirts): smooth normal, no face shades
+    // flow < 0 marks far ground and chunk walls: smooth normal, no face shades
     bool far = vFlow < 0.0;
     vec3 n = flatShade && !far ? face : normalize(vNormal);
     float slope = far ? 0.0 : 1.0 - clamp(face.y, 0.0, 1.0);
@@ -73,8 +77,7 @@ void main() {
         float s = smoothstep(snow.x - snow.y, snow.x + snow.y, vWorld.y) * (1.0 - smoothstep(snow.z - .05, snow.z + .05, slope));
         c = mix(c, snowColor, s);
     }
-    // one random shade per face: the face normal is the same over the whole triangle
-    if (!far) c *= 1.0 + (hash(floor(face * 512.0)) - .5) * 2.0 * variation;
+    if (!far) c *= 1.0 + (vShade - .5) * 2.0 * variation;
 
     if (debug == 1) c = palette[vBiome];
     else if (debug == 2) c = ramp(clamp((vWorld.y - range.x) / max(range.y - range.x, 1e-3), 0.0, 1.0));

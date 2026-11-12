@@ -1,9 +1,9 @@
 import type { Quality, QualitySettings, TerrainOptions } from "./types";
 
 export const QUALITY: Record<Quality, QualitySettings> = {
-    low: { resolution: 256, droplets: .7, error: 2.5 },
-    medium: { resolution: 512, droplets: 1, error: 1 },
-    high: { resolution: 1024, droplets: 1.2, error: .75 },
+    low: { resolution: 256, droplets: .7 },
+    medium: { resolution: 512, droplets: 1 },
+    high: { resolution: 1024, droplets: 1.2 },
 };
 
 export const DEFAULTS: TerrainOptions = {
@@ -32,7 +32,8 @@ export const DEFAULTS: TerrainOptions = {
         forest: .68,
     },
     cities: { count: 6, radius: 90, spacing: 350, maxSlope: .12, flatten: .7, water: .4 },
-    mesh: { chunk: 128, edges: 1.5, skirt: 6000 },
+    lod: { levels: 4, distance: 300, factor: 3 },
+    mesh: { adaptive: .5, chunk: 64, edges: 1.5, skirt: 6000 },
     look: {},
 };
 
@@ -61,6 +62,9 @@ export const MAPS: Record<string, Partial<TerrainOptions>> = {
         mountains: { ...DEFAULTS.mountains, coverage: .3, scale: 800, ridge: 400 },
     },
 };
+
+/** `mesh.adaptive` 0..1 to the RTIN error in metres: 0 none (full grid), .5 about 1 m, 1 about 24 m */
+export const meshError = (adaptive: number) => adaptive <= 0 ? -1 : Math.pow(24, adaptive * 2 - 1);
 
 export type Resolved = TerrainOptions & { q: QualitySettings };
 

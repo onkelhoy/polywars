@@ -4,8 +4,9 @@ import { TerrainMaterial, type Biome, type Light, type TerrainLook, type View } 
 import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
 import { Generator } from "./generate";
-import { BIOME, free, ground, skirt, waterMesh, type Mesh } from "./mesh";
-import { DEFAULTS, resolve, type Resolved } from "./presets";
+import { Ground } from "./lod";
+import { BIOME, free, skirt, waterMesh, type Mesh } from "./mesh";
+import { DEFAULTS, meshError, resolve, type Resolved } from "./presets";
 import { biomeAt, heightAt, slopeAt, waterAt } from "./query";
 import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./types";
 
@@ -21,7 +22,7 @@ export class Terrain {
     readonly material: TerrainMaterial;
     readonly gl: WebGL2RenderingContext;
     private generator = new Generator();
-    private chunks: Mesh[] = [];
+    private ground?: Ground;
     private skirtMesh?: Mesh;
     private ocean: Mesh | null = null;
     private lakes: Mesh | null = null;
@@ -35,7 +36,7 @@ export class Terrain {
     generating = false;
     /** chunks drawn last frame */
     drawn = 0;
-    /** ground triangles, and what the full grid would have */
+    /** ground triangles drawn last frame, and what the full grid would have */
     triangles = { used: 0, full: 0 };
     /** called after each finished generation */
     onchange?: (data: TerrainData, terrain: Terrain) => void;
@@ -104,7 +105,9 @@ export class Terrain {
             this.f32.view.set(view.viewMatrix);
             this.f32.projection.set(view.projectionMatrix);
             const planes = frustum(this.f32.projection, this.f32.view);
-            for (const c of this.chunks) if (visible(planes, c.x, c.y, c.z, c.radius)) { this.mesh(c); this.drawn++; }
+            const eye = view.worldPosition ?? { x: 0, y: 0, z: 0 };
+            this.drawn = this.ground?.draw(eye, (x, y, z, r) => visible(planes, x, y, z, r), m => this.mesh(m)) ?? 0;
+            this.triangles.used = this.ground?.triangles ?? 0;
             if (this.skirtMesh) this.mesh(this.skirtMesh);
         }
         for (const [w, lake] of [[this.lakes, true], [this.ocean, false]] as const)
@@ -139,7 +142,7 @@ export class Terrain {
         };
     }
 
-    private meshOptions() { return JSON.stringify([this.o.mesh, this.o.q.error, this.o.edge.type, this.o.edge.level]); }
+    private meshOptions() { return JSON.stringify([this.o.mesh, this.o.lod, this.o.edge.type, this.o.edge.level]); }
 
     private async regenerate(): Promise<TerrainData> {
         this.generating = true;
@@ -164,9 +167,8 @@ export class Terrain {
     private build(d: TerrainData) {
         const gl = this.gl, o = this.o;
         this.clear();
-        const g = ground(gl, d, o.q.error, o.mesh.edges, o.mesh.chunk);
-        this.chunks = g.meshes;
-        this.triangles = { used: g.triangles, full: g.full };
+        this.ground = new Ground(gl, d, meshError(o.mesh.adaptive), o.mesh.edges, o.mesh.chunk, o.lod);
+        this.triangles = { used: 0, full: this.ground.full };
         const step = Math.max(1, Math.round((d.n - 1) / 256));
         const edge = o.edge.type;
         if (edge !== "none" && o.mesh.skirt > 0)
@@ -178,8 +180,9 @@ export class Terrain {
 
     private clear() {
         const gl = this.gl;
-        free(gl, [...this.chunks, ...[this.skirtMesh, this.ocean, this.lakes].filter((m): m is Mesh => !!m)]);
-        this.chunks = []; this.skirtMesh = undefined; this.ocean = this.lakes = null;
+        this.ground?.destroy();
+        free(gl, [...[this.skirtMesh, this.ocean, this.lakes].filter((m): m is Mesh => !!m)]);
+        this.ground = undefined; this.skirtMesh = undefined; this.ocean = this.lakes = null;
     }
 
     private mesh(m: Mesh) {

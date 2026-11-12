@@ -1,5 +1,4 @@
 import { BIOMES } from "@polywar/terrain-material";
-import { errors, triangulate } from "./rtin";
 import type { TerrainData } from "./types";
 
 export type Mesh = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; x: number; y: number; z: number; radius: number };
@@ -38,53 +37,6 @@ export function grid(cells: number): Uint32Array {
         else out.set([a, a + v, a + v + 1, a, a + v + 1, a + 1], k);
     }
     return out;
-}
-
-/**
- * Ground as one adaptive RTIN mesh (`maxError` metres), cut into square chunks of `chunk` nodes for culling
- * (each triangle goes to the chunk of its centre: one mesh, so no cracks). Biome and shore borders count as
- * `edgeError` so they stay sharp on flat land (0 off).
- */
-export function ground(gl: WebGL2RenderingContext, d: TerrainData, maxError: number, edgeError: number, chunk: number) {
-    const n = d.n, half = d.size / 2;
-    const err = errors(d.height, n, edgeError > 0 ? (m, a, b) => d.biome[m] !== d.biome[a] || d.biome[m] !== d.biome[b] ? edgeError : 0 : undefined);
-    const { nodes, triangles } = triangulate(err, n, maxError);
-    const per = Math.max(1, Math.ceil((n - 1) / chunk)), buckets: number[][] = Array.from({ length: per * per }, () => []);
-    for (let t = 0; t < triangles.length; t += 3)
-    {
-        let x = 0, z = 0;
-        for (let c = 0; c < 3; c++) { const k = nodes[triangles[t + c]]; x += k % n; z += (k / n) | 0; }
-        buckets[Math.min(per - 1, (z / 3 / chunk) | 0) * per + Math.min(per - 1, (x / 3 / chunk) | 0)].push(t);
-    }
-    const local = new Int32Array(nodes.length).fill(-1), meshes: Mesh[] = [];
-    const h = (i: number, j: number) => d.height[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))];
-    buckets.forEach((list, b) => {
-        if (!list.length) return;
-        const used: number[] = [], idx = new Uint32Array(list.length * 3);
-        list.forEach((t, q) => {
-            for (let c = 0; c < 3; c++)
-            {
-                const v = triangles[t + c];
-                if (local[v] < 0) { local[v] = used.length; used.push(v); }
-                idx[q * 3 + c] = local[v];
-            }
-        });
-        const count = used.length, pos = new Float32Array(count * 3), nor = new Float32Array(count * 3), data = new Float32Array(count * 4), flow = new Float32Array(count);
-        let lo = Infinity, hi = -Infinity, x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
-        used.forEach((v, q) => {
-            local[v] = -1;
-            const k = nodes[v], i = k % n, j = (k / n) | 0, y = d.height[k], x = i * d.cell - half, z = j * d.cell - half;
-            lo = Math.min(lo, y); hi = Math.max(hi, y); x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z);
-            pos.set([x, y, z], q * 3);
-            const nx = (h(i - 1, j) - h(i + 1, j)) / (2 * d.cell), nz = (h(i, j - 1) - h(i, j + 1)) / (2 * d.cell), len = Math.hypot(nx, 1, nz);
-            nor.set([nx / len, 1 / len, nz / len], q * 3);
-            data.set([d.biome[k], d.slope[k], d.moisture[k], d.temperature[k]], q * 4);
-            flow[q] = d.flow[k];
-        });
-        const m = upload(gl, [[pos, 3], [nor, 3], [data, 4], [flow, 1]], idx);
-        meshes.push({ ...m, x: (x0 + x1) / 2, y: (lo + hi) / 2, z: (z0 + z1) / 2, radius: Math.hypot(x1 - x0, hi - lo, z1 - z0) / 2 });
-    });
-    return { meshes, triangles: triangles.length / 3, full: (n - 1) * (n - 1) * 2 };
 }
 
 /**

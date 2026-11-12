@@ -18,7 +18,7 @@ let grass;
 
 // ---- tweaks: [path, min, max, step] into the terrain options; booleans have no range ----
 const numbers = [
-    ['size', 256, 8192, 64], ['height', 20, 2000, 10], ['sea', 0, .6, .01], ['settings.resolution', 64, 1024, 64], ['settings.droplets', 0, 3, .05], ['settings.error', .05, 10, .05],
+    ['size', 256, 8192, 64], ['height', 20, 2000, 10], ['sea', 0, .6, .01], ['settings.resolution', 64, 1024, 64], ['settings.droplets', 0, 3, .05],
     ['edge.width', 0, 1, .01], ['edge.direction', 0, 360, 1], ['edge.noise', 0, 2, .05], ['edge.level', 0, .6, .01],
     ['base.scale', 50, 4000, 10], ['base.height', 0, 1, .01], ['base.octaves', 1, 8, 1], ['base.gain', .1, .9, .01], ['base.lacunarity', 1.5, 3, .05], ['base.warp', 0, 3, .05],
     ['hills.scale', 20, 1500, 10], ['hills.height', 0, .6, .01],
@@ -32,7 +32,7 @@ const numbers = [
     ['biomes.beach.height', 0, 30, .5], ['biomes.beach.width', 0, 300, 5], ['biomes.mountain.height', 0, 1, .01], ['biomes.mountain.slope', 0, 1, .01], ['biomes.snow', 0, 1, .01],
     ['biomes.hills', 0, 1, .01], ['biomes.hot', 0, 1, .01], ['biomes.desert', 0, 1, .01], ['biomes.savanna', 0, 1, .01], ['biomes.forest', 0, 1, .01],
     ['cities.count', 0, 30, 1], ['cities.radius', 10, 400, 5], ['cities.spacing', 0, 2000, 10], ['cities.maxSlope', .01, .5, .01], ['cities.flatten', 0, 1, .05], ['cities.water', 0, 2, .05],
-    ['mesh.chunk', 16, 512, 16], ['mesh.edges', 0, 10, .1], ['mesh.skirt', 0, 20000, 100],
+    ['mesh.adaptive', 0, 1, .01], ['lod.levels', 1, 6, 1], ['lod.distance', 50, 2000, 10], ['lod.factor', 1.5, 6, .1], ['mesh.chunk', 16, 512, 16], ['mesh.edges', 0, 10, .1], ['mesh.skirt', 0, 20000, 100],
     ['look.variation', 0, .3, .01], ['look.flat'], ['look.bands', 0, 6, 1], ['look.lighting.wrap', -1, 1, .05], ['look.lighting.steepness', .5, 4, .05],
     ['look.rock.slope', 0, 1, .01], ['look.rock.softness', 0, .3, .01], ['look.snow.height', 0, 2000, 5], ['look.snow.softness', 0, 200, 1], ['look.snow.slope', 0, 1, .01],
     ['look.sea.opacity', 0, 1, .01], ['look.contours', 0, 100, 1],
@@ -237,7 +237,7 @@ demo.tick = dt => {
     if (terrain.generating) return;
     const d = terrain.data, cam = demo.camera?.position;
     const t = terrain.triangles;
-    const counts = d ? `${d.n - 1}² cells · ${(d.cell).toFixed(1)} m · ${terrain.cities.length} cities\n${(t.used / 1000).toFixed(0)}k of ${(t.full / 1000).toFixed(0)}k triangles (${(t.used / t.full * 100).toFixed(1)}%)` : '';
+    const counts = d ? `${d.n - 1}² cells · ${(d.cell).toFixed(1)} m · ${terrain.cities.length} cities\n${(t.used / 1000).toFixed(0)}k triangles drawn · full grid ${(t.full / 1000).toFixed(0)}k (${(t.used / t.full * 100).toFixed(1)}%)` : '';
     const under = cam ? `${terrain.biomeAt(cam[0], cam[2]) ?? '-'} below` : '';
     $('#info').value = `${counts}\n${terrain.drawn} chunks · ${rate.toFixed(0)} fps · built in ${(generatedAt / 1000).toFixed(2)} s · ${under}`;
 };
