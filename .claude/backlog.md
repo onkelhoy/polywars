@@ -20,7 +20,10 @@ Grouped by feature. `[ ]` open, `[x]` done.
 
 ## World
 - [ ] Terrain
-- [ ] Grass field (owner's YouTube reference)
+- [x] Grass field (owner's YouTube reference): `@polywar/grass`
+  - [ ] `cross` + `mesh` sources
+  - [ ] Check by hand: `cross` + `mesh`, `smooth` style, quality switch, sprite PNG override
+  - [ ] Optional `noise` texture (url/image) + shared noise cache
 - [ ] Biomes
 - [ ] Modular city/village builder (reusable, own package)
 - [ ] Nature placement

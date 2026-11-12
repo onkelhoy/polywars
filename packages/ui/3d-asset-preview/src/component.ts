@@ -1,7 +1,10 @@
 // system
 import { CustomElement, html, property } from "@papit/web-component";
-import { Camera, GameEngine, GameObject, fps, orbit } from "@papit/game-engine";
-import { Grid, Model, Renderer, fromTRS, mat4, multiply } from "./render";
+import type { Camera } from "@papit/game-engine";
+import "@polywar/3d-demo";
+import type { Demo3D } from "@polywar/3d-demo";
+import { Matrix4 } from "@papit/matrix";
+import { Grid, Model, Renderer } from "./render";
 import { MeshBuilder, upload, type GLTF, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
 
@@ -36,48 +39,35 @@ export class AssetPreview3D extends CustomElement {
     @property({ type: Number, attribute: "lamp-angle" }) lampAngle: number = 120;
     @property({ type: Boolean, rerender: true }) lights: boolean = false;
 
-    private engine?: GameEngine<any>;
+    private demo?: Demo3D;
     private renderer?: Renderer;
     private gridMesh?: Grid;
     private bulb?: GPUMesh;
     private model?: Model;
-    private target = { position: { x: 0, y: 0, z: 0 } };
     private yaw = 0;
     private time = 0;
     private playing = true;
-    private matrix = mat4();
     private loading = 0;
 
-    firstRender() {
+    async firstRender() {
         super.firstRender();
-        const engine = new GameEngine({ name: "main", query: "canvas", type: "webgl2", documentElement: this.shadowRoot! });
-        this.engine = engine;
-        this.renderer = new Renderer((engine.layers.main as any).gl);
-        this.bulb = upload((engine.layers.main as any).gl, new MeshBuilder().sphere([1, .85, .6], {}, 1).build());
-        const preview = this;
-        engine.add(new class extends GameObject {
-            override update(dt: number) { preview.step(dt); }
-            override render(layer: any) { preview.draw(layer.camera); }
-        }());
-        const canvas = this.shadowRoot!.querySelector("canvas")!;
-        canvas.addEventListener("pointerdown", this.handlepan, { capture: true });
-        canvas.addEventListener("contextmenu", e => e.preventDefault());
+        const demo = this.shadowRoot!.querySelector<Demo3D>("pw-3d-demo")!;
+        this.demo = demo;
+        await demo.ready;
+        this.renderer = new Renderer(demo.layer!);
+        this.bulb = upload(demo.gl, new MeshBuilder().sphere([1, .85, .6], {}, 1).build());
+        demo.tick = dt => this.step(dt);
+        demo.draw = camera => this.draw(camera);
         this.applyMode();
         this.load();
-        engine.start();
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback?.();
-        this.engine?.stop();
     }
 
     // ---- scene ----
 
     private async load() {
         // the html template briefly sets a placeholder before the real value
-        if (!this.engine) return;
-        const gl = (this.engine.layers.main as any).gl;
+        if (!this.renderer) return;
+        const gl = this.renderer.gl;
         const src = !this.src || this.src.includes("__marker__") ? "" : this.src;
         if (!this.gltf && !src) return;
         const ticket = ++this.loading;
@@ -88,10 +78,10 @@ export class AssetPreview3D extends CustomElement {
         // grid scaled to the model: lines every 10^n / 2 metres, out to 3x its size
         const r = this.reach, step = Math.pow(10, Math.floor(Math.log10(r))) / 2;
         this.gridMesh?.destroy();
-        this.gridMesh = new Grid((this.engine.layers.main as any).gl, Math.ceil(r * 3 / step) * step, step, 5);
+        this.gridMesh = new Grid(gl, Math.ceil(r * 3 / step) * step, step, 5);
         this.time = 0;
         if (!model.animation(this.animation)) this.animation = "";
-        this.applyMode();
+        this.frame();
         const triangles = model.gltf.meshes.flatMap(m => m.primitives).reduce((n, p) => n + (p.indices?.length ?? p.positions.length / 3) / 3, 0);
         this.dispatchEvent(new CustomEvent<LoadEvent>("load", {
             detail: { src, animations: model.animations.map(a => a.name ?? ""), triangles, size: model.size },
@@ -110,24 +100,20 @@ export class AssetPreview3D extends CustomElement {
         return Math.max(radius, .01) / Math.sin(Math.PI / 6) * 1.1;
     }
 
+    /** turntable and orbit pan / zoom around the model, fps flies */
     private applyMode() {
-        const layer = this.engine?.layers.main;
-        if (!layer) return;
-        const r = this.reach;
-        this.target.position = { x: 0, y: (this.model?.size[1] ?? 0) / 2, z: 0 };
-        if (this.mode === "fps")
-        {
-            const camera = new Camera({ near: r * .01, far: r * 200, controllers: [fps({ speed: r * 1.5 })] });
-            camera.position.set([0, this.target.position.y, this.fit]);
-            layer.camera = camera;
-        }
-        else
-        {
-            layer.camera = new Camera({
-                near: r * .01, far: r * 200,
-                controllers: [orbit({ target: this.target, distance: this.fit, min: r * .2, max: r * 20, yaw: .7, pitch: .35, speed: .0015 })],
-            });
-        }
+        if (this.demo) this.demo.mode = this.mode === "fps" ? "fly" : "pan";
+    }
+
+    /** camera back to a view that fits the model */
+    private frame() {
+        const demo = this.demo;
+        if (!demo) return;
+        const y = (this.model?.size[1] ?? 0) / 2, d = this.fit;
+        demo.near = this.reach * .01;
+        demo.far = this.reach * 200;
+        demo.speed = this.reach * 1.5;
+        demo.look([Math.sin(.7) * Math.cos(.35) * d, y + Math.sin(.35) * d, Math.cos(.7) * Math.cos(.35) * d], [0, y, 0]);
     }
 
     private step(dt: number) {
@@ -156,7 +142,7 @@ export class AssetPreview3D extends CustomElement {
         light.lampPosition = [Math.sin(la) * r * .9, height * .8, Math.cos(la) * r * .9];
         light.lampRange = r * 2.5;
         light.lampStrength = this.lamp;
-        renderer.begin(camera as any);
+        renderer.begin(camera, this.demo?.background);
         if (this.lamp > 0 && this.bulb)
         {
             const k = r * .03;
@@ -167,35 +153,10 @@ export class AssetPreview3D extends CustomElement {
         const [cx, , cz] = this.model.center;
         const bottom = this.model.bounds.min[1];
         // spin around the model's middle, standing on y = 0
-        const s = Math.sin(this.yaw / 2), c = Math.cos(this.yaw / 2);
-        const spin = fromTRS(mat4(), [0, 0, 0], [0, s, 0, c], [1, 1, 1]);
-        const place = fromTRS(mat4(), [-cx, -bottom, -cz], [0, 0, 0, 1], [1, 1, 1]);
-        this.model.draw(renderer, multiply(this.matrix, spin, place));
+        this.model.draw(renderer, Matrix4.rotationY(this.yaw).translate(-cx, -bottom, -cz));
     }
 
     // ---- input ----
-
-    /** right drag or shift drag pans the orbit target in the view plane */
-    private handlepan = (event: PointerEvent) => {
-        if (this.mode === "fps" || !(event.button === 2 || event.shiftKey)) return;
-        event.stopImmediatePropagation();
-        const camera = this.engine!.layers.main.camera as Camera;
-        let x = event.clientX, y = event.clientY;
-        const move = (e: PointerEvent) => {
-            const view = camera.viewMatrix;
-            const k = this.reach * .002;
-            const dx = (e.clientX - x) * k, dy = (e.clientY - y) * k;
-            x = e.clientX; y = e.clientY;
-            // camera right = view row 0, up = view row 1
-            const p = this.target.position;
-            p.x += -dx * view[0] + dy * view[1];
-            p.y += -dx * view[4] + dy * view[5];
-            p.z += -dx * view[8] + dy * view[9];
-        };
-        const up = () => { removeEventListener("pointermove", move); removeEventListener("pointerup", up); };
-        addEventListener("pointermove", move);
-        addEventListener("pointerup", up);
-    };
 
     private handlemode = (mode: PreviewMode) => () => { this.mode = mode; };
     private handlelights = () => { this.lights = !this.lights; };
@@ -215,7 +176,7 @@ export class AssetPreview3D extends CustomElement {
     render() {
         const names = this.model?.animations.map(a => a.name ?? "") ?? [];
         return html`
-            <canvas part="canvas"></canvas>
+            <pw-3d-demo no-bar part="demo">
             ${this.controls ? html`
                 <div class="bar" part="controls">
                     <div class="modes">
@@ -232,7 +193,7 @@ export class AssetPreview3D extends CustomElement {
                         <input type="range" min="0" max="1" step="0.001" value="0" aria-label="time" @input="${this.handlescrub}" />
                     ` : ""}
                 </div>
-                ${this.mode === "fps" ? html`<p class="hint">click to look, WASD to walk, esc to release</p>` : ""}
+                ${this.mode === "fps" ? html`<p class="hint">click to look (esc frees), WASD, E/Q up/down, shift fast, wheel speed</p>` : ""}
                 <div class="lights" part="lights">
                     <pap-button size="small" variant="${this.lights ? "filled" : "outline"}" @click="${this.handlelights}">light</pap-button>
                     ${this.lights ? html`
@@ -245,6 +206,7 @@ export class AssetPreview3D extends CustomElement {
                     ` : ""}
                 </div>
             ` : ""}
+            </pw-3d-demo>
         `;
     }
 }

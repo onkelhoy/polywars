@@ -7,7 +7,7 @@ export const registerStyle = (style: CityStyle<any>) => void styles.set(style.na
 export const getStyle = (name: string) => styles.get(name);
 export const styleNames = () => [...styles.keys()];
 
-export const CITY_DEFAULTS: Omit<CityOptions, "style"> = { seed: 1, radius: 2, block: 14, street: 3, empty: .1 };
+export const CITY_DEFAULTS: Omit<CityOptions, "style"> = { seed: 1, radius: 2, block: 20, street: 3, empty: .15, lot: [5, 9] };
 
 /** Y rotation + translation applied to a column-major matrix */
 function place(m: number[], x: number, z: number, angle: number): number[] {
@@ -24,7 +24,8 @@ function place(m: number[], x: number, z: number, angle: number): number[] {
 
 /**
  * Lots on the papit irregular grid: every quad cell is a block, streets run along the cell edges.
- * Each block gets the biggest rectangle that fits its inset quad, aligned to its longest edge.
+ * Each block gets the biggest rectangle that fits its inset quad, aligned to its longest edge,
+ * cut into lots along its two long sides, every lot facing its street. Empty blocks become squares.
  */
 export function city(options: Partial<CityOptions> & { style: string }): City {
     const o = { ...CITY_DEFAULTS, ...options };
@@ -54,27 +55,58 @@ export function city(options: Partial<CityOptions> & { style: string }): City {
                 const [a, b] = [pts[i], pts[(i + 1) % 4]];
                 const ex = b[0] - a[0], ez = b[1] - a[1], len = Math.hypot(ex, ez);
                 const cross = (ex * (z - a[1]) - ez * (x - a[0])) / len;
-                if (Math.abs(cross) < o.street / 2) return false;
+                if (Math.abs(cross) < o.street / 2 + 1) return false;
                 if (Math.sign(cross) !== Math.sign((ex * (cz - a[1]) - ez * (cx - a[0])))) return false;
             }
             return true;
         };
         const c = Math.cos(angle), s = Math.sin(angle);
-        let hw = longest / 2, hd = longest / 2;
-        const fits = () => [[1, 1], [1, -1], [-1, 1], [-1, -1]].every(([a, b]) => inside(cx + c * a * hw + s * b * hd, cz - s * a * hw + c * b * hd));
-        for (let k = 0; k < 60 && !fits(); k++) { hw *= .95; hd *= .95; if (hd > hw * .8) hd *= .97; }
-        const width = Math.floor(hw * 2), depth = Math.floor(hd * 2);
-        const lot: CityLot = { cell, x: cx, z: cz, angle, width, depth, seed: rng.uint() >>> 0, empty: rng.chance(o.empty) || width < 2 || depth < 2 };
-        lots.push(lot);
-        if (lot.empty) continue;
-        for (const p of style.build({ width, depth }, lot.seed)) pieces.push({ piece: p.piece, matrix: place(p.matrix, cx, cz, angle) });
+        // start from the quad's area over its longest edge, shrink until it fits
+        let area = 0;
+        for (let i = 0; i < 4; i++) { const [a, b] = [pts[i], pts[(i + 1) % 4]]; area += a[0] * b[1] - b[0] * a[1]; }
+        let hw = longest / 2, hd = Math.abs(area) / 2 / longest / 2;
+        const fits = (w: number, d: number) => [[1, 1], [1, -1], [-1, 1], [-1, -1]].every(([a, b]) => inside(cx + c * a * w + s * b * d, cz - s * a * w + c * b * d));
+        // biggest uniform scale that fits, then grow each side alone
+        let lo = 0, hi = 1;
+        for (let k = 0; k < 20; k++) { const t = (lo + hi) / 2; if (fits(hw * t, hd * t)) lo = t; else hi = t; }
+        hw *= lo; hd *= lo;
+        for (let k = 0; k < 40 && fits(hw * 1.02, hd); k++) hw *= 1.02;
+        for (let k = 0; k < 40 && fits(hw, hd * 1.02); k++) hd *= 1.02;
+        const width = Math.floor(hw * 2), depth = Math.floor(hd * 2), seed = rng.uint() >>> 0;
+        const add = (lot: CityLot, built: Placement[]) => { lots.push(lot); for (const p of built) pieces.push({ piece: p.piece, matrix: place(p.matrix, lot.x, lot.z, lot.angle) }); };
+        if (rng.chance(o.empty) || width < 4 || depth < 4)
+        {
+            const lot: CityLot = { cell, x: cx, z: cz, angle, width, depth, seed, empty: true };
+            add(lot, style.square?.(lot, seed) ?? []);
+            continue;
+        }
+        // rows along the front (+Z) and, when deep enough, the back (-Z) of the block
+        const rows = depth >= 12 ? [1, -1] : [1], d = Math.min(12, Math.floor(depth / rows.length));
+        const lr = new Random(seed);
+        for (const side of rows)
+        {
+            let x = -width / 2;
+            while (width / 2 - x >= o.lot[0])
+            {
+                let w = lr.int(o.lot[0], o.lot[1] + 1);
+                if (width / 2 - x - w < o.lot[0]) w = Math.floor(width / 2 - x);
+                const lx = (x + w / 2) * side, lz = (depth / 2 - d / 2) * side;
+                const lot: CityLot = { cell, x: cx + c * lx + s * lz, z: cz - s * lx + c * lz, angle: angle + (side < 0 ? Math.PI : 0), width: w, depth: d, seed: lr.uint() >>> 0, empty: false };
+                add(lot, style.build(lot, lot.seed));
+                x += w;
+            }
+        }
     }
 
     const streets: City["streets"] = [];
     for (let e = 0; e < grid.edgeCount; e++)
     {
         const a = grid.edges[e * 2], b = grid.edges[e * 2 + 1];
-        streets.push([P[a * 2], P[a * 2 + 1], P[b * 2], P[b * 2 + 1]]);
+        const [x0, z0, x1, z1] = [P[a * 2], P[a * 2 + 1], P[b * 2], P[b * 2 + 1]];
+        streets.push([x0, z0, x1, z1]);
+        const built = style.street?.(Math.hypot(x1 - x0, z1 - z0), o.street, new Random(o.seed).fork(`street:${e}`).uint() >>> 0) ?? [];
+        // tiny lift per street so crossings don't z-fight
+        for (const p of built) { const m = place(p.matrix, x0, z0, -Math.atan2(z1 - z0, x1 - x0)); m[13] += (e % 7) * .002; pieces.push({ piece: p.piece, matrix: m }); }
     }
     return { lots, streets, pieces };
 }

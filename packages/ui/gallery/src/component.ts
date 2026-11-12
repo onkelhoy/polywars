@@ -1,12 +1,13 @@
 // system
 import { CustomElement, html, property } from "@papit/web-component";
-import { GameEngine, GameObject } from "@papit/game-engine";
+import { GameEngine, GameObject, type Layer3D } from "@papit/game-engine";
 import type { GLTF } from "@papit/game-mesh";
 import "@papit/button";
 import "@papit/dialog";
 import type { Dialog } from "@papit/dialog";
 import "@polywar/3d-asset-preview";
-import { Model, Renderer, fromTRS, gltfFromMesh, mat4, multiply, type AssetPreview3D } from "@polywar/3d-asset-preview";
+import { Model, Renderer, gltfFromMesh, type AssetPreview3D } from "@polywar/3d-asset-preview";
+import { Matrix4 } from "@papit/matrix";
 
 // local
 import sheet from "./style.css" with { type: "css" };
@@ -45,9 +46,9 @@ export class Gallery extends CustomElement {
     private renderer?: Renderer;
     private gl?: WebGL2RenderingContext;
     private opened?: GalleryItem;
-    private view = new Float32Array(16);
-    private projection = new Float32Array(16);
-    private matrix = mat4();
+    private view = Matrix4.create();
+    private projection = Matrix4.create();
+    private matrix = Matrix4.create();
     private loading = 0;
 
     get all() {
@@ -60,7 +61,7 @@ export class Gallery extends CustomElement {
         const engine = new GameEngine({ name: "main", query: "canvas.models", type: "webgl2", documentElement: this.shadowRoot! });
         this.engine = engine;
         this.gl = (engine.layers.main as any).gl as WebGL2RenderingContext;
-        this.renderer = new Renderer(this.gl);
+        this.renderer = new Renderer(engine.layers.main as Layer3D);
         const gallery = this;
         engine.add(new class extends GameObject {
             override update(dt: number) { for (const t of gallery.tiles.values()) if (t.drag === null) t.yaw += dt * .4; }
@@ -154,8 +155,7 @@ export class Gallery extends CustomElement {
             const eye: [number, number, number] = [0, reach * .33, reach * .94];
             this.camera(eye, w / h, reach);
             const [cx, cy, cz] = model.center;
-            const s = Math.sin(tile.yaw / 2), c = Math.cos(tile.yaw / 2);
-            multiply(this.matrix, fromTRS(mat4(), [0, 0, 0], [0, s, 0, c], [1, 1, 1]), fromTRS(mat4(), [-cx, -cy, -cz], [0, 0, 0, 1], [1, 1, 1]));
+            this.matrix = Matrix4.rotationY(tile.yaw).translate(-cx, -cy, -cz);
             this.renderer!.begin({ viewMatrix: this.view, projectionMatrix: this.projection, worldPosition: { x: eye[0], y: eye[1], z: eye[2] } }, null);
             model.draw(this.renderer!, this.matrix);
         }
@@ -165,15 +165,8 @@ export class Gallery extends CustomElement {
 
     /** look at the origin from `eye` */
     private camera(eye: [number, number, number], aspect: number, reach: number) {
-        const l = Math.hypot(...eye);
-        const f = eye.map(v => v / l);
-        const rl = Math.hypot(f[2], f[0]) || 1;
-        const r = [f[2] / rl, 0, -f[0] / rl];
-        const u = [f[1] * r[2] - f[2] * r[1], f[2] * r[0] - f[0] * r[2], f[0] * r[1] - f[1] * r[0]];
-        const dot = (a: number[]) => a[0] * eye[0] + a[1] * eye[1] + a[2] * eye[2];
-        this.view.set([r[0], u[0], f[0], 0, r[1], u[1], f[1], 0, r[2], u[2], f[2], 0, -dot(r), -dot(u), -dot(f), 1]);
-        const near = reach * .02, far = reach * 10, k = 1 / Math.tan(.75 / 2);
-        this.projection.set([k / aspect, 0, 0, 0, 0, k, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, 2 * far * near / (near - far), 0]);
+        this.view.lookAt(eye, [0, 0, 0], [0, 1, 0]);
+        this.projection.perspective(.75, aspect, reach * .02, reach * 10);
     }
 
     // ---- ui ----

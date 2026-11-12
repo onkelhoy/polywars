@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-Branch `init/assets` (shared with 2 other sessions: commit only own paths). Next: owner answers Git LFS for the ~150 MB of copied .blend files (not committed yet), then task 8.
+`main`. Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
@@ -13,22 +13,19 @@ Branch `init/assets` (shared with 2 other sessions: commit only own paths). Next
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
 
 ## Tasks
-1. [x] Songs → `audio/songs/menu` + `audio/songs/game`.
-2. [x] WW2 weapons pack → per gun/ammo/knife/grenade `.blend` files.
-3. [x] `convert` FBX/OBJ → `.blend` + `.glb`: WW2 tank, truck, motorcycle, fighter, bomber, Modular Village (156 OBJ).
-4. [x] Gun rigs + generated actions (in `model.blend`, exported into `model.glb`).
-5. [x] `npm run assets`.
-6. [x] `packages/ui/3d-asset-preview` (`pw-3d-asset-preview`): turntable / orbit (+ right/shift drag pan) / FPS, animation picker, play/pause, scrub, toon, grid.
-7. [x] gallery (now task 9): every asset, one shared canvas for 3D tiles, audio players, images, filter + search, click opens preview.
-9. [x] Generic gallery: rename `asset-gallery` → `packages/ui/gallery` (`pw-gallery`).
-   - `location` (default `/assets`): reads `<location>/manifest.json`, headings per folder (h2 top folder, h3 rest).
-   - `items` property: extra/generated entries `{ name, group, kind, src? | gltf? | mesh? }`, e.g. generated buildings. `location=""` shows items only.
-   - manifest generator ships with the package (`bin/manifest.mjs`, not a package `bin`: @papit/build bundles it for the browser), works on any folder.
-   - `pw-3d-asset-preview` gets a `gltf` property so generated items open in the preview too.
-   - views: `experiment` (root assets), `generated` (procedural houses via `items`).
-10. [x] All store packs copied (`tools/blender/packs/store.mjs`): nature, farm animals, farm buildings, castle, dungeon, vehicles, modular-village. Materials normalised to one Principled output on export.
-11. [x] Manifest is an `Assets` tree (`{ name, assets: (Asset | Assets)[] }`); gallery takes `tree`; `npm run assets` ends serving the gallery (view `everything`).
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
+
+## Medieval buildings + baked surfaces (confirmed 2026-11-11)
+Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
+- Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `color.png`, `normal.png`, `ao.png`, `spec.png` (glb references them). Rebake: `node tools/bake-village.mjs`.
+- mesh-bake: `papit.type` is `node` so `src/bin.ts` builds to `lib/bin.js` (browser type fails on `node:` imports); `lib/bundle.js` stays browser safe (bin is not exported from index).
+- b3. [ ] `packages/material/textured`: albedo + normal + spec + ao, maps optional, own view.
+- b3b. [ ] mesh-bake GUI view: drop glb, live maps + lit preview, settings, download.
+- b5. [ ] Generator massing: main volume, wing, lean-to, jetty.
+- b6. [ ] Generator roofs: gable default, cross-gable, dormers, ridge/rake.
+- b7. [ ] Generator facades: bays, aligned windows, timber frame rules.
+- b8. [ ] Attachments + archetypes (cottage, townhouse, inn, mill, gatehouse).
+- b9. [ ] Generator uses baked pieces, view shows triangle count.
 
 ## Later
 - Vehicle parts from FBX are not assembled/rigged (artillery gun sits off its base). Vehicle scale is the pack's (tank ~2 m).
@@ -38,3 +35,7 @@ Branch `init/assets` (shared with 2 other sessions: commit only own paths). Next
 - `@papit/server`: package folder named `assets` is served raw (no CSS import rewrite).
 - `@papit/web-component`: attribute bindings briefly pass `__marker__` as the value.
 - `@papit/build`: a package `bin` entry gets bundled for the browser (fails on `node:` imports).
+- `@papit/quaternion`: `writeMatrix(out, position)` and `fromAxisAngle(axis)` are typed `{x,y,z}` but read `[0],[1],[2]` (NaN with objects).
+- `@papit/matrix`: static `Matrix4.multiply(a, b)` fails to type-check (`this` of `typeof Matrix4`); `multiply(Float32Array(16))` reads it as 16x1 (wrap in `Matrix4.create`); no point transform (`m.clone.multiply([x,y,z,1])` works).
+- `@papit/game-engine`: `fps` walks on the ground only and `pan` is 2D (3d-demo has its own `fly` / `panZoom`); theme custom properties come back unresolved (`light-dark()`), read a resolved colour instead.
+- `@papit/game-engine`: no lit mesh renderer (polywar keeps `Renderer` in 3d-asset-preview); `Layer3D.createProgram` keeps the shader objects after linking.

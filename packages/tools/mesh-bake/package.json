@@ -1,0 +1,89 @@
+{
+  "name": "@polywar/mesh-bake",
+  "description": "Bakes a relief mesh into one quad plus colour, normal, ambient occlusion and spec maps. Core for node and browser, CLI and GUI.",
+  "keywords": [
+    "papit",
+    "mesh",
+    "bake",
+    "normal-map",
+    "ambient-occlusion",
+    "texture"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build -- --error --ancestors",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "preversion": "papit-version",
+    "postversion": "papit-version",
+    "component": "npm create @papit -- --component",
+    "bake": "node lib/bin.js"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/tools/mesh-bake",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/tools/mesh-bake"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/arguments": "*",
+    "@papit/terminal": "*"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3",
+    "@papit/theme": "*",
+    "@papit/translator": "*",
+    "@papit/codeblock": "*",
+    "@polywar/textured": "*",
+    "@papit/game-mesh": "*",
+    "@types/node": "*"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "node",
+    "main": "mesh-bake",
+    "htmlprefix": "",
+    "components": {
+      "mesh-bake": {
+        "className": "MeshBake"
+      }
+    }
+  },
+  "bin": {
+    "mesh-bake": "lib/bin.js"
+  }
+}

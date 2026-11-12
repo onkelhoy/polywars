@@ -54,7 +54,8 @@
   },
   "dependencies": {
     "@papit/random": "*",
-    "@papit/game-mesh": "*"
+    "@papit/game-mesh": "*",
+    "@polywar/textured": "*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
