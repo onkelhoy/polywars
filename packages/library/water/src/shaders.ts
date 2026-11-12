@@ -156,11 +156,19 @@ void main() {
         waterDepth = mix(waterDepth, dv, trust);
         shoreRim = mix(shoreRim, max(toLine, 0.0), trust * (1.0 - smoothstep(expect, expect * 2.0, jump)));
     }
-    // the shore for the wave lines: a smooth map, bent a little by noise, so the lines run round, not along every facet
-    float shore = vInfo.y;
+    // the streaks lie across the wind, turning softly toward land near the shore. Only where the shore map says clearly which
+    // way land is (its slope near 1 m per m): in the middle of bays and inlets it doesn't, there they keep to the wind
+    float heading = glintWind / 22.5, turned = 0.0;
     if (hasShore && river < .5) {
-        vec2 bend = (vec2(vnoise(vWorld.xz / max(foamWobbleScale * 3.0, .1)), vnoise(vWorld.xz / max(foamWobbleScale * 3.0, .1) + 9.1)) - .5) * foamWobble * 6.0;
-        shore = shoreAt(vWorld.xz + bend);
+        float shore = shoreAt(vWorld.xz), e = shoreRect.z * 1.5;
+        vec2 gr = vec2(shoreAt(vWorld.xz + vec2(e, 0)) - shoreAt(vWorld.xz - vec2(e, 0)), shoreAt(vWorld.xz + vec2(0, e)) - shoreAt(vWorld.xz - vec2(0, e))) / (2.0 * e);
+        float clear = smoothstep(.4, .85, length(gr));
+        turned = clear * (1.0 - smoothstep(8.0, 40.0, shore));
+        // shortest turn from the wind to land, in 16ths of a circle
+        float toLand = atan(-gr.y, -gr.x) / 6.2831853 * 16.0, delta = mod(toLand - heading + 8.0, 16.0) - 8.0;
+        heading += delta * turned;
+        // half a turn either way is ambiguous: fade the streaks rather than flip
+        turned *= smoothstep(7.5, 6.0, abs(delta));
     }
 
     // flat colour: shallow to deep, lit as a plane; a little sky at grazing angles
@@ -203,10 +211,12 @@ void main() {
             d *= pixels(thick * 2.0, mpp) * near;
             shade = 1.0 - d * glintDark * (1.0 - lit);
         } else {
-            // sea and lakes: noise squashed across the wind, long soft streaks a bit darker and lighter, all one way (calm),
-            // drifting with the wind
+            // sea and lakes: noise squashed across the wind (toward land near the shore), long soft streaks a bit darker and
+            // lighter, drifting with it
             vec2 size = vec2(glintLength * 1.5, glintScale * .3);
-            float n = streaks(vFlow.xy, glintWind / 22.5, size, time * glintSpeed);
+            // the heading snaps to 16 directions, the two nearest blended, so turning never swirls the pattern
+            float h0 = floor(heading);
+            float n = mix(streaks(vFlow.xy, h0, size, time * glintSpeed), streaks(vFlow.xy, h0 + 1.0, size, time * glintSpeed), heading - h0);
             n = mix(.5, n, pixels(size.y * 2.0, mpp) * near);
             // the streaks belong to the shallows: they fade out over deep water and with distance (calm, not busy from afar)
             float calm = exp(-waterDepth / max(glintFade, .1)) * (1.0 - smoothstep(glintFar * .15, glintFar * .5, dist));
@@ -231,8 +241,8 @@ void main() {
     float foam = 0.0, fnear = 1.0 - smoothstep(foamFar * .5, foamFar, dist);
     if (fnear > 0.0 && foamAmount > 0.0) {
         float wob = (vnoise(vWorld.xz / max(foamWobbleScale, .1) + time * .03) - .5) * 2.0 * foamWobble;
-        // the rim hugs the exact waterline where the depth is known (a little wobble left); the waves follow the smooth shore
-        float s = shoreRim + wob * (1.0 - trust * .75), mpp = fwidth(s), sw = shore + wob, mppw = fwidth(sw);
+        // the rim and the small waves hug the exact waterline where the depth is known (a little wobble left)
+        float s = shoreRim + wob * (1.0 - trust * .75), mpp = fwidth(s);
         if (river < .5) {
             // the rim: crisp broken foam, its outer edge rough (three octaves), holes toward the outside, a few loose bits;
             // the whole band washes in and out a little, out of step along the shore
@@ -243,15 +253,20 @@ void main() {
             float holes = hard(.3 + .3 * smoothstep(edge * .25, edge, s), fbm3(vWorld.xz / max(foamRim * .9, .03) - time * .03));
             float bits = (1.0 - hard(edge * 1.8, s)) * hard(.7, fbm3(vWorld.xz / max(foamRim * .8, .03) + 3.1 + time * .02));
             float rim = max(band * max(holes, 1.0 - smoothstep(0.0, edge * .35, s)), bits) * pixels(foamRim * .5, mpp);
-            // waves: lines form offshore, run in to the rim and fade there. Tight, a bit rough at the edges and of
-            // varying thickness along their length; each its own pieces, not every one shows
-            float wband = max(foamSpacing * foamLines, .01), sl = sw - foamRim;
-            float phase = sl / max(foamSpacing, .01) + time * foamSpeed, k = floor(phase), life = sl / wband;
-            float dl = (fract(phase) - .5) * foamSpacing + (fbm3(vWorld.xz / max(foamSpacing * .5, .05) + k * 3.3) - .5) * foamWidth;
-            float thick = foamWidth * (.35 + .9 * vnoise(vWorld.xz / max(foamSpacing * 1.5, .05) + k * 1.7));
-            float line = (1.0 - hard(thick * .5, abs(dl))) * pixels(foamWidth, mppw) * step(0.0, sl);
-            line *= smoothstep(1.0, .55, life) * smoothstep(0.0, .3, life) * step(hash2(vec2(k, 3.0)), .75) * .45;
-            line *= hard(foamPieces, vnoise(vWorld.xz / (foamSpacing * 4.0) + vec2(k * 7.31, k * 3.17))) * clamp(vFlow.w + .3, 0.0, 1.0);
+            // small waves: short pieces (about .5 - 2 m) washing in a little (up to \`spacing\` metres) to the rim and fading
+            // there, \`lines\` at a time, each piece in its own time
+            float line = 0.0;
+            for (int i = 0; i < 4; i++) {
+                if (float(i) >= foamLines) break;
+                float fi = float(i), ph = time * foamSpeed + fi / max(foamLines, 1.0) + vnoise(vWorld.xz / 6.0 + fi * 3.1) * 2.0;
+                float k = floor(ph), t = fract(ph);
+                float travel = foamSpacing * mix(.15, 1.0, vnoise(vWorld.xz / 5.0 + k * 1.7 + fi * 9.0));
+                float thick = foamWidth * (.5 + .7 * vnoise(vWorld.xz / 1.5 + k * 2.3));
+                float l = 1.0 - hard(thick * .5, abs(s - edge - travel * (1.0 - t)));
+                l *= hard(foamPieces, vnoise(vWorld.xz / 1.2 + vec2(k * 7.31 + fi * 13.0, k * 3.17)));
+                line = max(line, l * sin(3.14159 * t));
+            }
+            line *= pixels(foamWidth, mpp) * .7 * clamp(vFlow.w + .3, 0.0, 1.0);
             // things in the water (rocks, legs): the same broken foam, a thin ring
             // ring width grows with the thing: a leg gets a few centimetres, a big rock most of a shore rim
             float cd = 1e4, cw = foamContact;

@@ -50,7 +50,7 @@ export const WATER_LOOK: WaterLook = {
     horizon: .6,
     paint: { amount: .35, scale: 18 },
     glints: { dark: .08, scale: .7, length: 1.4, lane: .5, strength: 1, specks: .3, speed: .25, far: 220, density: .8, melt: .8, glow: .06, fade: 6, wind: 30 },
-    foam: { color: "#ffffff", contact: .08, rim: .6, wobble: .35, wobbleScale: 7, lines: 2, width: .16, spacing: 1.3, speed: .35, pieces: .4, amount: .9, far: 300 },
+    foam: { color: "#ffffff", contact: .08, rim: .6, wobble: .35, wobbleScale: 7, lines: 2, width: .1, spacing: 1.2, speed: .25, pieces: .45, amount: .9, far: 300 },
     streaks: { amount: .8, length: 4, width: .2 },
     under: { shallow: "#3aa7b8", deep: "#0b2e52", clarity: 14, density: .035, sun: .06 },
 };
