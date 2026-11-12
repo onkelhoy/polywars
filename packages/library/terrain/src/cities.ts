@@ -4,9 +4,9 @@ type Grids = { n: number; cell: number; size: number; height: Float32Array; slop
 
 /**
  * Town spots: flat, dry, not too high, a bit of water nearby scores extra (`water`), at least `spacing` apart.
- * `flatten` evens the ground under each spot (in place, metres).
+ * `flatten` evens the ground under each spot (in place, metres); `hard` gets the flattened share (keeps erosion off the pad).
  */
-export function cities(o: TerrainOptions["cities"], g: Grids): City[] {
+export function cities(o: TerrainOptions["cities"], g: Grids, hard?: Float32Array): City[] {
     const { n, cell, height, slope, water } = g;
     const r = Math.max(1, Math.round(o.radius / cell)), stride = Math.max(1, r >> 1);
     const ring: [number, number][] = [];
@@ -38,12 +38,12 @@ export function cities(o: TerrainOptions["cities"], g: Grids): City[] {
         if (picked.length >= o.count) break;
         if (picked.every(p => Math.hypot(p.x - c.x, p.z - c.z) >= o.spacing)) picked.push(c);
     }
-    if (o.flatten > 0) for (const c of picked) c.y = flatten(c.k, r, o.flatten, g);
+    if (o.flatten > 0) for (const c of picked) c.y = flatten(c.k, r, o.flatten, g, hard);
     return picked.map(({ k: _, ...c }) => c);
 }
 
 /** blend the ground around `k` towards its mean, full inside `r`, fading out to 1.6 r; returns the level */
-function flatten(k: number, r: number, strength: number, g: Grids): number {
+function flatten(k: number, r: number, strength: number, g: Grids, hard?: Float32Array): number {
     const { n, height } = g, ci = k % n, cj = (k / n) | 0;
     let sum = 0, count = 0;
     for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) if (i * i + j * j <= r * r) { sum += height[(cj + j) * n + ci + i]; count++; }
@@ -55,6 +55,7 @@ function flatten(k: number, r: number, strength: number, g: Grids): number {
         const d = Math.hypot(i, j), t = d <= r ? 1 : d >= outer ? 0 : 1 - (d - r) / (outer - r);
         const m = z * n + x, w = t * t * (3 - 2 * t) * strength;
         height[m] += (level - height[m]) * w;
+        if (hard) hard[m] = Math.max(hard[m], t);
     }
     return level;
 }
