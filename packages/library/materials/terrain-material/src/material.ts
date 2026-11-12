@@ -17,7 +17,7 @@ export const TERRAIN_LOOK: TerrainLook = {
     rock: { color: "#847670", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
     paint: { edge: 10, size: 30, washes: .5, rim: 0, warmth: .5, grain: 0, pixel: .3 },
-    gloss: { rock: .2, wet: .22, reach: 6 },
+    gloss: { rock: 0, wet: .22, reach: 6 },
     variation: 0,
     flat: false,
     bands: 3,
