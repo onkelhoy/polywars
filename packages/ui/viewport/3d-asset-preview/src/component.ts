@@ -30,6 +30,12 @@ export class AssetPreview3D extends CustomElement {
     /** something that draws itself (e.g. a material sample), drawn with the light and camera; works with or without a model */
     @property({ attribute: false, after: function (this: AssetPreview3D) { this.load(); } }) scene: Scene | null = null;
     /** a new model keeps the camera where it is (after the first one); `frame()` fits it again */
+    /** lower detail copies of `src` (`<name>.lod<n>.glb`): a LOD picker in the controls */
+    @property({ type: Number, rerender: true }) lods: number = 0;
+    /** shown level, 0 = `src` itself */
+    @property({ type: Number, rerender: true, after: function (this: AssetPreview3D) { this.load(); } }) lod: number = 0;
+    private tris = 0;
+    private framed = "";
     @property({ type: Boolean, attribute: "keep-view" }) keepView: boolean = false;
     /** makes the skin for a loaded `src` (see `Model.load`), used from the next load */
     @property({ attribute: false }) skin: ModelOptions["skin"] | null = null;
@@ -106,7 +112,8 @@ export class AssetPreview3D extends CustomElement {
         // the html template briefly sets a placeholder before the real value
         if (!this.renderer) return;
         const gl = this.renderer.gl;
-        const src = !this.src || this.src.includes("__marker__") ? "" : this.src;
+        const base = !this.src || this.src.includes("__marker__") ? "" : this.src;
+        const src = base && this.lod ? base.replace(/(\.[^.]+)$/, `.lod${this.lod}$1`) : base;
         if (this.scene !== this.drawableOf)
         {
             const first = !this.model && !this.drawable;
@@ -129,8 +136,11 @@ export class AssetPreview3D extends CustomElement {
         this.time = 0;
         // keep the clip by name, any case ("Idle" = "idle")
         if (!model.animation(this.animation)) this.animation = model.animations.find(c => c.name?.toLowerCase() === this.animation.toLowerCase())?.name ?? "";
-        if (first || !this.keepView) this.frame();
+        // switching lod keeps the view
+        if (first || (!this.keepView && this.framed !== base)) this.frame();
+        this.framed = base;
         const triangles = model.gltf.meshes.flatMap(m => m.primitives).reduce((n, p) => n + (p.indices?.length ?? p.positions.length / 3) / 3, 0);
+        this.tris = triangles;
         this.dispatchEvent(new CustomEvent<LoadEvent>("load", {
             detail: { src, animations: model.animations.map(a => a.name ?? ""), triangles, size: model.size },
         }));
@@ -288,6 +298,7 @@ export class AssetPreview3D extends CustomElement {
     private handleposereset = () => { this.poser?.clear(); this.requestUpdate(); };
 
     private handlemode = (mode: PreviewMode) => () => { this.mode = mode; };
+    private handlelod = (e: Event) => { this.lod = Number((e.target as HTMLSelectElement).value); };
     private handlelights = () => { this.lights = !this.lights; };
     private handlelight = (name: "ambient" | "sun" | "sunAzimuth" | "sunElevation" | "lamp" | "lampAngle") => (e: Event) => {
         this[name] = Number((e.target as HTMLInputElement).value);
@@ -338,6 +349,11 @@ export class AssetPreview3D extends CustomElement {
                             ${this.bones ? html`<span class="bone">${this.poser?.selected?.name ?? "press a bone"}</span>` : ""}
                             ${this.poser?.edits.size ? html`<pap-button size="small" variant="outline" @click="${this.handleposereset}">reset pose</pap-button>` : ""}
                         </div>
+                    ` : ""}
+                    ${this.lods ? html`
+                        <select @change="${this.handlelod}" aria-label="lod">
+                            ${Array.from({ length: this.lods + 1 }, (_, i) => html`<option value="${i}" ${i === this.lod && "selected"}>${i ? `lod ${i}` : "full"}${i === this.lod && this.model ? ` · ${this.tris} tris` : ""}</option>`)}
+                        </select>
                     ` : ""}
                     ${names.length ? html`
                         <select @change="${this.handleanimation}" aria-label="animation">

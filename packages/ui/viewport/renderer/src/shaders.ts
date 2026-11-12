@@ -37,12 +37,16 @@ uniform mat4 model, view, projection;
 uniform vec3 wind, eye;
 uniform vec2 fade;
 uniform float time, swayHeight;
+uniform bool billboard;
 out vec3 vNormal;
 out vec4 vColor;
 out vec3 vWorld;
 void main() {
     vec4 local = model * vec4(position, 1.0);
-    float c = cos(extra.x), s = sin(extra.x);
+    // billboard: the model's +z turns to the eye (cards), else the instance yaw
+    vec2 toEye = eye.xz - instance.xz;
+    float yaw = billboard ? atan(toEye.x, toEye.y) : extra.x;
+    float c = cos(yaw), s = sin(yaw);
     float shrink = fade.y > 0.0 ? 1.0 - smoothstep(fade.x, fade.y, length(instance.xyz - eye)) : 1.0;
     vec3 p = local.xyz * instance.w * shrink;
     vec3 r = vec3(p.x * c + p.z * s, p.y, -p.x * s + p.z * c);
@@ -53,6 +57,7 @@ void main() {
     vWorld = world.xyz;
     vec3 n = mat3(model) * normal;
     vNormal = vec3(n.x * c + n.z * s, n.y, -n.x * s + n.z * c);
+    if (billboard) vNormal = normalize(vNormal + vec3(0.0, 1.2, 0.0)); // flat cards: light them like a round crown
     vColor = color * vec4(vec3(extra.y), 1.0);
     texturedVertex();
     gl_Position = projection * view * world;

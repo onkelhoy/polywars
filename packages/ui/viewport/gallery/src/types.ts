@@ -19,6 +19,8 @@ export type GalleryItem = {
     group?: string;
     kind: AssetKind;
     src?: string;
+    /** lower detail copies next to `src` (`<name>.lod1.glb` ...): shown as a LOD picker in the preview, not as items */
+    lods?: number;
     gltf?: TexturedGLTF;
     mesh?: Mesh | Mesh[];
     scene?: Scene;

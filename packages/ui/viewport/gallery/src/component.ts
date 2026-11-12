@@ -233,6 +233,7 @@ export class Gallery extends CustomElement {
             const gltf = toGLTF(item);
             if (gltf) preview.gltf = gltf;
             else if (item.src) preview.setAttribute("src", item.src);
+            if (item.lods) preview.lods = item.lods;
         }
         else if (item.kind === "image")
         {
@@ -355,9 +356,19 @@ export function kindOf(file: string): AssetKind {
 
 /** an `Assets` tree to gallery items; the folder names (below the root) become the group */
 export function flatten(tree: Assets, group = tree.name): GalleryItem[] {
+    const lod = /\.lod(\d+)\.[^.]+$/, files = tree.assets.filter(a => !("assets" in a)).map(a => (a as Asset).name);
     return tree.assets.flatMap(a => "assets" in a
         ? flatten(a, group ? `${group}/${a.name}` : a.name)
-        : [{ name: (a as Asset).name.replace(/\.[^.]+$/, ""), group, kind: kindOf((a as Asset).file), src: (a as Asset).file, size: (a as Asset).size }]);
+        : lod.test((a as Asset).name) ? [] // lod copies: a picker in the preview
+        : [{ name: (a as Asset).name.replace(/\.[^.]+$/, ""), group, kind: kindOf((a as Asset).file), src: (a as Asset).file, size: (a as Asset).size, lods: lodsOf((a as Asset).name, files) }]);
+}
+
+/** how many `<name>.lod<n>.<ext>` copies sit next to a file (0 = none) */
+function lodsOf(name: string, files: string[]) {
+    const dot = name.lastIndexOf("."), base = name.slice(0, dot), ext = name.slice(dot);
+    let n = 0;
+    while (files.includes(`${base}.lod${n + 1}${ext}`)) n++;
+    return n;
 }
 
 function toGLTF(item: GalleryItem): TexturedGLTF | null {

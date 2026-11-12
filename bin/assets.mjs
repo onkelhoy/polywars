@@ -45,15 +45,19 @@ if (!process.argv.includes("--no-export"))
     const files = walk(ASSETS);
     for (const conf of files.filter(f => f.endsWith("/lod.json")))
     {
-        const { ratios } = JSON.parse(readFileSync(conf, "utf8"));
+        // levels: ratios, then optional `hull` (points) and `card` ({ default: "quad", <name prefix>: "triangle" | "quad" | "none" })
+        const { ratios, hull, card } = JSON.parse(readFileSync(conf, "utf8"));
         const glbs = files.filter(f => dirname(f) === dirname(conf) && f.endsWith(".glb") && !/\.lod\d+\.glb$/.test(f));
         for (const glb of glbs)
         {
-            const outs = ratios.map((_, i) => glb.replace(/\.glb$/, `.lod${i + 1}.glb`));
+            const name = glb.split("/").pop();
+            const shape = card && (Object.entries(card).find(([k]) => k !== "default" && name.startsWith(k))?.[1] ?? card.default);
+            const levels = [...ratios.map(String), ...(hull ? [`hull:${hull}`] : []), ...(shape && shape !== "none" ? [`card:${shape}`] : [])];
+            const outs = levels.map((_, i) => glb.replace(/\.glb$/, `.lod${i + 1}.glb`));
             const stale = Math.max(statSync(glb).mtimeMs, statSync(conf).mtimeMs);
             if (!all && outs.every(o => existsSync(o) && statSync(o).mtimeMs >= stale)) continue;
-            const r = spawnSync(BLENDER, ["-b", "-P", join(ROOT, "tools/blender/lod.py"), "--", glb, ...ratios.map(String)], { encoding: "utf8" });
-            const ok = r.status === 0 && (r.stdout.match(/exported/g) ?? []).length === ratios.length;
+            const r = spawnSync(BLENDER, ["-b", "-P", join(ROOT, "tools/blender/lod.py"), "--", glb, ...levels], { encoding: "utf8" });
+            const ok = r.status === 0 && (r.stdout.match(/^exported /gm) ?? []).length === levels.length;
             console.log(ok ? "lods    " : "FAILED  ", relative(ROOT, glb));
             if (!ok) console.log(r.stdout.split("\n").filter(l => /Error|Traceback/.test(l)).join("\n"), r.stderr);
         }

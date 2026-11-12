@@ -184,15 +184,19 @@ export class World {
     }
 }
 
-type Stat = { calls: number; triangles: number; ms: number };
+/** `gpu`: GPU ms (timer queries, NaN where the browser has none) */
+type Stat = { calls: number; triangles: number; ms: number; gpu: number };
 
-/** Wraps the gl draw functions to count calls / triangles per named section (CPU time per section too). */
+/** Wraps the gl draw functions to count calls / triangles per named section (CPU time and GPU time per section too). */
 class Profiler {
     stats: Record<string, Stat> = {};
     private now?: Stat;
     private at = 0;
+    private timer: any;
+    private queries: { q: WebGLQuery; s: Stat }[] = [];
 
-    constructor(gl: WebGL2RenderingContext) {
+    constructor(private gl: WebGL2RenderingContext) {
+        this.timer = gl.getExtension("EXT_disjoint_timer_query_webgl2");
         // wrap once per context; a new profiler takes over the wrappers
         const g = gl as any;
         if (g.__profiler) { g.__profiler.at = this; return; }
@@ -210,14 +214,34 @@ class Profiler {
     count(n: number, instances = 1) { if (this.now) { this.now.calls++; this.now.triangles += n / 3 * instances; } }
 
     begin(name: string) {
-        const s = this.stats[name] ??= { calls: 0, triangles: 0, ms: 0 };
+        const s = this.stats[name] ??= { calls: 0, triangles: 0, ms: 0, gpu: this.timer ? 0 : NaN };
         s.calls = s.triangles = 0;
         this.now = s;
         this.at = performance.now();
+        if (this.timer)
+        {
+            const q = this.gl.createQuery()!;
+            this.gl.beginQuery(this.timer.TIME_ELAPSED_EXT, q);
+            this.queries.push({ q, s });
+        }
     }
 
     end() {
         if (this.now) this.now.ms = this.now.ms * .9 + (performance.now() - this.at) * .1;
         this.now = undefined;
+        if (this.timer) { this.gl.endQuery(this.timer.TIME_ELAPSED_EXT); this.poll(); }
+    }
+
+    /** read finished queries (a few frames late), oldest first */
+    private poll() {
+        const gl = this.gl, disjoint = gl.getParameter(this.timer.GPU_DISJOINT_EXT);
+        while (this.queries.length)
+        {
+            const { q, s } = this.queries[0];
+            if (!gl.getQueryParameter(q, gl.QUERY_RESULT_AVAILABLE)) break;
+            if (!disjoint) s.gpu = s.gpu * .9 + gl.getQueryParameter(q, gl.QUERY_RESULT) / 1e6 * .1;
+            gl.deleteQuery(q);
+            this.queries.shift();
+        }
     }
 }

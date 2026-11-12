@@ -8,7 +8,7 @@ export const DEFAULTS: ScatterOptions = {
     quality: "medium",
     distance: { tree: 950, rock: 420, cactus: 500, bush: 340, deadwood: 260, plant: 110, flower: 85, grass: 70, water: 140, default: 200 },
     fade: .15,
-    lods: [.12, .3, .6],
+    lods: [.04, .1, .2, .35, .55],
     wind: { direction: [1, .3], strength: .03 },
     surface: { bands: 3, soft: .35, grit: .04 },
     gloss: {},
@@ -18,8 +18,8 @@ export const DEFAULTS: ScatterOptions = {
 const CELL = 64, HALF = CELL * Math.SQRT1_2;
 type Cell = { index: number; x: number; y: number; z: number; n: number; reach: number };
 type Chunk = { cell: number; first: number; count: number };
-/** `models[lod]`: lod 0 the full model; a missing level draws the next better one */
-type Group = { name: string; kind: string; models: (Model | undefined)[]; data: Float32Array; chunks: Chunk[]; count: number; height: number };
+/** `models[lod]`: lod 0 the full model; a missing level draws the next better one; `cards[lod]`: that level is a flat camera facing card */
+type Group = { name: string; kind: string; models: (Model | undefined)[]; cards: boolean[]; data: Float32Array; chunks: Chunk[]; count: number; height: number };
 
 /**
  * Many static glTF props, instanced. Each model's props are sorted into square chunks (row order) on the GPU;
@@ -69,6 +69,8 @@ export class Scatter {
         await Promise.all(this.groups.map(g => Promise.all(Array.from({ length: this.o.lods.length + 1 }, async (_, lod) => {
             const model = await this.load(g.name, lod);
             g.models[lod] = model;
+            // a flat model (no depth) is a card: drawn turned to the camera
+            g.cards[lod] = !!model && model.bounds.max[2] - model.bounds.min[2] < 1e-4;
             if (lod === 0 && model) g.height = model.bounds.max[1] || 1;
         }))));
     }
@@ -138,7 +140,7 @@ export class Scatter {
             const surface = { ...this.o.surface, gloss: this.o.gloss[g.kind] ?? 0 };
             for (const p of g.models[lod]!.parts)
             {
-                r.drawInstanced(p.mesh, p.matrix, { buffer: this.buffer, first, count, time, wind, swayHeight: g.height, fade, surface }, { maps: p.maps });
+                r.drawInstanced(p.mesh, p.matrix, { buffer: this.buffer, first, count, time, wind, swayHeight: g.height, fade, surface, billboard: g.cards[lod] }, { maps: p.maps });
                 this.calls++;
                 this.triangles += p.mesh.count / 3 * count;
             }
@@ -186,7 +188,7 @@ export class Scatter {
             for (const i of list) { data.set(b.data.subarray(i * S, i * S + S), at * S); at++; y += b.data[i * S + 1]; }
             chunks.push({ cell: this.cell(key, y / list.length, top * 6), first: at - list.length, count: list.length });
         }
-        return { name: b.model, kind: b.kind, models: [], data, chunks, count: b.count, height: 1 };
+        return { name: b.model, kind: b.kind, models: [], cards: [], data, chunks, count: b.count, height: 1 };
     }
 
     /** the shared cell of a key: centre height averaged, reach (props up, metres) the most of any group */
