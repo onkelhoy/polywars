@@ -67,10 +67,22 @@ uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye, lampPosition, l
 uniform float fogDensity, toon, ambient, sunStrength, lampStrength, lampRange;
 uniform vec4 tint;
 uniform bool unlit, mirrored;
+// surface (instanced props): soft toon bands, world space grit, gloss; all 0 = off
+uniform float bands, soft, grit, gloss;
+uniform bool surfaced;
 out vec4 outColor;
 ${TEXTURED_FRAGMENT_GLSL}
+float hash3(vec3 p) { p = fract(p * vec3(.1031, .1030, .0973)); p += dot(p, p.yxz + 33.33); return fract((p.x + p.y) * p.z); }
+float vnoise(vec3 p) {
+    vec3 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hash3(i), hash3(i + vec3(1, 0, 0)), f.x), mix(hash3(i + vec3(0, 1, 0)), hash3(i + vec3(1, 1, 0)), f.x), f.y),
+               mix(mix(hash3(i + vec3(0, 0, 1)), hash3(i + vec3(1, 0, 1)), f.x), mix(hash3(i + vec3(0, 1, 1)), hash3(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
 void main() {
     vec4 base = texturedColor(vColor * tint);
+    // grit: a few % brightness from world space noise, so it stays put when the camera moves
+    if (grit > 0.0) base.rgb *= 1.0 + grit * ((vnoise(vWorld * 1.7) * .6 + vnoise(vWorld * 6.3) * .4) * 2.0 - 1.0);
     // canvases composite premultiplied alpha
     if (unlit) { vec3 c = pow(base.rgb, vec3(1.0 / 2.2)); outColor = vec4(c * base.a, base.a); return; }
     vec3 n = texturedNormal(normalize(gl_FrontFacing != mirrored ? vNormal : -vNormal), vWorld);
@@ -80,10 +92,15 @@ void main() {
     float fall = clamp(1.0 - length(toLamp) / max(lampRange, 1e-4), 0.0, 1.0);
     float lamp = max(dot(n, normalize(toLamp)), 0.0) * fall * fall;
     if (toon > 0.0) { sun = floor(sun * toon + 0.5) / toon; lamp = floor(lamp * toon + 0.5) / toon; }
+    else if (bands > 0.0) { float x = sun * bands, f = floor(x), w = max(soft, .001) * .5; sun = (f + smoothstep(.5 - w, .5 + w, x - f)) / bands; }
     vec3 hemi = mix(ground, sky, n.y * 0.5 + 0.5) * ambient * texturedAo();
     // small view-facing highlight so dark metal still reads
     vec3 v = normalize(eye - vWorld);
     float spec = pow(max(dot(n, normalize(normalize(sunDirection) + v)), 0.0), 32.0) * 0.25 * sunStrength * texturedSpec();
+    // surfaced props: matte unless glossy (no plastic sheen)
+    if (surfaced) spec = 0.0;
+    // gloss: a soft edged sun highlight, banded like the light
+    if (gloss > 0.0) spec += smoothstep(.45, .6, pow(max(dot(n, normalize(normalize(sunDirection) + v)), 0.0), 24.0)) * gloss * sunStrength * step(0.001, sun);
     vec3 lit = base.rgb * (hemi + sunColor * sun * sunStrength + lampColor * lamp * lampStrength) + sunColor * spec;
     float d = length(vWorld - eye);
     float fog = 1.0 - exp(-d * fogDensity);

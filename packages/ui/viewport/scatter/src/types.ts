@@ -12,6 +12,10 @@ export type ScatterOptions = {
     fade: number;
     /** wind: x z direction and strength (top sway in metres per metre of height) */
     wind: { direction: Vec2; strength: number };
+    /** prop surface (see `@polywar/renderer` `Surface`): toon bands, soft edges, world space grit */
+    surface: { bands: number; soft: number; grit: number };
+    /** sun highlight 0..1 per prop kind (missing = matte) */
+    gloss: Record<string, number>;
 };
 
 /** What the scatter needs from a camera; `@papit/game-engine`'s `Camera` fits. */

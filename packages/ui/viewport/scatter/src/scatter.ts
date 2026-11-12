@@ -9,6 +9,8 @@ export const DEFAULTS: ScatterOptions = {
     distance: { tree: 650, rock: 320, cactus: 380, bush: 260, deadwood: 200, plant: 110, flower: 85, grass: 70, water: 140, default: 200 },
     fade: .15,
     wind: { direction: [1, .3], strength: .03 },
+    surface: { bands: 3, soft: .35, grit: .04 },
+    gloss: {},
 };
 
 type Chunk = { x: number; y: number; z: number; radius: number; first: number; count: number };
@@ -28,7 +30,7 @@ export class Scatter {
 
     /** `url(model)` says where a model's glb is */
     constructor(readonly renderer: Renderer, readonly url: (model: string) => string, options: Partial<ScatterOptions> = {}) {
-        this.o = { ...DEFAULTS, ...options, distance: { ...DEFAULTS.distance, ...options.distance } };
+        this.o = { ...DEFAULTS, ...options, distance: { ...DEFAULTS.distance, ...options.distance }, surface: { ...DEFAULTS.surface, ...options.surface } };
     }
 
     get options(): Readonly<ScatterOptions> { return this.o; }
@@ -64,7 +66,7 @@ export class Scatter {
             // runs of neighbouring visible chunks
             let first = -1, count = 0;
             const flush = () => {
-                if (count) for (const p of parts) { r.drawInstanced(p.mesh, p.matrix, { buffer: g.buffer, first, count, time, wind, swayHeight: g.height, fade }, { maps: p.maps }); this.calls++; }
+                if (count) for (const p of parts) { r.drawInstanced(p.mesh, p.matrix, { buffer: g.buffer, first, count, time, wind, swayHeight: g.height, fade, surface: { ...this.o.surface, gloss: this.o.gloss[g.kind] ?? 0 } }, { maps: p.maps }); this.calls++; }
                 this.drawn += count;
                 first = -1; count = 0;
             };

@@ -64,13 +64,19 @@ export type DrawOptions = { joints?: Float32Array; tint?: [number, number, numbe
  * Instances for `drawInstanced`: `STRIDE` floats each (x y z scale yaw tint sway, one free) in `buffer`, from instance `first`.
  * `wind`: x z direction + strength, `swayHeight`: model height that sways fully, `fade`: start / end metres (instances shrink away), `time` seconds.
  */
-export type Instances = { buffer: WebGLBuffer; first: number; count: number; time?: number; wind?: Vec3; swayHeight?: number; fade?: [number, number] };
+export type Instances = { buffer: WebGLBuffer; first: number; count: number; time?: number; wind?: Vec3; swayHeight?: number; fade?: [number, number]; surface?: Partial<Surface> };
+/**
+ * Instanced prop surface: `bands` toon bands with `soft` edges 0..1 (0 = light's own `toon` / smooth),
+ * `grit` brightness noise in world space 0..1 (a few % is plenty), `gloss` sun highlight 0..1.
+ * Given a surface, the default view highlight is off (matte unless `gloss`).
+ */
+export type Surface = { bands: number; soft: number; grit: number; gloss: number };
 export const INSTANCE_STRIDE = 8;
 
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
-    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", ...TEXTURED_UNIFORMS];
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", ...TEXTURED_UNIFORMS];
 
 let renderers = 0;
 
@@ -140,6 +146,12 @@ export class Renderer {
         gl.uniform2fv(p.uniforms.fade, i.fade ?? [0, 0]);
         gl.uniform1f(p.uniforms.time, i.time ?? 0);
         gl.uniform1f(p.uniforms.swayHeight, i.swayHeight ?? 1);
+        const f = i.surface ?? {};
+        gl.uniform1f(p.uniforms.bands, f.bands ?? 0);
+        gl.uniform1f(p.uniforms.soft, f.soft ?? 0);
+        gl.uniform1f(p.uniforms.grit, f.grit ?? 0);
+        gl.uniform1f(p.uniforms.gloss, f.gloss ?? 0);
+        gl.uniform1i(p.uniforms.surfaced, i.surface ? 1 : 0);
         bindMaps(gl, p.uniforms, options.maps);
         gl.bindVertexArray(mesh.vao);
         gl.bindBuffer(gl.ARRAY_BUFFER, i.buffer);
