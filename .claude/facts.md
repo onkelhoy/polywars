@@ -32,7 +32,9 @@ Knowledge that outlives a plan. Trust code over this.
 - Forest cores: `EcosystemOptions.core` (depth into a core biome) scales group size / density / spacing (`group.core`). Clearings: `biomes[b].open` share + `clearings` noise, only grass (ground not tinted).
 - Ground look: flat pixel patches in `terrain-material` (`look.paint`: washes, pixel cell size, rim + grain off by default, light bands bent into patch shapes, billowy biome borders from a biome grid texture `material.biomes(map)`); gloss `look.gloss` (rock, wet via `toWater`). Props: renderer `Surface` (bands, soft, grit, gloss) via scatter `surface` / `gloss` per kind.
 - Prop LODs: folder `lod.json` (`ratios`) → `npm run assets` writes `<name>.lod<n>.glb` (`tools/blender/lod.py`, min 48 tris). Scatter `lods` (parts of the kind's distance, cell near edge) picks the level. Scatter frame: shared 64 m cells culled once, visible props packed per model + lod into one stream buffer (re-uploaded only when the pick changes), one call per model / lod / part; `modelUrl(list, name, lod)`.
-- Play: `walk` controller (viewport-camera), `pw-viewport` `mode="walk"` + `walking.ground`, Esc fires `walkexit`.
+- Play: `walk` controller (viewport-camera), `pw-viewport` `mode="walk"` + `walking.ground`, Esc (or touch ✕) fires `walkexit`.
+- Viewport vs viewport-camera: `@polywar/viewport` (`<pw-viewport>`) is the stage element (canvas, engine, mode bar, overlay, touch controls via `@papit/joystick`); `@polywar/viewport-camera` only the controllers (`panZoom`, `fly`, `walk`, `TouchInput`), usable without the element.
+- Dev server import maps are built at start: restart it after adding a dependency or renaming a package.
 - Headless browser checks: playwright chromium is installed (`node_modules/playwright`).
 
 ## Layout (2026-11-12)

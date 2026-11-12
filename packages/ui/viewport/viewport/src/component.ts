@@ -4,8 +4,9 @@ import { Camera, GameEngine, GameObject, type Layer3D } from "@papit/game-engine
 
 // local
 import sheet from "./style.css" with { type: "css" };
+import "@papit/joystick";
 import { fly, panZoom, walk } from "@polywar/viewport-camera";
-import type { PanMode, WalkSetting } from "@polywar/viewport-camera";
+import type { PanMode, TouchInput, WalkSetting } from "@polywar/viewport-camera";
 import type { Color, ViewportMode } from "./types";
 
 /**
@@ -29,6 +30,8 @@ export class Viewport extends CustomElement {
     @property({ type: Number }) far: number = 1000;
     /** render at most this many pixels per CSS pixel (phones are 3x: 9x the pixels to shade); 0 = the device's */
     @property({ type: Number, attribute: "max-pixel-ratio", after: function (this: Viewport) { this.applyScale(); } }) maxPixelRatio: number = 0;
+    /** on screen controls (`@papit/joystick`) in walk / fly: `auto` on touch screens, `on`, `off` */
+    @property({ rerender: true }) touch: "auto" | "on" | "off" = "auto";
     /** hide the mode bar */
     @property({ type: Boolean, attribute: "no-bar" }) noBar: boolean = false;
     /** hide the direction arrows (bottom-left); the bar's "axes" button toggles them too */
@@ -43,6 +46,23 @@ export class Viewport extends CustomElement {
     walking?: Omit<WalkSetting, "exit">;
     /** the mode `walk` returns to */
     private walkFrom: ViewportMode = "pan";
+    /** what the controllers read each frame: the overlay's stick and buttons (looked up live, they come and go with the mode) */
+    private touchInput: TouchInput = (() => {
+        const root = () => this.shadowRoot;
+        const buttons = new Proxy({} as Record<string, { pressed: boolean } | undefined>, {
+            get: (_, name) => root()?.querySelector<HTMLElement & { pressed: boolean }>(`.touch [name="${String(name)}"]`) ?? undefined,
+        });
+        return {
+            get stick() { return root()?.querySelector<HTMLElement & { x: number; y: number }>(".touch pap-joystick") ?? undefined; },
+            buttons,
+        };
+    })();
+
+    /** on screen controls showing now */
+    get touching() {
+        const on = this.touch === "on" || (this.touch === "auto" && matchMedia("(pointer: coarse)").matches);
+        return on && (this.mode === "walk" || this.mode === "fly");
+    }
 
     /** called every frame before drawing, `dt` in seconds */
     tick?: (dt: number, demo: Viewport) => void;
@@ -116,8 +136,8 @@ export class Viewport extends CustomElement {
         const target = reset || !old ? this.start.target : kept;
         if (this.mode === "walk" && !this.walking) { this.mode = "pan"; return; }
         if (this.mode !== "walk") this.walkFrom = this.mode;
-        const controller = this.mode === "walk" ? walk({ ...this.walking!, exit: () => { this.mode = this.walkFrom; this.dispatchEvent(new Event("walkexit")); } })
-            : this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target, pan: this.pan, max: this.maxDistance });
+        const controller = this.mode === "walk" ? walk({ ...this.walking!, touch: this.touchInput, exit: this.exitWalk })
+            : this.mode === "fly" ? fly({ speed: this.speed, touch: this.touchInput }) : panZoom({ pivot: target, pan: this.pan, max: this.maxDistance });
         this.pivot = "pivot" in controller ? controller.pivot : undefined;
         const camera = new Camera({ near: this.near, far: this.far, controllers: [controller] });
         camera.position.set(pose.position);
@@ -213,6 +233,8 @@ export class Viewport extends CustomElement {
         dot.style.transform = `translate(${s[0]}px, ${s[1]}px)`;
     }
 
+    private exitWalk = () => { if (this.mode !== "walk") return; this.mode = this.walkFrom; this.dispatchEvent(new Event("walkexit")); };
+    private handleexit = () => { if (this.mode === "walk") this.exitWalk(); else this.mode = "pan"; };
     private handleorigin = () => { this.noOrigin = !this.noOrigin; };
     private handleaxes = () => { this.noAxes = !this.noAxes; };
     private handlemode = (mode: ViewportMode) => () => { this.mode = mode; };
@@ -222,7 +244,23 @@ export class Viewport extends CustomElement {
             <div class="stage" part="stage"><canvas part="canvas"></canvas></div>
             ${this.noOrigin ? "" : html`<div class="origin" part="origin"></div>`}
             <div class="panel" part="panel"><slot></slot></div>
-            ${this.noAxes ? "" : html`
+            ${this.touching ? html`
+                <div class="touch" part="touch">
+                    <pap-joystick class="move"></pap-joystick>
+                    <div class="buttons">
+                        ${this.mode === "walk" ? html`
+                            <pap-joystick-button name="jump">jump</pap-joystick-button>
+                            <pap-joystick-button name="run">run</pap-joystick-button>
+                        ` : html`
+                            <pap-joystick-button name="up">up</pap-joystick-button>
+                            <pap-joystick-button name="down">down</pap-joystick-button>
+                            <pap-joystick-button name="fast">fast</pap-joystick-button>
+                        `}
+                    </div>
+                    <button class="exit" @click="${this.handleexit}" aria-label="back">✕</button>
+                </div>
+            ` : ""}
+            ${this.noAxes || this.touching ? "" : html`
                 <svg class="axes" part="axes" viewBox="-32 -32 64 64">
                     <circle class="ring" r="30"></circle>
                     <g data-axis="0" class="x"><line x1="0" y1="0"></line><circle r="6"></circle><text>X</text></g>
@@ -236,9 +274,10 @@ export class Viewport extends CustomElement {
                     <button class="${this.mode === "fly" ? "on" : ""}" @click="${this.handlemode("fly")}">fly</button>
                     <button class="${this.noAxes ? "" : "on"}" @click="${this.handleaxes}">axes</button>
                     <button class="${this.noOrigin ? "" : "on"}" @click="${this.handleorigin}">origin</button>
-                    <span>${this.mode === "walk" ? "click to look · WASD walk · shift run · space jump · esc back"
+                    <span>${this.touching ? (this.mode === "walk" ? "stick walk · drag look" : "stick fly · drag look") : this.mode === "walk" ? "click to look · WASD walk · shift run · space jump · esc back"
                         : this.mode === "fly"
                         ? "click to look (esc frees) · right drag look · WASD · E/Q up/down · shift fast · wheel speed"
+                        : this.touch !== "off" && matchMedia("(pointer: coarse)").matches ? "drag turn · two fingers pan · pinch zoom"
                         : "drag turn · right/shift drag pan · wheel zoom"}</span>
                 </div>
             `}

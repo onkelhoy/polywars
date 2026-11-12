@@ -18,7 +18,9 @@ const waterScreen = new WaterScreen(layer);
 const nature = await loadNature();
 const hash = decodeURIComponent(location.hash.slice(1));
 // phones / tablets start at low (touch screen or a small one)
-if (matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 600) $('#quality').value = 'low';
+const phone = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 600;
+if (phone) { $('#quality').value = 'low'; document.body.classList.add('phone', 'folded'); }
+$('#menu').onclick = () => document.body.classList.toggle('folded');
 const world = new World(layer, renderer, nature, hash || {}, { quality: $('#quality').value });
 window.world = world;
 world.profile(true);
@@ -144,6 +146,7 @@ $('#play').onclick = () => {
     const cam = demo.camera?.position;
     if (cam && Math.abs(cam[0]) > size() / 2 || cam && Math.abs(cam[2]) > size() / 2) stand(0, 0);
     demo.mode = 'walk';
+    document.body.classList.add('folded');
 };
 demo.addEventListener('walkexit', () => world.grass.push([]));
 

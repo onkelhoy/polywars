@@ -105,3 +105,47 @@ canvas {
     border: 1px solid #000;
     pointer-events: none;
 }
+
+/* on screen controls (touch): stick area bottom left, buttons bottom right; the rest of the canvas looks */
+.touch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.touch .move {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 45%;
+    height: 55%;
+    pointer-events: auto;
+}
+
+.touch .buttons {
+    position: absolute;
+    right: 16px;
+    bottom: 56px;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 12px;
+    pointer-events: auto;
+}
+
+.touch pap-joystick-button {
+    font: 12px system-ui, sans-serif;
+}
+
+.touch .exit {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid oklch(100% 0 0 / .35);
+    background: oklch(0% 0 0 / .25);
+    color: white;
+    font-size: 18px;
+    pointer-events: auto;
+}

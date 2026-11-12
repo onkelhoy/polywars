@@ -14,3 +14,8 @@ label span { min-width: 3.5em; text-align: right; font-variant-numeric: tabular-
 .row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin: 3px 0; }
 .row input:not([type=checkbox]) { flex: 1; min-width: 0; }
 #minimap { width: 100%; aspect-ratio: 1; image-rendering: pixelated; cursor: crosshair; border-radius: 4px; }
+#menu { position: absolute; top: 8px; left: 8px; width: 40px; height: 40px; z-index: 1; border-radius: 6px; border: none; font-size: 18px; background: color-mix(in oklch, var(--background) 85%, transparent); color: var(--text); display: none; }
+/* phones: the panel folds behind the menu button, full width when open */
+body.phone #menu { display: block; }
+body.phone aside { top: 56px; width: auto; right: 8px; }
+body.phone.folded aside { display: none; }

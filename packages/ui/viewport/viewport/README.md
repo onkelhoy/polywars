@@ -7,6 +7,8 @@
 | `pan` | drag turns around the pivot, right / shift drag pans (`pan="screen"` in the view plane, default; `pan="ground"` over the ground, in-game style), `max-distance` zoom limit, wheel zooms. `look(from, to)` turns around `to` |
 | `fly` | click to look (Esc frees) or right drag, WASD / arrows along the view, E / space up, Q / C down, shift 4x, wheel = speed |
 
+Touch screens: pan turns with one finger, two fingers pan and pinch zoom. Walk / fly show `@papit/joystick` controls (`touch="auto"` default, `on`, `off`): a stick bottom left, buttons bottom right (walk: jump, run; fly: up, down, fast), ✕ top right goes back; a finger on the rest of the canvas looks. `max-pixel-ratio` caps the render scale (0 = the device's).
+
 ```html
 <pw-viewport mode="pan">
     <aside>…controls…</aside>

@@ -52,9 +52,10 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/web-component": "*",
     "@papit/game-engine": "*",
+    "@papit/joystick": "^0.0.1",
     "@papit/vector": "*",
+    "@papit/web-component": "*",
     "@polywar/viewport-camera": "*"
   },
   "peerDependencies": {
@@ -66,12 +67,12 @@
     }
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
-    "playwright": "1.64.1",
-    "typescript": "5.9.3",
     "@papit/theme": "*",
+    "@playwright/test": "1.64.1",
     "@polywar/3d-asset-preview": "*",
-    "@polywar/renderer": "*"
+    "@polywar/renderer": "*",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3"
   },
   "browserslist": [
     "defaults",
