@@ -19,6 +19,7 @@ const nature = await loadNature();
 const hash = decodeURIComponent(location.hash.slice(1));
 const world = new World(layer, renderer, nature, hash || {});
 window.world = world;
+world.profile(true);
 const { terrain, ecosystem: eco } = world;
 
 // ---- nature sliders: [path, min, max, step] into the ecosystem options ----
@@ -157,7 +158,8 @@ demo.tick = dt => {
     const cam = demo.camera?.position, counts = Object.entries(eco.counts).filter(([, v]) => v).map(([k, v]) => `${k} ${v}`).join(' · ');
     $('#info').value = `${eco.total} props (${eco.batches.length} models) grown in ${eco.time.toFixed(0)} ms\n${counts}\n`
         + `${world.scatter.drawn} props drawn (lod ${world.scatter.perLod.join(" / ")}) · ${Math.round(world.scatter.triangles / 1000)}k tris · ${world.scatter.calls} calls · ${world.grass.drawn} tufts (${world.grass.count} planted)\n`
-        + `${rate.toFixed(0)} fps · ${cam ? terrain.biomeAt(cam[0], cam[2]) ?? '-' : '-'} below`;
+        + Object.entries(world.stats).map(([k, s]) => `${k} ${s.calls} calls ${Math.round(s.triangles / 1000)}k tris ${s.ms.toFixed(1)} ms`).join(' · ') + '\n'
+        + `${demo.layer.width}×${demo.layer.height} px · ${rate.toFixed(0)} fps · ${cam ? terrain.biomeAt(cam[0], cam[2]) ?? '-' : '-'} below`;
 };
 demo.draw = camera => {
     const under = camera.worldPosition && terrain.underwater(camera.worldPosition);

@@ -1,7 +1,7 @@
 # Plan: optimise + bigger world
 
 ## Where we are
-`feature/ecosystem` merged into `main` (2026-11-12). All tasks done; waiting for the owner (look check, then "prepare PR"). Branch: `feature/optimise`.
+`feature/ecosystem` merged into `main` (2026-11-12). o1-o5 done. Now: phone performance (p1-p5). Branch: `feature/optimise`.
 
 ## Tasks
 - o1. [x] No rock gloss: rock props matte (world `GLOSS`), steep rock ground gloss 0 (terrain-material `look.gloss.rock`). Wet ground by water keeps its slight gloss.
@@ -9,3 +9,10 @@
 - o3. [x] Prop LODs (scatter): per chunk pick LOD 0/1/2 by distance (per kind thresholds, quality scaled); far trees use lod2 instead of shrinking away, so tree distance can go further. Log tris / calls per frame in the world view stats.
 - o4. [x] Bigger feel: aerial haze (distance fog tinted to the sky, on terrain, water, props, grass) so far land reads far; default map 2048 → 3072 m with finer ground on every quality (resolution up a step, terrain LOD keeps it cheap); camera `far` raised to fit. Check walk + editor views by eye.
 - o5. [x] Fluffier grass: world grass tufts bigger again (sizeScale 2 → ~2.6, density kept)
+
+## Phone performance (confirmed 2026-11-12: "do everything you can, must run on a phone")
+- p1. [x] Stats per system (terrain / water / props / grass: calls, tris, ms) in the world view, to see what costs.
+- p2. [ ] Render scale: cap the pixel ratio (phones render at 3x now?), lower on low quality.
+- p3. [ ] Props: pack visible instances per model + lod into one stream buffer each frame → one call per model / lod / part.
+- p4. [ ] Fix the next biggest cost p1 shows (terrain chunks, water, grass).
+- p5. [ ] Phones start at low quality (touch / small screen), low = cheaper everywhere.

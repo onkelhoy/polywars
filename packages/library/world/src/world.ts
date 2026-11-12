@@ -91,16 +91,28 @@ export class World {
     heightAt(x: number, z: number) { return this.terrain.groundAt(x, z); }
 
     draw(view: View, light: Light, time: number) {
+        const p = this.profiler;
+        p?.begin("terrain");
         this.terrain.draw(view, light, time);
+        p?.end();
         if (!this.data) return;
+        p?.begin("props");
         if (this.v.props) this.scatter.draw(view, time);
+        p?.end();
+        p?.begin("grass");
         if (this.v.grass)
         {
             const e = view.worldPosition;
             if (e) this.grass.follow(e.x, e.z);
             this.grass.draw(view, light, time);
         }
+        p?.end();
     }
+
+    /** Count draw calls / triangles and CPU ms per system (dev): `world.profile(true)`, read `world.stats`. */
+    profile(on: boolean) { this.profiler = on ? new Profiler(this.renderer.gl) : undefined; }
+    get stats() { return this.profiler?.stats ?? {}; }
+    private profiler?: Profiler;
 
     destroy() {
         this.terrain.destroy();
@@ -138,5 +150,43 @@ export class World {
             grow: (x, z) => this.ecosystem.grassAt(x, z, out),
             window: WINDOW[this.v.quality],
         });
+    }
+}
+
+type Stat = { calls: number; triangles: number; ms: number };
+
+/** Wraps the gl draw functions to count calls / triangles per named section (CPU time per section too). */
+class Profiler {
+    stats: Record<string, Stat> = {};
+    private now?: Stat;
+    private at = 0;
+
+    constructor(gl: WebGL2RenderingContext) {
+        // wrap once per context; a new profiler takes over the wrappers
+        const g = gl as any;
+        if (g.__profiler) { g.__profiler.at = this; return; }
+        const owner = g.__profiler = { at: this as Profiler };
+        const wrap = (name: string, n: (a: any[]) => [number, number]) => {
+            const orig = g[name].bind(gl);
+            g[name] = (...a: any[]) => { owner.at.count(...n(a)); return orig(...a); };
+        };
+        wrap("drawArrays", a => [a[2], 1]);
+        wrap("drawElements", a => [a[1], 1]);
+        wrap("drawArraysInstanced", a => [a[2], a[3]]);
+        wrap("drawElementsInstanced", a => [a[1], a[4]]);
+    }
+
+    count(n: number, instances = 1) { if (this.now) { this.now.calls++; this.now.triangles += n / 3 * instances; } }
+
+    begin(name: string) {
+        const s = this.stats[name] ??= { calls: 0, triangles: 0, ms: 0 };
+        s.calls = s.triangles = 0;
+        this.now = s;
+        this.at = performance.now();
+    }
+
+    end() {
+        if (this.now) this.now.ms = this.now.ms * .9 + (performance.now() - this.at) * .1;
+        this.now = undefined;
     }
 }
