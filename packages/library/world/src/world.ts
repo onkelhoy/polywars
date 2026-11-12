@@ -1,5 +1,5 @@
 import type { Layer3D } from "@papit/game-engine";
-import { Ecosystem, DEFAULTS as ECOSYSTEM, isCode as isEcoCode, type EcosystemSettings } from "@polywar/ecosystem";
+import { Ecosystem, DEFAULTS as ECOSYSTEM, decode as decodeEco, isCode as isEcoCode, type EcosystemSettings } from "@polywar/ecosystem";
 import { Grass } from "@polywar/grass";
 import { modelUrl, type NatureList } from "@polywar/nature";
 import type { Light, Renderer, View } from "@polywar/renderer";
@@ -46,7 +46,7 @@ export class World {
         if (ecosystem && !isEcoCode(ecosystem)) throw new Error(`not an ecosystem code: "${ecosystem}"`);
         return {
             terrain: terrain ? decode<TerrainSettings>(terrain, TERRAIN) : {},
-            ecosystem: ecosystem ? decode<EcosystemSettings>(ecosystem, ECOSYSTEM) : {},
+            ecosystem: ecosystem ? decodeEco<EcosystemSettings>(ecosystem, ECOSYSTEM) : {},
         };
     }
 

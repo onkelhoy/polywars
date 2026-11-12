@@ -37,9 +37,16 @@ Grouped by feature. `[ ]` open, `[x]` done.
   - [ ] `cross` + `mesh` sources
   - [ ] Check by hand: `cross` + `mesh`, `smooth` style, quality switch, sprite PNG override
   - [ ] Optional `noise` texture (url/image) + shared noise cache
-- [ ] Biomes: classification done (terrain `biome` grid, `biomeAt`); props per biome open
+- [x] Biomes: classification done (terrain `biome` grid, `biomeAt`); props per biome: `@polywar/ecosystem`
 - [ ] Modular city/village builder (reusable, own package)
-- [ ] Nature placement
+- [x] Nature placement: `@polywar/nature` (hand kept `nature.json`), `@polywar/ecosystem`, `@polywar/scatter`, `@polywar/world`
+  - [ ] Far trees: low detail stand-ins / impostors (now they shrink away at the kind's distance)
+  - [ ] Fewer draw calls: merge chunks across rows / one buffer per frame (now ~300-600 calls)
+  - [ ] Ecosystem grow in a worker (~0.2-0.4 s on the main thread)
+  - [ ] Assets missing: mushrooms, ferns, reeds, desert shrubs, more flowers (listed in `nature.json` `missing`)
+  - [ ] Grass colour matched to the terrain biome colour under it
+  - [ ] Ambient life near the camera: fireflies at night, butterflies, birds / seagulls (arrow-warfare `birds.ts`)
+  - [ ] Animals in the world (rigs exist), farms / castles / fields (building-builder first)
 
 ## NPC
 - [ ] Bots, enemy types
