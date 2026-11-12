@@ -1,6 +1,6 @@
 {
     "about": "npm run assets writes <name>.lod1.glb, ... per model here (tools/blender/lod.py): `ratios` of the triangles kept, then a convex `hull` of about that many points, then a camera facing `card` (per name prefix)",
-    "ratios": [0.5, 0.25, 0.1],
+    "ratios": [0.1],
     "hull": 10,
     "card": { "default": "quad", "PineTree": "triangle", "Grass": "none", "Flower": "none", "Plant": "none", "Clover": "none", "Lilypad": "none" }
 }

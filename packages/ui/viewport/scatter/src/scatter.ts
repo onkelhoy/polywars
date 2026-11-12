@@ -8,7 +8,7 @@ export const DEFAULTS: ScatterOptions = {
     quality: "medium",
     distance: { tree: 950, rock: 420, cactus: 500, bush: 340, deadwood: 260, plant: 110, flower: 85, grass: 70, water: 140, default: 200 },
     fade: .15,
-    lods: [.04, .1, .2, .35, .55],
+    lods: [.04, .35, .55],
     wind: { direction: [1, .3], strength: .03 },
     surface: { bands: 3, soft: .35, grit: .04 },
     gloss: {},
