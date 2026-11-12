@@ -18,7 +18,7 @@ Fixes + material styles (confirmed 2026-11-12, branch `restructure-materials`; r
 - f2. [x] Grass defaults: medium = owner's code `density 47, distance 42, sizeScale 1.55, framerate 7 (pixel style), shape mixed`; low/high scaled alike.
 - f3. [x] Clouds: view sliders for speed, direction, contrast, threshold, height, diverge (only scale/min now); default speed faster (.01 ≈ 0.4 m/s, looks frozen).
 - f4. [x] 3d-demo pivot: `panZoom.start` sets pivot to the ground hit (`controllers.ts`), so `look(from, to)` orbits the wrong point. Pivot = `to`. Preview already centres the mesh (bbox), so it then orbits the mesh centre.
-- f5. [ ] 3d-demo `pan="ground | screen"`: screen = pan in the view plane (up/down too). 3d-asset-preview (so mesh-bake) uses screen.
+- f5. [x] 3d-demo `pan="ground | screen"`: screen = pan in the view plane (up/down too). 3d-asset-preview (so mesh-bake) uses screen.
 - f6. [ ] Origin dot (yellow, black border, Blender-like) in 3d-demo, toggle in bar, settable position; preview puts it on the asset's own origin.
 - f7. [ ] Materials gallery with shading styles: Renderer/Model/Grid out of 3d-asset-preview into `packages/render/`; its shading as materials (lit, toon 2/3 bands, unlit, normal-mapped); each material on a Blender-like preview ball (grass keeps its patch). Water etc. later as `render/materials/*`. Gallery view: `packages/stage/gallery` view `materials`.
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).

@@ -4,7 +4,7 @@
 
 | Mode | Input |
 | --- | --- |
-| `pan` | drag turns around the pivot, right / shift drag pans over the ground, wheel zooms |
+| `pan` | drag turns around the pivot, right / shift drag pans (`pan="ground"` over the ground, `pan="screen"` in the view plane), wheel zooms. `look(from, to)` turns around `to` |
 | `fly` | click to look (Esc frees) or right drag, WASD / arrows along the view, E / space up, Q / C down, shift 4x, wheel = speed |
 
 ```html
@@ -23,7 +23,7 @@ demo.tick = dt => { /* update */ };
 demo.draw = camera => { renderer.begin(camera, demo.background); /* draw */ };
 ```
 
-Properties: `mode` (`pan | fly`), `speed`, `near`, `far`, `no-bar` (hide the mode bar), `no-axes` (hide the direction arrows bottom-left: X red, Y green, Z blue, faded = pointing away; the bar's `axes` button toggles them). Read: `engine`, `layer`, `gl`, `camera`, `time`, `background`.
+Properties: `mode` (`pan | fly`), `pan` (`ground | screen`), `speed`, `near`, `far`, `no-bar` (hide the mode bar), `no-axes` (hide the direction arrows bottom-left: X red, Y green, Z blue, faded = pointing away; the bar's `axes` button toggles them). Read: `engine`, `layer`, `gl`, `camera`, `time`, `background`.
 The controllers are exported too (`fly`, `panZoom`) for any engine `Camera`.
 
 Used by the grass view and `pw-3d-asset-preview`.

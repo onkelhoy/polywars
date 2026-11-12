@@ -202,7 +202,7 @@ export class AssetPreview3D extends CustomElement {
     render() {
         const names = this.model?.animations.map(a => a.name ?? "") ?? [];
         return html`
-            <pw-3d-demo no-bar part="demo">
+            <pw-3d-demo no-bar pan="screen" part="demo">
             ${this.controls ? html`
                 <div class="bar" part="controls">
                     <div class="modes">

@@ -5,6 +5,7 @@ import { Camera, GameEngine, GameObject, type Layer3D } from "@papit/game-engine
 // local
 import sheet from "./style.css" with { type: "css" };
 import { fly, panZoom } from "./controllers";
+import type { PanMode } from "./controllers";
 import type { Color, DemoMode } from "./types";
 
 /**
@@ -17,6 +18,8 @@ export class Demo3D extends CustomElement {
     static sheet = sheet;
 
     @property({ rerender: true, after: function (this: Demo3D) { this.applyMode(); } }) mode: DemoMode = "pan";
+    /** pan mode drag: `ground` slides over the ground, `screen` moves in the view plane */
+    @property({ after: function (this: Demo3D) { this.applyMode(); } }) pan: PanMode = "ground";
     /** fly speed, units per second (the wheel changes it while flying) */
     @property({ type: Number }) speed: number = 5;
     @property({ type: Number }) near: number = .05;
@@ -37,6 +40,8 @@ export class Demo3D extends CustomElement {
     /** page background as rgba 0..1, follows the light / dark theme */
     background: Color = [0, 0, 0, 1];
     private start: { position: number[]; rotation: number[]; target?: [number, number, number] } = { position: [6, 5, 8], rotation: [-.45, .65, 0] };
+    /** pan mode's pivot */
+    private pivot?: { x: number; y: number; z: number } & ArrayLike<number>;
     private resolveReady!: () => void;
     /** resolves once the engine and its layer exist */
     readonly ready = new Promise<void>(r => this.resolveReady = r);
@@ -80,8 +85,10 @@ export class Demo3D extends CustomElement {
         if (!layer) return;
         const old = layer.camera;
         const pose = !reset && old ? { position: Array.from(old.position), rotation: Array.from(old.rotation) } : this.start;
-        const target = reset || !old ? this.start.target : undefined;
-        const controller = this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target });
+        const kept = this.pivot ? Array.from(this.pivot) as [number, number, number] : undefined;
+        const target = reset || !old ? this.start.target : kept;
+        const controller = this.mode === "fly" ? fly({ speed: this.speed }) : panZoom({ pivot: target, pan: this.pan });
+        this.pivot = "pivot" in controller ? controller.pivot : undefined;
         const camera = new Camera({ near: this.near, far: this.far, controllers: [controller] });
         camera.position.set(pose.position);
         camera.rotation.set(pose.rotation);

@@ -102,10 +102,13 @@ export type PanZoomSetting = {
     speed?: number;
     /** turn around this point (the distance is the camera's to it); default where the view hits the ground */
     pivot?: [number, number, number];
+    /** `ground` slides over the ground (y stays), `screen` moves in the view plane (up / down too) */
+    pan?: PanMode;
 };
+export type PanMode = "ground" | "screen";
 
 /**
- * Map style. Left drag turns around the pivot, right drag (or shift drag) pans over the ground, wheel zooms.
+ * Map style. Left drag turns around the pivot, right drag (or shift drag) pans (over the ground or in the view plane), wheel zooms.
  * Starts from the camera's current pose: the pivot is `pivot`, else where it looks at the ground (y = 0), or `distance` ahead.
  */
 export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivot: Vector3; distance: number } {
@@ -138,9 +141,12 @@ export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivo
                 if (turn) { yaw -= mx * sensitivity; pitch = clampPitch(pitch - my * sensitivity); return; }
                 // grab the ground: the point under the pointer follows it
                 const k = controller.distance * 2 * Math.tan((camera.fov || 1) / 2) / Math.max(element.clientHeight, 1);
-                const s = right(yaw), ahead = new Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
-                const q = controller.pivot;
-                q.set([q.x - s.x * mx * k + ahead.x * my * k, q.y, q.z - s.z * mx * k + ahead.z * my * k]);
+                const s = right(yaw), q = controller.pivot;
+                // ground: forward along the ground; screen: the camera's up
+                const v = setting.pan === "screen"
+                    ? new Vector3(Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch))
+                    : new Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+                q.set([q.x - s.x * mx * k + v.x * my * k, q.y + v.y * my * k, q.z - s.z * mx * k + v.z * my * k]);
             };
             const up = (e: PointerEvent) => { if (e.pointerId === id) id = null; };
             const wheel = (e: WheelEvent) => { e.preventDefault(); controller.distance = Math.min(Math.max(controller.distance * Math.exp(e.deltaY * speed), min), max); };
