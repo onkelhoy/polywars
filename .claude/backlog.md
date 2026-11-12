@@ -104,3 +104,5 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - `@papit/armature`: IK turns chain bones the shortest way, so twist drifts and a knee's hinge axis leaves the bend plane (Blender keeps it on the root/target/pole plane); `@polywar/skeleton` corrects it.
 - `@papit/web-component`: a re-render builds the template's custom elements again and runs `firstRender` on the detached copies (pw-3d-asset-preview now guards; character-preview creates its preview outside the template).
 - `@papit/game-engine`: no lit mesh renderer (polywar has `@polywar/renderer`); `Layer3D.createProgram` keeps the shader objects after linking.
+- [ ] papit report: `@papit/game-engine` Layer has no render scale / max pixel ratio (polywar sets `layer.setting.width/height` from `pw-3d-demo max-pixel-ratio` as a workaround)
+- [ ] Phone: touch controls for play mode (walk), world view panel too big on phones

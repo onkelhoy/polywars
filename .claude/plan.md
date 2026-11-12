@@ -1,7 +1,7 @@
 # Plan: optimise + bigger world
 
 ## Where we are
-`feature/ecosystem` merged into `main` (2026-11-12). o1-o5 done. Now: phone performance (p1-p5). Branch: `feature/optimise`.
+`feature/ecosystem` merged into `main` (2026-11-12). All done (o1-o5, p1-p5); waiting for the owner (phone check, then "prepare PR"). Branch: `feature/optimise`.
 
 ## Tasks
 - o1. [x] No rock gloss: rock props matte (world `GLOSS`), steep rock ground gloss 0 (terrain-material `look.gloss.rock`). Wet ground by water keeps its slight gloss.
@@ -15,4 +15,4 @@
 - p2. [x] Render scale: cap the pixel ratio (phones render at 3x now?), lower on low quality.
 - p3. [x] Props: pack visible instances per model + lod into one stream buffer each frame → one call per model / lod / part.
 - p4. [x] Terrain shader: fbm baked once into a 2048² R8 texture (mirrored), 8 fetches instead of ~160 hashes per ground pixel.
-- p5. [ ] Phones start at low quality (touch / small screen), low = cheaper everywhere.
+- p5. [x] Phones start at low quality (touch / small screen), low = cheaper everywhere.

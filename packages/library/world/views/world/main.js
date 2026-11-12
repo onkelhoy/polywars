@@ -17,7 +17,9 @@ renderer.light.sunDirection = [.45, .64, .62];
 const waterScreen = new WaterScreen(layer);
 const nature = await loadNature();
 const hash = decodeURIComponent(location.hash.slice(1));
-const world = new World(layer, renderer, nature, hash || {});
+// phones / tablets start at low (touch screen or a small one)
+if (matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 600) $('#quality').value = 'low';
+const world = new World(layer, renderer, nature, hash || {}, { quality: $('#quality').value });
 window.world = world;
 world.profile(true);
 const { terrain, ecosystem: eco } = world;
