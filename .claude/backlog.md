@@ -28,7 +28,8 @@ Grouped by feature. `[ ]` open, `[x]` done.
   - [x] LOD by distance (per chunk RTIN, skirts)
   - [x] Rivers (drainage tree, carved beds)
   - [x] Water: `@polywar/water` (waves, shore foam, gloss, ripples, caustics, underwater)
-  - [ ] Water by hand: tune foam / underwater look, renderer models not tinted under water
+  - [x] Water by hand: foam, glare, streaks, exact waterline
+  - [ ] Water: renderer models not tinted under water
   - [ ] Ocean mesh LOD (now one quad per mesh cell)
   - [ ] Share code helper shared by grass + terrain (copied now)
   - [ ] Mountains still a bit spiky at defaults: tune by hand
