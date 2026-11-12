@@ -26,6 +26,8 @@ gallery.items = [
     { name: "house 1", group: "village/houses", kind: "model", mesh },   // Mesh or Mesh[] (game-mesh)
     { name: "tower", group: "village/towers", kind: "model", gltf },     // in-memory glTF
     { name: "theme", group: "audio", kind: "audio", src: "/x.mp3" },
+    // a material: draws itself (Scene = layer => Drawable, see @polywar/3d-asset-preview), or a glb with maps
+    { name: "meadow", group: "materials/grass", kind: "material", scene: layer => new GrassPatch(layer) },
 ];
 ```
 
@@ -34,7 +36,7 @@ gallery.items = [
 | `location` | `/assets` | served folder with a `manifest.json`; `""` for none |
 | `tree` | `null` | an `Assets` tree (`{ name, assets: (Asset \| Assets)[] }`, `Asset = { name, file, size? }`) |
 | `items` | `[]` | extra `GalleryItem`s (`src`, `gltf` or `mesh`), shown last |
-| `kinds` | `model, audio, image` | kinds visible at start (`model`, `audio`, `image`, `source`, `other`) |
+| `kinds` | `model, material, audio, image, video` | kinds visible at start (`model`, `material`, `audio`, `image`, `video`, `source`, `other`) |
 | `search` | `""` | filters names and groups |
 
 Groups: `a/b/c` shows under heading "a", sub-heading "b/c". Manifest files use their folder.
@@ -53,3 +55,4 @@ Writes `<folder>/manifest.json` as an `Assets` tree. Also importable: `writeMani
 
 - `everything`: root `assets/` (`npm run assets` at the repo root serves it)
 - `generated`: procedural houses through `items` (no manifest)
+- `materials`: every material, click one for the preview + light panel: grass looks (`scene`) and baked mesh-bake surfaces (glb + maps)

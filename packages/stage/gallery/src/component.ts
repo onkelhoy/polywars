@@ -1,21 +1,21 @@
 // system
 import { CustomElement, html, property } from "@papit/web-component";
 import { GameEngine, GameObject, type Layer3D } from "@papit/game-engine";
-import type { GLTF } from "@papit/game-mesh";
 import "@papit/button";
 import "@papit/dialog";
 import type { Dialog } from "@papit/dialog";
 import "@polywar/3d-asset-preview";
-import { Model, Renderer, gltfFromMesh, type AssetPreview3D } from "@polywar/3d-asset-preview";
+import { Model, Renderer, gltfFromMesh, type AssetPreview3D, type Drawable, type TexturedGLTF } from "@polywar/3d-asset-preview";
 import { Matrix4 } from "@papit/matrix";
 
 // local
 import sheet from "./style.css" with { type: "css" };
 import type { Asset, AssetKind, Assets, GalleryItem, OpenEvent } from "./types";
 
-type Tile = { item: GalleryItem; stage?: HTMLElement; model?: Model; loading?: boolean; yaw: number; drag: number | null };
+type Tile = { item: GalleryItem; stage?: HTMLElement; model?: Model; drawable?: Drawable; loading?: boolean; yaw: number; drag: number | null };
 
-const KINDS: AssetKind[] = ["model", "audio", "image", "video", "source", "other"];
+const KINDS: AssetKind[] = ["model", "material", "audio", "image", "video", "source", "other"];
+const is3D = (kind: AssetKind) => kind === "model" || kind === "material";
 
 /**
  * A gallery of assets, grouped under headings.
@@ -35,7 +35,7 @@ export class Gallery extends CustomElement {
     @property({ after: function (this: Gallery) { this.load(); } }) location: string = "/assets";
     @property({ type: Object, attribute: false, after: function (this: Gallery) { this.sync(); } }) tree: Assets | null = null;
     @property({ type: Array, attribute: false, after: function (this: Gallery) { this.sync(); } }) items: GalleryItem[] = [];
-    @property({ type: Array, attribute: false, rerender: true }) kinds: AssetKind[] = ["model", "audio", "image", "video"];
+    @property({ type: Array, attribute: false, rerender: true }) kinds: AssetKind[] = ["model", "material", "audio", "image", "video"];
     @property({ rerender: true }) search: string = "";
 
     private manifestItems: GalleryItem[] = [];
@@ -98,10 +98,10 @@ export class Gallery extends CustomElement {
     private sync() {
         if (!this.gl) return;
         const all = new Set(this.all);
-        for (const [item, tile] of this.tiles) if (!all.has(item)) { tile.model?.destroy(); this.tiles.delete(item); }
+        for (const [item, tile] of this.tiles) if (!all.has(item)) { tile.model?.destroy(); tile.drawable?.destroy?.(); this.tiles.delete(item); }
         for (const item of all)
         {
-            if (item.kind !== "model" || this.tiles.has(item)) continue;
+            if (!is3D(item.kind) || this.tiles.has(item)) continue;
             this.tiles.set(item, { item, yaw: .6, drag: null });
         }
         this.requestUpdate();
@@ -119,9 +119,10 @@ export class Gallery extends CustomElement {
     }, { rootMargin: "400px" });
 
     private fetch(tile: Tile) {
-        if (tile.loading || tile.model || !this.gl) return;
+        if (tile.loading || tile.model || tile.drawable || !this.gl) return;
         tile.loading = true;
         const { item } = tile;
+        if (item.scene) { tile.drawable = item.scene(this.engine!.layers.main as Layer3D); return; }
         const gltf = toGLTF(item);
         const ready = gltf ? Promise.resolve(new Model(this.gl, gltf)) : item.src ? Model.load(this.gl, item.src) : null;
         ready?.then(m => { if (this.tiles.get(item) === tile) tile.model = m; else m.destroy(); }).catch(e => console.warn("pw-gallery:", item.src, e));
@@ -140,13 +141,24 @@ export class Gallery extends CustomElement {
         const time = this.engine!.time;
         for (const tile of this.tiles.values())
         {
-            const model = tile.model;
+            const model = tile.model, drawable = tile.drawable;
             const r = tile.stage?.isConnected ? tile.stage.getBoundingClientRect() : null;
-            if (!model || !r || r.bottom < box.top || r.top > box.bottom || r.width === 0) continue;
+            if ((!model && !drawable) || !r || r.bottom < box.top || r.top > box.bottom || r.width === 0) continue;
             const x = (r.left - box.left) * ratio, y = layer.height - (r.bottom - box.top) * ratio, w = r.width * ratio, h = r.height * ratio;
             gl.viewport(x, y, w, h);
             gl.scissor(x, y, w, h);
             gl.clear(gl.DEPTH_BUFFER_BIT);
+            if (drawable)
+            {
+                // draws itself: turn the camera around it instead
+                const radius = Math.max(Math.hypot(...drawable.size) / 2, .01), reach = radius / Math.sin(.75 / 2) * 1.05, y = drawable.size[1] / 2;
+                const eye: [number, number, number] = [Math.sin(-tile.yaw) * reach * .8, y + reach * .55, Math.cos(-tile.yaw) * reach * .8];
+                this.view.lookAt(eye, [0, y, 0], [0, 1, 0]);
+                this.projection.perspective(.75, w / h, reach * .02, reach * 10);
+                drawable.draw({ viewMatrix: this.view, projectionMatrix: this.projection, worldPosition: { x: eye[0], y: eye[1], z: eye[2] } }, this.renderer!.light, time);
+                continue;
+            }
+            if (!model) continue;
             const idle = model.animation("idle");
             if (idle) model.pose(idle, time);
             // far enough that the bounding sphere fits the tile (fov .75 rad)
@@ -184,18 +196,19 @@ export class Gallery extends CustomElement {
 
     /** open an item: 3D in pw-3d-asset-preview (near full screen), image/video as a large preview */
     open(item: GalleryItem) {
-        if (!["model", "image", "video"].includes(item.kind)) return;
+        if (!["model", "material", "image", "video"].includes(item.kind)) return;
         this.opened = item;
         const dialog = this.dialog;
         dialog.header = `${item.group ? item.group + "/" : ""}${item.name}`;
         dialog.className = item.kind;
         let content: HTMLElement;
-        if (item.kind === "model")
+        if (is3D(item.kind))
         {
             const preview = content = document.createElement("pw-3d-asset-preview") as AssetPreview3D;
             preview.setAttribute("controls", "");
             preview.setAttribute("grid", "");
             preview.setAttribute("mode", "orbit");
+            if (item.scene) preview.scene = item.scene;
             const gltf = toGLTF(item);
             if (gltf) preview.gltf = gltf;
             else if (item.src) preview.setAttribute("src", item.src);
@@ -252,13 +265,13 @@ export class Gallery extends CustomElement {
 
     private figure(item: GalleryItem) {
         const caption = html`<figcaption><button class="name" title="copy: ${item.name}" @click="${this.handlecopy(item.name)}">${item.name}</button><small>${item.note ?? (item.size ? size(item.size) : "")}</small></figcaption>`;
-        if (item.kind === "model")
+        if (is3D(item.kind))
         {
             const tile = this.tiles.get(item);
             const id = `tile-${[...this.tiles.keys()].indexOf(item)}`;
             if (tile) requestAnimationFrame(() => {
                 const stage = this.shadowRoot!.getElementById(id) ?? undefined;
-                if (stage && stage !== tile.stage) { tile.stage = stage; if (!tile.model) this.observer.observe(stage); }
+                if (stage && stage !== tile.stage) { tile.stage = stage; if (!tile.model && !tile.drawable) this.observer.observe(stage); }
             });
             return html`<figure class="model">
                 <div class="stage" id="${id}" @pointerdown="${tile ? this.dragstart(tile) : null}"></div>
@@ -300,6 +313,7 @@ export class Gallery extends CustomElement {
 
 const EXTENSIONS: Record<AssetKind, string[]> = {
     model: [".glb", ".gltf"],
+    material: [],
     source: [".blend", ".fbx", ".obj", ".mtl"],
     audio: [".mp3", ".wav", ".ogg", ".m4a", ".flac"],
     video: [".mp4", ".webm", ".mov", ".m4v"],
@@ -319,7 +333,7 @@ export function flatten(tree: Assets, group = tree.name): GalleryItem[] {
         : [{ name: (a as Asset).name.replace(/\.[^.]+$/, ""), group, kind: kindOf((a as Asset).file), src: (a as Asset).file, size: (a as Asset).size }]);
 }
 
-function toGLTF(item: GalleryItem): GLTF | null {
+function toGLTF(item: GalleryItem): TexturedGLTF | null {
     if (item.gltf) return item.gltf;
     if (item.mesh) return gltfFromMesh(...(Array.isArray(item.mesh) ? item.mesh : [item.mesh]));
     return null;

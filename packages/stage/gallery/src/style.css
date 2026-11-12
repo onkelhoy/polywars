@@ -129,14 +129,16 @@ canvas.models {
 }
 
 /* preview: 3D takes 95% of the screen, image/video a large preview sized to the media */
-pap-dialog.model::part(dialog) {
+pap-dialog.model::part(dialog),
+pap-dialog.material::part(dialog) {
     width: 95vw;
     height: 95dvh;
     max-width: none;
     max-height: none;
 }
 
-pap-dialog.model pw-3d-asset-preview {
+pap-dialog.model pw-3d-asset-preview,
+pap-dialog.material pw-3d-asset-preview {
     display: block;
     height: 100%;
     min-height: 0;

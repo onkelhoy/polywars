@@ -78,7 +78,8 @@
     "typescript": "5.9.3",
     "@papit/theme": "*",
     "@papit/translator": "*",
-    "@papit/codeblock": "*"
+    "@papit/codeblock": "*",
+    "@polywar/grass-material": "*"
   },
   "browserslist": [
     "defaults",
