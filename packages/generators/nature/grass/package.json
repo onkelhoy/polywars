@@ -52,7 +52,8 @@
   "dependencies": {
     "@papit/game-engine": "*",
     "@papit/matrix": "*",
-    "@papit/random": "*"
+    "@papit/random": "*",
+    "@polywar/grass-material": "*"
   },
   "devDependencies": {
     "@papit/game-mesh": "*",
@@ -61,7 +62,8 @@
     "@polywar/3d-asset-preview": "*",
     "@polywar/3d-demo": "*",
     "playwright": "1.64.1",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "@polywar/renderer": "*"
   },
   "browserslist": [
     "defaults",

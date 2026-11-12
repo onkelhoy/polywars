@@ -1,0 +1,161 @@
+:host {
+    display: block;
+    position: relative;
+    color: var(--text);
+}
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--background, Canvas);
+}
+
+input[type=search] {
+    min-width: 200px;
+    padding: 4px 8px;
+    font: inherit;
+}
+
+section {
+    padding: 0 16px;
+}
+
+h2 {
+    font-size: 1.1rem;
+    margin: 28px 0 4px;
+    text-transform: capitalize;
+}
+
+h3 {
+    font-size: .9rem;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    opacity: .7;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 8px;
+    background: color-mix(in oklch, currentColor 5%, transparent);
+}
+
+/* name takes all free width and truncates; a long note wraps onto its own line */
+figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 2px 8px;
+    font-size: .85rem;
+    min-width: 0;
+}
+
+figcaption .name {
+    flex: 1 1 6em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: copy;
+}
+
+figcaption .name:hover {
+    text-decoration: underline;
+}
+
+figcaption .name.copied {
+    color: oklch(70% .17 150);
+}
+
+figcaption small {
+    flex: 0 1 auto;
+    min-width: 0;
+    opacity: .6;
+    text-align: end;
+    margin-inline-start: auto;
+}
+
+.stage {
+    aspect-ratio: 1;
+    cursor: grab;
+    touch-action: none;
+}
+
+.image img, .video video {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+}
+
+audio {
+    width: 100%;
+}
+
+/* one canvas over the page draws every model tile; clicks pass through */
+canvas.models {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* preview: 3D takes 95% of the screen, image/video a large preview sized to the media */
+pap-dialog.model::part(dialog),
+pap-dialog.material::part(dialog) {
+    width: 95vw;
+    height: 95dvh;
+    max-width: none;
+    max-height: none;
+}
+
+pap-dialog.model pw-3d-asset-preview,
+pap-dialog.material pw-3d-asset-preview {
+    display: block;
+    height: 100%;
+    min-height: 0;
+}
+
+pap-dialog::part(main) {
+    min-height: 0;
+}
+
+pap-dialog:is(.image, .video) :is(img, video) {
+    display: block;
+    max-width: 85vw;
+    max-height: 80dvh;
+    min-width: min(60vw, 480px);
+    object-fit: contain;
+}
+
+figure.image img, figure.video video {
+    cursor: zoom-in;
+}

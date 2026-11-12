@@ -3,14 +3,16 @@
 Grouped by feature. `[ ]` open, `[x]` done.
 
 ## Foundations
-- [ ] Package folder layout (domain folders: world, npc, weapons, vehicles, systems, ui, game)
+- [x] Package folder layout: stage, render, generators, tools, ui, network (table in CLAUDE.md)
 - [ ] Asset pipeline: OBJ/FBX → glTF 2.0 with rigs + baked animations
-- [ ] Gallery view: browse all assets, per package views
+- [x] Gallery view: browse all assets, per package views (+ materials view)
 - [ ] GitHub Pages deploy via `@papit/static`
 
 ## Rendering
+- [x] Pull Renderer / Model / Grid out of `@polywar/3d-asset-preview` into `packages/render/` (preview + gallery use it)
+- [ ] More materials as `render/materials/*` packages, each with a sample (`Drawable`) for the materials gallery
 - [ ] Lighting
-- [ ] Toon shading
+- [x] Toon shading (`@polywar/shading`)
 - [ ] Pixel style variant
 
 ## Animation / rig

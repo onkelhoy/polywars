@@ -1,0 +1,103 @@
+{
+  "name": "@polywar/gallery",
+  "description": "Gallery web component: every asset under a location (manifest) grouped by folder, plus generated items; 3D tiles share one canvas, click opens pw-3d-asset-preview.",
+  "keywords": [
+    "papit",
+    "web-component",
+    "typescript",
+    "gallery"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build --error",
+    "analyse": "npx @papit/analyse",
+    "generate:react": "npx @papit/react",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "test": "npx playwright test -c tests/playwright.config.ts",
+    "preversion": "papit-version",
+    "postversion": "papit-version",
+    "component": "npm create @papit -- --component",
+    "test:update-snapshots": "npx playwright test --update-snapshots -c tests/playwright.config.ts",
+    "test:chrome": "npm test -- --project=chromium"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/",
+    "bin/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/stage/gallery",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/stage/gallery"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/web-component": "*",
+    "@papit/game-engine": "*",
+    "@papit/button": "*",
+    "@papit/dialog": "*",
+    "@polywar/3d-asset-preview": "*",
+    "@papit/game-mesh": "*",
+    "@papit/matrix": "*",
+    "@polywar/renderer": "*"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3",
+    "@papit/theme": "*",
+    "@papit/translator": "*",
+    "@papit/codeblock": "*",
+    "@polywar/grass-material": "*",
+    "@polywar/shading": "*"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "web-component",
+    "main": "gallery",
+    "htmlprefix": "pw",
+    "components": {
+      "gallery": {
+        "className": "Gallery",
+        "htmlprefix": "pw"
+      }
+    }
+  }
+}

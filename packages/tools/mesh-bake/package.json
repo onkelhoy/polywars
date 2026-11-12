@@ -63,6 +63,7 @@
     "@papit/theme": "*",
     "@papit/translator": "*",
     "@papit/codeblock": "*",
+    "@polywar/3d-asset-preview": "*",
     "@polywar/textured": "*",
     "@papit/game-mesh": "*",
     "@types/node": "*"

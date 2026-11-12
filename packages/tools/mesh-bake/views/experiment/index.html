@@ -16,19 +16,19 @@
         <label>or url <input id="url" placeholder="/assets/models/…/piece.glb" /></label>
         <form id="settings"></form>
         <div class="row"><button id="reset" type="button">reset settings</button></div>
+        <button id="bake" type="button" class="bake">bake</button>
         <h2>download</h2>
         <div class="row" id="downloads"></div>
         <output id="info">no mesh yet</output>
     </aside>
     <main>
         <section id="stage">
-            <canvas id="view"></canvas>
+            <pw-3d-asset-preview id="view" mode="orbit" controls keep-view></pw-3d-asset-preview>
             <div class="bar">
                 <label>show <select id="show"><option value="baked">baked quad</option><option value="original">original mesh</option><option value="both">both, side by side</option></select></label>
                 <label>repeat <input id="repeat" type="number" min="1" max="7" value="3" /></label>
                 <label><input id="spin" type="checkbox" checked /> moving light</label>
                 <span id="toggles"></span>
-                <span class="hint">drag: orbit · wheel: zoom</span>
             </div>
         </section>
         <section id="maps"></section>

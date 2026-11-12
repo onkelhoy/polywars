@@ -1,6 +1,6 @@
 import '@polywar/3d-demo';
 import { MeshBuilder, loadGLTF, upload } from '@papit/game-mesh';
-import { Renderer } from '@polywar/3d-asset-preview';
+import { Renderer } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 
 const $ = s => document.querySelector(s);
@@ -36,7 +36,9 @@ const numbers = [
     ['wind.angle', 0, 90, 1], ['wind.speed', 0, .2, .001], ['wind.scale', .005, .3, .005], ['wind.threshold', -1, 1, .01],
     ['wind.diverge', 0, 45, 1], ['wind.perspective', -.2, .6, .01],
     ['sway.angle', 0, 45, 1], ['sway.speed', 0, 3, .05], ['push.angle', 0, 90, 1],
-    ['lighting.wrap', -1, 1, .05], ['lighting.steepness', 1, 8, .1], ['clouds.scale', 5, 150, 1], ['clouds.min', 0, 1, .05],
+    ['lighting.wrap', -1, 1, .05], ['lighting.steepness', 1, 8, .1], ['clouds.scale', 5, 150, 1], ['clouds.min', 0, 1, .05], ['clouds.speed', 0, .3, .005],
+    ['clouds.direction.0', -1, 1, .05], ['clouds.direction.1', -1, 1, .05], ['clouds.contrast', 0, 8, .1],
+    ['clouds.threshold', -1, 1, .01], ['clouds.height', 0, 150, 1], ['clouds.diverge', 0, 45, 1],
     ['sun.elevation', 5, 90, 1], ['sun.azimuth', 0, 360, 1],
 ];
 const colors = ['color', 'patches.0.color', 'patches.1.color', 'accents.0.color', 'accents.1.color'];
@@ -88,7 +90,7 @@ for (const path of colors)
 const code = () => {
     const c = grass.code;
     if (document.activeElement !== $('#code')) $('#code').value = c;
-    history.replaceState(null, '', c === 'g1' ? location.pathname : '#' + c);
+    history.replaceState(null, '', !c.includes('.') ? location.pathname : '#' + c);
 };
 const refresh = () => { inputs.forEach(f => f()); code(); };
 
@@ -159,7 +161,7 @@ demo.tick = dt => {
         if (clock > .5) { rate = frames / clock; frames = clock = 0; }
         walkers.forEach((w, i) => placed[i] = [Math.cos(time * w.speed) * w.r, w.size, Math.sin(time * w.speed) * w.r, w.size * 1.6]);
         grass.push($('#pushing').checked ? placed : []);
-        $('#info').value = `${grass.count} planted · ${grass.drawn} drawn\n${rate.toFixed(0)} fps`;
+        $('#info').value = `${grass.count} planted · ${grass.drawn} drawn${grass.capped ? ` · capped (${grass.density.toFixed(1)}/m²)` : ''}\n${rate.toFixed(0)} fps`;
     }
 };
 demo.draw = camera => {

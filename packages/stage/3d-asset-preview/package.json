@@ -1,0 +1,99 @@
+{
+  "name": "@polywar/3d-asset-preview",
+  "description": "Web component that shows a 3D asset by path: rotating, orbit/pan/zoom or FPS walk, animation picker.",
+  "keywords": [
+    "papit",
+    "web-component",
+    "typescript",
+    "3d-asset-preview"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build --error",
+    "analyse": "npx @papit/analyse",
+    "generate:react": "npx @papit/react",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "test": "npx playwright test -c tests/playwright.config.ts",
+    "preversion": "papit-version",
+    "postversion": "papit-version",
+    "component": "npm create @papit -- --component",
+    "test:update-snapshots": "npx playwright test --update-snapshots -c tests/playwright.config.ts",
+    "test:chrome": "npm test -- --project=chromium"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/stage/3d-asset-preview",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/stage/3d-asset-preview"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/web-component": "*",
+    "@papit/game-engine": "*",
+    "@papit/button": "*",
+    "@papit/game-mesh": "*",
+    "@papit/matrix": "*",
+    "@polywar/3d-demo": "*",
+    "@polywar/renderer": "*"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "playwright": "1.64.1",
+    "typescript": "5.9.3",
+    "@papit/theme": "*",
+    "@papit/translator": "*",
+    "@papit/codeblock": "*"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "web-component",
+    "main": "3d-asset-preview",
+    "htmlprefix": "pw",
+    "components": {
+      "3d-asset-preview": {
+        "className": "AssetPreview3D",
+        "htmlprefix": "pw"
+      }
+    }
+  }
+}
