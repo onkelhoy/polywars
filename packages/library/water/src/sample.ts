@@ -1,5 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { WaterMaterial, bindUnder } from "./material";
+import { createShoreMap, deleteShoreMap, type ShoreMap } from "./shore";
 import { UNDER_GLSL } from "./shaders";
 import type { Light, View, WaterLook } from "./types";
 
@@ -150,6 +151,7 @@ export class WaterSample {
     private heights: Float32Array;
     private ground: Mesh;
     private sea?: Mesh;
+    private shores: ShoreMap[] = [];
     private lake?: Mesh;
     private river?: Mesh;
     private program?: { name: string; program: WebGLProgram; u: Map<string, WebGLUniformLocation | null> };
@@ -171,6 +173,7 @@ export class WaterSample {
         // the river's channel counts as water too, so its mouth gets no shore foam across it
         const sea = signed(k => { const x = (k % fn) - half, z = ((k / fn) | 0) - half; return at(k) < SEA && (x < coast(z) + 2 || onRiver(x, z).dist < RIVER_WIDTH / 2 + 2); });
         const lake = signed(k => { const x = (k % fn) - half, z = ((k / fn) | 0) - half; return at(k) < LAKE && Math.hypot(x - LAKE_AT[0], z - LAKE_AT[1]) < lakeRadius(x, z) + 6; });
+        this.shores = [createShoreMap(this.gl, sea, fn, -half, -half, 1), createShoreMap(this.gl, lake, fn, -half, -half, 1)];
         this.sea = this.buildSurface(sea, SEA, true);
         this.lake = this.buildSurface(lake, LAKE, false);
         this.river = this.buildRiver();
@@ -237,6 +240,7 @@ export class WaterSample {
     /** `contacts`: more x z radius triples (e.g. legs of animals standing in the water) */
     drawWater(view: View, light: Light, time: number, contacts: number[] = []) {
         const all = this.contacts.concat(contacts);
+        this.material.capture();
         const gl = this.gl, e = view.worldPosition ?? { x: 0, y: 0, z: 0 }, surface = this.under(e);
         const cull = gl.isEnabled(gl.CULL_FACE);
         gl.disable(gl.CULL_FACE);
@@ -244,11 +248,11 @@ export class WaterSample {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.depthMask(false);
-        for (const [m, fresh, level] of [[this.river, true, null], [this.lake, true, LAKE], [this.sea, false, SEA]] as const)
+        for (const [m, fresh, level, shore] of [[this.river, true, null, undefined], [this.lake, true, LAKE, this.shores[1]], [this.sea, false, SEA, this.shores[0]]] as const)
         {
             // from below only the body the eye is in looks like a ceiling; the others draw as seen from above
             const under = surface !== null && (level === null ? false : Math.abs(surface - level) < .01);
-            if (m && this.material.use(view, light, time, { fresh, under, surface: surface ?? 0, contacts: all, outlines: this.outlines })) this.mesh(m);
+            if (m && this.material.use(view, light, time, { fresh, under, surface: surface ?? 0, contacts: all, outlines: this.outlines, shore })) this.mesh(m);
         }
         gl.depthMask(true);
         if (cull) gl.enable(gl.CULL_FACE);
@@ -256,6 +260,7 @@ export class WaterSample {
 
     destroy() {
         for (const m of [this.ground, this.sea, this.lake, this.river]) if (m) { this.gl.deleteVertexArray(m.vao); m.buffers.forEach(b => this.gl.deleteBuffer(b)); }
+        this.shores.forEach(s => deleteShoreMap(this.gl, s));
         this.material.destroy();
         if (this.program) this.layer.deleteProgram(this.program.name);
     }

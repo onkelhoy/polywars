@@ -14,6 +14,7 @@ const renderer = new Renderer(layer);
 renderer.light.fogDensity = .00012;
 renderer.light.fogColor = [.62, .72, .82];
 const terrain = new Terrain(layer);
+window.terrain = terrain;
 const marker = upload(layer.gl, new MeshBuilder().sphere([.95, .3, .2], {}, 1).build());
 let grass;
 const waterScreen = new WaterScreen(layer);

@@ -76,7 +76,10 @@ uniform float streakAmount, streakLength, streakWidth, foamContact, paintAmount,
 uniform vec3 contacts[32]; // x z radius: things standing in the water
 uniform vec4 contactShape[96]; // 12 radius scales per contact, round from +x toward +z: its real outline
 uniform int contactCount;
-uniform bool under;
+uniform bool under, hasDepth, hasShore;
+uniform sampler2D sceneDepth, shoreMap; // depth of the scene drawn before the water; signed metres to the shore (< 0 on land)
+uniform mat4 invViewProj;
+uniform vec4 shoreRect; // x z of the map's first node, metres per node, nodes per side
 ${COMMON}
 ${NOISE_GLSL}
 ${UNDER_GLSL}
@@ -100,24 +103,22 @@ float dashes(vec2 p, vec2 cell, float halfLength, float thick, float keep, float
     return inside(thick * sqrt(taper), abs(m.y), px) * step(h, keep);
 }
 
-/** one dash of cell \`id\` (square cells \`cell\` metres) lying across \`dir\` (unit) */
-float rdash(vec2 p, vec2 id, vec2 dir, float cell, float halfLength, float thick, float keep, float seed, float px) {
-    float h = hash2(id + seed), h2 = hash2(id + seed + 17.0);
-    if (h > keep) return 0.0;
-    vec2 m = p - (id + .5 + (vec2(h2, h) - .5) * .5) * cell;
-    float mx = dot(m, vec2(-dir.y, dir.x)), my = dot(m, dir);
-    float len = min(halfLength * (.6 + h2 * .8), cell * 1.2), taper = 1.0 - clamp(abs(mx) / len, 0.0, 1.0);
-    my += (mx / len) * (mx / len) * thick * (h - .5) * 1.5;
-    return inside(thick * pow(taper, .35), abs(my), px) * step(abs(mx), len);
+/** signed metres to the shore from the shore map (< 0 on land) */
+float shoreAt(vec2 xz) { return texture(shoreMap, ((xz - shoreRect.xy) / shoreRect.z + .5) / shoreRect.w).r; }
+
+/** the first thing drawn behind this pixel (world), w 0 when nothing (sky) */
+vec4 groundAt() {
+    float z = texelFetch(sceneDepth, ivec2(gl_FragCoord.xy), 0).r;
+    vec2 uv = gl_FragCoord.xy / vec2(textureSize(sceneDepth, 0));
+    vec4 w = invViewProj * vec4(uv * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
+    return vec4(w.xyz / w.w, step(z, .99999));
 }
 
-/** like \`dashes\`, each dash lying across \`dir\`; dashes may reach into the cells next to theirs (long lines) */
-float rdashes(vec2 p, vec2 dir, float cell, float halfLength, float thick, float keep, float seed, float px) {
-    vec2 id = floor(p / cell);
-    float d = 0.0;
-    for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++)
-        d = max(d, rdash(p, id + vec2(i, j), dir, cell, halfLength, thick, keep, seed, px));
-    return d;
+/** value noise squashed along \`heading\` (one of 16 directions): long soft streaks \`size\` (along, across) metres, moved \`drift\` metres along it */
+float streaks(vec2 p, float heading, vec2 size, float drift) {
+    float a = heading * 6.2831853 / 16.0;
+    vec2 d = vec2(cos(a), sin(a)), q = vec2(dot(p, vec2(-d.y, d.x)), dot(p, d) - drift) + mod(heading, 16.0) * 37.1;
+    return vnoise(q / size) * .65 + vnoise(q / (size * vec2(.45, .55)) + 7.3) * .35;
 }
 
 void main() {
@@ -134,8 +135,40 @@ void main() {
         return;
     }
 
+    // the ground under this pixel from the scene depth: the exact water depth wherever the water meets something, and the
+    // metres to that waterline on the ground's own slope. Near the camera only (depth precision); the vertex data past that
+    float waterDepth = max(vInfo.x, 0.0), shoreRim = vInfo.y, trust = 0.0;
+    if (hasDepth) {
+        vec4 g = groundAt();
+        // the face hit, its normal toward the eye (a seen face always faces it)
+        vec3 gc = cross(dFdx(g.xyz), dFdy(g.xyz)), gn = gc / max(length(gc), 1e-8);
+        if (dot(gn, eye - g.xyz) < 0.0) gn = -gn;
+        float side = length(gn.xz), tanSlope = side / max(gn.y, .02), dv = max(vWorld.y - g.y, 0.0);
+        vec2 out2 = side > 1e-3 ? gn.xz / side : vec2(0);
+        // the waterline on that face's plane: up the slope from the hit point by depth / slope; this pixel's distance to it.
+        // Walls and overhangs: the line is about above the hit point (overhangs: further the deeper)
+        float toLine = gn.y > .05
+            ? dv / max(tanSlope, .01) + dot(vWorld.xz - g.xz, out2) * smoothstep(.02, .1, side)
+            : length(vWorld.xz - g.xz) + max(-gn.y, 0.0) * dv * 4.0;
+        // not across a silhouette (the depth jumps there, the face is made up)
+        float jump = length(fwidth(g.xyz)), expect = length(fwidth(vWorld)) * (length(g.xyz - eye) / max(dist, .01)) * 3.0;
+        trust = g.w * (1.0 - smoothstep(foamFar * .6, foamFar * 1.2, dist));
+        waterDepth = mix(waterDepth, dv, trust);
+        shoreRim = mix(shoreRim, max(toLine, 0.0), trust * (1.0 - smoothstep(expect, expect * 2.0, jump)));
+    }
+    // the shore for the waves and the drift: a smooth map, bent a little by noise, so the lines run round, not along every facet
+    float shore = vInfo.y;
+    vec2 dir = dot(vDir, vDir) > 1e-4 ? normalize(vDir) : vec2(.87, .5);
+    if (hasShore && river < .5) {
+        vec2 bend = (vec2(vnoise(vWorld.xz / max(foamWobbleScale * 3.0, .1)), vnoise(vWorld.xz / max(foamWobbleScale * 3.0, .1) + 9.1)) - .5) * foamWobble * 6.0;
+        shore = shoreAt(vWorld.xz + bend);
+        float e = shoreRect.z * 1.5;
+        vec2 gr = vec2(shoreAt(vWorld.xz + vec2(e, 0)) - shoreAt(vWorld.xz - vec2(e, 0)), shoreAt(vWorld.xz + vec2(0, e)) - shoreAt(vWorld.xz - vec2(0, e)));
+        if (dot(gr, gr) > 1e-8) dir = -normalize(gr);
+    }
+
     // flat colour: shallow to deep, lit as a plane; a little sky at grazing angles
-    float deepness = 1.0 - exp(-max(vInfo.x, 0.0) / max(clarity, .01));
+    float deepness = 1.0 - exp(-waterDepth / max(clarity, .01));
     vec3 c = mix(shallow, deep, deepness) * (hemi(up) + sunColor * sunStrength * max(l.y, 0.0) * .6);
     float grazing = pow(1.0 - max(v.y, 0.0), 4.0), graze = grazing * skyTint;
     c = mix(c, mix(ground, sky, .85) * ambient * 1.4, graze * .6);
@@ -162,33 +195,29 @@ void main() {
         // the glare is a patch of light, not per dash: its edge is broken by noise so dashes light up only in pieces
         float glare = clamp(lane * 1.5 + (vnoise(vWorld.xz / max(glintLength * 1.2, .05) + time * .05) - .5) * .9 - .25, 0.0, 1.0);
         float core = smoothstep(.35, 1.0, glare);
-        // in the glare dashes grow fat and many, so in its core they melt together
-        float thick = glintScale * .11 * (1.0 + glintMelt * core * 1.6), keep = mix(glintDensity, 1.0, core * glintMelt), d;
+        float lit = smoothstep(.05, .2, glare), d, shade;
         if (river > .5) {
-            // rivers: across the stream, carried with it
+            // rivers: dashes across the stream, carried with it; fat and many in the glare's core
+            float thick = glintScale * .11 * (1.0 + glintMelt * core * 1.6), keep = mix(glintDensity, 1.0, core * glintMelt) * .75;
             vec2 p = vec2(uv.y, vFlow.x);
-            d = max(dashes(p, vec2(glintScale, glintLength * 1.8), glintLength * .5, thick, .75, 0.0, mpp),
-                    dashes(p + glintScale * .5, vec2(glintScale * 1.3, glintLength * 2.3), glintLength * .4, thick, .6, 31.0, mpp));
+            d = max(dashes(p, vec2(glintScale, glintLength * 1.8), glintLength * .5, thick, keep, 0.0, mpp),
+                    dashes(p + glintScale * .5, vec2(glintScale * 1.3, glintLength * 2.3), glintLength * .4, thick, keep * .8, 31.0, mpp));
+            d *= pixels(thick * 2.0, mpp) * near;
+            shade = 1.0 - d * glintDark * (1.0 - lit);
         } else {
-            // sea and lakes: along the shore, drifting in toward land. Two layers half a cycle apart cross fade
-            // (a flow map), so the drift never piles up and the dashes come and go gently
-            vec2 dir = dot(vDir, vDir) > 1e-4 ? normalize(vDir) : vec2(.87, .5);
-            float period = 6.0, ph = time / period, f1 = fract(ph), f2 = fract(ph + .5), w1 = 1.0 - abs(f1 * 2.0 - 1.0);
-            float cell = glintLength * 1.1;
-            // two sizes of dashes, the smaller set offset between the bigger, so the surface reads as fine ripples
-            vec2 o1 = vFlow.xy - dir * f1 * period * glintSpeed, o2 = vFlow.xy - dir * f2 * period * glintSpeed;
-            float s1 = floor(ph) * 7.0, s2 = floor(ph + .5) * 7.0 + 31.0, c2 = cell * .62;
-            float d1 = max(rdashes(o1, dir, cell, glintLength * .8, thick, keep, s1, mpp),
-                           rdashes(o1 + c2 * .5, dir, c2, glintLength * .5, thick * .8, keep, s1 + 3.0, mpp));
-            float d2 = max(rdashes(o2 + cell * .5, dir, cell, glintLength * .8, thick, keep, s2, mpp),
-                           rdashes(o2 + c2 * .25, dir, c2, glintLength * .5, thick * .8, keep, s2 + 3.0, mpp));
-            d = d1 * w1 + d2 * (1.0 - w1);
+            // sea and lakes: noise squashed along the shore, long soft streaks a bit darker and lighter, drifting in to land.
+            // The direction snaps to 16 headings, the two nearest blended, so the pattern never swirls where the shore turns
+            vec2 size = vec2(glintLength * 1.5, glintScale * .3);
+            float h = atan(dir.y, dir.x) / 6.2831853 * 16.0, h0 = floor(h), drift = time * glintSpeed;
+            float n = mix(streaks(vFlow.xy, h0, size, drift), streaks(vFlow.xy, h0 + 1.0, size, drift), h - h0);
+            n = mix(.5, n, pixels(size.y * 2.0, mpp) * near);
+            shade = 1.0 + (n - .5) * 2.0 * glintDark * (1.0 - lit * .5);
+            // the crests catch the sun: white spots, fatter and more in the glare's core so there they melt together
+            d = hard(mix(.78, .6, core * glintMelt) - glintDensity * .08, n) * pixels(size.y, mpp) * near;
         }
-        d *= pixels(thick * 2.0, mpp) * near;
-        // outside the glare a faint shade; inside, only the part of a dash under the glare lights up (hard cut, streaks)
-        float lit = smoothstep(.05, .2, glare);
-        c *= 1.0 - d * glintDark * (1.0 - lit);
-        c += white * glintGlow * core * core * near * (.5 + vnoise(vWorld.xz / max(glintLength * 3.0, .1) - time * .03)); // soft, uneven wash of light under the merged dashes
+        // only the part under the glare lights up (hard cut: streaks of light)
+        c *= shade;
+        c += white * glintGlow * core * core * near * (.5 + vnoise(vWorld.xz / max(glintLength * 3.0, .1) - time * .03)); // soft, uneven wash of light under the merged crests
         c = mix(c, white * 1.4, d * lit * glintStrength);
         // specks: a few twinkling dots, more in the sun
         vec2 sp = vFlow.xy / (glintScale * 1.7), sid = floor(sp);
@@ -203,7 +232,8 @@ void main() {
     float foam = 0.0, fnear = 1.0 - smoothstep(foamFar * .5, foamFar, dist);
     if (fnear > 0.0 && foamAmount > 0.0) {
         float wob = (vnoise(vWorld.xz / max(foamWobbleScale, .1) + time * .03) - .5) * 2.0 * foamWobble;
-        float s = vInfo.y + wob, mpp = fwidth(s);
+        // the rim hugs the exact waterline where the depth is known (a little wobble left); the waves follow the smooth shore
+        float s = shoreRim + wob * (1.0 - trust * .75), mpp = fwidth(s), sw = shore + wob, mppw = fwidth(sw);
         if (river < .5) {
             // the rim: crisp broken foam, its outer edge rough (three octaves), holes toward the outside, a few loose bits;
             // the whole band washes in and out a little, out of step along the shore
@@ -216,12 +246,12 @@ void main() {
             float rim = max(band * max(holes, 1.0 - smoothstep(0.0, edge * .35, s)), bits) * pixels(foamRim * .5, mpp);
             // waves: lines form offshore, run in to the rim and fade there. Tight, a bit rough at the edges and of
             // varying thickness along their length; each its own pieces, not every one shows
-            float wband = max(foamSpacing * foamLines, .01), sl = s - edge;
+            float wband = max(foamSpacing * foamLines, .01), sl = sw - foamRim;
             float phase = sl / max(foamSpacing, .01) + time * foamSpeed, k = floor(phase), life = sl / wband;
             float dl = (fract(phase) - .5) * foamSpacing + (fbm3(vWorld.xz / max(foamSpacing * .5, .05) + k * 3.3) - .5) * foamWidth;
             float thick = foamWidth * (.35 + .9 * vnoise(vWorld.xz / max(foamSpacing * 1.5, .05) + k * 1.7));
-            float line = (1.0 - hard(thick * .5, abs(dl))) * pixels(foamWidth, mpp) * step(0.0, sl);
-            line *= smoothstep(1.0, .55, life) * smoothstep(0.0, .3, life) * step(hash2(vec2(k, 3.0)), .75) * .9;
+            float line = (1.0 - hard(thick * .5, abs(dl))) * pixels(foamWidth, mppw) * step(0.0, sl);
+            line *= smoothstep(1.0, .55, life) * smoothstep(0.0, .3, life) * step(hash2(vec2(k, 3.0)), .75) * .6;
             line *= hard(foamPieces, vnoise(vWorld.xz / (foamSpacing * 4.0) + vec2(k * 7.31, k * 3.17))) * clamp(vFlow.w + .3, 0.0, 1.0);
             // things in the water (rocks, legs): the same broken foam, a thin ring
             // ring width grows with the thing: a leg gets a few centimetres, a big rock most of a shore rim
@@ -253,7 +283,8 @@ void main() {
     }
     c = mix(c, white, clamp(foam, 0.0, 1.0));
 
-    float a = clamp(mix(opacity, 1.0, deepness) + graze * .3 + foam, 0.0, 1.0);
+    // where the depth is known the water thins out to nothing at the waterline
+    float a = clamp(mix(opacity, 1.0, deepness) + graze * .3 + foam, 0.0, 1.0) * mix(1.0, smoothstep(0.0, .05, waterDepth), trust * (1.0 - foam));
     c = mix(c, fogColor, 1.0 - exp(-dist * fogDensity));
     // the far sea melts into the sky at the horizon
     c = mix(c, fogColor, pow(1.0 - max(v.y, 0.0), 12.0) * horizon);

@@ -1,10 +1,42 @@
 import type { Layer3D } from "@papit/game-engine";
 import { WATER_FRAGMENT, WATER_VERTEX } from "./shaders";
 import type { Light, View, WaterLook } from "./types";
+import type { ShoreMap } from "./shore";
 
 type Program = { name: string; program: WebGLProgram; u: (name: string) => WebGLUniformLocation | null };
 
 let ids = 0;
+
+/** column major 4x4: a * b */
+function mul4(a: ArrayLike<number>, b: ArrayLike<number>, out: Float32Array) {
+    for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++)
+        out[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+    return out;
+}
+
+/** 4x4 inverse (cofactors), in place */
+function invert4(m: Float32Array) {
+    const [a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33] = m;
+    const b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11;
+    const b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30;
+    const b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32;
+    const det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06, d = det ? 1 / det : 0;
+    m.set([
+        (a11 * b11 - a12 * b10 + a13 * b09) * d, (a02 * b10 - a01 * b11 - a03 * b09) * d, (a31 * b05 - a32 * b04 + a33 * b03) * d, (a22 * b04 - a21 * b05 - a23 * b03) * d,
+        (a12 * b08 - a10 * b11 - a13 * b07) * d, (a00 * b11 - a02 * b08 + a03 * b07) * d, (a32 * b02 - a30 * b05 - a33 * b01) * d, (a20 * b05 - a22 * b02 + a23 * b01) * d,
+        (a10 * b10 - a11 * b08 + a13 * b06) * d, (a01 * b08 - a00 * b10 - a03 * b06) * d, (a30 * b04 - a31 * b02 + a33 * b00) * d, (a21 * b02 - a20 * b04 - a23 * b00) * d,
+        (a11 * b07 - a10 * b09 - a12 * b06) * d, (a00 * b09 - a01 * b07 + a02 * b06) * d, (a31 * b01 - a30 * b03 - a32 * b00) * d, (a20 * b03 - a21 * b01 + a22 * b00) * d,
+    ]);
+    return m;
+}
+
+/** depth formats a blit may need to match the drawn framebuffer, most likely first */
+const DEPTH_FORMATS = (gl: WebGL2RenderingContext, stencil: boolean) => {
+    const d24 = [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, gl.DEPTH_ATTACHMENT];
+    const d24s8 = [gl.DEPTH24_STENCIL8, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, gl.DEPTH_STENCIL_ATTACHMENT];
+    const d32 = [gl.DEPTH_COMPONENT32F, gl.DEPTH_COMPONENT, gl.FLOAT, gl.DEPTH_ATTACHMENT];
+    return stencil ? [d24s8, d24, d32] : [d24, d24s8, d32];
+};
 
 /** A clear low poly sea. Lengths in metres; any field can be overridden (nested objects merge). */
 export const WATER_LOOK: WaterLook = {
@@ -16,8 +48,8 @@ export const WATER_LOOK: WaterLook = {
     sky: .4,
     horizon: .6,
     paint: { amount: .35, scale: 18 },
-    glints: { dark: .06, scale: .7, length: 1.4, lane: .5, strength: 1, specks: .3, speed: .25, far: 220, density: .8, melt: .8, glow: .12 },
-    foam: { color: "#ffffff", contact: .08, rim: .6, wobble: .35, wobbleScale: 7, lines: 4, width: .16, spacing: 1.3, speed: .35, pieces: .4, amount: .9, far: 300 },
+    glints: { dark: .12, scale: .7, length: 1.4, lane: .5, strength: 1, specks: .3, speed: .25, far: 220, density: .8, melt: .8, glow: .06 },
+    foam: { color: "#ffffff", contact: .08, rim: .6, wobble: .35, wobbleScale: 7, lines: 2, width: .16, spacing: 1.3, speed: .35, pieces: .4, amount: .9, far: 300 },
     streaks: { amount: .8, length: 4, width: .2 },
     under: { shallow: "#3aa7b8", deep: "#0b2e52", clarity: 14, density: .035, sun: .06 },
 };
@@ -88,7 +120,8 @@ export class WaterMaterial {
     readonly gl: WebGL2RenderingContext;
     private o: WaterLook;
     private program?: Program;
-    private f32 = { view: new Float32Array(16), projection: new Float32Array(16), shape: new Float32Array(32 * 12) };
+    private f32 = { view: new Float32Array(16), projection: new Float32Array(16), shape: new Float32Array(32 * 12), inverse: new Float32Array(16) };
+    private depth?: { fbo: WebGLFramebuffer; texture: WebGLTexture; w: number; h: number; format: number; ok: boolean };
     private id = ids++;
 
     constructor(readonly layer: Layer3D, look: Partial<WaterLook> = {}) {
@@ -102,10 +135,11 @@ export class WaterMaterial {
 
     /**
      * Bind for the next draw. `fresh` uses the lake / river colours; `under`: the eye is below this water, whose surface is at
-     * `surface` metres there. `contacts`: x z radius per thing standing in the water (up to 32) for a thin foam ring; `outlines`: 12 radius scales per
+     * `surface` metres there. `contacts`: x z radius per thing standing in the water (up to 32) for a thin foam ring; `shore`: a smooth shore map (`createShoreMap`) the wave lines follow (missing: the shore distance attribute).
+     * After `capture()` the water reads the scene depth: exact see-through edge and rim foam wherever it meets anything. `outlines`: 12 radius scales per
      * contact (round from +x toward +z) so the ring follows its real outline (missing: round). False while linking.
      */
-    use(view: View, light: Light, time: number, { fresh = false, under = false, surface = 0, contacts = [] as ArrayLike<number>, outlines = [] as ArrayLike<number> } = {}): boolean {
+    use(view: View, light: Light, time: number, { fresh = false, under = false, surface = 0, contacts = [] as ArrayLike<number>, outlines = [] as ArrayLike<number>, shore = undefined as ShoreMap | undefined } = {}): boolean {
         const gl = this.gl, o = this.o, p = this.program;
         if (!p) return false;
         const u = p.u;
@@ -172,11 +206,77 @@ export class WaterMaterial {
         gl.uniform1f(u("horizon"), o.horizon);
         gl.uniform1i(u("under"), under ? 1 : 0);
         bindUnder(gl, u, o.under, surface);
+        // the scene depth (unit 7) and the shore map (unit 6)
+        const depth = this.depth?.ok && this.depth.w === gl.drawingBufferWidth && this.depth.h === gl.drawingBufferHeight ? this.depth : undefined;
+        gl.uniform1i(u("hasDepth"), depth ? 1 : 0);
+        gl.uniform1i(u("hasShore"), shore ? 1 : 0);
+        gl.uniform1i(u("sceneDepth"), 7);
+        gl.uniform1i(u("shoreMap"), 6);
+        gl.activeTexture(gl.TEXTURE7);
+        gl.bindTexture(gl.TEXTURE_2D, depth?.texture ?? null);
+        gl.activeTexture(gl.TEXTURE6);
+        gl.bindTexture(gl.TEXTURE_2D, shore?.texture ?? null);
+        gl.activeTexture(gl.TEXTURE0);
+        if (depth) gl.uniformMatrix4fv(u("invViewProj"), false, invert4(mul4(this.f32.projection, this.f32.view, this.f32.inverse)));
+        if (shore) gl.uniform4f(u("shoreRect"), shore.x, shore.z, shore.cell, shore.n);
         return true;
     }
 
+    /**
+     * Copy the depth of everything drawn so far (the bound framebuffer). Call once a frame after the opaque scene, before the
+     * water: the water then knows the ground under every pixel. Stops (quietly) if the depth can't be copied here.
+     */
+    capture() {
+        const gl = this.gl, w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+        if (this.depth && !this.depth.ok && this.depth.format < 0) return;
+        const source = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null;
+        const fresh = !this.depth || this.depth.w !== w || this.depth.h !== h;
+        if (fresh)
+        {
+            // try the formats until a blit works (it needs the same depth format as the source)
+            const formats = DEPTH_FORMATS(gl, !!gl.getContextAttributes()?.stencil);
+            this.freeDepth();
+            for (let f = 0; f < formats.length; f++)
+            {
+                const [internal, format, type, attachment] = formats[f];
+                const texture = gl.createTexture()!, fbo = gl.createFramebuffer()!;
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, null);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.bindTexture(gl.TEXTURE_2D, null);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachment, gl.TEXTURE_2D, texture, 0);
+                while (gl.getError() !== gl.NO_ERROR);
+                gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source);
+                gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, fbo);
+                gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
+                const ok = gl.getError() === gl.NO_ERROR;
+                gl.bindFramebuffer(gl.FRAMEBUFFER, source);
+                if (ok) { this.depth = { fbo, texture, w, h, format: f, ok }; return; }
+                gl.deleteFramebuffer(fbo);
+                gl.deleteTexture(texture);
+            }
+            this.depth = { fbo: null!, texture: null!, w, h, format: -1, ok: false };
+            console.warn("@polywar/water: can't copy the scene depth here, the water edge uses the vertex data");
+            return;
+        }
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.depth!.fbo);
+        gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, source);
+    }
+
     destroy() {
+        this.freeDepth();
         if (this.program) this.layer.deleteProgram(this.program.name);
+    }
+
+    private freeDepth() {
+        if (this.depth?.ok) { this.gl.deleteFramebuffer(this.depth.fbo); this.gl.deleteTexture(this.depth.texture); }
+        this.depth = undefined;
     }
 
     private async link(): Promise<Program> {

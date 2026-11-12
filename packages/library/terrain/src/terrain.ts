@@ -1,7 +1,7 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
 import { TerrainMaterial, type Biome, type Light, type TerrainLook, type View } from "@polywar/terrain-material";
-import { WaterMaterial } from "@polywar/water";
+import { WaterMaterial, createShoreMap, deleteShoreMap, type ShoreMap } from "@polywar/water";
 import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
 import { Generator } from "./generate";
@@ -27,6 +27,7 @@ export class Terrain {
     private ground?: Ground;
     private skirtMesh?: Mesh;
     private ocean: Mesh | null = null;
+    private shore?: ShoreMap;
     private lakes: Mesh | null = null;
     private riverWater: Mesh | null = null;
     private meshKey = "";
@@ -132,9 +133,11 @@ export class Terrain {
             this.triangles.used = this.ground?.triangles ?? 0;
             if (this.skirtMesh) this.mesh(this.skirtMesh);
         }
+        // the water reads the ground's depth: exact edge and rim where it meets the land
+        this.water.capture();
         for (const [w, fresh] of [[this.riverWater, true], [this.lakes, true], [this.ocean, false]] as const)
         {
-            if (!w || !this.water.use(view, light, time, { fresh, under: eyeSurface !== null, surface: eyeSurface ?? 0 })) continue;
+            if (!w || !this.water.use(view, light, time, { fresh, under: eyeSurface !== null, surface: eyeSurface ?? 0, shore: this.shore })) continue;
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.depthMask(false);
@@ -198,6 +201,10 @@ export class Terrain {
         this.ocean = waterMesh(gl, d, 1, step, edge === "ocean" ? o.mesh.skirt : 0);
         this.lakes = waterMesh(gl, d, 2, step);
         this.riverWater = riverMesh(gl, d.rivers);
+        // signed metres to the shore of the sea and the lakes, smooth, for the wave lines
+        const signed = new Float32Array(d.n * d.n);
+        for (let k = 0; k < signed.length; k++) signed[k] = d.water[k] === 1 || d.water[k] === 2 ? d.toLand[k] : -d.toWater[k];
+        this.shore = createShoreMap(gl, signed, d.n, -d.size / 2, -d.size / 2, d.cell, Math.max(24, d.cell * 6));
         this.meshKey = this.meshOptions();
     }
 
@@ -205,6 +212,8 @@ export class Terrain {
         const gl = this.gl;
         this.ground?.destroy();
         free(gl, [...[this.skirtMesh, this.ocean, this.lakes, this.riverWater].filter((m): m is Mesh => !!m)]);
+        if (this.shore) deleteShoreMap(gl, this.shore);
+        this.shore = undefined;
         this.ground = undefined; this.skirtMesh = undefined; this.ocean = this.lakes = this.riverWater = null;
     }
 
