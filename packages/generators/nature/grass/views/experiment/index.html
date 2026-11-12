@@ -25,6 +25,11 @@
             <label>debug <select id="debug"><option value="">off</option><option>wind</option><option>push</option></select></label>
             <label><input id="pushing" type="checkbox" checked /> walkers push</label>
         </fieldset>
+        <fieldset id="share">
+            <legend>code</legend>
+            <input id="code" type="text" spellcheck="false" aria-label="grass code" />
+            <div class="buttons"><button id="copy-code" type="button">copy</button><button id="apply-code" type="button">apply</button></div>
+        </fieldset>
         <fieldset id="json">
             <legend>settings json</legend>
             <div class="buttons">
@@ -33,7 +38,7 @@
                 <button id="import" type="button">open file</button>
                 <input id="file" type="file" accept=".json,application/json" hidden />
             </div>
-            <textarea id="text" rows="4" placeholder="paste settings json, then apply"></textarea>
+            <textarea id="text" rows="4" placeholder="paste settings json or a code, then apply"></textarea>
             <div class="buttons"><button id="apply" type="button">apply</button><button id="reset" type="button">defaults</button></div>
         </fieldset>
         <fieldset id="numbers"><legend>tweak</legend></fieldset>

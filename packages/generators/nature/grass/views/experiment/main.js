@@ -71,7 +71,7 @@ for (const [path, min, max, step] of numbers)
     label.append(path, input);
     if (!bool) label.append(span);
     const sync = () => { const v = read(path); bool ? input.checked = v : (input.value = v, span.textContent = +Number(v).toFixed(3)); };
-    input.oninput = () => { write(path, bool ? input.checked : Number(input.value)); sync(); };
+    input.oninput = () => { write(path, bool ? input.checked : Number(input.value)); sync(); code(); };
     inputs.push(sync);
     $('#numbers').append(label);
 }
@@ -81,10 +81,16 @@ for (const path of colors)
     input.type = 'color';
     label.append(path, input);
     inputs.push(() => input.value = read(path));
-    input.oninput = () => write(path, input.value);
+    input.oninput = () => { write(path, input.value); code(); };
     $('#colors').append(label);
 }
-const refresh = () => inputs.forEach(f => f());
+// ---- share code: live in the field and in the url (#g1....) ----
+const code = () => {
+    const c = grass.code;
+    if (document.activeElement !== $('#code')) $('#code').value = c;
+    history.replaceState(null, '', c === 'g1' ? location.pathname : '#' + c);
+};
+const refresh = () => { inputs.forEach(f => f()); code(); };
 
 const light = () => {
     const e = sun.elevation * Math.PI / 180, a = sun.azimuth * Math.PI / 180;
@@ -101,6 +107,7 @@ const source = async () => {
     }
     grass.set({ mesh, settings: { ...grass.options.settings, source: value || undefined } });
     if (!value) { const { source: _, ...rest } = grass.options.settings; grass.set({ settings: rest }); }
+    code();
 };
 
 $('#quality').onchange = () => { grass.set({ quality: $('#quality').value, settings: {} }); $('#source').value = ''; refresh(); };
@@ -132,12 +139,15 @@ $('#export').onclick = () => {
 $('#copy').onclick = async () => { $('#text').value = json(); await navigator.clipboard?.writeText(json()).catch(() => { }); };
 $('#import').onclick = () => $('#file').click();
 $('#file').onchange = async () => { const f = $('#file').files[0]; if (f) { const t = await f.text(); $('#text').value = t; load(t); } $('#file').value = ''; };
+$('#copy-code').onclick = () => navigator.clipboard?.writeText(grass.code).catch(() => { });
+$('#apply-code').onclick = () => load($('#code').value);
+$('#code').onkeydown = e => { if (e.key === 'Enter') load($('#code').value); };
 $('#apply').onclick = () => load($('#text').value);
 $('#reset').onclick = () => load({});
-$('#shape').onchange = () => grass.set({ shape: $('#shape').value });
+$('#shape').onchange = () => { grass.set({ shape: $('#shape').value }); code(); };
 $('#mask').onchange = plant;
 $('#area').onchange = plant;
-$('#debug').onchange = () => grass.set({ debug: $('#debug').value });
+$('#debug').onchange = () => { grass.set({ debug: $('#debug').value }); code(); };
 
 // ---- loop ----
 let frames = 0, clock = 0, rate = 0;
@@ -168,6 +178,7 @@ demo.draw = camera => {
 light();
 demo.look([7, 5, 9], [0, 0, 0]);
 grass.set({ shape: $('#shape').value });
+if (location.hash.length > 1) load(decodeURIComponent(location.hash.slice(1)));
 plant();
 refresh();
 

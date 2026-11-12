@@ -2,6 +2,7 @@ import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
 import { place, type Placed } from "./place";
 import { noise } from "./noise";
+import { decode, encode, isCode } from "./code";
 import { DEFAULTS, linear, resolve, type Resolved } from "./presets";
 import { GROUND_FRAGMENT, GROUND_VERTEX, TUFT_FRAGMENT, TUFT_VERTEX } from "./shaders";
 import { sprite } from "./sprites";
@@ -57,9 +58,12 @@ export class Grass {
         return out;
     }
 
-    /** Replace all settings (missing fields fall back to the defaults). Keeps the mesh unless given. */
+    /** Share code of the current settings (only what differs from the defaults): `grass.load(code)` brings them back. */
+    get code(): string { return encode(this.toJSON(), DEFAULTS); }
+
+    /** Replace all settings (missing fields fall back to the defaults). Takes settings, JSON text or a share code. Keeps the mesh unless given. */
     load(settings: Partial<GrassSettings> | string) {
-        const data: Partial<GrassSettings> = typeof settings === "string" ? JSON.parse(settings) : settings;
+        const data: Partial<GrassSettings> = typeof settings !== "string" ? settings : isCode(settings) ? decode(settings, DEFAULTS as GrassSettings) : JSON.parse(settings);
         this.set({ ...DEFAULTS, mesh: this.o.mesh, ...data });
     }
     /** tufts planted */
