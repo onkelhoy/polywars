@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pathfinding | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <canvas id="map"></canvas>
+    <aside>
+        <h1>pathfinding</h1>
+        <output id="info">click A, then B</output>
+        <fieldset>
+            <legend>grid</legend>
+            <label>size <select id="size"><option>100</option><option selected>200</option><option>400</option></select></label>
+            <label>seed <input id="seed" type="number" value="1" /></label>
+            <label>walls <input id="walls" type="range" min="0" max=".6" step=".02" value=".3" /><span></span></label>
+        </fieldset>
+        <fieldset>
+            <legend>search</legend>
+            <label>headings <select id="headings"><option>8</option><option selected>16</option></select></label>
+            <label>turn cost <input id="turn" type="range" min="0" max="10" step=".1" value="1" /><span></span></label>
+            <label>terrain cost <input id="rough" type="range" min="0" max="10" step=".1" value="3" /><span></span></label>
+            <label>routes <input id="k" type="range" min="1" max="6" step="1" value="4" /><span></span></label>
+            <label>penalty <input id="penalty" type="range" min=".1" max="5" step=".1" value="1" /><span></span></label>
+            <label>overlap <input id="overlap" type="range" min=".1" max="1" step=".05" value=".6" /><span></span></label>
+        </fieldset>
+    </aside>
+</body>
+
+</html>

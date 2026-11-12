@@ -4,7 +4,7 @@ import { TerrainMaterial, type Biome, type Light, type TerrainLook, type View } 
 import { WaterMaterial, createShoreMap, deleteShoreMap, type ShoreMap } from "@polywar/water";
 import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
-import { Generator } from "./generate";
+import { Generator, type TerrainHooks } from "./generate";
 import { Ground } from "./lod";
 import { BIOME, free, riverMesh, skirt, waterMesh, type Mesh } from "./mesh";
 import { DEFAULTS, resolve, type Resolved } from "./presets";
@@ -23,7 +23,7 @@ export class Terrain {
     readonly material: TerrainMaterial;
     readonly water: WaterMaterial;
     readonly gl: WebGL2RenderingContext;
-    private generator = new Generator();
+    private generator: Generator;
     private ground?: Ground;
     private skirtMesh?: Mesh;
     private ocean: Mesh | null = null;
@@ -47,8 +47,10 @@ export class Terrain {
     /** called while generating */
     onprogress?: (progress: Progress, terrain: Terrain) => void;
 
-    constructor(readonly layer: Layer3D, options: Partial<TerrainOptions> = {}) {
+    /** `hooks`: outside steps (roads, ...), see `TerrainHooks` */
+    constructor(readonly layer: Layer3D, options: Partial<TerrainOptions> = {}, hooks: TerrainHooks = {}) {
         this.gl = layer.gl;
+        this.generator = new Generator(hooks);
         this.o = resolve(options);
         this.material = new TerrainMaterial(layer, this.look());
         this.water = new WaterMaterial(layer, this.o.water);

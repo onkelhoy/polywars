@@ -37,6 +37,12 @@ Knowledge that outlives a plan. Trust code over this.
 - Dev server import maps are built at start: restart it after adding a dependency or renaming a package.
 - Headless browser checks: playwright chromium is installed (`node_modules/playwright`).
 
+## Roads / sites
+- Terrain order: shape → cities → `features` hook → erosion (skips `hard`) → water → rivers → `fix` hook → climate → biomes. Hooks via `new Terrain(layer, options, hooks)` / `generate(o, progress, hooks)`; `hooks.key` names their settings (cache).
+- `@polywar/sites` (where) and `@polywar/roads` (how) don't know each other or the terrain; `@polywar/world` wires them (`roadHooks`), draws road strips, passes `road` (edge distance) to the ecosystem (no props on roads, grass fades).
+- Road tools use `shapeOnly` (raw map ~1.5 s) instead of the full pipeline. Pathfinding is `@polywar/pathfinding` (utils).
+- `npm create @papit` auto commits; quote flags per arg (zsh doesn't word split).
+
 ## Layout (2026-11-12)
 `animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{viewport, 3d-asset-preview, gallery, renderer}` · `network/*` · `utils/{mesh-bake, noise}`.
 `npm run assets` serves `library/catalog` (`views/`, no sub views). Folder `catalog` (not `assets`: the dev server serves such folders raw).

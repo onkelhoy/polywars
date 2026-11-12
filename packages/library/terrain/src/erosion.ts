@@ -8,9 +8,9 @@ import type { TerrainOptions } from "./types";
  * which carves valleys and gullies and leaves sharp ridges. Fast because the erosion brush
  * (offsets + weights) is computed once and all grids are flat typed arrays.
  *
- * `h` heights in grid units (changed in place), `flow` collects where water ran.
+ * `h` heights in grid units (changed in place), `flow` collects where water ran, `hard` (0..1) keeps nodes from being dug or filled.
  */
-export async function erode(h: Float32Array, n: number, count: number, o: TerrainOptions["erosion"], radius: number, seed: number, flow: Float32Array, pace: Pace) {
+export async function erode(h: Float32Array, n: number, count: number, o: TerrainOptions["erosion"], radius: number, seed: number, flow: Float32Array, pace: Pace, hard?: Float32Array) {
     const rng = new Random(seed);
     const r = Math.max(2, Math.round(radius)), ox: number[] = [], oy: number[] = [], ow: number[] = [];
     let total = 0;
@@ -56,7 +56,8 @@ export async function erode(h: Float32Array, n: number, count: number, o: Terrai
             if (sediment > cap || dh > 0)
             {
                 // fill the pit uphill, or drop the excess: bilinear onto the 4 nodes of the old cell
-                const amount = dh > 0 ? Math.min(dh, sediment) : (sediment - cap) * deposit;
+                const soft = hard ? 1 - hard[k] : 1;
+                const amount = (dh > 0 ? Math.min(dh, sediment) : (sediment - cap) * deposit) * soft;
                 sediment -= amount;
                 h[k] += amount * (1 - fx) * (1 - fy);
                 h[k + 1] += amount * fx * (1 - fy);
@@ -71,8 +72,8 @@ export async function erode(h: Float32Array, n: number, count: number, o: Terrai
                 {
                     const cx = ix + bx[b], cy = iy + by[b];
                     if (cx < 0 || cx > max || cy < 0 || cy > max) continue;
-                    const take = amount * bw[b];
-                    h[cy * n + cx] -= take;
+                    const m = cy * n + cx, take = amount * bw[b] * (hard ? 1 - hard[m] : 1);
+                    h[m] -= take;
                     sediment += take;
                 }
             }
