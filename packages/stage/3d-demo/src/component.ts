@@ -23,6 +23,8 @@ export class Demo3D extends CustomElement {
     @property({ type: Number }) far: number = 1000;
     /** hide the mode bar */
     @property({ type: Boolean, attribute: "no-bar" }) noBar: boolean = false;
+    /** hide the direction arrows (bottom-left); the bar's "axes" button toggles them too */
+    @property({ type: Boolean, attribute: "no-axes", rerender: true }) noAxes: boolean = false;
 
     /** called every frame before drawing, `dt` in seconds */
     tick?: (dt: number, demo: Demo3D) => void;
@@ -49,7 +51,7 @@ export class Demo3D extends CustomElement {
         this.engine = engine;
         const demo = this;
         engine.add(new class extends GameObject {
-            override update(dt: number) { demo.time += dt; demo.tick?.(dt, demo); }
+            override update(dt: number) { demo.time += dt; demo.tick?.(dt, demo); demo.updateAxes(); }
             override render(layer: any) { if (layer.camera) demo.draw?.(layer.camera, demo); }
         }());
         engine.on("theme", () => this.readBackground());
@@ -96,16 +98,52 @@ export class Demo3D extends CustomElement {
         this.background = [r / 255, g / 255, b / 255, 1];
     }
 
+    /** turn the corner arrows with the camera: world axes projected on the camera's right / up */
+    private updateAxes() {
+        const svg = this.noAxes ? null : this.shadowRoot?.querySelector(".axes");
+        const camera = this.camera;
+        if (!svg || !camera) return;
+        const pitch = camera.rotation[0], yaw = camera.rotation[1];
+        const r = [Math.cos(yaw), 0, -Math.sin(yaw)];
+        const f = [-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
+        const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+        // far ends first so the near arrows draw on top
+        const order = [0, 1, 2].sort((a, b) => f[b] - f[a]);
+        order.forEach(k => {
+            const g = svg.querySelector(`[data-axis="${k}"]`) as SVGGElement | null;
+            if (!g) return;
+            const x = r[k] * 22, y = -u[k] * 22;
+            g.querySelector("line")!.setAttribute("x2", String(x));
+            g.querySelector("line")!.setAttribute("y2", String(y));
+            g.querySelector("circle")!.setAttribute("cx", String(x));
+            g.querySelector("circle")!.setAttribute("cy", String(y));
+            g.querySelector("text")!.setAttribute("x", String(x));
+            g.querySelector("text")!.setAttribute("y", String(y));
+            g.style.opacity = f[k] > .5 ? ".45" : "1";
+            svg.appendChild(g);
+        });
+    }
+
+    private handleaxes = () => { this.noAxes = !this.noAxes; };
     private handlemode = (mode: DemoMode) => () => { this.mode = mode; };
 
     render() {
         return html`
             <div class="stage" part="stage"><canvas part="canvas"></canvas></div>
             <div class="panel" part="panel"><slot></slot></div>
+            ${this.noAxes ? "" : html`
+                <svg class="axes" part="axes" viewBox="-32 -32 64 64">
+                    <circle class="ring" r="30"></circle>
+                    <g data-axis="0" class="x"><line x1="0" y1="0"></line><circle r="6"></circle><text>X</text></g>
+                    <g data-axis="1" class="y"><line x1="0" y1="0"></line><circle r="6"></circle><text>Y</text></g>
+                    <g data-axis="2" class="z"><line x1="0" y1="0"></line><circle r="6"></circle><text>Z</text></g>
+                </svg>
+            `}
             ${this.noBar ? "" : html`
                 <div class="bar" part="bar">
                     <button class="${this.mode === "pan" ? "on" : ""}" @click="${this.handlemode("pan")}">pan</button>
                     <button class="${this.mode === "fly" ? "on" : ""}" @click="${this.handlemode("fly")}">fly</button>
+                    <button class="${this.noAxes ? "" : "on"}" @click="${this.handleaxes}">axes</button>
                     <span>${this.mode === "fly"
                         ? "click to look (esc frees) · right drag look · WASD · E/Q up/down · shift fast · wheel speed"
                         : "drag turn · right/shift drag pan · wheel zoom"}</span>

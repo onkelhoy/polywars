@@ -59,3 +59,35 @@ canvas {
     background: var(--text);
     color: var(--background);
 }
+
+.axes {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    width: 72px;
+    height: 72px;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.axes .ring {
+    fill: color-mix(in oklch, var(--background) 70%, transparent);
+    stroke: color-mix(in oklch, var(--text) 20%, transparent);
+}
+
+.axes line {
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+.axes text {
+    font: bold 8px system-ui, sans-serif;
+    fill: #fff;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+
+.axes .x line, .axes .x circle { stroke: #e5484d; fill: #e5484d; }
+.axes .y line, .axes .y circle { stroke: #46a758; fill: #46a758; }
+.axes .z line, .axes .z circle { stroke: #3e63dd; fill: #3e63dd; }
+.axes text { stroke: none; }
