@@ -1,5 +1,9 @@
-/** image urls of one material, all optional */
-export type MapUrls = { albedo?: string; normal?: string; spec?: string; ao?: string };
+/** raw 8 bit pixels, rows top to bottom, `channels` 1 (grey), 3 (rgb) or 4 (rgba) */
+export type MapPixels = { pixels: Uint8Array; width: number; height: number; channels: 1 | 3 | 4 };
+/** one map: an image url or raw pixels (in-memory, e.g. a fresh bake) */
+export type MapSource = string | MapPixels;
+/** the maps of one material, all optional */
+export type MapUrls = { albedo?: MapSource; normal?: MapSource; spec?: MapSource; ao?: MapSource };
 /** the same on the GPU */
 export type Maps = { albedo?: WebGLTexture; normal?: WebGLTexture; spec?: WebGLTexture; ao?: WebGLTexture };
 
@@ -79,9 +83,14 @@ export function loadTexture(gl: WebGL2RenderingContext, url: string, srgb = fals
     return texture;
 }
 
-/** Load the maps of one material. A map that fails to load is left out. */
+/**
+ * Load the maps of one material. A map that fails to load is left out.
+ * Urls are cached per context; textures from pixels are new (`gl.deleteTexture` them when done).
+ */
 export async function loadMaps(gl: WebGL2RenderingContext, urls: MapUrls): Promise<Maps> {
-    const one = (url: string | undefined, srgb: boolean) => url ? loadTexture(gl, url, srgb).catch(() => undefined) : undefined;
+    const one = (source: MapSource | undefined, srgb: boolean) => !source ? undefined
+        : typeof source === "string" ? loadTexture(gl, source, srgb).catch(() => undefined)
+        : textureFrom(gl, source.pixels, source.width, source.height, source.channels, srgb);
     const [albedo, normal, spec, ao] = await Promise.all([one(urls.albedo, true), one(urls.normal, false), one(urls.spec, false), one(urls.ao, false)]);
     return { albedo, normal, spec, ao };
 }

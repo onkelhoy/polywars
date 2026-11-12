@@ -4,8 +4,8 @@ import type { Camera } from "@papit/game-engine";
 import "@polywar/3d-demo";
 import type { Demo3D } from "@polywar/3d-demo";
 import { Matrix4 } from "@papit/matrix";
-import { Grid, Model, Renderer } from "./render";
-import { MeshBuilder, upload, type GLTF, type GPUMesh } from "@papit/game-mesh";
+import { Grid, Model, Renderer, type TexturedGLTF } from "./render";
+import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
 
 // local
@@ -21,8 +21,10 @@ export class AssetPreview3D extends CustomElement {
     static sheet = sheet;
 
     @property({ after: function (this: AssetPreview3D) { this.load(); } }) src: string = "";
-    /** in-memory glTF (generated content); wins over `src` */
-    @property({ attribute: false, after: function (this: AssetPreview3D) { this.load(); } }) gltf: GLTF | null = null;
+    /** in-memory glTF (generated content), optionally with `maps` (urls or pixels); wins over `src` */
+    @property({ attribute: false, after: function (this: AssetPreview3D) { this.load(); } }) gltf: TexturedGLTF | null = null;
+    /** a new model keeps the camera where it is (after the first one); `frame()` fits it again */
+    @property({ type: Boolean, attribute: "keep-view" }) keepView: boolean = false;
     @property({ rerender: true, after: function (this: AssetPreview3D) { this.applyMode(); } }) mode: PreviewMode = "turntable";
     @property({ rerender: true }) animation: string = "";
     @property({ type: Boolean, rerender: true }) controls: boolean = false;
@@ -72,7 +74,9 @@ export class AssetPreview3D extends CustomElement {
         if (!this.gltf && !src) return;
         const ticket = ++this.loading;
         const model = this.gltf ? new Model(gl, this.gltf) : await Model.load(gl, src);
+        await model.ready;
         if (ticket !== this.loading) return model.destroy();
+        const first = !this.model;
         this.model?.destroy();
         this.model = model;
         // grid scaled to the model: lines every 10^n / 2 metres, out to 3x its size
@@ -81,7 +85,7 @@ export class AssetPreview3D extends CustomElement {
         this.gridMesh = new Grid(gl, Math.ceil(r * 3 / step) * step, step, 5);
         this.time = 0;
         if (!model.animation(this.animation)) this.animation = "";
-        this.frame();
+        if (first || !this.keepView) this.frame();
         const triangles = model.gltf.meshes.flatMap(m => m.primitives).reduce((n, p) => n + (p.indices?.length ?? p.positions.length / 3) / 3, 0);
         this.dispatchEvent(new CustomEvent<LoadEvent>("load", {
             detail: { src, animations: model.animations.map(a => a.name ?? ""), triangles, size: model.size },
@@ -106,7 +110,7 @@ export class AssetPreview3D extends CustomElement {
     }
 
     /** camera back to a view that fits the model */
-    private frame() {
+    frame() {
         const demo = this.demo;
         if (!demo) return;
         const y = (this.model?.size[1] ?? 0) / 2, d = this.fit;

@@ -4,7 +4,7 @@ import { Matrix4 } from "@papit/matrix";
 import { Quaternion } from "@papit/quaternion";
 import type { DrawOptions, Renderer } from "./renderer";
 
-/** a glTF + optional texture map urls per mesh and primitive (`maps[mesh][primitive]`, as `readMaps` returns) */
+/** a glTF + optional texture maps (urls or pixels) per mesh and primitive (`maps[mesh][primitive]`, as `readMaps` returns) */
 export type TexturedGLTF = GLTF & { maps?: (MapUrls | undefined)[][] };
 
 export type Box = { min: [number, number, number]; max: [number, number, number] };
@@ -35,7 +35,7 @@ export class Model {
     /** resolves when the textures are on the GPU */
     readonly ready: Promise<void>;
 
-    constructor(gl: WebGL2RenderingContext, readonly gltf: TexturedGLTF) {
+    constructor(private gl: WebGL2RenderingContext, readonly gltf: TexturedGLTF) {
         this.gpu = gltf.meshes.map(m => m.primitives.map(p => upload(gl, p)));
         this.ready = Promise.all((gltf.maps ?? []).map((mesh, m) => Promise.all(mesh.map(async (urls, i) => {
             if (!urls) return;
@@ -139,6 +139,13 @@ export class Model {
 
     destroy() {
         this.gpu.flat().forEach(g => g.destroy());
+        // url textures are cached and shared, pixel ones belong to this model
+        this.ready.then(() => (this.gltf.maps ?? []).forEach((mesh, m) => mesh.forEach((sources, i) => {
+            const maps = this.textures[m]?.[i];
+            if (!sources || !maps) return;
+            for (const k of ["albedo", "normal", "spec", "ao"] as const)
+                if (sources[k] && typeof sources[k] !== "string" && maps[k]) this.gl.deleteTexture(maps[k]!);
+        })));
     }
 }
 

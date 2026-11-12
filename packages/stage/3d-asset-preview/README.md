@@ -28,6 +28,13 @@ npm install @polywar/3d-asset-preview
 <pw-3d-asset-preview></pw-3d-asset-preview>
 ```
 
+```js
+// in-memory: a glTF (e.g. gltfFromMesh(mesh)) plus maps per mesh/primitive, urls or raw pixels
+preview.gltf = Object.assign(gltfFromMesh(quad), { maps: [[{ albedo: { pixels, width, height, channels: 3 }, normal: "/x/normal.png" }]] });
+```
+
+Properties: `src`, `gltf`, `mode` (`turntable | orbit | fps`), `controls`, `grid`, `toon`, `speed`, light (`ambient`, `sun`, `sun-azimuth`, `sun-elevation`, `lamp`, `lamp-angle`, `lights` opens the panel), `keep-view` (a new model keeps the camera; `frame()` fits it again).
+
 ## License
 
 Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
