@@ -2,7 +2,7 @@ import { translator } from '@papit/translator';
 import "@papit/codeblock";
 
 // component
-import '@polywar/assets';
+import '@polywar/characters';
 
 window.onload = () => {
     console.log('[demo]: window loaded');
