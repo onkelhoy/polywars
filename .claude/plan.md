@@ -15,7 +15,7 @@
 ## Tasks
 Fixes + material styles (confirmed 2026-11-12, branch `restructure-materials`; r1-r6 done: folders, 3d-demo axes, preview pixel maps/keep-view/`scene`, mesh-bake bake button, `@polywar/grass-material` + `GrassPatch`, gallery `material` kind + view `materials`):
 - f1. [x] Grass density: over `maxTufts` it fills rows then stops (bare strip). Thin evenly instead (lower effective density in `place.ts`), show "capped" in the view info.
-- f2. [ ] Grass defaults: medium = owner's code `density 47, distance 42, sizeScale 1.55, framerate 7 (pixel style), shape mixed`; low/high scaled alike.
+- f2. [x] Grass defaults: medium = owner's code `density 47, distance 42, sizeScale 1.55, framerate 7 (pixel style), shape mixed`; low/high scaled alike.
 - f3. [ ] Clouds: view sliders for speed, direction, contrast, threshold, height, diverge (only scale/min now); default speed faster (.01 ≈ 0.4 m/s, looks frozen).
 - f4. [ ] 3d-demo pivot: `panZoom.start` sets pivot to the ground hit (`controllers.ts`), so `look(from, to)` orbits the wrong point. Pivot = `to`. Preview already centres the mesh (bbox), so it then orbits the mesh centre.
 - f5. [ ] 3d-demo `pan="ground | screen"`: screen = pan in the view plane (up/down too). 3d-asset-preview (so mesh-bake) uses screen.

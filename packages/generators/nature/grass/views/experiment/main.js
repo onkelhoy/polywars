@@ -88,7 +88,7 @@ for (const path of colors)
 const code = () => {
     const c = grass.code;
     if (document.activeElement !== $('#code')) $('#code').value = c;
-    history.replaceState(null, '', c === 'g1' ? location.pathname : '#' + c);
+    history.replaceState(null, '', !c.includes('.') ? location.pathname : '#' + c);
 };
 const refresh = () => { inputs.forEach(f => f()); code(); };
 

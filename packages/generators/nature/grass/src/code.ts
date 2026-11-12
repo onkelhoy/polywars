@@ -3,7 +3,9 @@
  * numbers are rounded to 4 decimals, so untouched settings are just the version (`g1`).
  * The version prefix keeps old codes loading when the defaults change: bump it and keep the old base.
  */
-const VERSION = "g1";
+const VERSION = "g2";
+/** older versions: the base they were made against, as changes to the current base */
+const OLD: Record<string, Record<string, unknown>> = { g1: { shape: "leaves" } };
 
 type Data = unknown;
 const isObject = (v: Data): v is Record<string, Data> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -49,6 +51,7 @@ export const isCode = (text: string) => /^g\d+(\.[\w-]+)?$/.test(text.trim());
 /** settings from a code made against `base` */
 export function decode<T extends object>(code: string, base: T): T {
     const [version, payload] = code.trim().split(".");
-    if (version !== VERSION) throw new Error(`unknown grass code version "${version}"`);
-    return payload ? patch(base, JSON.parse(fromBase64(payload))) : structuredClone(base);
+    if (version !== VERSION && !OLD[version]) throw new Error(`unknown grass code version "${version}"`);
+    const from = version === VERSION ? base : patch(base, OLD[version]);
+    return payload ? patch(from, JSON.parse(fromBase64(payload))) : structuredClone(from);
 }

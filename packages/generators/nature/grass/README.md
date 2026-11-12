@@ -38,7 +38,7 @@ grass.draw(camera, light, time);
 | `settings` | overrides on the quality preset: `density` (tufts/m²), `maxTufts`, `distance`, `lod`, `sizeScale`, `source`, `planes`, `clouds`, `pushers`, `softBands`, `noiseSize` |
 | `style` | `pixel` (nearest sprites, stepped clock, toon bands) or `smooth`, see `STYLE` |
 | `look` | overrides on the style: `pixelated`, `stepped`, `framerate`, `bands`, `pixels` |
-| `shape` | main tuft: `leaves` (all directions, reads from above), `blades`, `mixed` (`bladeShare`) |
+| `shape` | main tuft: `leaves` (all directions, reads from above), `blades`, `mixed` (`bladeShare`, default) |
 | `size`, `sizeJitter` | tuft width/height in metres, random spread |
 | `color`, `patches`, `variation` | base colour (sRGB hex), noise patches `{ color, scale, threshold, softness }`, per-tuft shade |
 | `accents` | up to 2 rare tufts `{ chance, color, height, scale }` (flower, tall blades) |
@@ -53,9 +53,10 @@ grass.draw(camera, light, time);
 
 | | low | medium | high |
 | --- | --- | --- | --- |
-| density /m² | 14 | 36 | 64 |
+| density /m² | 18 | 47 | 83 |
 | max tufts | 20k | 60k | 160k |
-| distance m | 25 | 45 | 70 |
+| distance m | 23 | 42 | 65 |
+| size scale | 1.9 | 1.55 | 1.4 |
 | clouds | off | on | on |
 | pushers | 8 | 16 | 64 |
 | noise | 64² | 128² | 256² |
@@ -69,11 +70,11 @@ const json = grass.toJSON();      // plain data (no mesh, no image sprites)
 new Grass(layer, json);
 grass.load(json);                 // replace all, missing fields fall back to defaults
 
-const code = grass.code;          // share code: only what differs from the defaults, e.g. "g1" or "g1.eyJ..."
+const code = grass.code;          // share code: only what differs from the defaults, e.g. "g2" or "g2.eyJ..." (older versions still load)
 grass.load(code);                 // load takes settings, json text or a code
 ```
 
-The view keeps the code in the url (`#g1...`), so a link opens the same grass.
+The view keeps the code in the url (`#g2...`), so a link opens the same grass.
 
 ## How it works
 
