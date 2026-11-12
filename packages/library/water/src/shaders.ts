@@ -164,7 +164,8 @@ void main() {
         shore = shoreAt(vWorld.xz + bend);
         float e = shoreRect.z * 1.5;
         vec2 gr = vec2(shoreAt(vWorld.xz + vec2(e, 0)) - shoreAt(vWorld.xz - vec2(e, 0)), shoreAt(vWorld.xz + vec2(0, e)) - shoreAt(vWorld.xz - vec2(0, e)));
-        if (dot(gr, gr) > 1e-8) dir = -normalize(gr);
+        // one wind direction over open water, turning toward land only close to the shore (no swirls in bays)
+        if (dot(gr, gr) > 1e-8) dir = normalize(mix(vec2(.87, .5), -normalize(gr), 1.0 - smoothstep(4.0, 30.0, shore)) + 1e-4);
     }
 
     // flat colour: shallow to deep, lit as a plane; a little sky at grazing angles
@@ -190,7 +191,9 @@ void main() {
 
     // toon glints: darker dashes, white inside the sun's reflection; tiny specks. Past \`far\` the dashes become a smooth sheen
     float near = 1.0 - smoothstep(glintFar * .5, glintFar, dist);
-    c = mix(c, white * 1.2, smoothstep(.1, .9, lane) * (1.0 - near) * glintStrength * .4);
+    // far away: a faint, patchy sheen in the core of the reflection (not a flat beam)
+    float sheen = smoothstep(.4, 1.0, lane) * (.35 + .65 * fbm3(vWorld.xz / max(glintLength * 40.0, 1.0) + time * .01));
+    c = mix(c, white * 1.1, sheen * (1.0 - near) * glintStrength * .18);
     if (near > 0.0 && (glintDark > 0.0 || glintStrength > 0.0 || glintSpecks > 0.0)) {
         // the glare is a patch of light, not per dash: its edge is broken by noise so dashes light up only in pieces
         float glare = clamp(lane * 1.5 + (vnoise(vWorld.xz / max(glintLength * 1.2, .05) + time * .05) - .5) * .9 - .25, 0.0, 1.0);
