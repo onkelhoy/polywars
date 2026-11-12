@@ -60,3 +60,7 @@ skeleton.update();                  // -> skeleton.matrices for the skin shader
 ## bones (RigGizmo)
 
 `new RigGizmo(gl).draw(renderer, skeleton, matrix * model.skeletonMatrix, { inFront, lines, selected, scale })`: Blender style octahedral bones, joint balls, dashed parent lines; IK bone yellow, chain pale yellow, target orange, pole blue, copy rotation green, controls purple. Works for any `{ armature, deform?, copies? }`. `pw-3d-asset-preview` uses it for its bones toggle. View `ik`: base character, clip + IK targets moved live.
+
+## posing by hand (Poser)
+
+`new Poser(skeleton)`: `press(x, y, project, ray)` selects a bone or grabs a handle, `drag(ray)`, `release()`, `apply()` after each `pose()` (edits stay over the clip), `clear()`. IK targets, poles, roots move (view plane, or X / Y / Z arrows); moving a target or pole turns its IK on. Other bones turn (around the view axis, or rings around their own X / Y / Z). `gizmo.handles(renderer, matrix, poser.handles(), poser.active)` draws the arrows and rings. `pw-3d-asset-preview` wires it up when bones are shown.

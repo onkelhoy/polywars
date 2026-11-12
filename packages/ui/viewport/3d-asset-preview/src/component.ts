@@ -18,7 +18,7 @@ import type { LoadEvent, Overlay, PreviewMode } from "./types";
  * Modes: `turntable` (spins, drag to orbit), `orbit` (drag turn, right-drag/shift-drag pan, wheel zoom), `fps` (click, WASD + mouse).
  * With `controls`: mode switch, animation picker, play/pause, a time scrubber and frame stepping (`fps`).
  * Rigged models posed by a `Skeleton` (set `skin`, e.g. `Skeleton.skin`) get bones / IK / mesh toggles;
- * with bones shown, drag a bone to pose it (IK targets, poles, roots move, the rest turn), on top of the clip.
+ * with bones shown, press a bone to select it, drag it or its arrows (move) / rings (turn) to pose it, on top of the clip.
  * Hooks: `skin` (e.g. `Skeleton.skin` for IK), `overlay` (draws over the model, e.g. bones), `hide-model`.
  */
 export class AssetPreview3D extends CustomElement {
@@ -121,6 +121,7 @@ export class AssetPreview3D extends CustomElement {
         this.model?.destroy();
         this.model = model;
         this.poser = model.skin instanceof Skeleton ? new Poser(model.skin) : undefined;
+        if (this.poser) this.poser.size = Math.max(...model.size) * .12;
         this.fitGrid();
         this.time = 0;
         if (!model.animation(this.animation)) this.animation = "";
@@ -222,38 +223,49 @@ export class AssetPreview3D extends CustomElement {
             this.boneMatrix = m.clone.multiply(this.model.skeletonMatrix);
             this.boneInverse = this.boneMatrix.clone.inverse();
             const selected = this.poser?.selected ? new Set([this.poser.selected]) : undefined;
-            if (this.bones) (this.gizmo ??= new RigGizmo(renderer.gl)).draw(renderer, skin, this.boneMatrix, { selected });
+            if (this.bones)
+            {
+                const gizmo = this.gizmo ??= new RigGizmo(renderer.gl);
+                gizmo.draw(renderer, skin, this.boneMatrix, { selected });
+                if (this.poser) gizmo.handles(renderer, this.boneMatrix, this.poser.handles(), this.poser.active);
+            }
         }
         this.overlay?.(renderer, this.model, m);
     }
 
     // ---- input ----
 
-    /** with bones shown: a press on a bone picks it and keeps the camera still */
+    /** with bones shown: a press on a bone or a handle grabs it and keeps the camera still */
     private handlebonedown = (e: PointerEvent) => {
-        const demo = this.demo, poser = this.poser, M = this.boneMatrix;
-        if (!this.bones || !demo || !poser || !M || e.button !== 0 || this.mode === "fps") return;
+        const demo = this.demo, poser = this.poser, M = this.boneMatrix, ray = this.boneRay(e);
+        if (!this.bones || !demo || !poser || !M || !ray || e.button !== 0 || this.mode === "fps") return;
         const [x, y] = demo.local(e.clientX, e.clientY);
-        const bone = poser.pick(x, y, p => demo.project(transform(M, p, 1)));
+        const grabbed = poser.press(x, y, p => demo.project(transform(M, p, 1)), ray);
         this.requestUpdate();
-        if (!bone) return;
+        if (!grabbed) return;
         e.stopPropagation();
         e.preventDefault();
         this.dragging = e.pointerId;
     };
     private handlebonemove = (e: PointerEvent) => {
         if (e.pointerId !== this.dragging) return;
-        const ray = this.demo?.ray(e.clientX, e.clientY), I = this.boneInverse;
-        if (!ray || !I) return;
-        this.poser?.drag(transform(I, ray.origin, 1), transform(I, ray.direction, 0), transform(I, ray.forward, 0));
+        const ray = this.boneRay(e);
+        if (!ray) return;
+        this.poser?.drag(ray);
         this.requestUpdate();
     };
+    /** pointer ray in armature space */
+    private boneRay(e: PointerEvent) {
+        const ray = this.demo?.ray(e.clientX, e.clientY), I = this.boneInverse;
+        if (!ray || !I) return undefined;
+        return { origin: transform(I, ray.origin, 1), direction: transform(I, ray.direction, 0), normal: transform(I, ray.forward, 0) };
+    }
     private handleboneup = (e: PointerEvent) => {
         if (e.pointerId !== this.dragging) return;
         this.dragging = undefined;
         this.poser?.release();
     };
-    private handleposereset = () => { this.poser?.clear(); if (this.poser) this.poser.selected = undefined; this.requestUpdate(); };
+    private handleposereset = () => { this.poser?.clear(); this.requestUpdate(); };
 
     private handlemode = (mode: PreviewMode) => () => { this.mode = mode; };
     private handlelights = () => { this.lights = !this.lights; };
@@ -292,7 +304,7 @@ export class AssetPreview3D extends CustomElement {
                             <pap-button size="small" variant="${!this.hideModel ? "filled" : "outline"}" @click="${this.handletoggle("hideModel")}">mesh</pap-button>
                             <pap-button size="small" variant="${this.bones ? "filled" : "outline"}" @click="${this.handletoggle("bones")}">bones</pap-button>
                             <pap-button size="small" variant="${this.ik ? "filled" : "outline"}" @click="${this.handletoggle("ik")}">IK</pap-button>
-                            ${this.bones ? html`<span class="bone">${this.poser?.selected?.name ?? "drag a bone"}</span>` : ""}
+                            ${this.bones ? html`<span class="bone">${this.poser?.selected?.name ?? "press a bone"}</span>` : ""}
                             ${this.poser?.edits.size ? html`<pap-button size="small" variant="outline" @click="${this.handleposereset}">reset pose</pap-button>` : ""}
                         </div>
                     ` : ""}

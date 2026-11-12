@@ -2,6 +2,11 @@ import type { Bone } from "@papit/armature";
 import { MeshBuilder, upload, type GPUMesh, type Mesh } from "@papit/game-mesh";
 import type { Renderer } from "@polywar/renderer";
 import type { GizmoColors, GizmoOptions, RGBA, RigView } from "./gizmo-types";
+import { ringBasis, type PoseHandle } from "./poser";
+
+/** handle colours per axis (X red, Y green, Z blue) and the grabbed one */
+export const AXIS_COLORS: RGBA[] = [[.95, .2, .25, 1], [.35, .85, .2, 1], [.2, .5, 1, 1]];
+const ACTIVE: RGBA = [1, .85, .1, 1];
 
 // colours (linear) after Blender's bone theme
 export const GIZMO_COLORS: GizmoColors = {
@@ -32,6 +37,8 @@ export class RigGizmo {
     private outline: GPUMesh;
     private ball: GPUMesh;
     private dash: GPUMesh;
+    private ring: GPUMesh;
+    private stick: GPUMesh;
     private m = new Float32Array(16);
 
     constructor(readonly gl: WebGL2RenderingContext) {
@@ -39,6 +46,8 @@ export class RigGizmo {
         this.outline = upload(gl, octahedronLines());
         this.ball = upload(gl, new MeshBuilder().sphere([1, 1, 1], {}, 1).build());
         this.dash = upload(gl, dashes(10));
+        this.ring = upload(gl, circle(64));
+        this.stick = upload(gl, mesh([0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0]));
     }
 
     draw(renderer: Renderer, rig: RigView, matrix: ArrayLike<number>, options: GizmoOptions = {}) {
@@ -84,8 +93,35 @@ export class RigGizmo {
         gl.enable(gl.DEPTH_TEST);
     }
 
+    /** a `Poser`'s handles (armature space): rings for turning, arrows for moving, always in front */
+    handles(renderer: Renderer, matrix: ArrayLike<number>, handles: PoseHandle[], active?: PoseHandle) {
+        const gl = this.gl;
+        gl.disable(gl.DEPTH_TEST);
+        gl.depthMask(false);
+        for (const h of handles)
+        {
+            const tint = active && active.kind === h.kind && active.axis === h.axis ? ACTIVE : AXIS_COLORS[h.axis];
+            const [u, v] = ringBasis(h.direction), d = h.direction, o = h.origin, s = h.size;
+            if (h.kind === "turn")
+            {
+                multiply(this.m, matrix, [...d.map(x => x * s), 0, ...u.map(x => x * s), 0, ...v.map(x => x * s), 0, ...o, 1]);
+                renderer.draw(this.ring, this.m, { tint, unlit: true }, gl.LINES);
+            }
+            else
+            {
+                multiply(this.m, matrix, [...d.map(x => x * s), 0, ...u, 0, ...v, 0, ...o, 1]);
+                renderer.draw(this.stick, this.m, { tint, unlit: true }, gl.LINES);
+                const t = o.map((x, i) => x + d[i] * s * .8);
+                multiply(this.m, matrix, [...d.map(x => x * s * .3), 0, ...u.map(x => x * s * .8), 0, ...v.map(x => x * s * .8), 0, ...t, 1]);
+                renderer.draw(this.body, this.m, { tint });
+            }
+        }
+        gl.depthMask(true);
+        gl.enable(gl.DEPTH_TEST);
+    }
+
     destroy() {
-        for (const g of [this.body, this.outline, this.ball, this.dash]) g.destroy();
+        for (const g of [this.body, this.outline, this.ball, this.dash, this.ring, this.stick]) g.destroy();
     }
 
     /** colour per bone: selected > IK > chain > target/pole > copy > control > bone */
@@ -153,6 +189,17 @@ function octahedronLines(): Mesh {
     const ring = [[.1, .1, 0], [.1, 0, .1], [.1, -.1, 0], [.1, 0, -.1]];
     const p: number[] = [];
     for (let i = 0; i < 4; i++) p.push(...head, ...ring[i], ...tail, ...ring[i], ...ring[i], ...ring[(i + 1) % 4]);
+    return mesh(p, new Array(p.length).fill(0));
+}
+
+/** unit circle in the YZ plane as `n` line segments */
+function circle(n: number): Mesh {
+    const p: number[] = [];
+    for (let i = 0; i < n; i++)
+    {
+        const a = i / n * Math.PI * 2, b = (i + 1) / n * Math.PI * 2;
+        p.push(0, Math.cos(a), Math.sin(a), 0, Math.cos(b), Math.sin(b));
+    }
     return mesh(p, new Array(p.length).fill(0));
 }
 
