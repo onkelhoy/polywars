@@ -1,17 +1,16 @@
 {
-  "name": "@polywar/3d-demo",
-  "description": "Demo stage for 3D package views: engine canvas, fly + pan-zoom camera (switchable, keeps the pose), theme background, overlay panel that never drives the camera.",
+  "name": "@polywar/textured",
+  "description": "Textured material for WebGL2: albedo, normal and spec maps (all optional) as GLSL chunks, texture loading and glTF material reading.",
   "keywords": [
     "papit",
-    "web-component",
-    "typescript",
-    "3d-demo"
+    "webgl",
+    "material",
+    "texture",
+    "normal-map"
   ],
   "version": "0.0.1",
   "scripts": {
-    "build": "npx @papit/build --error",
-    "analyse": "npx @papit/analyse",
-    "generate:react": "npx @papit/react",
+    "build": "npx @papit/build -- --error --ancestors",
     "watch": "tsc -w",
     "start": "npx @papit/server --info --live",
     "preversion": "papit-version",
@@ -38,38 +37,28 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/utils/3d-demo",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/render/materials/textured",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/utils/3d-demo"
+    "directory": "packages/render/materials/textured"
   },
   "sideEffects": true,
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {
-    "@papit/web-component": "*",
-    "@papit/game-engine": "*",
-    "@papit/vector": "*"
-  },
-  "peerDependencies": {
-    "react": "^19"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
-  },
+  "dependencies": {},
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "playwright": "1.64.1",
     "typescript": "5.9.3",
     "@papit/theme": "*",
-    "@polywar/3d-asset-preview": "*"
+    "@papit/translator": "*",
+    "@papit/codeblock": "*",
+    "@papit/game-mesh": "*"
   },
   "browserslist": [
     "defaults",
@@ -78,13 +67,12 @@
   ],
   "papit": {
     "publish": true,
-    "type": "web-component",
-    "main": "3d-demo",
-    "htmlprefix": "pw",
+    "type": "browser",
+    "main": "textured",
+    "htmlprefix": "",
     "components": {
-      "3d-demo": {
-        "className": "Demo3D",
-        "htmlprefix": "pw"
+      "textured": {
+        "className": "Textured"
       }
     }
   }

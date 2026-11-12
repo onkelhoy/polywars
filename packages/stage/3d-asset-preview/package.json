@@ -41,14 +41,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/3d-asset-preview",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/stage/3d-asset-preview",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/ui/3d-asset-preview"
+    "directory": "packages/stage/3d-asset-preview"
   },
   "sideEffects": true,
   "engines": {

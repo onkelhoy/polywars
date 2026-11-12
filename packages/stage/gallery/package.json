@@ -42,14 +42,14 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/ui/gallery",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/stage/gallery",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/ui/gallery"
+    "directory": "packages/stage/gallery"
   },
   "sideEffects": true,
   "engines": {

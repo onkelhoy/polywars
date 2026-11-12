@@ -9,17 +9,24 @@
 - Pack script keeps existing files (hand edits); `--force` or delete one file to regenerate it.
 - Guns: muzzle +Y Blender (glTF -Z), up +Z. Bones: root > body > action, trigger, hammer?, mag > round, muzzle, eject. Moving parts = vertex groups in `gun.blend`. Actions: idle, fire, reload, reload-empty.
 - `game-mesh` has no textures → `export.py` bakes image textures into vertex colours.
-- Render code (Renderer, Model, Grid, gltfFromMesh) lives in `packages/ui/3d-asset-preview/src/render`, exported by `@polywar/3d-asset-preview`.
+- Render code (Renderer, Model, Grid, gltfFromMesh) lives in `packages/stage/3d-asset-preview/src/render`, exported by `@polywar/3d-asset-preview`.
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
 
 ## Tasks
+Restructure + materials (confirmed 2026-11-12, branch `restructure-materials`):
+- r1. [x] Folders: stage/ (3d-demo, 3d-asset-preview, gallery), render/materials/ (textured), generators/, tools/, ui/, network/. Table in CLAUDE.md.
+- r2. [ ] 3d-demo: direction arrow bottom-left, `axes` attribute + bar button.
+- r3. [ ] 3d-asset-preview: in-memory mesh + maps.
+- r4. [ ] mesh-bake view on 3d-asset-preview: load shows mesh, settings, big bake button.
+- r5. [ ] Grass shaders into `render/materials/grass`, grass generator uses it.
+- r6. [ ] Materials view: pw-gallery, one tile per material, click opens preview.
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
 
 ## Medieval buildings + baked surfaces (confirmed 2026-11-11)
 Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
 - Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `color.png`, `normal.png`, `ao.png`, `spec.png` (glb references them). Rebake: `node tools/bake-village.mjs`.
 - mesh-bake: `papit.type` is `node` so `src/bin.ts` builds to `lib/bin.js` (browser type fails on `node:` imports); `lib/bundle.js` stays browser safe (bin is not exported from index).
-- b3. [ ] `packages/material/textured`: albedo + normal + spec + ao, maps optional, own view.
+- b3. [ ] `packages/render/materials/textured`: albedo + normal + spec + ao, maps optional, own view.
 - b3b. [ ] mesh-bake GUI view: drop glb, live maps + lit preview, settings, download.
 - b5. [ ] Generator massing: main volume, wing, lean-to, jetty.
 - b6. [ ] Generator roofs: gable default, cross-gable, dormers, ridge/rake.
