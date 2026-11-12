@@ -3155,11 +3155,21 @@
       {
        "name": "BirchTree_1.lod2.glb",
        "file": "/assets/models/nature/BirchTree_1.lod2.glb",
-       "size": 3088
+       "size": 11188
       },
       {
        "name": "BirchTree_1.lod3.glb",
        "file": "/assets/models/nature/BirchTree_1.lod3.glb",
+       "size": 7752
+      },
+      {
+       "name": "BirchTree_1.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_1.lod4.glb",
+       "size": 3392
+      },
+      {
+       "name": "BirchTree_1.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_1.lod5.glb",
        "size": 1136
       },
       {
@@ -3180,11 +3190,21 @@
       {
        "name": "BirchTree_2.lod2.glb",
        "file": "/assets/models/nature/BirchTree_2.lod2.glb",
-       "size": 3856
+       "size": 10420
       },
       {
        "name": "BirchTree_2.lod3.glb",
        "file": "/assets/models/nature/BirchTree_2.lod3.glb",
+       "size": 7452
+      },
+      {
+       "name": "BirchTree_2.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_2.lod4.glb",
+       "size": 4172
+      },
+      {
+       "name": "BirchTree_2.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_2.lod5.glb",
        "size": 1140
       },
       {
@@ -3205,11 +3225,21 @@
       {
        "name": "BirchTree_3.lod2.glb",
        "file": "/assets/models/nature/BirchTree_3.lod2.glb",
-       "size": 3836
+       "size": 11348
       },
       {
        "name": "BirchTree_3.lod3.glb",
        "file": "/assets/models/nature/BirchTree_3.lod3.glb",
+       "size": 7908
+      },
+      {
+       "name": "BirchTree_3.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_3.lod4.glb",
+       "size": 4148
+      },
+      {
+       "name": "BirchTree_3.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_3.lod5.glb",
        "size": 1140
       },
       {
@@ -3230,11 +3260,21 @@
       {
        "name": "BirchTree_4.lod2.glb",
        "file": "/assets/models/nature/BirchTree_4.lod2.glb",
-       "size": 3840
+       "size": 14320
       },
       {
        "name": "BirchTree_4.lod3.glb",
        "file": "/assets/models/nature/BirchTree_4.lod3.glb",
+       "size": 9788
+      },
+      {
+       "name": "BirchTree_4.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_4.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "BirchTree_4.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_4.lod5.glb",
        "size": 1140
       },
       {
@@ -3255,11 +3295,21 @@
       {
        "name": "BirchTree_5.lod2.glb",
        "file": "/assets/models/nature/BirchTree_5.lod2.glb",
-       "size": 3840
+       "size": 11348
       },
       {
        "name": "BirchTree_5.lod3.glb",
        "file": "/assets/models/nature/BirchTree_5.lod3.glb",
+       "size": 7912
+      },
+      {
+       "name": "BirchTree_5.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_5.lod4.glb",
+       "size": 4916
+      },
+      {
+       "name": "BirchTree_5.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_5.lod5.glb",
        "size": 1140
       },
       {
@@ -3280,11 +3330,21 @@
       {
        "name": "BirchTree_Autumn_1.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_1.lod2.glb",
-       "size": 3096
+       "size": 11196
       },
       {
        "name": "BirchTree_Autumn_1.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_1.lod3.glb",
+       "size": 7756
+      },
+      {
+       "name": "BirchTree_Autumn_1.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_1.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "BirchTree_Autumn_1.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_1.lod5.glb",
        "size": 1148
       },
       {
@@ -3305,11 +3365,21 @@
       {
        "name": "BirchTree_Autumn_2.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_2.lod2.glb",
-       "size": 3852
+       "size": 10412
       },
       {
        "name": "BirchTree_Autumn_2.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_2.lod3.glb",
+       "size": 7448
+      },
+      {
+       "name": "BirchTree_Autumn_2.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_2.lod4.glb",
+       "size": 4164
+      },
+      {
+       "name": "BirchTree_Autumn_2.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_2.lod5.glb",
        "size": 1144
       },
       {
@@ -3330,11 +3400,21 @@
       {
        "name": "BirchTree_Autumn_3.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_3.lod2.glb",
-       "size": 3844
+       "size": 11352
       },
       {
        "name": "BirchTree_Autumn_3.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_3.lod3.glb",
+       "size": 7912
+      },
+      {
+       "name": "BirchTree_Autumn_3.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_3.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "BirchTree_Autumn_3.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_3.lod5.glb",
        "size": 1144
       },
       {
@@ -3355,11 +3435,21 @@
       {
        "name": "BirchTree_Autumn_4.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_4.lod2.glb",
-       "size": 3844
+       "size": 14328
       },
       {
        "name": "BirchTree_Autumn_4.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_4.lod3.glb",
+       "size": 9796
+      },
+      {
+       "name": "BirchTree_Autumn_4.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_4.lod4.glb",
+       "size": 4164
+      },
+      {
+       "name": "BirchTree_Autumn_4.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_4.lod5.glb",
        "size": 1148
       },
       {
@@ -3380,11 +3470,21 @@
       {
        "name": "BirchTree_Autumn_5.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_5.lod2.glb",
-       "size": 3844
+       "size": 11356
       },
       {
        "name": "BirchTree_Autumn_5.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Autumn_5.lod3.glb",
+       "size": 7920
+      },
+      {
+       "name": "BirchTree_Autumn_5.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_5.lod4.glb",
+       "size": 4920
+      },
+      {
+       "name": "BirchTree_Autumn_5.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Autumn_5.lod5.glb",
        "size": 1144
       },
       {
@@ -3405,11 +3505,21 @@
       {
        "name": "BirchTree_Dead_1.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_1.lod2.glb",
-       "size": 2328
+       "size": 5144
       },
       {
        "name": "BirchTree_Dead_1.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_1.lod3.glb",
+       "size": 3580
+      },
+      {
+       "name": "BirchTree_Dead_1.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_1.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "BirchTree_Dead_1.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_1.lod5.glb",
        "size": 1140
       },
       {
@@ -3430,11 +3540,21 @@
       {
        "name": "BirchTree_Dead_2.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_2.lod2.glb",
-       "size": 2328
+       "size": 7636
       },
       {
        "name": "BirchTree_Dead_2.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_2.lod3.glb",
+       "size": 5140
+      },
+      {
+       "name": "BirchTree_Dead_2.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_2.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "BirchTree_Dead_2.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_2.lod5.glb",
        "size": 1140
       },
       {
@@ -3455,11 +3575,21 @@
       {
        "name": "BirchTree_Dead_3.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_3.lod2.glb",
-       "size": 2328
+       "size": 7792
       },
       {
        "name": "BirchTree_Dead_3.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_3.lod3.glb",
+       "size": 5140
+      },
+      {
+       "name": "BirchTree_Dead_3.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_3.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "BirchTree_Dead_3.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_3.lod5.glb",
        "size": 1144
       },
       {
@@ -3480,11 +3610,21 @@
       {
        "name": "BirchTree_Dead_4.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_4.lod2.glb",
-       "size": 2328
+       "size": 9044
       },
       {
        "name": "BirchTree_Dead_4.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_4.lod3.glb",
+       "size": 5920
+      },
+      {
+       "name": "BirchTree_Dead_4.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_4.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "BirchTree_Dead_4.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_4.lod5.glb",
        "size": 1144
       },
       {
@@ -3505,11 +3645,21 @@
       {
        "name": "BirchTree_Dead_5.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_5.lod2.glb",
-       "size": 2324
+       "size": 7168
       },
       {
        "name": "BirchTree_Dead_5.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_5.lod3.glb",
+       "size": 4828
+      },
+      {
+       "name": "BirchTree_Dead_5.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_5.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "BirchTree_Dead_5.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_5.lod5.glb",
        "size": 1140
       },
       {
@@ -3530,11 +3680,21 @@
       {
        "name": "BirchTree_Dead_Snow_1.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_1.lod2.glb",
-       "size": 2328
+       "size": 6212
       },
       {
        "name": "BirchTree_Dead_Snow_1.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_1.lod3.glb",
+       "size": 4492
+      },
+      {
+       "name": "BirchTree_Dead_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_1.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "BirchTree_Dead_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_1.lod5.glb",
        "size": 1140
       },
       {
@@ -3555,11 +3715,21 @@
       {
        "name": "BirchTree_Dead_Snow_2.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_2.lod2.glb",
-       "size": 2332
+       "size": 9024
       },
       {
        "name": "BirchTree_Dead_Snow_2.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_2.lod3.glb",
+       "size": 6216
+      },
+      {
+       "name": "BirchTree_Dead_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_2.lod4.glb",
+       "size": 2648
+      },
+      {
+       "name": "BirchTree_Dead_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_2.lod5.glb",
        "size": 1148
       },
       {
@@ -3580,11 +3750,21 @@
       {
        "name": "BirchTree_Dead_Snow_3.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_3.lod2.glb",
-       "size": 2332
+       "size": 9032
       },
       {
        "name": "BirchTree_Dead_Snow_3.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_3.lod3.glb",
+       "size": 6220
+      },
+      {
+       "name": "BirchTree_Dead_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_3.lod4.glb",
+       "size": 2644
+      },
+      {
+       "name": "BirchTree_Dead_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_3.lod5.glb",
        "size": 1148
       },
       {
@@ -3605,11 +3785,21 @@
       {
        "name": "BirchTree_Dead_Snow_4.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_4.lod2.glb",
-       "size": 3096
+       "size": 10432
       },
       {
        "name": "BirchTree_Dead_Snow_4.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_4.lod3.glb",
+       "size": 7160
+      },
+      {
+       "name": "BirchTree_Dead_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_4.lod4.glb",
+       "size": 3408
+      },
+      {
+       "name": "BirchTree_Dead_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_4.lod5.glb",
        "size": 1148
       },
       {
@@ -3630,11 +3820,21 @@
       {
        "name": "BirchTree_Dead_Snow_5.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_5.lod2.glb",
-       "size": 2332
+       "size": 8244
       },
       {
        "name": "BirchTree_Dead_Snow_5.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Dead_Snow_5.lod3.glb",
+       "size": 5752
+      },
+      {
+       "name": "BirchTree_Dead_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_5.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "BirchTree_Dead_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Dead_Snow_5.lod5.glb",
        "size": 1144
       },
       {
@@ -3655,11 +3855,21 @@
       {
        "name": "BirchTree_Snow_1.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Snow_1.lod2.glb",
-       "size": 3844
+       "size": 12428
       },
       {
        "name": "BirchTree_Snow_1.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Snow_1.lod3.glb",
+       "size": 8912
+      },
+      {
+       "name": "BirchTree_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_1.lod4.glb",
+       "size": 4160
+      },
+      {
+       "name": "BirchTree_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_1.lod5.glb",
        "size": 1144
       },
       {
@@ -3680,11 +3890,21 @@
       {
        "name": "BirchTree_Snow_2.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Snow_2.lod2.glb",
-       "size": 4608
+       "size": 11492
       },
       {
        "name": "BirchTree_Snow_2.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Snow_2.lod3.glb",
+       "size": 8360
+      },
+      {
+       "name": "BirchTree_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_2.lod4.glb",
+       "size": 4924
+      },
+      {
+       "name": "BirchTree_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_2.lod5.glb",
        "size": 1144
       },
       {
@@ -3705,11 +3925,21 @@
       {
        "name": "BirchTree_Snow_3.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Snow_3.lod2.glb",
-       "size": 4596
+       "size": 12424
       },
       {
        "name": "BirchTree_Snow_3.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Snow_3.lod3.glb",
+       "size": 8832
+      },
+      {
+       "name": "BirchTree_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_3.lod4.glb",
+       "size": 4912
+      },
+      {
+       "name": "BirchTree_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_3.lod5.glb",
        "size": 1144
       },
       {
@@ -3730,11 +3960,21 @@
       {
        "name": "BirchTree_Snow_4.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Snow_4.lod2.glb",
-       "size": 4600
+       "size": 15872
       },
       {
        "name": "BirchTree_Snow_4.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Snow_4.lod3.glb",
+       "size": 11020
+      },
+      {
+       "name": "BirchTree_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_4.lod4.glb",
+       "size": 4920
+      },
+      {
+       "name": "BirchTree_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_4.lod5.glb",
        "size": 1144
       },
       {
@@ -3755,11 +3995,21 @@
       {
        "name": "BirchTree_Snow_5.lod2.glb",
        "file": "/assets/models/nature/BirchTree_Snow_5.lod2.glb",
-       "size": 4596
+       "size": 12424
       },
       {
        "name": "BirchTree_Snow_5.lod3.glb",
        "file": "/assets/models/nature/BirchTree_Snow_5.lod3.glb",
+       "size": 8996
+      },
+      {
+       "name": "BirchTree_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_5.lod4.glb",
+       "size": 5676
+      },
+      {
+       "name": "BirchTree_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/BirchTree_Snow_5.lod5.glb",
        "size": 1144
       },
       {
@@ -3780,11 +4030,21 @@
       {
        "name": "BushBerries_1.lod2.glb",
        "file": "/assets/models/nature/BushBerries_1.lod2.glb",
-       "size": 2324
+       "size": 5356
       },
       {
        "name": "BushBerries_1.lod3.glb",
        "file": "/assets/models/nature/BushBerries_1.lod3.glb",
+       "size": 3628
+      },
+      {
+       "name": "BushBerries_1.lod4.glb",
+       "file": "/assets/models/nature/BushBerries_1.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "BushBerries_1.lod5.glb",
+       "file": "/assets/models/nature/BushBerries_1.lod5.glb",
        "size": 1144
       },
       {
@@ -3805,11 +4065,21 @@
       {
        "name": "BushBerries_2.lod2.glb",
        "file": "/assets/models/nature/BushBerries_2.lod2.glb",
-       "size": 2328
+       "size": 4888
       },
       {
        "name": "BushBerries_2.lod3.glb",
        "file": "/assets/models/nature/BushBerries_2.lod3.glb",
+       "size": 3320
+      },
+      {
+       "name": "BushBerries_2.lod4.glb",
+       "file": "/assets/models/nature/BushBerries_2.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "BushBerries_2.lod5.glb",
+       "file": "/assets/models/nature/BushBerries_2.lod5.glb",
        "size": 1140
       },
       {
@@ -3830,11 +4100,21 @@
       {
        "name": "Bush_1.lod2.glb",
        "file": "/assets/models/nature/Bush_1.lod2.glb",
-       "size": 2320
+       "size": 2788
       },
       {
        "name": "Bush_1.lod3.glb",
        "file": "/assets/models/nature/Bush_1.lod3.glb",
+       "size": 2164
+      },
+      {
+       "name": "Bush_1.lod4.glb",
+       "file": "/assets/models/nature/Bush_1.lod4.glb",
+       "size": 2632
+      },
+      {
+       "name": "Bush_1.lod5.glb",
+       "file": "/assets/models/nature/Bush_1.lod5.glb",
        "size": 1136
       },
       {
@@ -3860,6 +4140,16 @@
       {
        "name": "Bush_2.lod3.glb",
        "file": "/assets/models/nature/Bush_2.lod3.glb",
+       "size": 1848
+      },
+      {
+       "name": "Bush_2.lod4.glb",
+       "file": "/assets/models/nature/Bush_2.lod4.glb",
+       "size": 2632
+      },
+      {
+       "name": "Bush_2.lod5.glb",
+       "file": "/assets/models/nature/Bush_2.lod5.glb",
        "size": 1136
       },
       {
@@ -3880,11 +4170,21 @@
       {
        "name": "Bush_Snow_1.lod2.glb",
        "file": "/assets/models/nature/Bush_Snow_1.lod2.glb",
-       "size": 3084
+       "size": 4024
       },
       {
        "name": "Bush_Snow_1.lod3.glb",
        "file": "/assets/models/nature/Bush_Snow_1.lod3.glb",
+       "size": 3236
+      },
+      {
+       "name": "Bush_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/Bush_Snow_1.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Bush_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/Bush_Snow_1.lod5.glb",
        "size": 1140
       },
       {
@@ -3905,11 +4205,21 @@
       {
        "name": "Bush_Snow_2.lod2.glb",
        "file": "/assets/models/nature/Bush_Snow_2.lod2.glb",
-       "size": 3080
+       "size": 3552
       },
       {
        "name": "Bush_Snow_2.lod3.glb",
        "file": "/assets/models/nature/Bush_Snow_2.lod3.glb",
+       "size": 2768
+      },
+      {
+       "name": "Bush_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/Bush_Snow_2.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Bush_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/Bush_Snow_2.lod5.glb",
        "size": 1140
       },
       {
@@ -3930,11 +4240,21 @@
       {
        "name": "CactusFlower_1.lod2.glb",
        "file": "/assets/models/nature/CactusFlower_1.lod2.glb",
-       "size": 2332
+       "size": 11696
       },
       {
        "name": "CactusFlower_1.lod3.glb",
        "file": "/assets/models/nature/CactusFlower_1.lod3.glb",
+       "size": 7640
+      },
+      {
+       "name": "CactusFlower_1.lod4.glb",
+       "file": "/assets/models/nature/CactusFlower_1.lod4.glb",
+       "size": 2644
+      },
+      {
+       "name": "CactusFlower_1.lod5.glb",
+       "file": "/assets/models/nature/CactusFlower_1.lod5.glb",
        "size": 1148
       },
       {
@@ -3955,11 +4275,21 @@
       {
        "name": "CactusFlowers_2.lod2.glb",
        "file": "/assets/models/nature/CactusFlowers_2.lod2.glb",
-       "size": 3088
+       "size": 9344
       },
       {
        "name": "CactusFlowers_2.lod3.glb",
        "file": "/assets/models/nature/CactusFlowers_2.lod3.glb",
+       "size": 6060
+      },
+      {
+       "name": "CactusFlowers_2.lod4.glb",
+       "file": "/assets/models/nature/CactusFlowers_2.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "CactusFlowers_2.lod5.glb",
+       "file": "/assets/models/nature/CactusFlowers_2.lod5.glb",
        "size": 1140
       },
       {
@@ -3980,11 +4310,21 @@
       {
        "name": "CactusFlowers_3.lod2.glb",
        "file": "/assets/models/nature/CactusFlowers_3.lod2.glb",
-       "size": 3092
+       "size": 7632
       },
       {
        "name": "CactusFlowers_3.lod3.glb",
        "file": "/assets/models/nature/CactusFlowers_3.lod3.glb",
+       "size": 5124
+      },
+      {
+       "name": "CactusFlowers_3.lod4.glb",
+       "file": "/assets/models/nature/CactusFlowers_3.lod4.glb",
+       "size": 3408
+      },
+      {
+       "name": "CactusFlowers_3.lod5.glb",
+       "file": "/assets/models/nature/CactusFlowers_3.lod5.glb",
        "size": 1144
       },
       {
@@ -4005,11 +4345,21 @@
       {
        "name": "CactusFlowers_4.lod2.glb",
        "file": "/assets/models/nature/CactusFlowers_4.lod2.glb",
-       "size": 3096
+       "size": 9812
       },
       {
        "name": "CactusFlowers_4.lod3.glb",
        "file": "/assets/models/nature/CactusFlowers_4.lod3.glb",
+       "size": 6300
+      },
+      {
+       "name": "CactusFlowers_4.lod4.glb",
+       "file": "/assets/models/nature/CactusFlowers_4.lod4.glb",
+       "size": 3412
+      },
+      {
+       "name": "CactusFlowers_4.lod5.glb",
+       "file": "/assets/models/nature/CactusFlowers_4.lod5.glb",
        "size": 1144
       },
       {
@@ -4030,11 +4380,21 @@
       {
        "name": "CactusFlowers_5.lod2.glb",
        "file": "/assets/models/nature/CactusFlowers_5.lod2.glb",
-       "size": 2332
+       "size": 5756
       },
       {
        "name": "CactusFlowers_5.lod3.glb",
        "file": "/assets/models/nature/CactusFlowers_5.lod3.glb",
+       "size": 4032
+      },
+      {
+       "name": "CactusFlowers_5.lod4.glb",
+       "file": "/assets/models/nature/CactusFlowers_5.lod4.glb",
+       "size": 2648
+      },
+      {
+       "name": "CactusFlowers_5.lod5.glb",
+       "file": "/assets/models/nature/CactusFlowers_5.lod5.glb",
        "size": 1144
       },
       {
@@ -4055,11 +4415,21 @@
       {
        "name": "Cactus_1.lod2.glb",
        "file": "/assets/models/nature/Cactus_1.lod2.glb",
-       "size": 3092
+       "size": 5276
       },
       {
        "name": "Cactus_1.lod3.glb",
        "file": "/assets/models/nature/Cactus_1.lod3.glb",
+       "size": 5276
+      },
+      {
+       "name": "Cactus_1.lod4.glb",
+       "file": "/assets/models/nature/Cactus_1.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Cactus_1.lod5.glb",
+       "file": "/assets/models/nature/Cactus_1.lod5.glb",
        "size": 1136
       },
       {
@@ -4080,11 +4450,21 @@
       {
        "name": "Cactus_2.lod2.glb",
        "file": "/assets/models/nature/Cactus_2.lod2.glb",
-       "size": 2320
+       "size": 4668
       },
       {
        "name": "Cactus_2.lod3.glb",
        "file": "/assets/models/nature/Cactus_2.lod3.glb",
+       "size": 3264
+      },
+      {
+       "name": "Cactus_2.lod4.glb",
+       "file": "/assets/models/nature/Cactus_2.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Cactus_2.lod5.glb",
+       "file": "/assets/models/nature/Cactus_2.lod5.glb",
        "size": 1140
       },
       {
@@ -4105,11 +4485,21 @@
       {
        "name": "Cactus_3.lod2.glb",
        "file": "/assets/models/nature/Cactus_3.lod2.glb",
-       "size": 2324
+       "size": 3104
       },
       {
        "name": "Cactus_3.lod3.glb",
        "file": "/assets/models/nature/Cactus_3.lod3.glb",
+       "size": 2324
+      },
+      {
+       "name": "Cactus_3.lod4.glb",
+       "file": "/assets/models/nature/Cactus_3.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Cactus_3.lod5.glb",
+       "file": "/assets/models/nature/Cactus_3.lod5.glb",
        "size": 1140
       },
       {
@@ -4130,11 +4520,21 @@
       {
        "name": "Cactus_4.lod2.glb",
        "file": "/assets/models/nature/Cactus_4.lod2.glb",
-       "size": 2328
+       "size": 6856
       },
       {
        "name": "Cactus_4.lod3.glb",
        "file": "/assets/models/nature/Cactus_4.lod3.glb",
+       "size": 4516
+      },
+      {
+       "name": "Cactus_4.lod4.glb",
+       "file": "/assets/models/nature/Cactus_4.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Cactus_4.lod5.glb",
+       "file": "/assets/models/nature/Cactus_4.lod5.glb",
        "size": 1140
       },
       {
@@ -4155,11 +4555,21 @@
       {
        "name": "Cactus_5.lod2.glb",
        "file": "/assets/models/nature/Cactus_5.lod2.glb",
-       "size": 2324
+       "size": 3892
       },
       {
        "name": "Cactus_5.lod3.glb",
        "file": "/assets/models/nature/Cactus_5.lod3.glb",
+       "size": 2716
+      },
+      {
+       "name": "Cactus_5.lod4.glb",
+       "file": "/assets/models/nature/Cactus_5.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Cactus_5.lod5.glb",
+       "file": "/assets/models/nature/Cactus_5.lod5.glb",
        "size": 1140
       },
       {
@@ -4180,11 +4590,21 @@
       {
        "name": "CommonTree_1.lod2.glb",
        "file": "/assets/models/nature/CommonTree_1.lod2.glb",
-       "size": 3084
+       "size": 16360
       },
       {
        "name": "CommonTree_1.lod3.glb",
        "file": "/assets/models/nature/CommonTree_1.lod3.glb",
+       "size": 10740
+      },
+      {
+       "name": "CommonTree_1.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_1.lod4.glb",
+       "size": 3392
+      },
+      {
+       "name": "CommonTree_1.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_1.lod5.glb",
        "size": 1140
       },
       {
@@ -4205,11 +4625,21 @@
       {
        "name": "CommonTree_2.lod2.glb",
        "file": "/assets/models/nature/CommonTree_2.lod2.glb",
-       "size": 3080
+       "size": 16672
       },
       {
        "name": "CommonTree_2.lod3.glb",
        "file": "/assets/models/nature/CommonTree_2.lod3.glb",
+       "size": 11052
+      },
+      {
+       "name": "CommonTree_2.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_2.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "CommonTree_2.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_2.lod5.glb",
        "size": 1140
       },
       {
@@ -4230,11 +4660,21 @@
       {
        "name": "CommonTree_3.lod2.glb",
        "file": "/assets/models/nature/CommonTree_3.lod2.glb",
-       "size": 3844
+       "size": 10568
       },
       {
        "name": "CommonTree_3.lod3.glb",
        "file": "/assets/models/nature/CommonTree_3.lod3.glb",
+       "size": 7440
+      },
+      {
+       "name": "CommonTree_3.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_3.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "CommonTree_3.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_3.lod5.glb",
        "size": 1144
       },
       {
@@ -4255,11 +4695,21 @@
       {
        "name": "CommonTree_4.lod2.glb",
        "file": "/assets/models/nature/CommonTree_4.lod2.glb",
-       "size": 3844
+       "size": 9324
       },
       {
        "name": "CommonTree_4.lod3.glb",
        "file": "/assets/models/nature/CommonTree_4.lod3.glb",
+       "size": 6820
+      },
+      {
+       "name": "CommonTree_4.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_4.lod4.glb",
+       "size": 4152
+      },
+      {
+       "name": "CommonTree_4.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_4.lod5.glb",
        "size": 1140
       },
       {
@@ -4280,11 +4730,21 @@
       {
        "name": "CommonTree_5.lod2.glb",
        "file": "/assets/models/nature/CommonTree_5.lod2.glb",
-       "size": 3088
+       "size": 11056
       },
       {
        "name": "CommonTree_5.lod3.glb",
        "file": "/assets/models/nature/CommonTree_5.lod3.glb",
+       "size": 7464
+      },
+      {
+       "name": "CommonTree_5.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_5.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "CommonTree_5.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_5.lod5.glb",
        "size": 1140
       },
       {
@@ -4305,11 +4765,21 @@
       {
        "name": "CommonTree_Autumn_1.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_1.lod2.glb",
-       "size": 3088
+       "size": 16364
       },
       {
        "name": "CommonTree_Autumn_1.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_1.lod3.glb",
+       "size": 10748
+      },
+      {
+       "name": "CommonTree_Autumn_1.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_1.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "CommonTree_Autumn_1.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_1.lod5.glb",
        "size": 1148
       },
       {
@@ -4330,11 +4800,21 @@
       {
        "name": "CommonTree_Autumn_2.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_2.lod2.glb",
-       "size": 3840
+       "size": 17444
       },
       {
        "name": "CommonTree_Autumn_2.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_2.lod3.glb",
+       "size": 11816
+      },
+      {
+       "name": "CommonTree_Autumn_2.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_2.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "CommonTree_Autumn_2.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_2.lod5.glb",
        "size": 1148
       },
       {
@@ -4355,11 +4835,21 @@
       {
        "name": "CommonTree_Autumn_3.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_3.lod2.glb",
-       "size": 3848
+       "size": 10572
       },
       {
        "name": "CommonTree_Autumn_3.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_3.lod3.glb",
+       "size": 7444
+      },
+      {
+       "name": "CommonTree_Autumn_3.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_3.lod4.glb",
+       "size": 4160
+      },
+      {
+       "name": "CommonTree_Autumn_3.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_3.lod5.glb",
        "size": 1152
       },
       {
@@ -4380,11 +4870,21 @@
       {
        "name": "CommonTree_Autumn_4.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_4.lod2.glb",
-       "size": 3848
+       "size": 9328
       },
       {
        "name": "CommonTree_Autumn_4.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_4.lod3.glb",
+       "size": 6828
+      },
+      {
+       "name": "CommonTree_Autumn_4.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_4.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "CommonTree_Autumn_4.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_4.lod5.glb",
        "size": 1148
       },
       {
@@ -4405,11 +4905,21 @@
       {
        "name": "CommonTree_Autumn_5.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_5.lod2.glb",
-       "size": 3092
+       "size": 11064
       },
       {
        "name": "CommonTree_Autumn_5.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Autumn_5.lod3.glb",
+       "size": 7472
+      },
+      {
+       "name": "CommonTree_Autumn_5.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_5.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "CommonTree_Autumn_5.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Autumn_5.lod5.glb",
        "size": 1148
       },
       {
@@ -4430,11 +4940,21 @@
       {
        "name": "CommonTree_Dead_1.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_1.lod2.glb",
-       "size": 2328
+       "size": 12944
       },
       {
        "name": "CommonTree_Dead_1.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_1.lod3.glb",
+       "size": 8420
+      },
+      {
+       "name": "CommonTree_Dead_1.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_1.lod4.glb",
+       "size": 2644
+      },
+      {
+       "name": "CommonTree_Dead_1.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_1.lod5.glb",
        "size": 1144
       },
       {
@@ -4455,11 +4975,21 @@
       {
        "name": "CommonTree_Dead_2.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_2.lod2.glb",
-       "size": 2328
+       "size": 12944
       },
       {
        "name": "CommonTree_Dead_2.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_2.lod3.glb",
+       "size": 8420
+      },
+      {
+       "name": "CommonTree_Dead_2.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_2.lod4.glb",
+       "size": 2644
+      },
+      {
+       "name": "CommonTree_Dead_2.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_2.lod5.glb",
        "size": 1144
       },
       {
@@ -4480,11 +5010,21 @@
       {
        "name": "CommonTree_Dead_3.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_3.lod2.glb",
-       "size": 2332
+       "size": 5768
       },
       {
        "name": "CommonTree_Dead_3.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_3.lod3.glb",
+       "size": 3896
+      },
+      {
+       "name": "CommonTree_Dead_3.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_3.lod4.glb",
+       "size": 2644
+      },
+      {
+       "name": "CommonTree_Dead_3.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_3.lod5.glb",
        "size": 1148
       },
       {
@@ -4505,11 +5045,21 @@
       {
        "name": "CommonTree_Dead_4.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_4.lod2.glb",
-       "size": 2332
+       "size": 6080
       },
       {
        "name": "CommonTree_Dead_4.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_4.lod3.glb",
+       "size": 4208
+      },
+      {
+       "name": "CommonTree_Dead_4.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_4.lod4.glb",
+       "size": 2644
+      },
+      {
+       "name": "CommonTree_Dead_4.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_4.lod5.glb",
        "size": 1144
       },
       {
@@ -4530,11 +5080,21 @@
       {
        "name": "CommonTree_Dead_5.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_5.lod2.glb",
-       "size": 2332
+       "size": 8268
       },
       {
        "name": "CommonTree_Dead_5.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_5.lod3.glb",
+       "size": 5456
+      },
+      {
+       "name": "CommonTree_Dead_5.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_5.lod4.glb",
+       "size": 2644
+      },
+      {
+       "name": "CommonTree_Dead_5.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_5.lod5.glb",
        "size": 1144
       },
       {
@@ -4555,11 +5115,21 @@
       {
        "name": "CommonTree_Dead_Snow_1.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_1.lod2.glb",
-       "size": 2332
+       "size": 15116
       },
       {
        "name": "CommonTree_Dead_Snow_1.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_1.lod3.glb",
+       "size": 9964
+      },
+      {
+       "name": "CommonTree_Dead_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_1.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "CommonTree_Dead_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_1.lod5.glb",
        "size": 1152
       },
       {
@@ -4580,11 +5150,21 @@
       {
        "name": "CommonTree_Dead_Snow_2.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_2.lod2.glb",
-       "size": 2336
+       "size": 15112
       },
       {
        "name": "CommonTree_Dead_Snow_2.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_2.lod3.glb",
+       "size": 9960
+      },
+      {
+       "name": "CommonTree_Dead_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_2.lod4.glb",
+       "size": 2648
+      },
+      {
+       "name": "CommonTree_Dead_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_2.lod5.glb",
        "size": 1152
       },
       {
@@ -4605,11 +5185,21 @@
       {
        "name": "CommonTree_Dead_Snow_3.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_3.lod2.glb",
-       "size": 2336
+       "size": 6844
       },
       {
        "name": "CommonTree_Dead_Snow_3.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_3.lod3.glb",
+       "size": 4968
+      },
+      {
+       "name": "CommonTree_Dead_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_3.lod4.glb",
+       "size": 2648
+      },
+      {
+       "name": "CommonTree_Dead_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_3.lod5.glb",
        "size": 1152
       },
       {
@@ -4630,11 +5220,21 @@
       {
        "name": "CommonTree_Dead_Snow_4.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_4.lod2.glb",
-       "size": 2336
+       "size": 7312
       },
       {
        "name": "CommonTree_Dead_Snow_4.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_4.lod3.glb",
+       "size": 5284
+      },
+      {
+       "name": "CommonTree_Dead_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_4.lod4.glb",
+       "size": 2648
+      },
+      {
+       "name": "CommonTree_Dead_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_4.lod5.glb",
        "size": 1148
       },
       {
@@ -4655,11 +5255,21 @@
       {
        "name": "CommonTree_Dead_Snow_5.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_5.lod2.glb",
-       "size": 2340
+       "size": 9660
       },
       {
        "name": "CommonTree_Dead_Snow_5.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Dead_Snow_5.lod3.glb",
+       "size": 6704
+      },
+      {
+       "name": "CommonTree_Dead_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_5.lod4.glb",
+       "size": 2652
+      },
+      {
+       "name": "CommonTree_Dead_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Dead_Snow_5.lod5.glb",
        "size": 1152
       },
       {
@@ -4680,11 +5290,21 @@
       {
        "name": "CommonTree_Snow_1.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Snow_1.lod2.glb",
-       "size": 3840
+       "size": 17600
       },
       {
        "name": "CommonTree_Snow_1.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Snow_1.lod3.glb",
+       "size": 11816
+      },
+      {
+       "name": "CommonTree_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_1.lod4.glb",
+       "size": 4152
+      },
+      {
+       "name": "CommonTree_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_1.lod5.glb",
        "size": 1144
       },
       {
@@ -4705,11 +5325,21 @@
       {
        "name": "CommonTree_Snow_2.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Snow_2.lod2.glb",
-       "size": 3084
+       "size": 18072
       },
       {
        "name": "CommonTree_Snow_2.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Snow_2.lod3.glb",
+       "size": 12128
+      },
+      {
+       "name": "CommonTree_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_2.lod4.glb",
+       "size": 4152
+      },
+      {
+       "name": "CommonTree_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_2.lod5.glb",
        "size": 1144
       },
       {
@@ -4730,11 +5360,21 @@
       {
        "name": "CommonTree_Snow_3.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Snow_3.lod2.glb",
-       "size": 4436
+       "size": 11804
       },
       {
        "name": "CommonTree_Snow_3.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Snow_3.lod3.glb",
+       "size": 8520
+      },
+      {
+       "name": "CommonTree_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_3.lod4.glb",
+       "size": 4912
+      },
+      {
+       "name": "CommonTree_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_3.lod5.glb",
        "size": 1140
       },
       {
@@ -4755,11 +5395,21 @@
       {
        "name": "CommonTree_Snow_4.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Snow_4.lod2.glb",
-       "size": 4600
+       "size": 10396
       },
       {
        "name": "CommonTree_Snow_4.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Snow_4.lod3.glb",
+       "size": 7744
+      },
+      {
+       "name": "CommonTree_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_4.lod4.glb",
+       "size": 4916
+      },
+      {
+       "name": "CommonTree_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_4.lod5.glb",
        "size": 1144
       },
       {
@@ -4780,11 +5430,21 @@
       {
        "name": "CommonTree_Snow_5.lod2.glb",
        "file": "/assets/models/nature/CommonTree_Snow_5.lod2.glb",
-       "size": 3848
+       "size": 12288
       },
       {
        "name": "CommonTree_Snow_5.lod3.glb",
        "file": "/assets/models/nature/CommonTree_Snow_5.lod3.glb",
+       "size": 8540
+      },
+      {
+       "name": "CommonTree_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_5.lod4.glb",
+       "size": 4164
+      },
+      {
+       "name": "CommonTree_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/CommonTree_Snow_5.lod5.glb",
        "size": 1144
       },
       {
@@ -4805,11 +5465,21 @@
       {
        "name": "Corn_1.lod2.glb",
        "file": "/assets/models/nature/Corn_1.lod2.glb",
-       "size": 2320
+       "size": 3812
       },
       {
        "name": "Corn_1.lod3.glb",
        "file": "/assets/models/nature/Corn_1.lod3.glb",
+       "size": 2636
+      },
+      {
+       "name": "Corn_1.lod4.glb",
+       "file": "/assets/models/nature/Corn_1.lod4.glb",
+       "size": 2632
+      },
+      {
+       "name": "Corn_1.lod5.glb",
+       "file": "/assets/models/nature/Corn_1.lod5.glb",
        "size": 1136
       },
       {
@@ -4830,11 +5500,21 @@
       {
        "name": "Corn_2.lod2.glb",
        "file": "/assets/models/nature/Corn_2.lod2.glb",
-       "size": 3080
+       "size": 4964
       },
       {
        "name": "Corn_2.lod3.glb",
        "file": "/assets/models/nature/Corn_2.lod3.glb",
+       "size": 3552
+      },
+      {
+       "name": "Corn_2.lod4.glb",
+       "file": "/assets/models/nature/Corn_2.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Corn_2.lod5.glb",
+       "file": "/assets/models/nature/Corn_2.lod5.glb",
        "size": 1136
       },
       {
@@ -4855,7 +5535,17 @@
       {
        "name": "Flowers.lod2.glb",
        "file": "/assets/models/nature/Flowers.lod2.glb",
-       "size": 3068
+       "size": 3616
+      },
+      {
+       "name": "Flowers.lod3.glb",
+       "file": "/assets/models/nature/Flowers.lod3.glb",
+       "size": 2676
+      },
+      {
+       "name": "Flowers.lod4.glb",
+       "file": "/assets/models/nature/Flowers.lod4.glb",
+       "size": 3376
       },
       {
        "name": "Grass.blend",
@@ -4875,7 +5565,17 @@
       {
        "name": "Grass.lod2.glb",
        "file": "/assets/models/nature/Grass.lod2.glb",
-       "size": 2320
+       "size": 2008
+      },
+      {
+       "name": "Grass.lod3.glb",
+       "file": "/assets/models/nature/Grass.lod3.glb",
+       "size": 2008
+      },
+      {
+       "name": "Grass.lod4.glb",
+       "file": "/assets/models/nature/Grass.lod4.glb",
+       "size": 2636
       },
       {
        "name": "Grass_2.blend",
@@ -4895,7 +5595,17 @@
       {
        "name": "Grass_2.lod2.glb",
        "file": "/assets/models/nature/Grass_2.lod2.glb",
-       "size": 2324
+       "size": 2012
+      },
+      {
+       "name": "Grass_2.lod3.glb",
+       "file": "/assets/models/nature/Grass_2.lod3.glb",
+       "size": 2012
+      },
+      {
+       "name": "Grass_2.lod4.glb",
+       "file": "/assets/models/nature/Grass_2.lod4.glb",
+       "size": 2636
       },
       {
        "name": "Grass_Short.blend",
@@ -4915,7 +5625,17 @@
       {
        "name": "Grass_Short.lod2.glb",
        "file": "/assets/models/nature/Grass_Short.lod2.glb",
-       "size": 2328
+       "size": 2048
+      },
+      {
+       "name": "Grass_Short.lod3.glb",
+       "file": "/assets/models/nature/Grass_Short.lod3.glb",
+       "size": 2048
+      },
+      {
+       "name": "Grass_Short.lod4.glb",
+       "file": "/assets/models/nature/Grass_Short.lod4.glb",
+       "size": 2644
       },
       {
        "name": "Lilypad.blend",
@@ -4935,7 +5655,17 @@
       {
        "name": "Lilypad.lod2.glb",
        "file": "/assets/models/nature/Lilypad.lod2.glb",
-       "size": 3080
+       "size": 3008
+      },
+      {
+       "name": "Lilypad.lod3.glb",
+       "file": "/assets/models/nature/Lilypad.lod3.glb",
+       "size": 3008
+      },
+      {
+       "name": "Lilypad.lod4.glb",
+       "file": "/assets/models/nature/Lilypad.lod4.glb",
+       "size": 3396
       },
       {
        "name": "PalmTree_1.blend",
@@ -4955,11 +5685,21 @@
       {
        "name": "PalmTree_1.lod2.glb",
        "file": "/assets/models/nature/PalmTree_1.lod2.glb",
-       "size": 3856
+       "size": 11500
       },
       {
        "name": "PalmTree_1.lod3.glb",
        "file": "/assets/models/nature/PalmTree_1.lod3.glb",
+       "size": 7752
+      },
+      {
+       "name": "PalmTree_1.lod4.glb",
+       "file": "/assets/models/nature/PalmTree_1.lod4.glb",
+       "size": 4164
+      },
+      {
+       "name": "PalmTree_1.lod5.glb",
+       "file": "/assets/models/nature/PalmTree_1.lod5.glb",
        "size": 1140
       },
       {
@@ -4980,11 +5720,21 @@
       {
        "name": "PalmTree_2.lod2.glb",
        "file": "/assets/models/nature/PalmTree_2.lod2.glb",
-       "size": 3844
+       "size": 8852
       },
       {
        "name": "PalmTree_2.lod3.glb",
        "file": "/assets/models/nature/PalmTree_2.lod3.glb",
+       "size": 6036
+      },
+      {
+       "name": "PalmTree_2.lod4.glb",
+       "file": "/assets/models/nature/PalmTree_2.lod4.glb",
+       "size": 4160
+      },
+      {
+       "name": "PalmTree_2.lod5.glb",
+       "file": "/assets/models/nature/PalmTree_2.lod5.glb",
        "size": 1144
       },
       {
@@ -5005,11 +5755,21 @@
       {
        "name": "PalmTree_3.lod2.glb",
        "file": "/assets/models/nature/PalmTree_3.lod2.glb",
-       "size": 3844
+       "size": 10632
       },
       {
        "name": "PalmTree_3.lod3.glb",
        "file": "/assets/models/nature/PalmTree_3.lod3.glb",
+       "size": 7352
+      },
+      {
+       "name": "PalmTree_3.lod4.glb",
+       "file": "/assets/models/nature/PalmTree_3.lod4.glb",
+       "size": 4164
+      },
+      {
+       "name": "PalmTree_3.lod5.glb",
+       "file": "/assets/models/nature/PalmTree_3.lod5.glb",
        "size": 1136
       },
       {
@@ -5030,11 +5790,21 @@
       {
        "name": "PalmTree_4.lod2.glb",
        "file": "/assets/models/nature/PalmTree_4.lod2.glb",
-       "size": 3848
+       "size": 8444
       },
       {
        "name": "PalmTree_4.lod3.glb",
        "file": "/assets/models/nature/PalmTree_4.lod3.glb",
+       "size": 6092
+      },
+      {
+       "name": "PalmTree_4.lod4.glb",
+       "file": "/assets/models/nature/PalmTree_4.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "PalmTree_4.lod5.glb",
+       "file": "/assets/models/nature/PalmTree_4.lod5.glb",
        "size": 1148
       },
       {
@@ -5055,11 +5825,21 @@
       {
        "name": "PineTree_1.lod2.glb",
        "file": "/assets/models/nature/PineTree_1.lod2.glb",
-       "size": 2932
+       "size": 11520
       },
       {
        "name": "PineTree_1.lod3.glb",
        "file": "/assets/models/nature/PineTree_1.lod3.glb",
+       "size": 7776
+      },
+      {
+       "name": "PineTree_1.lod4.glb",
+       "file": "/assets/models/nature/PineTree_1.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "PineTree_1.lod5.glb",
+       "file": "/assets/models/nature/PineTree_1.lod5.glb",
        "size": 1112
       },
       {
@@ -5080,11 +5860,21 @@
       {
        "name": "PineTree_2.lod2.glb",
        "file": "/assets/models/nature/PineTree_2.lod2.glb",
-       "size": 3080
+       "size": 10272
       },
       {
        "name": "PineTree_2.lod3.glb",
        "file": "/assets/models/nature/PineTree_2.lod3.glb",
+       "size": 6992
+      },
+      {
+       "name": "PineTree_2.lod4.glb",
+       "file": "/assets/models/nature/PineTree_2.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "PineTree_2.lod5.glb",
+       "file": "/assets/models/nature/PineTree_2.lod5.glb",
        "size": 1112
       },
       {
@@ -5105,11 +5895,21 @@
       {
        "name": "PineTree_3.lod2.glb",
        "file": "/assets/models/nature/PineTree_3.lod2.glb",
-       "size": 2924
+       "size": 13860
       },
       {
        "name": "PineTree_3.lod3.glb",
        "file": "/assets/models/nature/PineTree_3.lod3.glb",
+       "size": 9176
+      },
+      {
+       "name": "PineTree_3.lod4.glb",
+       "file": "/assets/models/nature/PineTree_3.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "PineTree_3.lod5.glb",
+       "file": "/assets/models/nature/PineTree_3.lod5.glb",
        "size": 1116
       },
       {
@@ -5130,11 +5930,21 @@
       {
        "name": "PineTree_4.lod2.glb",
        "file": "/assets/models/nature/PineTree_4.lod2.glb",
-       "size": 2932
+       "size": 10424
       },
       {
        "name": "PineTree_4.lod3.glb",
        "file": "/assets/models/nature/PineTree_4.lod3.glb",
+       "size": 7148
+      },
+      {
+       "name": "PineTree_4.lod4.glb",
+       "file": "/assets/models/nature/PineTree_4.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "PineTree_4.lod5.glb",
+       "file": "/assets/models/nature/PineTree_4.lod5.glb",
        "size": 1944
       },
       {
@@ -5155,11 +5965,21 @@
       {
        "name": "PineTree_5.lod2.glb",
        "file": "/assets/models/nature/PineTree_5.lod2.glb",
-       "size": 3084
+       "size": 9804
       },
       {
        "name": "PineTree_5.lod3.glb",
        "file": "/assets/models/nature/PineTree_5.lod3.glb",
+       "size": 6680
+      },
+      {
+       "name": "PineTree_5.lod4.glb",
+       "file": "/assets/models/nature/PineTree_5.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "PineTree_5.lod5.glb",
+       "file": "/assets/models/nature/PineTree_5.lod5.glb",
        "size": 1936
       },
       {
@@ -5180,11 +6000,21 @@
       {
        "name": "PineTree_Autumn_1.lod2.glb",
        "file": "/assets/models/nature/PineTree_Autumn_1.lod2.glb",
-       "size": 3696
+       "size": 12288
       },
       {
        "name": "PineTree_Autumn_1.lod3.glb",
        "file": "/assets/models/nature/PineTree_Autumn_1.lod3.glb",
+       "size": 8544
+      },
+      {
+       "name": "PineTree_Autumn_1.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_1.lod4.glb",
+       "size": 4168
+      },
+      {
+       "name": "PineTree_Autumn_1.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_1.lod5.glb",
        "size": 1120
       },
       {
@@ -5205,11 +6035,21 @@
       {
        "name": "PineTree_Autumn_2.lod2.glb",
        "file": "/assets/models/nature/PineTree_Autumn_2.lod2.glb",
-       "size": 3852
+       "size": 11040
       },
       {
        "name": "PineTree_Autumn_2.lod3.glb",
        "file": "/assets/models/nature/PineTree_Autumn_2.lod3.glb",
+       "size": 7764
+      },
+      {
+       "name": "PineTree_Autumn_2.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_2.lod4.glb",
+       "size": 4164
+      },
+      {
+       "name": "PineTree_Autumn_2.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_2.lod5.glb",
        "size": 1948
       },
       {
@@ -5230,11 +6070,21 @@
       {
        "name": "PineTree_Autumn_3.lod2.glb",
        "file": "/assets/models/nature/PineTree_Autumn_3.lod2.glb",
-       "size": 3696
+       "size": 14632
       },
       {
        "name": "PineTree_Autumn_3.lod3.glb",
        "file": "/assets/models/nature/PineTree_Autumn_3.lod3.glb",
+       "size": 9944
+      },
+      {
+       "name": "PineTree_Autumn_3.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_3.lod4.glb",
+       "size": 3416
+      },
+      {
+       "name": "PineTree_Autumn_3.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_3.lod5.glb",
        "size": 1120
       },
       {
@@ -5255,11 +6105,21 @@
       {
        "name": "PineTree_Autumn_4.lod2.glb",
        "file": "/assets/models/nature/PineTree_Autumn_4.lod2.glb",
-       "size": 3700
+       "size": 11200
       },
       {
        "name": "PineTree_Autumn_4.lod3.glb",
        "file": "/assets/models/nature/PineTree_Autumn_4.lod3.glb",
+       "size": 7920
+      },
+      {
+       "name": "PineTree_Autumn_4.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_4.lod4.glb",
+       "size": 4172
+      },
+      {
+       "name": "PineTree_Autumn_4.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_4.lod5.glb",
        "size": 1948
       },
       {
@@ -5280,11 +6140,21 @@
       {
        "name": "PineTree_Autumn_5.lod2.glb",
        "file": "/assets/models/nature/PineTree_Autumn_5.lod2.glb",
-       "size": 3860
+       "size": 10576
       },
       {
        "name": "PineTree_Autumn_5.lod3.glb",
        "file": "/assets/models/nature/PineTree_Autumn_5.lod3.glb",
+       "size": 7452
+      },
+      {
+       "name": "PineTree_Autumn_5.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_5.lod4.glb",
+       "size": 4176
+      },
+      {
+       "name": "PineTree_Autumn_5.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Autumn_5.lod5.glb",
        "size": 1944
       },
       {
@@ -5305,11 +6175,21 @@
       {
        "name": "PineTree_Snow_1.lod2.glb",
        "file": "/assets/models/nature/PineTree_Snow_1.lod2.glb",
-       "size": 3692
+       "size": 12288
       },
       {
        "name": "PineTree_Snow_1.lod3.glb",
        "file": "/assets/models/nature/PineTree_Snow_1.lod3.glb",
+       "size": 8548
+      },
+      {
+       "name": "PineTree_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Snow_1.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "PineTree_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Snow_1.lod5.glb",
        "size": 1116
       },
       {
@@ -5330,11 +6210,21 @@
       {
        "name": "PineTree_Snow_2.lod2.glb",
        "file": "/assets/models/nature/PineTree_Snow_2.lod2.glb",
-       "size": 3840
+       "size": 11040
       },
       {
        "name": "PineTree_Snow_2.lod3.glb",
        "file": "/assets/models/nature/PineTree_Snow_2.lod3.glb",
+       "size": 7756
+      },
+      {
+       "name": "PineTree_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Snow_2.lod4.glb",
+       "size": 4148
+      },
+      {
+       "name": "PineTree_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Snow_2.lod5.glb",
        "size": 1116
       },
       {
@@ -5355,11 +6245,21 @@
       {
        "name": "PineTree_Snow_3.lod2.glb",
        "file": "/assets/models/nature/PineTree_Snow_3.lod2.glb",
-       "size": 3684
+       "size": 14624
       },
       {
        "name": "PineTree_Snow_3.lod3.glb",
        "file": "/assets/models/nature/PineTree_Snow_3.lod3.glb",
+       "size": 9936
+      },
+      {
+       "name": "PineTree_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Snow_3.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "PineTree_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Snow_3.lod5.glb",
        "size": 1120
       },
       {
@@ -5380,11 +6280,21 @@
       {
        "name": "PineTree_Snow_4.lod2.glb",
        "file": "/assets/models/nature/PineTree_Snow_4.lod2.glb",
-       "size": 3688
+       "size": 11192
       },
       {
        "name": "PineTree_Snow_4.lod3.glb",
        "file": "/assets/models/nature/PineTree_Snow_4.lod3.glb",
+       "size": 7908
+      },
+      {
+       "name": "PineTree_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Snow_4.lod4.glb",
+       "size": 4164
+      },
+      {
+       "name": "PineTree_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Snow_4.lod5.glb",
        "size": 1948
       },
       {
@@ -5405,11 +6315,21 @@
       {
        "name": "PineTree_Snow_5.lod2.glb",
        "file": "/assets/models/nature/PineTree_Snow_5.lod2.glb",
-       "size": 3844
+       "size": 10572
       },
       {
        "name": "PineTree_Snow_5.lod3.glb",
        "file": "/assets/models/nature/PineTree_Snow_5.lod3.glb",
+       "size": 7440
+      },
+      {
+       "name": "PineTree_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/PineTree_Snow_5.lod4.glb",
+       "size": 4160
+      },
+      {
+       "name": "PineTree_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/PineTree_Snow_5.lod5.glb",
        "size": 1944
       },
       {
@@ -5430,7 +6350,17 @@
       {
        "name": "Plant_1.lod2.glb",
        "file": "/assets/models/nature/Plant_1.lod2.glb",
-       "size": 2324
+       "size": 1936
+      },
+      {
+       "name": "Plant_1.lod3.glb",
+       "file": "/assets/models/nature/Plant_1.lod3.glb",
+       "size": 1936
+      },
+      {
+       "name": "Plant_1.lod4.glb",
+       "file": "/assets/models/nature/Plant_1.lod4.glb",
+       "size": 2636
       },
       {
        "name": "Plant_2.blend",
@@ -5450,7 +6380,17 @@
       {
        "name": "Plant_2.lod2.glb",
        "file": "/assets/models/nature/Plant_2.lod2.glb",
-       "size": 3084
+       "size": 3088
+      },
+      {
+       "name": "Plant_2.lod3.glb",
+       "file": "/assets/models/nature/Plant_2.lod3.glb",
+       "size": 3088
+      },
+      {
+       "name": "Plant_2.lod4.glb",
+       "file": "/assets/models/nature/Plant_2.lod4.glb",
+       "size": 3400
       },
       {
        "name": "Plant_3.blend",
@@ -5470,7 +6410,17 @@
       {
        "name": "Plant_3.lod2.glb",
        "file": "/assets/models/nature/Plant_3.lod2.glb",
-       "size": 2320
+       "size": 3180
+      },
+      {
+       "name": "Plant_3.lod3.glb",
+       "file": "/assets/models/nature/Plant_3.lod3.glb",
+       "size": 2164
+      },
+      {
+       "name": "Plant_3.lod4.glb",
+       "file": "/assets/models/nature/Plant_3.lod4.glb",
+       "size": 2632
       },
       {
        "name": "Plant_4.blend",
@@ -5490,7 +6440,17 @@
       {
        "name": "Plant_4.lod2.glb",
        "file": "/assets/models/nature/Plant_4.lod2.glb",
-       "size": 2324
+       "size": 3572
+      },
+      {
+       "name": "Plant_4.lod3.glb",
+       "file": "/assets/models/nature/Plant_4.lod3.glb",
+       "size": 2556
+      },
+      {
+       "name": "Plant_4.lod4.glb",
+       "file": "/assets/models/nature/Plant_4.lod4.glb",
+       "size": 2636
       },
       {
        "name": "Plant_5.blend",
@@ -5510,7 +6470,17 @@
       {
        "name": "Plant_5.lod2.glb",
        "file": "/assets/models/nature/Plant_5.lod2.glb",
-       "size": 2320
+       "size": 6624
+      },
+      {
+       "name": "Plant_5.lod3.glb",
+       "file": "/assets/models/nature/Plant_5.lod3.glb",
+       "size": 6624
+      },
+      {
+       "name": "Plant_5.lod4.glb",
+       "file": "/assets/models/nature/Plant_5.lod4.glb",
+       "size": 2632
       },
       {
        "name": "Rock_1.blend",
@@ -5530,11 +6500,21 @@
       {
        "name": "Rock_1.lod2.glb",
        "file": "/assets/models/nature/Rock_1.lod2.glb",
-       "size": 2316
+       "size": 1696
       },
       {
        "name": "Rock_1.lod3.glb",
        "file": "/assets/models/nature/Rock_1.lod3.glb",
+       "size": 1696
+      },
+      {
+       "name": "Rock_1.lod4.glb",
+       "file": "/assets/models/nature/Rock_1.lod4.glb",
+       "size": 2628
+      },
+      {
+       "name": "Rock_1.lod5.glb",
+       "file": "/assets/models/nature/Rock_1.lod5.glb",
        "size": 1136
       },
       {
@@ -5555,11 +6535,21 @@
       {
        "name": "Rock_2.lod2.glb",
        "file": "/assets/models/nature/Rock_2.lod2.glb",
-       "size": 2320
+       "size": 1692
       },
       {
        "name": "Rock_2.lod3.glb",
        "file": "/assets/models/nature/Rock_2.lod3.glb",
+       "size": 1692
+      },
+      {
+       "name": "Rock_2.lod4.glb",
+       "file": "/assets/models/nature/Rock_2.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Rock_2.lod5.glb",
+       "file": "/assets/models/nature/Rock_2.lod5.glb",
        "size": 1132
       },
       {
@@ -5580,11 +6570,21 @@
       {
        "name": "Rock_3.lod2.glb",
        "file": "/assets/models/nature/Rock_3.lod2.glb",
-       "size": 2320
+       "size": 1696
       },
       {
        "name": "Rock_3.lod3.glb",
        "file": "/assets/models/nature/Rock_3.lod3.glb",
+       "size": 1696
+      },
+      {
+       "name": "Rock_3.lod4.glb",
+       "file": "/assets/models/nature/Rock_3.lod4.glb",
+       "size": 2632
+      },
+      {
+       "name": "Rock_3.lod5.glb",
+       "file": "/assets/models/nature/Rock_3.lod5.glb",
        "size": 1136
       },
       {
@@ -5605,11 +6605,21 @@
       {
        "name": "Rock_4.lod2.glb",
        "file": "/assets/models/nature/Rock_4.lod2.glb",
-       "size": 2320
+       "size": 1692
       },
       {
        "name": "Rock_4.lod3.glb",
        "file": "/assets/models/nature/Rock_4.lod3.glb",
+       "size": 1692
+      },
+      {
+       "name": "Rock_4.lod4.glb",
+       "file": "/assets/models/nature/Rock_4.lod4.glb",
+       "size": 2632
+      },
+      {
+       "name": "Rock_4.lod5.glb",
+       "file": "/assets/models/nature/Rock_4.lod5.glb",
        "size": 1136
       },
       {
@@ -5630,11 +6640,21 @@
       {
        "name": "Rock_5.lod2.glb",
        "file": "/assets/models/nature/Rock_5.lod2.glb",
-       "size": 2320
+       "size": 1692
       },
       {
        "name": "Rock_5.lod3.glb",
        "file": "/assets/models/nature/Rock_5.lod3.glb",
+       "size": 1692
+      },
+      {
+       "name": "Rock_5.lod4.glb",
+       "file": "/assets/models/nature/Rock_5.lod4.glb",
+       "size": 2632
+      },
+      {
+       "name": "Rock_5.lod5.glb",
+       "file": "/assets/models/nature/Rock_5.lod5.glb",
        "size": 1136
       },
       {
@@ -5655,11 +6675,21 @@
       {
        "name": "Rock_6.lod2.glb",
        "file": "/assets/models/nature/Rock_6.lod2.glb",
-       "size": 2316
+       "size": 1692
       },
       {
        "name": "Rock_6.lod3.glb",
        "file": "/assets/models/nature/Rock_6.lod3.glb",
+       "size": 1692
+      },
+      {
+       "name": "Rock_6.lod4.glb",
+       "file": "/assets/models/nature/Rock_6.lod4.glb",
+       "size": 2628
+      },
+      {
+       "name": "Rock_6.lod5.glb",
+       "file": "/assets/models/nature/Rock_6.lod5.glb",
        "size": 1136
       },
       {
@@ -5680,11 +6710,21 @@
       {
        "name": "Rock_7.lod2.glb",
        "file": "/assets/models/nature/Rock_7.lod2.glb",
-       "size": 2320
+       "size": 1536
       },
       {
        "name": "Rock_7.lod3.glb",
        "file": "/assets/models/nature/Rock_7.lod3.glb",
+       "size": 1536
+      },
+      {
+       "name": "Rock_7.lod4.glb",
+       "file": "/assets/models/nature/Rock_7.lod4.glb",
+       "size": 2632
+      },
+      {
+       "name": "Rock_7.lod5.glb",
+       "file": "/assets/models/nature/Rock_7.lod5.glb",
        "size": 1132
       },
       {
@@ -5705,11 +6745,21 @@
       {
        "name": "Rock_Moss_1.lod2.glb",
        "file": "/assets/models/nature/Rock_Moss_1.lod2.glb",
-       "size": 3084
+       "size": 2460
       },
       {
        "name": "Rock_Moss_1.lod3.glb",
        "file": "/assets/models/nature/Rock_Moss_1.lod3.glb",
+       "size": 2460
+      },
+      {
+       "name": "Rock_Moss_1.lod4.glb",
+       "file": "/assets/models/nature/Rock_Moss_1.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "Rock_Moss_1.lod5.glb",
+       "file": "/assets/models/nature/Rock_Moss_1.lod5.glb",
        "size": 1140
       },
       {
@@ -5730,11 +6780,21 @@
       {
        "name": "Rock_Moss_2.lod2.glb",
        "file": "/assets/models/nature/Rock_Moss_2.lod2.glb",
-       "size": 3088
+       "size": 2460
       },
       {
        "name": "Rock_Moss_2.lod3.glb",
        "file": "/assets/models/nature/Rock_Moss_2.lod3.glb",
+       "size": 2460
+      },
+      {
+       "name": "Rock_Moss_2.lod4.glb",
+       "file": "/assets/models/nature/Rock_Moss_2.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "Rock_Moss_2.lod5.glb",
+       "file": "/assets/models/nature/Rock_Moss_2.lod5.glb",
        "size": 1140
       },
       {
@@ -5755,11 +6815,21 @@
       {
        "name": "Rock_Moss_3.lod2.glb",
        "file": "/assets/models/nature/Rock_Moss_3.lod2.glb",
-       "size": 3092
+       "size": 2464
       },
       {
        "name": "Rock_Moss_3.lod3.glb",
        "file": "/assets/models/nature/Rock_Moss_3.lod3.glb",
+       "size": 2464
+      },
+      {
+       "name": "Rock_Moss_3.lod4.glb",
+       "file": "/assets/models/nature/Rock_Moss_3.lod4.glb",
+       "size": 3408
+      },
+      {
+       "name": "Rock_Moss_3.lod5.glb",
+       "file": "/assets/models/nature/Rock_Moss_3.lod5.glb",
        "size": 1144
       },
       {
@@ -5780,11 +6850,21 @@
       {
        "name": "Rock_Moss_4.lod2.glb",
        "file": "/assets/models/nature/Rock_Moss_4.lod2.glb",
-       "size": 3080
+       "size": 2452
       },
       {
        "name": "Rock_Moss_4.lod3.glb",
        "file": "/assets/models/nature/Rock_Moss_4.lod3.glb",
+       "size": 2452
+      },
+      {
+       "name": "Rock_Moss_4.lod4.glb",
+       "file": "/assets/models/nature/Rock_Moss_4.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Rock_Moss_4.lod5.glb",
+       "file": "/assets/models/nature/Rock_Moss_4.lod5.glb",
        "size": 1140
       },
       {
@@ -5805,11 +6885,21 @@
       {
        "name": "Rock_Moss_5.lod2.glb",
        "file": "/assets/models/nature/Rock_Moss_5.lod2.glb",
-       "size": 3088
+       "size": 1700
       },
       {
        "name": "Rock_Moss_5.lod3.glb",
        "file": "/assets/models/nature/Rock_Moss_5.lod3.glb",
+       "size": 1700
+      },
+      {
+       "name": "Rock_Moss_5.lod4.glb",
+       "file": "/assets/models/nature/Rock_Moss_5.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "Rock_Moss_5.lod5.glb",
+       "file": "/assets/models/nature/Rock_Moss_5.lod5.glb",
        "size": 1140
       },
       {
@@ -5830,11 +6920,21 @@
       {
        "name": "Rock_Moss_6.lod2.glb",
        "file": "/assets/models/nature/Rock_Moss_6.lod2.glb",
-       "size": 3084
+       "size": 2456
       },
       {
        "name": "Rock_Moss_6.lod3.glb",
        "file": "/assets/models/nature/Rock_Moss_6.lod3.glb",
+       "size": 2456
+      },
+      {
+       "name": "Rock_Moss_6.lod4.glb",
+       "file": "/assets/models/nature/Rock_Moss_6.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Rock_Moss_6.lod5.glb",
+       "file": "/assets/models/nature/Rock_Moss_6.lod5.glb",
        "size": 1140
       },
       {
@@ -5855,11 +6955,21 @@
       {
        "name": "Rock_Moss_7.lod2.glb",
        "file": "/assets/models/nature/Rock_Moss_7.lod2.glb",
-       "size": 3088
+       "size": 2460
       },
       {
        "name": "Rock_Moss_7.lod3.glb",
        "file": "/assets/models/nature/Rock_Moss_7.lod3.glb",
+       "size": 2460
+      },
+      {
+       "name": "Rock_Moss_7.lod4.glb",
+       "file": "/assets/models/nature/Rock_Moss_7.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Rock_Moss_7.lod5.glb",
+       "file": "/assets/models/nature/Rock_Moss_7.lod5.glb",
        "size": 1140
       },
       {
@@ -5880,11 +6990,21 @@
       {
        "name": "Rock_Snow_1.lod2.glb",
        "file": "/assets/models/nature/Rock_Snow_1.lod2.glb",
-       "size": 3088
+       "size": 2460
       },
       {
        "name": "Rock_Snow_1.lod3.glb",
        "file": "/assets/models/nature/Rock_Snow_1.lod3.glb",
+       "size": 2460
+      },
+      {
+       "name": "Rock_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/Rock_Snow_1.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Rock_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/Rock_Snow_1.lod5.glb",
        "size": 1140
       },
       {
@@ -5910,6 +7030,16 @@
       {
        "name": "Rock_Snow_2.lod3.glb",
        "file": "/assets/models/nature/Rock_Snow_2.lod3.glb",
+       "size": 3092
+      },
+      {
+       "name": "Rock_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/Rock_Snow_2.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "Rock_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/Rock_Snow_2.lod5.glb",
        "size": 1144
       },
       {
@@ -5930,11 +7060,21 @@
       {
        "name": "Rock_Snow_3.lod2.glb",
        "file": "/assets/models/nature/Rock_Snow_3.lod2.glb",
-       "size": 3088
+       "size": 2616
       },
       {
        "name": "Rock_Snow_3.lod3.glb",
        "file": "/assets/models/nature/Rock_Snow_3.lod3.glb",
+       "size": 2616
+      },
+      {
+       "name": "Rock_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/Rock_Snow_3.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "Rock_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/Rock_Snow_3.lod5.glb",
        "size": 1140
       },
       {
@@ -5955,11 +7095,21 @@
       {
        "name": "Rock_Snow_4.lod2.glb",
        "file": "/assets/models/nature/Rock_Snow_4.lod2.glb",
-       "size": 3080
+       "size": 2764
       },
       {
        "name": "Rock_Snow_4.lod3.glb",
        "file": "/assets/models/nature/Rock_Snow_4.lod3.glb",
+       "size": 2296
+      },
+      {
+       "name": "Rock_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/Rock_Snow_4.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Rock_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/Rock_Snow_4.lod5.glb",
        "size": 1140
       },
       {
@@ -5980,11 +7130,21 @@
       {
        "name": "Rock_Snow_5.lod2.glb",
        "file": "/assets/models/nature/Rock_Snow_5.lod2.glb",
-       "size": 3088
+       "size": 2452
       },
       {
        "name": "Rock_Snow_5.lod3.glb",
        "file": "/assets/models/nature/Rock_Snow_5.lod3.glb",
+       "size": 2452
+      },
+      {
+       "name": "Rock_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/Rock_Snow_5.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Rock_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/Rock_Snow_5.lod5.glb",
        "size": 1140
       },
       {
@@ -6005,11 +7165,21 @@
       {
        "name": "Rock_Snow_6.lod2.glb",
        "file": "/assets/models/nature/Rock_Snow_6.lod2.glb",
-       "size": 3084
+       "size": 2612
       },
       {
        "name": "Rock_Snow_6.lod3.glb",
        "file": "/assets/models/nature/Rock_Snow_6.lod3.glb",
+       "size": 2612
+      },
+      {
+       "name": "Rock_Snow_6.lod4.glb",
+       "file": "/assets/models/nature/Rock_Snow_6.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Rock_Snow_6.lod5.glb",
+       "file": "/assets/models/nature/Rock_Snow_6.lod5.glb",
        "size": 1140
       },
       {
@@ -6030,11 +7200,21 @@
       {
        "name": "Rock_Snow_7.lod2.glb",
        "file": "/assets/models/nature/Rock_Snow_7.lod2.glb",
-       "size": 3084
+       "size": 4172
       },
       {
        "name": "Rock_Snow_7.lod3.glb",
        "file": "/assets/models/nature/Rock_Snow_7.lod3.glb",
+       "size": 4172
+      },
+      {
+       "name": "Rock_Snow_7.lod4.glb",
+       "file": "/assets/models/nature/Rock_Snow_7.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Rock_Snow_7.lod5.glb",
+       "file": "/assets/models/nature/Rock_Snow_7.lod5.glb",
        "size": 1140
       },
       {
@@ -6055,11 +7235,21 @@
       {
        "name": "TreeStump.lod2.glb",
        "file": "/assets/models/nature/TreeStump.lod2.glb",
-       "size": 3088
+       "size": 3556
       },
       {
        "name": "TreeStump.lod3.glb",
        "file": "/assets/models/nature/TreeStump.lod3.glb",
+       "size": 3008
+      },
+      {
+       "name": "TreeStump.lod4.glb",
+       "file": "/assets/models/nature/TreeStump.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "TreeStump.lod5.glb",
+       "file": "/assets/models/nature/TreeStump.lod5.glb",
        "size": 1144
       },
       {
@@ -6080,11 +7270,21 @@
       {
        "name": "TreeStump_Moss.lod2.glb",
        "file": "/assets/models/nature/TreeStump_Moss.lod2.glb",
-       "size": 3088
+       "size": 2932
       },
       {
        "name": "TreeStump_Moss.lod3.glb",
        "file": "/assets/models/nature/TreeStump_Moss.lod3.glb",
+       "size": 2384
+      },
+      {
+       "name": "TreeStump_Moss.lod4.glb",
+       "file": "/assets/models/nature/TreeStump_Moss.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "TreeStump_Moss.lod5.glb",
+       "file": "/assets/models/nature/TreeStump_Moss.lod5.glb",
        "size": 1148
       },
       {
@@ -6105,11 +7305,21 @@
       {
        "name": "TreeStump_Snow.lod2.glb",
        "file": "/assets/models/nature/TreeStump_Snow.lod2.glb",
-       "size": 3088
+       "size": 3008
       },
       {
        "name": "TreeStump_Snow.lod3.glb",
        "file": "/assets/models/nature/TreeStump_Snow.lod3.glb",
+       "size": 2536
+      },
+      {
+       "name": "TreeStump_Snow.lod4.glb",
+       "file": "/assets/models/nature/TreeStump_Snow.lod4.glb",
+       "size": 3408
+      },
+      {
+       "name": "TreeStump_Snow.lod5.glb",
+       "file": "/assets/models/nature/TreeStump_Snow.lod5.glb",
        "size": 1148
       },
       {
@@ -6130,11 +7340,21 @@
       {
        "name": "Wheat.lod2.glb",
        "file": "/assets/models/nature/Wheat.lod2.glb",
-       "size": 2324
+       "size": 3104
       },
       {
        "name": "Wheat.lod3.glb",
        "file": "/assets/models/nature/Wheat.lod3.glb",
+       "size": 2168
+      },
+      {
+       "name": "Wheat.lod4.glb",
+       "file": "/assets/models/nature/Wheat.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Wheat.lod5.glb",
+       "file": "/assets/models/nature/Wheat.lod5.glb",
        "size": 1136
       },
       {
@@ -6155,11 +7375,21 @@
       {
        "name": "Willow_1.lod2.glb",
        "file": "/assets/models/nature/Willow_1.lod2.glb",
-       "size": 3080
+       "size": 11680
       },
       {
        "name": "Willow_1.lod3.glb",
        "file": "/assets/models/nature/Willow_1.lod3.glb",
+       "size": 7784
+      },
+      {
+       "name": "Willow_1.lod4.glb",
+       "file": "/assets/models/nature/Willow_1.lod4.glb",
+       "size": 3388
+      },
+      {
+       "name": "Willow_1.lod5.glb",
+       "file": "/assets/models/nature/Willow_1.lod5.glb",
        "size": 1140
       },
       {
@@ -6180,11 +7410,21 @@
       {
        "name": "Willow_2.lod2.glb",
        "file": "/assets/models/nature/Willow_2.lod2.glb",
-       "size": 3076
+       "size": 15732
       },
       {
        "name": "Willow_2.lod3.glb",
        "file": "/assets/models/nature/Willow_2.lod3.glb",
+       "size": 10428
+      },
+      {
+       "name": "Willow_2.lod4.glb",
+       "file": "/assets/models/nature/Willow_2.lod4.glb",
+       "size": 3388
+      },
+      {
+       "name": "Willow_2.lod5.glb",
+       "file": "/assets/models/nature/Willow_2.lod5.glb",
        "size": 1144
       },
       {
@@ -6205,11 +7445,21 @@
       {
        "name": "Willow_3.lod2.glb",
        "file": "/assets/models/nature/Willow_3.lod2.glb",
-       "size": 3080
+       "size": 7036
       },
       {
        "name": "Willow_3.lod3.glb",
        "file": "/assets/models/nature/Willow_3.lod3.glb",
+       "size": 5004
+      },
+      {
+       "name": "Willow_3.lod4.glb",
+       "file": "/assets/models/nature/Willow_3.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Willow_3.lod5.glb",
+       "file": "/assets/models/nature/Willow_3.lod5.glb",
        "size": 1140
       },
       {
@@ -6230,11 +7480,21 @@
       {
        "name": "Willow_4.lod2.glb",
        "file": "/assets/models/nature/Willow_4.lod2.glb",
-       "size": 3076
+       "size": 9648
       },
       {
        "name": "Willow_4.lod3.glb",
        "file": "/assets/models/nature/Willow_4.lod3.glb",
+       "size": 6680
+      },
+      {
+       "name": "Willow_4.lod4.glb",
+       "file": "/assets/models/nature/Willow_4.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Willow_4.lod5.glb",
+       "file": "/assets/models/nature/Willow_4.lod5.glb",
        "size": 1140
       },
       {
@@ -6255,11 +7515,21 @@
       {
        "name": "Willow_5.lod2.glb",
        "file": "/assets/models/nature/Willow_5.lod2.glb",
-       "size": 2920
+       "size": 9956
       },
       {
        "name": "Willow_5.lod3.glb",
        "file": "/assets/models/nature/Willow_5.lod3.glb",
+       "size": 6836
+      },
+      {
+       "name": "Willow_5.lod4.glb",
+       "file": "/assets/models/nature/Willow_5.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Willow_5.lod5.glb",
+       "file": "/assets/models/nature/Willow_5.lod5.glb",
        "size": 1140
       },
       {
@@ -6280,11 +7550,21 @@
       {
        "name": "Willow_Autumn_1.lod2.glb",
        "file": "/assets/models/nature/Willow_Autumn_1.lod2.glb",
-       "size": 3080
+       "size": 11684
       },
       {
        "name": "Willow_Autumn_1.lod3.glb",
        "file": "/assets/models/nature/Willow_Autumn_1.lod3.glb",
+       "size": 7788
+      },
+      {
+       "name": "Willow_Autumn_1.lod4.glb",
+       "file": "/assets/models/nature/Willow_Autumn_1.lod4.glb",
+       "size": 3392
+      },
+      {
+       "name": "Willow_Autumn_1.lod5.glb",
+       "file": "/assets/models/nature/Willow_Autumn_1.lod5.glb",
        "size": 1144
       },
       {
@@ -6305,11 +7585,21 @@
       {
        "name": "Willow_Autumn_2.lod2.glb",
        "file": "/assets/models/nature/Willow_Autumn_2.lod2.glb",
-       "size": 3080
+       "size": 15736
       },
       {
        "name": "Willow_Autumn_2.lod3.glb",
        "file": "/assets/models/nature/Willow_Autumn_2.lod3.glb",
+       "size": 10432
+      },
+      {
+       "name": "Willow_Autumn_2.lod4.glb",
+       "file": "/assets/models/nature/Willow_Autumn_2.lod4.glb",
+       "size": 3388
+      },
+      {
+       "name": "Willow_Autumn_2.lod5.glb",
+       "file": "/assets/models/nature/Willow_Autumn_2.lod5.glb",
        "size": 1144
       },
       {
@@ -6330,11 +7620,21 @@
       {
        "name": "Willow_Autumn_3.lod2.glb",
        "file": "/assets/models/nature/Willow_Autumn_3.lod2.glb",
-       "size": 3080
+       "size": 6996
       },
       {
        "name": "Willow_Autumn_3.lod3.glb",
        "file": "/assets/models/nature/Willow_Autumn_3.lod3.glb",
+       "size": 4968
+      },
+      {
+       "name": "Willow_Autumn_3.lod4.glb",
+       "file": "/assets/models/nature/Willow_Autumn_3.lod4.glb",
+       "size": 3392
+      },
+      {
+       "name": "Willow_Autumn_3.lod5.glb",
+       "file": "/assets/models/nature/Willow_Autumn_3.lod5.glb",
        "size": 1144
       },
       {
@@ -6355,11 +7655,21 @@
       {
        "name": "Willow_Autumn_4.lod2.glb",
        "file": "/assets/models/nature/Willow_Autumn_4.lod2.glb",
-       "size": 3084
+       "size": 9652
       },
       {
        "name": "Willow_Autumn_4.lod3.glb",
        "file": "/assets/models/nature/Willow_Autumn_4.lod3.glb",
+       "size": 6680
+      },
+      {
+       "name": "Willow_Autumn_4.lod4.glb",
+       "file": "/assets/models/nature/Willow_Autumn_4.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Willow_Autumn_4.lod5.glb",
+       "file": "/assets/models/nature/Willow_Autumn_4.lod5.glb",
        "size": 1144
       },
       {
@@ -6380,11 +7690,21 @@
       {
        "name": "Willow_Autumn_5.lod2.glb",
        "file": "/assets/models/nature/Willow_Autumn_5.lod2.glb",
-       "size": 2924
+       "size": 9960
       },
       {
        "name": "Willow_Autumn_5.lod3.glb",
        "file": "/assets/models/nature/Willow_Autumn_5.lod3.glb",
+       "size": 6836
+      },
+      {
+       "name": "Willow_Autumn_5.lod4.glb",
+       "file": "/assets/models/nature/Willow_Autumn_5.lod4.glb",
+       "size": 3396
+      },
+      {
+       "name": "Willow_Autumn_5.lod5.glb",
+       "file": "/assets/models/nature/Willow_Autumn_5.lod5.glb",
        "size": 1144
       },
       {
@@ -6405,11 +7725,21 @@
       {
        "name": "Willow_Dead_1.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_1.lod2.glb",
-       "size": 2324
+       "size": 6704
       },
       {
        "name": "Willow_Dead_1.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_1.lod3.glb",
+       "size": 4520
+      },
+      {
+       "name": "Willow_Dead_1.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_1.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "Willow_Dead_1.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_1.lod5.glb",
        "size": 1144
       },
       {
@@ -6430,11 +7760,21 @@
       {
        "name": "Willow_Dead_2.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_2.lod2.glb",
-       "size": 2324
+       "size": 10440
       },
       {
        "name": "Willow_Dead_2.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_2.lod3.glb",
+       "size": 6856
+      },
+      {
+       "name": "Willow_Dead_2.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_2.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Willow_Dead_2.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_2.lod5.glb",
        "size": 1144
       },
       {
@@ -6455,11 +7795,21 @@
       {
        "name": "Willow_Dead_3.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_3.lod2.glb",
-       "size": 2172
+       "size": 3108
       },
       {
        "name": "Willow_Dead_3.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_3.lod3.glb",
+       "size": 2328
+      },
+      {
+       "name": "Willow_Dead_3.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_3.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "Willow_Dead_3.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_3.lod5.glb",
        "size": 1144
       },
       {
@@ -6480,11 +7830,21 @@
       {
        "name": "Willow_Dead_4.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_4.lod2.glb",
-       "size": 2324
+       "size": 4984
       },
       {
        "name": "Willow_Dead_4.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_4.lod3.glb",
+       "size": 3420
+      },
+      {
+       "name": "Willow_Dead_4.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_4.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Willow_Dead_4.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_4.lod5.glb",
        "size": 1140
       },
       {
@@ -6505,11 +7865,21 @@
       {
        "name": "Willow_Dead_5.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_5.lod2.glb",
-       "size": 2324
+       "size": 3580
       },
       {
        "name": "Willow_Dead_5.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_5.lod3.glb",
+       "size": 2480
+      },
+      {
+       "name": "Willow_Dead_5.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_5.lod4.glb",
+       "size": 2636
+      },
+      {
+       "name": "Willow_Dead_5.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_5.lod5.glb",
        "size": 1144
       },
       {
@@ -6530,11 +7900,21 @@
       {
        "name": "Willow_Dead_Snow_1.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_1.lod2.glb",
-       "size": 3092
+       "size": 7944
       },
       {
        "name": "Willow_Dead_Snow_1.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_1.lod3.glb",
+       "size": 5592
+      },
+      {
+       "name": "Willow_Dead_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_1.lod4.glb",
+       "size": 3408
+      },
+      {
+       "name": "Willow_Dead_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_1.lod5.glb",
        "size": 1148
       },
       {
@@ -6555,11 +7935,21 @@
       {
        "name": "Willow_Dead_Snow_2.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_2.lod2.glb",
-       "size": 3084
+       "size": 12152
       },
       {
        "name": "Willow_Dead_Snow_2.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_2.lod3.glb",
+       "size": 8248
+      },
+      {
+       "name": "Willow_Dead_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_2.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Willow_Dead_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_2.lod5.glb",
        "size": 1148
       },
       {
@@ -6580,11 +7970,21 @@
       {
        "name": "Willow_Dead_Snow_3.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_3.lod2.glb",
-       "size": 2936
+       "size": 4028
       },
       {
        "name": "Willow_Dead_Snow_3.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_3.lod3.glb",
+       "size": 3092
+      },
+      {
+       "name": "Willow_Dead_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_3.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "Willow_Dead_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_3.lod5.glb",
        "size": 1148
       },
       {
@@ -6605,11 +8005,21 @@
       {
        "name": "Willow_Dead_Snow_4.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_4.lod2.glb",
-       "size": 2328
+       "size": 6060
       },
       {
        "name": "Willow_Dead_Snow_4.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_4.lod3.glb",
+       "size": 4496
+      },
+      {
+       "name": "Willow_Dead_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_4.lod4.glb",
+       "size": 2640
+      },
+      {
+       "name": "Willow_Dead_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_4.lod5.glb",
        "size": 1144
       },
       {
@@ -6630,11 +8040,21 @@
       {
        "name": "Willow_Dead_Snow_5.lod2.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_5.lod2.glb",
-       "size": 3084
+       "size": 4656
       },
       {
        "name": "Willow_Dead_Snow_5.lod3.glb",
        "file": "/assets/models/nature/Willow_Dead_Snow_5.lod3.glb",
+       "size": 3556
+      },
+      {
+       "name": "Willow_Dead_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_5.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "Willow_Dead_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/Willow_Dead_Snow_5.lod5.glb",
        "size": 1148
       },
       {
@@ -6655,11 +8075,21 @@
       {
        "name": "Willow_Snow_1.lod2.glb",
        "file": "/assets/models/nature/Willow_Snow_1.lod2.glb",
-       "size": 3832
+       "size": 12764
       },
       {
        "name": "Willow_Snow_1.lod3.glb",
        "file": "/assets/models/nature/Willow_Snow_1.lod3.glb",
+       "size": 8852
+      },
+      {
+       "name": "Willow_Snow_1.lod4.glb",
+       "file": "/assets/models/nature/Willow_Snow_1.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "Willow_Snow_1.lod5.glb",
+       "file": "/assets/models/nature/Willow_Snow_1.lod5.glb",
        "size": 1148
       },
       {
@@ -6680,11 +8110,21 @@
       {
        "name": "Willow_Snow_2.lod2.glb",
        "file": "/assets/models/nature/Willow_Snow_2.lod2.glb",
-       "size": 3844
+       "size": 16816
       },
       {
        "name": "Willow_Snow_2.lod3.glb",
        "file": "/assets/models/nature/Willow_Snow_2.lod3.glb",
+       "size": 11348
+      },
+      {
+       "name": "Willow_Snow_2.lod4.glb",
+       "file": "/assets/models/nature/Willow_Snow_2.lod4.glb",
+       "size": 4160
+      },
+      {
+       "name": "Willow_Snow_2.lod5.glb",
+       "file": "/assets/models/nature/Willow_Snow_2.lod5.glb",
        "size": 1144
       },
       {
@@ -6705,11 +8145,21 @@
       {
        "name": "Willow_Snow_3.lod2.glb",
        "file": "/assets/models/nature/Willow_Snow_3.lod2.glb",
-       "size": 3844
+       "size": 8072
       },
       {
        "name": "Willow_Snow_3.lod3.glb",
        "file": "/assets/models/nature/Willow_Snow_3.lod3.glb",
+       "size": 5884
+      },
+      {
+       "name": "Willow_Snow_3.lod4.glb",
+       "file": "/assets/models/nature/Willow_Snow_3.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "Willow_Snow_3.lod5.glb",
+       "file": "/assets/models/nature/Willow_Snow_3.lod5.glb",
        "size": 1144
       },
       {
@@ -6730,11 +8180,21 @@
       {
        "name": "Willow_Snow_4.lod2.glb",
        "file": "/assets/models/nature/Willow_Snow_4.lod2.glb",
-       "size": 3840
+       "size": 10876
       },
       {
        "name": "Willow_Snow_4.lod3.glb",
        "file": "/assets/models/nature/Willow_Snow_4.lod3.glb",
+       "size": 7600
+      },
+      {
+       "name": "Willow_Snow_4.lod4.glb",
+       "file": "/assets/models/nature/Willow_Snow_4.lod4.glb",
+       "size": 4156
+      },
+      {
+       "name": "Willow_Snow_4.lod5.glb",
+       "file": "/assets/models/nature/Willow_Snow_4.lod5.glb",
        "size": 1148
       },
       {
@@ -6755,11 +8215,21 @@
       {
        "name": "Willow_Snow_5.lod2.glb",
        "file": "/assets/models/nature/Willow_Snow_5.lod2.glb",
-       "size": 3832
+       "size": 11188
       },
       {
        "name": "Willow_Snow_5.lod3.glb",
        "file": "/assets/models/nature/Willow_Snow_5.lod3.glb",
+       "size": 7916
+      },
+      {
+       "name": "Willow_Snow_5.lod4.glb",
+       "file": "/assets/models/nature/Willow_Snow_5.lod4.glb",
+       "size": 4148
+      },
+      {
+       "name": "Willow_Snow_5.lod5.glb",
+       "file": "/assets/models/nature/Willow_Snow_5.lod5.glb",
        "size": 1148
       },
       {
@@ -6780,11 +8250,21 @@
       {
        "name": "WoodLog.lod2.glb",
        "file": "/assets/models/nature/WoodLog.lod2.glb",
-       "size": 3088
+       "size": 4512
       },
       {
        "name": "WoodLog.lod3.glb",
        "file": "/assets/models/nature/WoodLog.lod3.glb",
+       "size": 4512
+      },
+      {
+       "name": "WoodLog.lod4.glb",
+       "file": "/assets/models/nature/WoodLog.lod4.glb",
+       "size": 3400
+      },
+      {
+       "name": "WoodLog.lod5.glb",
+       "file": "/assets/models/nature/WoodLog.lod5.glb",
        "size": 1136
       },
       {
@@ -6805,11 +8285,21 @@
       {
        "name": "WoodLog_Moss.lod2.glb",
        "file": "/assets/models/nature/WoodLog_Moss.lod2.glb",
-       "size": 3848
+       "size": 5280
       },
       {
        "name": "WoodLog_Moss.lod3.glb",
        "file": "/assets/models/nature/WoodLog_Moss.lod3.glb",
+       "size": 5280
+      },
+      {
+       "name": "WoodLog_Moss.lod4.glb",
+       "file": "/assets/models/nature/WoodLog_Moss.lod4.glb",
+       "size": 4160
+      },
+      {
+       "name": "WoodLog_Moss.lod5.glb",
+       "file": "/assets/models/nature/WoodLog_Moss.lod5.glb",
        "size": 1144
       },
       {
@@ -6830,17 +8320,27 @@
       {
        "name": "WoodLog_Snow.lod2.glb",
        "file": "/assets/models/nature/WoodLog_Snow.lod2.glb",
-       "size": 2932
+       "size": 4964
       },
       {
        "name": "WoodLog_Snow.lod3.glb",
        "file": "/assets/models/nature/WoodLog_Snow.lod3.glb",
+       "size": 4964
+      },
+      {
+       "name": "WoodLog_Snow.lod4.glb",
+       "file": "/assets/models/nature/WoodLog_Snow.lod4.glb",
+       "size": 3404
+      },
+      {
+       "name": "WoodLog_Snow.lod5.glb",
+       "file": "/assets/models/nature/WoodLog_Snow.lod5.glb",
        "size": 1144
       },
       {
        "name": "lod.json",
        "file": "/assets/models/nature/lod.json",
-       "size": 412
+       "size": 425
       },
       {
        "name": "nature.json",
