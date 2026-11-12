@@ -35,7 +35,8 @@ const DEPTH_FORMATS = (gl: WebGL2RenderingContext, stencil: boolean) => {
     const d24 = [gl.DEPTH_COMPONENT24, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, gl.DEPTH_ATTACHMENT];
     const d24s8 = [gl.DEPTH24_STENCIL8, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, gl.DEPTH_STENCIL_ATTACHMENT];
     const d32 = [gl.DEPTH_COMPONENT32F, gl.DEPTH_COMPONENT, gl.FLOAT, gl.DEPTH_ATTACHMENT];
-    return stencil ? [d24s8, d24, d32] : [d24, d24s8, d32];
+    // browsers often back the default depth with depth24 stencil8 even without a stencil asked for
+    return stencil ? [d24s8, d24, d32] : [d24s8, d24, d32];
 };
 
 /** A clear low poly sea. Lengths in metres; any field can be overridden (nested objects merge). */
