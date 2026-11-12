@@ -1,12 +1,10 @@
-# Plan: world look + play
+# Plan: optimise + bigger world
 
 ## Where we are
-Branch `feature/ecosystem`: nature done (`@polywar/nature`, `ecosystem`, `scatter`, `world`; see `facts.md`). Now: the look pass below (confirmed 2026-11-12). All tasks done; waiting for the owner (look check, then "prepare PR").
+`feature/ecosystem` merged into `main` (2026-11-12). Proposed tasks below, waiting for the owner to confirm. Branch: `feature/optimise`.
 
 ## Tasks
-- f1. [x] Bigger, fuller grass: owner's grass code is the world default (`g2.eyJzZXR0aW5ncy5zb2Z0QmFuZHMiOjAuMjUsInNldHRpbmdzLnNpemVTY2FsZSI6MS43NSwic2V0dGluZ3MuZGVuc2l0eSI6MzIsImxvb2suYmFuZHMiOjMsImJsYWRlU2hhcmUiOjAuMjUsInZhcmlhdGlvbiI6MC4xNiwicGF0Y2hlcy4wLnNjYWxlIjowLjAyM30` = density 32, sizeScale 1.75, softBands .25, bands 3, bladeShare .25, variation .16, patches.0.scale .023); density still varies by the cover maps.
-- f2. [x] Bigger trees + pine woods: trees ~1.5x, forest cores get taller / denser pine stands (up to ~2x height) thinning to the edges; rocks / bushes a bit bigger. Everything should feel larger.
-- f3. [x] Props less plastic: soft toon bands on props + an EXTREMELY subtle grit (few % world space noise, steady with the camera).
-- f4. [x] (redone as watercolour) Painted ground (terrain material): biome borders as ragged stroke shaped edges (no straight triangle lines, no fade blend), light / dark brush stroke patches inside each biome (hard edged). Biomes stay where they are.
-- f5. [x] Gloss: steep rock ground + rock props slightly glossy, wet ground near water a little, the rest matte.
-- f6. [x] Play mode in the world view: first person on foot (WASD, mouse look, shift run, space jump), eye height on the ground, pushes grass; Esc back to the editor.
+- o1. [ ] No rock gloss: rock props matte (world `GLOSS`), steep rock ground gloss 0 (terrain-material `look.gloss.rock`). Wet ground by water keeps its slight gloss.
+- o2. [ ] Prop LODs (asset side): `export.py` writes `Name.lod1.glb` / `Name.lod2.glb` per nature model (Blender decimate, ~40% / ~12% tris, flat shading kept); `manifest.json` lists them.
+- o3. [ ] Prop LODs (scatter): per chunk pick LOD 0/1/2 by distance (per kind thresholds, quality scaled); far trees use lod2 instead of shrinking away, so tree distance can go further. Log tris / calls per frame in the world view stats.
+- o4. [ ] Bigger feel: aerial haze (distance fog tinted to the sky, on terrain, water, props, grass) so far land reads far; default map 2048 → 3072 m (cell size kept by resolution bump on high only); camera `far` raised to fit. Check walk + editor views by eye.
