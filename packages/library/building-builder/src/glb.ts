@@ -1,5 +1,5 @@
 import type { GLTF } from "@papit/game-mesh";
-import type { MapUrls } from "@polywar/textured";
+import type { MapSource, MapUrls } from "@polywar/textured";
 
 /**
  * A GLTF (as `@papit/game-mesh` reads it, + optional `maps` per mesh/primitive) as one binary .glb.
@@ -37,7 +37,10 @@ export async function writeGLB(gltf: GLTF & { maps?: (MapUrls | undefined)[][] }
 
     // one material per distinct set of maps, images embedded once per url
     const imageOf = new Map<string, Promise<number>>();
-    const image = (url: string) => {
+    // maps given as pixels (in memory) are not embedded yet, only urls
+    const image = (source: MapSource): Promise<number> | undefined => {
+        if (typeof source !== "string") { console.warn("writeGLB: pixel maps are not embedded, use urls"); return undefined; }
+        const url = source;
         if (!imageOf.has(url)) imageOf.set(url, fetch(url).then(r => r.arrayBuffer()).then(data => {
             images.push({ bufferView: view(new Uint8Array(data)), mimeType: "image/png" });
             textures.push({ source: images.length - 1 });
@@ -68,10 +71,12 @@ export async function writeGLB(gltf: GLTF & { maps?: (MapUrls | undefined)[][] }
         if (!materialOf.has(k))
         {
             const m: any = { pbrMetallicRoughness: { metallicFactor: 0, roughnessFactor: 1 } };
-            if (maps.albedo) m.pbrMetallicRoughness.baseColorTexture = { index: await image(maps.albedo) };
-            if (maps.normal) m.normalTexture = { index: await image(maps.normal) };
-            if (maps.ao) m.occlusionTexture = { index: await image(maps.ao) };
-            if (maps.spec) m.extensions = { KHR_materials_specular: { specularColorTexture: { index: await image(maps.spec) } } };
+            const index = async (source?: MapSource) => source === undefined ? undefined : await image(source);
+            const albedo = await index(maps.albedo), normal = await index(maps.normal), ao = await index(maps.ao), spec = await index(maps.spec);
+            if (albedo !== undefined) m.pbrMetallicRoughness.baseColorTexture = { index: albedo };
+            if (normal !== undefined) m.normalTexture = { index: normal };
+            if (ao !== undefined) m.occlusionTexture = { index: ao };
+            if (spec !== undefined) m.extensions = { KHR_materials_specular: { specularColorTexture: { index: spec } } };
             materials.push(m);
             materialOf.set(k, materials.length - 1);
         }
