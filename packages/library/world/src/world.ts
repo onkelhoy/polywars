@@ -6,12 +6,12 @@ import type { Light, Renderer, View } from "@polywar/renderer";
 import { Scatter } from "@polywar/scatter";
 import { DEFAULTS as TERRAIN, Terrain, decode, isCode, type TerrainData, type TerrainSettings } from "@polywar/terrain";
 import { BIOMES } from "@polywar/terrain-material";
-import { MeshBuilder, upload } from "@papit/game-mesh";
-import { roadEdge, roadHooks, ribbons, type RoadHooks } from "@polywar/roads";
+import { upload } from "@papit/game-mesh";
+import { roadEdge, roadHooks, type RoadHooks } from "@polywar/roads";
 import { generateSites } from "@polywar/sites";
 
-/** road surface colours (linear-ish rgb) */
-const SURFACE: Record<string, [number, number, number]> = { asphalt: [.16, .16, .17], gravel: [.42, .38, .32], dirt: [.36, .27, .18], ballast: [.22, .2, .19] };
+/** debug road lines per class (unlit, bright) */
+const ROAD_COLOUR: Record<string, [number, number, number]> = { highway: [1, .75, 0], road: [1, 1, 1], lane: [1, .45, .1], path: [1, .2, .8], rail: [0, .9, 1] };
 import type { WorldSettings, WorldView } from "./types";
 
 /** grass draw distance per quality, metres (further than the grass presets) */
@@ -106,7 +106,7 @@ export class World {
         this.terrain.draw(view, light, time);
         p?.end();
         if (!this.data) return;
-        if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+        if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
         if (this.v.props) this.scatter.draw(view, time);
         p?.end();
@@ -145,18 +145,22 @@ export class World {
         this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
     }
 
-    /** road strips draped a bit over the drawn ground */
+    /** debug: road centre lines (no road geometry), a bit over the drawn ground, coloured by class */
     private buildRoads() {
         this.roadMesh = undefined;
         const r = this.roads.roads;
         if (!r) return;
-        const b = new MeshBuilder(), up = (p: number[]) => [p[0], Math.max(p[1], this.terrain.groundAt(p[0], p[2])) + .12, p[2]] as [number, number, number];
-        ribbons(r.network, (a, c, d, e, road) => {
-            const col = SURFACE[road.surface] ?? SURFACE.dirt, pa = up(a), pc = up(c), pd = up(d), pe = up(e);
-            b.quad(pa, pc, pd, pe, col);
-            b.quad(pe, pd, pc, pa, col);
-        }, 0);
-        this.roadMesh = upload(this.layer.gl, b.build());
+        const pos: number[] = [], col: number[] = [];
+        const at = (p: number[]) => [p[0], Math.max(p[1], this.terrain.groundAt(p[0], p[2])) + .4, p[2]];
+        for (const road of r.network.roads)
+        {
+            const c = ROAD_COLOUR[road.class] ?? [1, 0, 0];
+            for (let i = 0; i < road.points.length - 1; i++) { pos.push(...at(road.points[i]), ...at(road.points[i + 1])); col.push(...c, 1, ...c, 1); }
+        }
+        const positions = new Float32Array(pos), normals = new Float32Array(pos.length);
+        for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
+        const h = this.terrain.data?.size ?? 1;
+        this.roadMesh = upload(this.layer.gl, { positions, normals, colors: new Float32Array(col), bounds: { min: { x: -h, y: -h, z: -h }, max: { x: h, y: h, z: h }, radius: h * 2 } });
     }
 
     /** ecosystem grown: hand props to the scatter and replant the grass */

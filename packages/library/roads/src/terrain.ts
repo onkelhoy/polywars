@@ -106,24 +106,3 @@ export const roadEdge = (roads: Roads, far = 30) => (x: number, z: number) => {
     const r = roads.nearest(x, z, far);
     return r ? r.distance - r.road.width / 2 : far;
 };
-
-/**
- * Flat road surface strips (CPU only): per road quads across `width` along the points, `lift` m over the bed;
- * `quad(a, b, c, d, road)` gets the 4 corners (left, right, next right, next left).
- */
-export function ribbons(network: Network, quad: (a: number[], b: number[], c: number[], d: number[], road: Network["roads"][number]) => void, lift = .15) {
-    for (const r of network.roads)
-    {
-        const p = r.points, w = r.width / 2, side = (i: number) => {
-            const a = p[Math.max(0, i - 1)], b = p[Math.min(p.length - 1, i + 1)], dx = b[0] - a[0], dz = b[2] - a[2], l = Math.hypot(dx, dz) || 1;
-            return [-dz / l * w, dx / l * w];
-        };
-        const tunnel = (s: number) => r.spans.some(x => x.kind === "tunnel" && s >= x.from && s < x.to);
-        for (let i = 0; i < p.length - 1; i++)
-        {
-            if (tunnel(i)) continue;
-            const [sx, sz] = side(i), [tx, tz] = side(i + 1), a = p[i], b = p[i + 1];
-            quad([a[0] + sx, a[1] + lift, a[2] + sz], [a[0] - sx, a[1] + lift, a[2] - sz], [b[0] - tx, b[1] + lift, b[2] - tz], [b[0] + tx, b[1] + lift, b[2] + tz], r);
-        }
-    }
-}
