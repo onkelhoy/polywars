@@ -3,9 +3,10 @@
   "description": "Grass material for WebGL2: tuft and ground shaders, wind / sway / push, patches, toon light, cloud shadows, generated sprites.",
   "keywords": [
     "papit",
-    "web-component",
-    "typescript",
-    "grass-material"
+    "webgl",
+    "material",
+    "grass",
+    "shader"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -52,14 +53,18 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/game-engine": "*",
+    "@papit/random": "*"
+  },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "playwright": "1.64.1",
     "typescript": "5.9.3",
     "@papit/theme": "*",
     "@papit/translator": "*",
-    "@papit/codeblock": "*"
+    "@papit/codeblock": "*",
+    "@polywar/3d-asset-preview": "*"
   },
   "browserslist": [
     "defaults",
@@ -70,11 +75,6 @@
     "publish": true,
     "type": "browser",
     "main": "grass-material",
-    "htmlprefix": "",
-    "components": {
-      "grass-material": {
-        "className": "GrassMaterial"
-      }
-    }
+    "htmlprefix": ""
   }
 }

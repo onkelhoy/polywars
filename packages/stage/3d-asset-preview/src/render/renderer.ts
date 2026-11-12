@@ -49,6 +49,14 @@ export type View = {
     worldPosition?: { x: number; y: number; z: number };
 };
 
+/**
+ * Anything that draws itself with its own shader, e.g. a material sample (`GrassPatch`).
+ * `size`: bounds x y z, base at y 0, centred on x / z.
+ */
+export type Drawable = { size: Vec3 | [number, number, number]; draw(view: View, light: Light, time: number): void; destroy?(): void };
+/** makes a `Drawable` for a layer (each WebGL context needs its own) */
+export type Scene = (layer: Layer3D) => Drawable;
+
 /** `maps`: albedo / normal / spec / ao textures (see @polywar/textured), none = vertex colour only */
 export type DrawOptions = { joints?: Float32Array; tint?: [number, number, number, number]; unlit?: boolean; maps?: Maps };
 

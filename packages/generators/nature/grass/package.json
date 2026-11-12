@@ -52,7 +52,8 @@
   "dependencies": {
     "@papit/game-engine": "*",
     "@papit/matrix": "*",
-    "@papit/random": "*"
+    "@papit/random": "*",
+    "@polywar/grass-material": "*"
   },
   "devDependencies": {
     "@papit/game-mesh": "*",

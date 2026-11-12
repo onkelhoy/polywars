@@ -4,7 +4,7 @@ import type { Camera } from "@papit/game-engine";
 import "@polywar/3d-demo";
 import type { Demo3D } from "@polywar/3d-demo";
 import { Matrix4 } from "@papit/matrix";
-import { Grid, Model, Renderer, type TexturedGLTF } from "./render";
+import { Grid, Model, Renderer, type Drawable, type Scene, type TexturedGLTF } from "./render";
 import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
 
@@ -23,6 +23,8 @@ export class AssetPreview3D extends CustomElement {
     @property({ after: function (this: AssetPreview3D) { this.load(); } }) src: string = "";
     /** in-memory glTF (generated content), optionally with `maps` (urls or pixels); wins over `src` */
     @property({ attribute: false, after: function (this: AssetPreview3D) { this.load(); } }) gltf: TexturedGLTF | null = null;
+    /** something that draws itself (e.g. a material sample), drawn with the light and camera; works with or without a model */
+    @property({ attribute: false, after: function (this: AssetPreview3D) { this.load(); } }) scene: Scene | null = null;
     /** a new model keeps the camera where it is (after the first one); `frame()` fits it again */
     @property({ type: Boolean, attribute: "keep-view" }) keepView: boolean = false;
     @property({ rerender: true, after: function (this: AssetPreview3D) { this.applyMode(); } }) mode: PreviewMode = "turntable";
@@ -46,6 +48,8 @@ export class AssetPreview3D extends CustomElement {
     private gridMesh?: Grid;
     private bulb?: GPUMesh;
     private model?: Model;
+    private drawable?: Drawable;
+    private drawableOf?: Scene;
     private yaw = 0;
     private time = 0;
     private playing = true;
@@ -71,6 +75,14 @@ export class AssetPreview3D extends CustomElement {
         if (!this.renderer) return;
         const gl = this.renderer.gl;
         const src = !this.src || this.src.includes("__marker__") ? "" : this.src;
+        if (this.scene !== this.drawableOf)
+        {
+            const first = !this.model && !this.drawable;
+            this.drawable?.destroy?.();
+            this.drawableOf = this.scene ?? undefined;
+            this.drawable = this.scene?.(this.demo!.layer!);
+            if (this.drawable && !this.gltf && !src) { this.model?.destroy(); this.model = undefined; this.fitGrid(); if (first || !this.keepView) this.frame(); }
+        }
         if (!this.gltf && !src) return;
         const ticket = ++this.loading;
         const model = this.gltf ? new Model(gl, this.gltf) : await Model.load(gl, src);
@@ -79,10 +91,7 @@ export class AssetPreview3D extends CustomElement {
         const first = !this.model;
         this.model?.destroy();
         this.model = model;
-        // grid scaled to the model: lines every 10^n / 2 metres, out to 3x its size
-        const r = this.reach, step = Math.pow(10, Math.floor(Math.log10(r))) / 2;
-        this.gridMesh?.destroy();
-        this.gridMesh = new Grid(gl, Math.ceil(r * 3 / step) * step, step, 5);
+        this.fitGrid();
         this.time = 0;
         if (!model.animation(this.animation)) this.animation = "";
         if (first || !this.keepView) this.frame();
@@ -93,14 +102,26 @@ export class AssetPreview3D extends CustomElement {
         this.requestUpdate();
     }
 
-    /** Biggest side of the model, for camera distances and speeds. */
+    /** grid scaled to the content: lines every 10^n / 2 metres, out to 3x its size */
+    private fitGrid() {
+        const r = this.reach, step = Math.pow(10, Math.floor(Math.log10(r))) / 2;
+        this.gridMesh?.destroy();
+        this.gridMesh = new Grid(this.renderer!.gl, Math.ceil(r * 3 / step) * step, step, 5);
+    }
+
+    /** model bounds, else the scene's */
+    private get size(): number[] | undefined {
+        return this.model?.size ?? this.drawable?.size;
+    }
+
+    /** Biggest side of the content, for camera distances and speeds. */
     private get reach() {
-        return this.model ? Math.max(...this.model.size, .05) : 1;
+        return this.size ? Math.max(...this.size, .05) : 1;
     }
 
     /** distance that fits the bounding sphere in the default 60° view */
     private get fit() {
-        const radius = this.model ? Math.hypot(...this.model.size) / 2 : .5;
+        const radius = this.size ? Math.hypot(...this.size) / 2 : .5;
         return Math.max(radius, .01) / Math.sin(Math.PI / 6) * 1.1;
     }
 
@@ -113,7 +134,7 @@ export class AssetPreview3D extends CustomElement {
     frame() {
         const demo = this.demo;
         if (!demo) return;
-        const y = (this.model?.size[1] ?? 0) / 2, d = this.fit;
+        const y = (this.size?.[1] ?? 0) / 2, d = this.fit;
         demo.near = this.reach * .01;
         demo.far = this.reach * 200;
         demo.speed = this.reach * 1.5;
@@ -141,7 +162,7 @@ export class AssetPreview3D extends CustomElement {
         const az = this.sunAzimuth * Math.PI / 180, el = this.sunElevation * Math.PI / 180;
         light.sunDirection = [Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az)];
         // lamp circles the model at 80% of its height, just outside its bounds
-        const r = this.reach, height = (this.model?.size[1] ?? 1);
+        const r = this.reach, height = (this.size?.[1] ?? 1);
         const la = this.lampAngle * Math.PI / 180;
         light.lampPosition = [Math.sin(la) * r * .9, height * .8, Math.cos(la) * r * .9];
         light.lampRange = r * 2.5;
@@ -153,6 +174,7 @@ export class AssetPreview3D extends CustomElement {
             renderer.draw(this.bulb, [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, ...light.lampPosition, 1], { unlit: true });
         }
         if (this.grid) this.gridMesh?.draw(renderer);
+        this.drawable?.draw(camera, light, this.demo?.time ?? 0);
         if (!this.model) return;
         const [cx, , cz] = this.model.center;
         const bottom = this.model.bounds.min[1];

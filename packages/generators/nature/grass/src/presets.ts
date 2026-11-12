@@ -1,3 +1,4 @@
+import type { GrassLook } from "@polywar/grass-material";
 import type { GrassOptions, Quality, QualitySettings, Style, StyleSettings } from "./types";
 
 /** Quality presets. A game picks one from its global setting (phone = low) and may override fields. */
@@ -48,7 +49,18 @@ export function resolve(options: Partial<GrassOptions> = {}): Resolved {
 }
 
 /** sRGB hex to linear rgb */
-export function linear(hex: string): [number, number, number] {
-    const n = parseInt(hex.replace("#", ""), 16);
-    return [n >> 16 & 255, n >> 8 & 255, n & 255].map(c => Math.pow(c / 255, 2.2)) as [number, number, number];
+export { linear } from "@polywar/grass-material";
+
+/** the material's settings from resolved grass options */
+export function look(o: Resolved): GrassLook {
+    const { q, s } = o;
+    return {
+        size: [o.size[0] * q.sizeScale, o.size[1] * q.sizeScale],
+        color: o.color, shape: o.shape, bladeShare: o.bladeShare, variation: o.variation,
+        patches: o.patches, accents: o.accents, wind: o.wind, sway: o.sway, push: o.push,
+        clouds: q.clouds ? o.clouds : null, lighting: o.lighting,
+        bands: s.bands, softBands: q.softBands, pixelated: s.pixelated, pixels: s.pixels, stepped: s.stepped, framerate: s.framerate,
+        noiseSize: q.noiseSize, pushers: q.pushers, source: q.source, distance: q.distance,
+        sprites: o.sprites, debug: o.debug,
+    };
 }

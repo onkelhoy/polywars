@@ -2,6 +2,8 @@
 
 GPU grass for WebGL2: instanced tufts that sway in a two-noise wind, with pixel-art or smooth looks, colour patches, toon light, cloud shadows and characters that push the grass aside. Quality presets (`low | medium | high`) keep it running on phones.
 
+The look (shaders, noise, sprites, uniforms) is `@polywar/grass-material`; this package plants, chunks and culls the tufts and maps quality / style presets onto the material (`grass.material`).
+
 Inspired by [Dylearn's 3D pixel art grass](https://github.com/DylearnDev/Dylearn-3D-Pixel-Art-Grass-Demo) (MIT code; sprites here are generated, not copied).
 
 ## Usage

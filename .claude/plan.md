@@ -18,7 +18,7 @@ Restructure + materials (confirmed 2026-11-12, branch `restructure-materials`):
 - r2. [x] 3d-demo: direction arrow bottom-left, `axes` attribute + bar button.
 - r3. [x] 3d-asset-preview: in-memory mesh + maps.
 - r4. [x] mesh-bake view on 3d-asset-preview: load shows mesh, settings, big bake button.
-- r5. [ ] Grass shaders into `render/materials/grass`, grass generator uses it.
+- r5. [x] Grass shaders into `render/materials/grass-material` (`@polywar/grass-material`), grass generator uses it.
 - r6. [ ] Materials view: pw-gallery, one tile per material, click opens preview.
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
 

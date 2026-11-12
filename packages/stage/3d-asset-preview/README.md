@@ -33,7 +33,7 @@ npm install @polywar/3d-asset-preview
 preview.gltf = Object.assign(gltfFromMesh(quad), { maps: [[{ albedo: { pixels, width, height, channels: 3 }, normal: "/x/normal.png" }]] });
 ```
 
-Properties: `src`, `gltf`, `mode` (`turntable | orbit | fps`), `controls`, `grid`, `toon`, `speed`, light (`ambient`, `sun`, `sun-azimuth`, `sun-elevation`, `lamp`, `lamp-angle`, `lights` opens the panel), `keep-view` (a new model keeps the camera; `frame()` fits it again).
+Properties: `src`, `gltf`, `mode` (`turntable | orbit | fps`), `controls`, `grid`, `toon`, `speed`, light (`ambient`, `sun`, `sun-azimuth`, `sun-elevation`, `lamp`, `lamp-angle`, `lights` opens the panel), `keep-view` (a new model keeps the camera; `frame()` fits it again), `scene` (a `Scene`: `layer => Drawable`, something that draws itself with its own shader, e.g. `GrassPatch`; with or without a model).
 
 ## License
 

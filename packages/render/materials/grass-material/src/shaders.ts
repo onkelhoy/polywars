@@ -1,5 +1,5 @@
 /** Shared: noise sampling, colour patches, toon bands, cloud shadows, fog. `noiseTex` channels: r wind, g/b patches, a clouds. */
-const COMMON = `
+export const COMMON_GLSL = `
 #define PI 3.14159265
 uniform sampler2D noiseTex;
 uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye;
@@ -210,7 +210,7 @@ uniform float perspective;
 uniform sampler2D sprite0, sprite1, sprite2, sprite3;
 uniform vec4 spriteMask; // per slot, 1 = generated sprite (r shade, g accent mask)
 uniform vec3 accentColor[2];
-${COMMON}
+${COMMON_GLSL}
 out vec4 outColor;
 
 void main() {
@@ -251,7 +251,7 @@ precision highp float;
 precision highp int;
 in vec3 vWorld;
 uniform float texel, darken;
-${COMMON}
+${COMMON_GLSL}
 out vec4 outColor;
 void main() {
     // pixel style snaps the colour lookups to a world texel grid

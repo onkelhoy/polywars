@@ -18,6 +18,24 @@ Grass material for WebGL2: tuft and ground shaders, wind / sway / push, patches,
 npm install @polywar/grass-material
 ```
 
+## usage
+
+```js
+import { GrassMaterial, GrassPatch, GRASS_LOOK, GRASS_LOOKS } from "@polywar/grass-material";
+
+// the material: your geometry, its shaders, noise and sprites
+const material = new GrassMaterial(layer, { color: "#5d9a3a", bands: 3 });
+if (material.useTufts(camera, light, time)) { /* bind your tuft vao, drawArraysInstanced */ }
+if (material.useGround(camera, light, time)) { /* draw your floor */ }
+
+// the material alone: a round patch (fits pw-3d-asset-preview `scene` and gallery items)
+preview.scene = layer => new GrassPatch(layer, GRASS_LOOKS.dry);
+```
+
+Tuft attributes: 0 position (base y 0, height 1), 1 normal, 2 uv (v 0 at the root), 4 instance `x y z scale`. Ground: 0 position.
+`GrassLook` holds every setting (size, colours, patches, accents, wind, sway, push, clouds or `null`, toon bands, pixel style, pushers, distance).
+`@polywar/grass` (the generator) plants, chunks and culls tufts with this material.
+
 ## License
 
 Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)

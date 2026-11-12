@@ -1,10 +1,9 @@
-export type Vec2 = [number, number];
-export type Vec3 = [number, number, number];
+import type { Accent, Clouds, Lighting, Patch, Push, Shape, Source, Sway, Vec2, Wind } from "@polywar/grass-material";
+// the look types live in the material
+export type { Accent, Clouds, Light, Lighting, Patch, Push, Pusher, Shape, Source, Sway, Vec2, Vec3, View, Wind } from "@polywar/grass-material";
 
 export type Quality = "low" | "medium" | "high";
 export type Style = "pixel" | "smooth";
-/** `sprite`: one camera facing quad, `cross`: crossed planes, `mesh`: the given `TuftMesh` instanced */
-export type Source = "sprite" | "cross" | "mesh";
 
 /** Plain geometry for the `mesh` source (fits `@papit/game-mesh` `Mesh`). Base at y = 0. */
 export type TuftMesh = {
@@ -48,62 +47,6 @@ export type StyleSettings = {
     bands: number;
     /** generated sprite size in pixels */
     pixels: number;
-};
-
-export type Wind = {
-    /** xz direction */
-    direction: Vec2;
-    /** noise scroll speed */
-    speed: number;
-    /** noise repeats per metre */
-    scale: number;
-    /** -1..1 brightness of the wind noise */
-    threshold: number;
-    /** degrees the two noises split */
-    diverge: number;
-    /** max lean in degrees */
-    angle: number;
-    /** UV skew that fakes the lean towards / away from the camera */
-    perspective: number;
-};
-
-export type Sway = { /** cycles per second */ speed: number; /** degrees */ angle: number };
-
-/** colours are sRGB hex. `scale`: noise repeats per metre, the patch shows where noise > `threshold`, blended over ± `softness` */
-export type Patch = { color: string; scale: number; threshold: number; softness: number };
-/** main tuft sprite: `leaves` fat leaves in all directions (centred, reads from above), `blades` a fan of blades (rooted), `mixed` both (`bladeShare`) */
-export type Shape = "leaves" | "blades" | "mixed";
-/** rare tufts with their own sprite. `chance` 0..1 per tuft */
-export type Accent = { chance: number; color: string; /** metres added to the height */ height: number; scale: number };
-
-export type Push = { /** degrees */ angle: number; /** steepness of the falloff */ exponent: number };
-
-export type Clouds = {
-    /** metres per noise repeat */
-    scale: number;
-    speed: number;
-    direction: Vec2;
-    /** y the shadows are cast from */
-    height: number;
-    contrast: number;
-    threshold: number;
-    /** darkest a cloud can make the sun */
-    min: number;
-    diverge: number;
-};
-
-export type Lighting = { wrap: number; steepness: number };
-
-/** Same shape as the polywar `Renderer.light`, so that one can be passed in. Colours linear. */
-export type Light = {
-    sunDirection: Vec3;
-    sunColor: Vec3;
-    sunStrength: number;
-    sky: Vec3;
-    ground: Vec3;
-    ambient: number;
-    fogColor: Vec3;
-    fogDensity: number;
 };
 
 export type GrassOptions = {
@@ -151,13 +94,3 @@ export type Planting = {
     mask?: (x: number, z: number) => number;
     height?: (x: number, z: number) => number;
 };
-
-/** What the grass needs from a camera; `@papit/game-engine`'s `Camera` fits. */
-export type View = {
-    viewMatrix: ArrayLike<number>;
-    projectionMatrix: ArrayLike<number>;
-    worldPosition?: { x: number; y: number; z: number };
-};
-
-/** x y z radius */
-export type Pusher = [number, number, number, number];
