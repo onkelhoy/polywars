@@ -7,14 +7,27 @@ import type { DrawOptions, Renderer } from "./renderer";
 /** a glTF + optional texture maps (urls or pixels) per mesh and primitive (`maps[mesh][primitive]`, as `readMaps` returns) */
 export type TexturedGLTF = GLTF & { maps?: (MapUrls | undefined)[][] };
 
+/** Something that poses a skin instead of the plain glTF rig, e.g. `@polywar/skeleton` (IK). One 4x4 per joint. */
+export type Skin = {
+    matrices: Float32Array;
+    pose(animation: GLTFAnimation | undefined, time: number, loop?: boolean): void;
+};
+
+export type ModelOptions = {
+    /** makes the skin for a loaded glTF (`url` is where it came from), undefined = plain rig */
+    skin?: (gltf: GLTF, url?: string) => Skin | undefined | Promise<Skin | undefined>;
+};
+
 export type Box = { min: [number, number, number]; max: [number, number, number] };
 
 /**
  * A glTF on the GPU: every mesh node, its hierarchy, an optional skin (skin 0) and its animations.
- * `pose(name, time)` plays an animation on the rig; `draw(renderer, matrix)` places the whole model.
+ * `pose(name, time)` plays an animation on the rig (or on `skin`); `draw(renderer, matrix)` places the whole model.
  */
 export class Model {
     readonly rig?: Rig;
+    /** poses the skin instead of `rig` when set */
+    skin?: Skin;
     readonly animations: GLTFAnimation[];
     readonly bounds: Box;
     private gpu: GPUMesh[][];
@@ -25,9 +38,10 @@ export class Model {
     /** world matrix of the skeleton's non-joint ancestors (e.g. a scaled Armature node); `rig()` leaves it out */
     private skeleton = Matrix4.create();
 
-    static async load(gl: WebGL2RenderingContext, url: string) {
+    static async load(gl: WebGL2RenderingContext, url: string, options: ModelOptions = {}) {
         const [gltf, maps] = await Promise.all([loadGLTF(url), readMaps(url).catch(() => [])]);
         const model = new Model(gl, Object.assign(gltf, { maps }));
+        if (options.skin && gltf.skins.length) model.skin = await options.skin(gltf, url);
         await model.ready;
         return model;
     }
@@ -116,8 +130,18 @@ export class Model {
         this.rig.update();
     }
 
-    /** Pose the rig at `time` seconds of an animation (by name or object). */
+    /** world matrix of the skeleton's non-joint ancestors: joint space -> model space (for drawing bones) */
+    get skeletonMatrix() {
+        return this.skeleton;
+    }
+
+    /** Pose the rig (or `skin`) at `time` seconds of an animation (by name or object). */
     pose(animation: string | GLTFAnimation | undefined, time: number, loop = true) {
+        if (this.skin)
+        {
+            this.skin.pose(typeof animation === "string" ? this.animation(animation) : animation, time, loop);
+            return;
+        }
         if (!this.rig) return;
         this.reset();
         const a = typeof animation === "string" ? this.animation(animation) : animation;
@@ -132,7 +156,7 @@ export class Model {
         {
             const meshIndex = this.gltf.nodes[item.node].mesh!;
             const m = matrix.clone.multiply(item.skinned ? this.skeleton : item.world);
-            const o = item.skinned ? { ...options, joints: this.rig!.matrices } : options;
+            const o = item.skinned ? { ...options, joints: this.skin?.matrices ?? this.rig!.matrices } : options;
             this.gpu[meshIndex].forEach((gpu, i) => renderer.draw(gpu, m, { ...o, maps: this.textures[meshIndex]?.[i] }));
         }
     }

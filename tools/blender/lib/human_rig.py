@@ -41,7 +41,7 @@ SIDE = {
     "fingers.1": ((.8, .012, 1.45), (.84, .012, 1.45), "hand", True),
     "fingers.2": ((.84, .012, 1.45), (.87, .012, 1.45), "fingers.1", True),
     "prop": ((.77, -.005, 1.43), (.77, -.105, 1.43), "hand", False),
-    "thigh": ((.09, 0, .95), (.1, -.02, .52), "hips", True),
+    "thigh": ((.1, 0, .95), (.1, -.02, .52), "hips", True),
     "shin": ((.1, -.02, .52), (.1, .0, .09), "thigh", True),
     "foot": ((.1, 0, .09), (.1, -.12, .03), "shin", True),
     "toe": ((.1, -.12, .03), (.1, -.19, .03), "foot", True),
@@ -96,6 +96,11 @@ def _armature():
             b = data.edit_bones[name]
             b.parent = data.edit_bones[p]
             b.use_connect = (b.parent.tail - b.head).length < 1e-5
+    # limb bones: Z axis towards the pole, so IK keeps their twist (clean pole angles, knees bend on their hinge)
+    for side in "LR":
+        for limb, pole in (("thigh", "knee.pole"), ("shin", "knee.pole"), ("upper_arm", "elbow.pole"), ("forearm", "elbow.pole")):
+            b = data.edit_bones[f"{limb}.{side}"]
+            b.align_roll(data.edit_bones[f"{pole}.{side}"].head - b.head)
     bpy.ops.object.mode_set(mode="OBJECT")
     for pb in arm.pose.bones:
         pb.rotation_mode = "QUATERNION"
@@ -124,19 +129,33 @@ def _constraints(arm):
 
 
 def _pole_angle(arm, tip, target, ik):
-    """The pole angle that keeps the rest pose (Blender's angle depends on the bone rolls)."""
+    """Blender's pole angle depends on the bone rolls: pick the one that bends the joint towards the pole.
+    The rest limbs are almost straight, so the test bends them (target halfway to the chain root)."""
     keep = ik.influence
     ik.influence = 1
-    rest = arm.data.bones[tip].head_local.copy()
-    best = None
-    for deg in range(-180, 180, 15):
+    pb, rest = arm.pose.bones[target], arm.data.bones[target]
+    root = arm.data.bones[tip].parent.head_local
+    pb.location = rest.matrix_local.to_3x3().inverted() @ ((root - rest.head_local) * .45)
+    pole = arm.data.bones[ik.pole_subtarget].head_local
+    bpy.context.view_layer.update()
+    goal = pb.head.copy()
+    normal = (goal - root).cross(pole - root).normalized()
+
+    def score(deg):
         ik.pole_angle = math.radians(deg)
         bpy.context.view_layer.update()
-        err = (arm.pose.bones[tip].head - rest).length
-        if best is None or err < best[0]:
-            best = (err, ik.pole_angle)
+        joint = arm.pose.bones[tip].head
+        # on the plane (root, target, pole), on the pole's side
+        axis = (goal - root).normalized()
+        side = lambda v: v - axis * axis.dot(v)
+        return abs((joint - root).dot(normal)) + (0 if side(joint - root).dot(side(pole - root)) > 0 else 1)
+
+    coarse = min(range(-180, 180, 15), key=score)
+    best = min((d / 4 for d in range(coarse * 4 - 60, coarse * 4 + 61)), key=score)
+    best = math.radians(best)
+    pb.location = (0, 0, 0)
     ik.influence = keep
-    return best[1]
+    return best
 
 
 # ---------- mannequin ----------

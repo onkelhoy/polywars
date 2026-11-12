@@ -3,9 +3,10 @@
   "description": "glTF skin as a @papit/armature rig (+X bones, real lengths), IK and copy rotation from rig.json, clip sampling and blending, joint matrices.",
   "keywords": [
     "papit",
-    "web-component",
     "typescript",
-    "skeleton"
+    "skeleton",
+    "armature",
+    "gltf"
   ],
   "version": "0.0.1",
   "scripts": {
@@ -52,7 +53,11 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/armature": "*",
+    "@papit/game-mesh": "*",
+    "@papit/quaternion": "*"
+  },
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "playwright": "1.64.1",
@@ -70,11 +75,6 @@
     "publish": true,
     "type": "browser",
     "main": "skeleton",
-    "htmlprefix": "",
-    "components": {
-      "skeleton": {
-        "className": "Skeleton"
-      }
-    }
+    "htmlprefix": ""
   }
 }

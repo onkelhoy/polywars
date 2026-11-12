@@ -117,7 +117,7 @@
    "deform": false
   },
   "thigh.L": {
-   "length": 0.43058,
+   "length": 0.43046,
    "deform": true
   },
   "shin.L": {
@@ -133,7 +133,7 @@
    "deform": true
   },
   "thigh.R": {
-   "length": 0.43058,
+   "length": 0.43046,
    "deform": true
   },
   "shin.R": {

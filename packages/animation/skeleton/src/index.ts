@@ -1,3 +1,2 @@
-// exports
-export * from "./component";
+export * from "./skeleton";
 export * from "./types";
