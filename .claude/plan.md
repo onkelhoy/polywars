@@ -51,6 +51,7 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 
 ## Report to owner (papit)
 - `@papit/create`: name starting with a digit gives an invalid class name (`3dAssetPreview`).
+- `@papit/create`: `--destination` is the parent folder (package lands in `<destination>/<name>`), and it commits by itself.
 - `@papit/server`: package folder named `assets` is served raw (no CSS import rewrite).
 - `@papit/web-component`: attribute bindings briefly pass `__marker__` as the value.
 - `@papit/build`: a package `bin` entry gets bundled for the browser (fails on `node:` imports).
