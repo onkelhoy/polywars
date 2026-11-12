@@ -61,7 +61,8 @@
     "@papit/button": "*",
     "@papit/dialog": "*",
     "@polywar/3d-asset-preview": "*",
-    "@papit/game-mesh": "*"
+    "@papit/game-mesh": "*",
+    "@papit/matrix": "*"
   },
   "peerDependencies": {
     "react": "^19"

@@ -1,7 +1,8 @@
 // system
 import { CustomElement, html, property } from "@papit/web-component";
-import { Camera, GameEngine, GameObject, fps, orbit } from "@papit/game-engine";
-import { Grid, Model, Renderer, fromTRS, mat4, multiply } from "./render";
+import { Camera, GameEngine, GameObject, fps, orbit, type Layer3D } from "@papit/game-engine";
+import { Matrix4 } from "@papit/matrix";
+import { Grid, Model, Renderer } from "./render";
 import { MeshBuilder, upload, type GLTF, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
 
@@ -45,14 +46,13 @@ export class AssetPreview3D extends CustomElement {
     private yaw = 0;
     private time = 0;
     private playing = true;
-    private matrix = mat4();
     private loading = 0;
 
     firstRender() {
         super.firstRender();
         const engine = new GameEngine({ name: "main", query: "canvas", type: "webgl2", documentElement: this.shadowRoot! });
         this.engine = engine;
-        this.renderer = new Renderer((engine.layers.main as any).gl);
+        this.renderer = new Renderer(engine.layers.main as Layer3D);
         this.bulb = upload((engine.layers.main as any).gl, new MeshBuilder().sphere([1, .85, .6], {}, 1).build());
         const preview = this;
         engine.add(new class extends GameObject {
@@ -167,10 +167,7 @@ export class AssetPreview3D extends CustomElement {
         const [cx, , cz] = this.model.center;
         const bottom = this.model.bounds.min[1];
         // spin around the model's middle, standing on y = 0
-        const s = Math.sin(this.yaw / 2), c = Math.cos(this.yaw / 2);
-        const spin = fromTRS(mat4(), [0, 0, 0], [0, s, 0, c], [1, 1, 1]);
-        const place = fromTRS(mat4(), [-cx, -bottom, -cz], [0, 0, 0, 1], [1, 1, 1]);
-        this.model.draw(renderer, multiply(this.matrix, spin, place));
+        this.model.draw(renderer, Matrix4.rotationY(this.yaw).translate(-cx, -bottom, -cz));
     }
 
     // ---- input ----

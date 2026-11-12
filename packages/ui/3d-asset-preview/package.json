@@ -59,7 +59,9 @@
     "@papit/game-engine": "*",
     "@papit/button": "*",
     "@papit/game-mesh": "*",
-    "@polywar/textured": "*"
+    "@polywar/textured": "*",
+    "@papit/matrix": "*",
+    "@papit/quaternion": "*"
   },
   "peerDependencies": {
     "react": "^19"

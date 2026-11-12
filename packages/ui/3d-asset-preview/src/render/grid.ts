@@ -1,11 +1,11 @@
 import { upload, type GPUMesh, type Mesh } from "@papit/game-mesh";
-import { mat4 } from "./math";
+import { Matrix4 } from "@papit/matrix";
 import type { Renderer } from "./renderer";
 
 /** A flat line grid on y = 0, every `step` metres out to `size`, darker every `major` lines. */
 export class Grid {
     private gpu: GPUMesh;
-    private matrix = mat4();
+    private matrix = Matrix4.create();
 
     constructor(gl: WebGL2RenderingContext, size = 20, step = 1, major = 5) {
         const positions: number[] = [], colors: number[] = [];

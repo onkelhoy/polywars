@@ -1,3 +1,4 @@
+import type { Layer3D } from "@papit/game-engine";
 import type { GPUMesh } from "@papit/game-mesh";
 import { TEXTURED_UNIFORMS, bindMaps, type Maps } from "@polywar/textured";
 import { SHADERS } from "./shaders";
@@ -56,16 +57,24 @@ type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLoc
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
     "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", ...TEXTURED_UNIFORMS];
 
-/** Draws `@papit/game-mesh` GPU meshes, plain or skinned, with one light. */
+let renderers = 0;
+
+/** Draws `@papit/game-mesh` GPU meshes, plain or skinned, with one light. Programs come from the layer (async, see `ready`). */
 export class Renderer {
     light: Light = structuredClone(DAYLIGHT);
-    private programs: { mesh: Program; skin: Program };
+    readonly gl: WebGL2RenderingContext;
+    /** resolves once the shader programs are linked; draws before that are skipped */
+    readonly ready: Promise<void>;
+    private programs?: { mesh: Program; skin: Program };
     private current?: Program;
     private view?: View;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16), model: new Float32Array(16) };
 
-    constructor(readonly gl: WebGL2RenderingContext) {
-        this.programs = { mesh: this.compile(SHADERS.mesh), skin: this.compile(SHADERS.skin) };
+    constructor(readonly layer: Layer3D) {
+        this.gl = layer.gl;
+        const id = `pw-renderer-${renderers++}`;
+        this.ready = Promise.all([this.compile(id + "-mesh", SHADERS.mesh), this.compile(id + "-skin", SHADERS.skin)])
+            .then(([mesh, skin]) => { this.programs = { mesh, skin }; });
     }
 
     /** Clear (optional colour) and set the camera for the next draws. */
@@ -85,6 +94,7 @@ export class Renderer {
     }
 
     draw(mesh: GPUMesh, model: ArrayLike<number>, options: DrawOptions = {}, mode?: number) {
+        if (!this.programs) return;
         const p = this.use(options.joints ? this.programs.skin : this.programs.mesh);
         const gl = this.gl;
         this.f32.model.set(model);
@@ -129,22 +139,10 @@ export class Renderer {
         return p;
     }
 
-    private compile(source: { vertex: string; fragment: string }): Program {
-        const gl = this.gl;
-        const shader = (type: number, text: string) => {
-            const s = gl.createShader(type)!;
-            gl.shaderSource(s, text);
-            gl.compileShader(s);
-            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error("render: " + gl.getShaderInfoLog(s));
-            return s;
-        };
-        const program = gl.createProgram()!;
-        gl.attachShader(program, shader(gl.VERTEX_SHADER, source.vertex));
-        gl.attachShader(program, shader(gl.FRAGMENT_SHADER, source.fragment));
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error("render: " + gl.getProgramInfoLog(program));
+    private async compile(name: string, source: { vertex: string; fragment: string }): Promise<Program> {
+        const program = await this.layer.createProgram(name, source.vertex, source.fragment);
         const uniforms: Program["uniforms"] = {};
-        for (const name of NAMES) uniforms[name] = gl.getUniformLocation(program, name);
+        for (const n of NAMES) uniforms[n] = this.gl.getUniformLocation(program, n);
         return { program, uniforms };
     }
 }

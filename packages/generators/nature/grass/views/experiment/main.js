@@ -5,10 +5,11 @@ import { Grass } from '@polywar/grass';
 
 const $ = s => document.querySelector(s);
 const engine = new GameEngine({ name: 'main', query: 'canvas', type: 'webgl2', documentElement: document });
-const gl = engine.layers.main.gl;
-const renderer = new Renderer(gl);
+const layer = engine.layers.main;
+const gl = layer.gl;
+const renderer = new Renderer(layer);
 renderer.light.toon = 3;
-const grass = new Grass(gl);
+const grass = new Grass(layer);
 const walker = upload(gl, new MeshBuilder().sphere([.85, .35, .25], {}, 1).build());
 const walkers = [{ r: 4, speed: .5, size: .5 }, { r: 9, speed: -.3, size: .8 }, { r: 2, speed: 1.1, size: .35 }];
 

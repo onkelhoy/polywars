@@ -9,7 +9,7 @@ Inspired by [Dylearn's 3D pixel art grass](https://github.com/DylearnDev/Dylearn
 ```js
 import { Grass } from "@polywar/grass";
 
-const grass = new Grass(gl, { quality: "medium", style: "pixel" });
+const grass = new Grass(engine.layers.main, { quality: "medium", style: "pixel" });  // a @papit/game-engine Layer3D
 grass.plant({
     area: { x: -50, z: -50, width: 100, depth: 100 },
     mask: (x, z) => isGrass(x, z) ? 1 : 0,  // chance a tuft grows, 0..1
@@ -64,7 +64,7 @@ A game keeps one global quality setting and passes it on: `grass.quality = setti
 
 ```js
 const json = grass.toJSON();      // plain data (no mesh, no image sprites)
-new Grass(gl, json);
+new Grass(layer, json);
 grass.load(json);                 // replace all, missing fields fall back to defaults
 ```
 

@@ -1,3 +1,5 @@
+import type { Layer3D } from "@papit/game-engine";
+import { Matrix4 } from "@papit/matrix";
 import { place, type Placed } from "./place";
 import { noise } from "./noise";
 import { DEFAULTS, linear, resolve, type Resolved } from "./presets";
@@ -5,7 +7,9 @@ import { GROUND_FRAGMENT, GROUND_VERTEX, TUFT_FRAGMENT, TUFT_VERTEX } from "./sh
 import { sprite } from "./sprites";
 import type { GrassOptions, GrassSettings, Light, Planting, Pusher, Quality, View } from "./types";
 
-type Program = { program: WebGLProgram; u: (name: string) => WebGLUniformLocation | null };
+type Program = { name: string; program: WebGLProgram; u: (name: string) => WebGLUniformLocation | null };
+
+let ids = 0;
 type Geometry = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; indexed?: number };
 
 const MODES = { sprite: 0, cross: 1, mesh: 2 } as const;
@@ -31,9 +35,15 @@ export class Grass {
     /** tufts drawn last frame */
     drawn = 0;
 
-    constructor(readonly gl: WebGL2RenderingContext, options: Partial<GrassOptions> = {}) {
+    readonly gl: WebGL2RenderingContext;
+    private id = ids++;
+    private version = 0;
+
+    /** Programs come from the layer (async); draws are skipped until they are linked. */
+    constructor(readonly layer: Layer3D, options: Partial<GrassOptions> = {}) {
+        this.gl = layer.gl;
         this.o = resolve(options);
-        this.instances = gl.createBuffer()!;
+        this.instances = this.gl.createBuffer()!;
         this.rebuild(true);
     }
 
@@ -171,14 +181,14 @@ export class Grass {
         for (const g of [this.geometry, this.ground]) if (g) { gl.deleteVertexArray(g.vao); g.buffers.forEach(b => gl.deleteBuffer(b)); }
         gl.deleteBuffer(this.instances);
         [this.noiseTex, ...this.sprites].forEach(t => t && gl.deleteTexture(t));
-        [this.tufts, this.groundProgram].forEach(p => p && gl.deleteProgram(p.program));
+        [this.tufts, this.groundProgram].forEach(p => p && this.layer.deleteProgram(p.name));
     }
 
     // ---- internals ----
 
     private rebuild(all: boolean) {
         if (all) { this.compile(); this.buildGeometry(); this.buildNoise(); this.buildSprites(); }
-        this.groundProgram ??= this.link(GROUND_VERTEX, GROUND_FRAGMENT);
+        if (!this.groundProgram) this.link(`grass-${this.id}-ground`, GROUND_VERTEX, GROUND_FRAGMENT).then(p => this.groundProgram = p);
     }
 
     /** uniforms both programs share: camera, light, colours, clouds */
@@ -223,26 +233,19 @@ export class Grass {
     }
 
     private compile() {
-        if (this.tufts) this.gl.deleteProgram(this.tufts.program);
-        this.tufts = this.link(TUFT_VERTEX(this.o.q.pushers), TUFT_FRAGMENT);
+        const version = ++this.version;
+        this.link(`grass-${this.id}-tufts-${version}`, TUFT_VERTEX(this.o.q.pushers), TUFT_FRAGMENT).then(p => {
+            // a newer compile may have started meanwhile
+            if (version !== this.version) return this.layer.deleteProgram(p.name);
+            if (this.tufts) this.layer.deleteProgram(this.tufts.name);
+            this.tufts = p;
+        });
     }
 
-    private link(vertex: string, fragment: string): Program {
-        const gl = this.gl;
-        const shader = (type: number, text: string) => {
-            const s = gl.createShader(type)!;
-            gl.shaderSource(s, text);
-            gl.compileShader(s);
-            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error("grass: " + gl.getShaderInfoLog(s));
-            return s;
-        };
-        const program = gl.createProgram()!;
-        gl.attachShader(program, shader(gl.VERTEX_SHADER, vertex));
-        gl.attachShader(program, shader(gl.FRAGMENT_SHADER, fragment));
-        gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error("grass: " + gl.getProgramInfoLog(program));
+    private async link(name: string, vertex: string, fragment: string): Promise<Program> {
+        const gl = this.gl, program = await this.layer.createProgram(name, vertex, fragment);
         const cache = new Map<string, WebGLUniformLocation | null>();
-        return { program, u: name => cache.has(name) ? cache.get(name)! : (cache.set(name, gl.getUniformLocation(program, name)), cache.get(name)!) };
+        return { name, program, u: n => cache.has(n) ? cache.get(n)! : (cache.set(n, gl.getUniformLocation(program, n)), cache.get(n)!) };
     }
 
     /** One tuft: a quad, crossed quads or the given mesh. Attributes: 0 position, 1 normal, 2 uv, 4 tuft (instanced). */
@@ -397,16 +400,10 @@ function stripResolved(o: Resolved): Partial<GrassOptions> {
     return rest;
 }
 
-/** 6 planes (a b c d) of projection * view, column-major */
+/** 6 planes (a b c d) of projection * view */
 function frustum(p: Float32Array, v: Float32Array) {
-    const m = new Float32Array(16);
-    for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++)
-    {
-        let s = 0;
-        for (let k = 0; k < 4; k++) s += p[k * 4 + r] * v[c * 4 + k];
-        m[c * 4 + r] = s;
-    }
-    const row = (r: number) => [m[r], m[4 + r], m[8 + r], m[12 + r]];
+    const m = Matrix4.create(p).multiply(Matrix4.create(v));
+    const row = (r: number) => Array.from(m.getRow(r));
     const w = row(3), planes: number[][] = [];
     for (let r = 0; r < 3; r++)
     {
