@@ -131,7 +131,8 @@ void main() {
     outColor = vec4(pow(c, vec3(1.0 / 2.2)), 1.0);
 }`;
 
-const ROCKS: [number, number, number][] = [[-75, 10, 4], [-82, -12, 2.5], [-70, 40, 1.6], [-90, 60, 3.2], [-64, -40, 1.2], [5, -12, 1.4], [-30, 13, 1.1], [100, -40, 3], [150, -95, 2]];
+/** x z radius, poke: lifted to break the surface */
+const ROCKS: [number, number, number, boolean?][] = [[-75, 10, 4, true], [-82, -12, 2.5, true], [-70, 40, 1.6, true], [-90, 60, 3.2], [-64, -40, 1.2], [5, -12, 1.4], [-30, 13, 1.1], [100, -40, 3], [150, -95, 2]];
 const SAND: [number, number, number] = [.72, .64, .42], GRASS: [number, number, number] = [.3, .45, .18], MUD: [number, number, number] = [.42, .38, .27], ROCK: [number, number, number] = [.38, .37, .36];
 
 /**
@@ -160,8 +161,6 @@ export class WaterSample {
         this.heights = new Float32Array(n * n);
         for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) this.heights[j * n + i] = shape(i * CELL - half, j * CELL - half);
         this.ground = this.buildGround();
-        // rocks poking out of the water get a foam ring
-        for (const [x, z, r] of ROCKS) { const w = this.surfaceAt(x, z); if (w !== null && this.heightAt(x, z) + r * 1.2 > w) this.contacts.push(x, z, r * .6); }
         // shore distances on a 1 m grid from the ground the eye sees (the triangles), signed: < 0 over land
         const fn = EXTENT + 1, at = (k: number) => this.heightAt((k % fn) - half, ((k / fn) | 0) - half);
         const signed = (wet: (k: number) => boolean) => {
@@ -169,7 +168,8 @@ export class WaterSample {
             for (let k = 0; k < out.length; k++) out[k] = wet(k) ? toLand[k] - .5 : .5 - toWater[k];
             return blur(blur(out, fn, 3), fn, 3);
         };
-        const sea = signed(k => at(k) < SEA && (k % fn) - half < coast(((k / fn) | 0) - half) + 2);
+        // the river's channel counts as water too, so its mouth gets no shore foam across it
+        const sea = signed(k => { const x = (k % fn) - half, z = ((k / fn) | 0) - half; return at(k) < SEA && (x < coast(z) + 2 || onRiver(x, z).dist < RIVER_WIDTH / 2 + 2); });
         const lake = signed(k => { const x = (k % fn) - half, z = ((k / fn) | 0) - half; return at(k) < LAKE && Math.hypot(x - LAKE_AT[0], z - LAKE_AT[1]) < lakeRadius(x, z) + 6; });
         this.sea = this.buildSurface(sea, SEA, true);
         this.lake = this.buildSurface(lake, LAKE, false);
@@ -282,9 +282,9 @@ export class WaterSample {
         const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
         const t = (1 + Math.sqrt(5)) / 2, ico = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]];
         const faces = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8], [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]];
-        for (const [rx, rz, r] of rocks)
+        for (const [rx, rz, r, poke] of rocks)
         {
-            const base = pos.length / 3, y = this.heightAt(rx, rz), sx = .8 + rand() * .5, sz = .8 + rand() * .5;
+            const level0 = this.surfaceAt(rx, rz), base = pos.length / 3, y = poke && level0 !== null ? Math.max(this.heightAt(rx, rz), level0 - r * .9) : this.heightAt(rx, rz), sx = .8 + rand() * .5, sz = .8 + rand() * .5;
             for (const [a, b, c] of ico)
             {
                 const k = r / 1.9 * (.8 + rand() * .4), x = rx + a * k * sx, py = y + r * .35 + b * k * .9, z = rz + c * k * sz;
@@ -293,6 +293,21 @@ export class WaterSample {
                 wet.push(this.wetLevel(rx, rz, -1e3));
             }
             for (const [a, b, c] of faces) idx.push(base + a, base + b, base + c);
+            // a foam ring only where the rock breaks the surface: its outline at the water level
+            const level = this.surfaceAt(rx, rz);
+            if (level !== null)
+            {
+                let sum = 0, count = 0;
+                for (const f of faces) for (let e = 0; e < 3; e++)
+                {
+                    const p = (base + f[e]) * 3, q = (base + f[(e + 1) % 3]) * 3, ya = pos[p + 1] - level, yb = pos[q + 1] - level;
+                    if (ya * yb >= 0) continue;
+                    const t = ya / (ya - yb);
+                    sum += Math.hypot(pos[p] + (pos[q] - pos[p]) * t - rx, pos[p + 2] + (pos[q + 2] - pos[p + 2]) * t - rz);
+                    count++;
+                }
+                if (count) this.contacts.push(rx, rz, sum / count);
+            }
         }
         // flat shading wants each triangle's colour from one vertex: unindex
         const P: number[] = [], C: number[] = [], W: number[] = [];
@@ -327,6 +342,8 @@ export class WaterSample {
         {
             const cs: V2[] = [[x, z], [x + step, z], [x + step, z + step], [x, z + step]];
             if (cs.every(([a, b]) => s(a, b) < -2)) continue;
+            // the sea stays out of the river channel (the river draws its own surface there)
+            if (ring) { const rv = onRiver(x + step / 2, z + step / 2); if (rv.dist < RIVER_WIDTH / 2 + 1 && rv.along < MOUTH - 1) continue; }
             quad(cs.map(([a, b]) => [a, b, level - this.heightAt(a, b), s(a, b)]));
         }
         if (ring)

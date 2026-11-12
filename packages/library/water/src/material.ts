@@ -14,8 +14,8 @@ export const WATER_LOOK: WaterLook = {
     opacity: .5,
     clarity: 6,
     sky: .4,
-    glints: { dark: .08, scale: .7, length: 1.4, lane: .4, strength: 1, specks: .3, speed: .25, far: 220 },
-    foam: { color: "#ffffff", contact: .06, rim: .45, wobble: .4, wobbleScale: 6, lines: 3, width: .12, spacing: 2.5, speed: .3, pieces: .5, amount: .85, far: 300 },
+    glints: { dark: .06, scale: .7, length: 1, lane: .4, strength: 1, specks: .3, speed: .25, far: 220 },
+    foam: { color: "#ffffff", contact: .08, rim: .6, wobble: .35, wobbleScale: 7, lines: 4, width: .16, spacing: 1.3, speed: .35, pieces: .4, amount: .9, far: 300 },
     streaks: { amount: .8, length: 4, width: .2 },
     under: { shallow: "#3aa7b8", deep: "#0b2e52", clarity: 14, density: .035, sun: .06 },
 };
@@ -23,10 +23,10 @@ export const WATER_LOOK: WaterLook = {
 /** named looks on top of `WATER_LOOK`: from clear sea to swamp */
 export const WATER_LOOKS: Record<string, Partial<WaterLook>> = {
     sea: {},
-    calm: { glints: { ...WATER_LOOK.glints, dark: .05, specks: .2, speed: .15 }, foam: { ...WATER_LOOK.foam, lines: 2, speed: .2, pieces: .6 } },
+    calm: { glints: { ...WATER_LOOK.glints, dark: .05, specks: .2, speed: .15 }, foam: { ...WATER_LOOK.foam, lines: 2, speed: .25, pieces: .55 } },
     stormy: {
         shallow: "#4a98a8", deep: "#173f63", glints: { ...WATER_LOOK.glints, dark: .14, speed: .6, length: 2.2 },
-        foam: { ...WATER_LOOK.foam, rim: .8, contact: .15, wobble: .2, wobbleScale: 14, lines: 5, width: .35, spacing: 4, speed: .45, pieces: .15, amount: 1 },
+        foam: { ...WATER_LOOK.foam, rim: 1.1, contact: .15, wobble: .2, wobbleScale: 14, lines: 6, width: .3, spacing: 2.2, speed: .5, pieces: .15, amount: 1 },
     },
     tropical: { shallow: "#63d2cf", deep: "#2678b5", clarity: 12, opacity: .35, under: { ...WATER_LOOK.under, shallow: "#58cfd0", deep: "#145a8a", density: .02, clarity: 25 } },
     lake: { shallow: "#5a9fa0", deep: "#2a5a6e", fresh: { shallow: "#5a9fa0", deep: "#2a5a6e" }, under: { ...WATER_LOOK.under, shallow: "#4a8f8a", deep: "#173f4a", density: .06, clarity: 8 } },

@@ -19,7 +19,7 @@ export type WaterLook = {
      */
     glints: { dark: number; scale: number; length: number; lane: number; strength: number; specks: number; speed: number; far: number };
     /**
-     * Shore foam: `contact` metres of foam round things in the water (`use(..., { contacts })`), a rim `rim` wide, wavy by `wobble` over `wobbleScale` (smooth noise), then `lines` thin lines `width` wide,
+     * Shore foam: `contact` metres of foam round things in the water (plus 15% of their radius) (`use(..., { contacts })`), a rim `rim` wide, wavy by `wobble` over `wobbleScale` (smooth noise), then `lines` thin lines `width` wide,
      * `spacing` apart running in at `speed` (lines a second), broken into pieces (`pieces` 0 whole .. 1 mostly gone).
      * Thin lines fade as they get smaller than a pixel, and past `far`.
      */
