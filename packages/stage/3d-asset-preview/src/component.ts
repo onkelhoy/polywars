@@ -4,7 +4,7 @@ import type { Camera } from "@papit/game-engine";
 import "@polywar/3d-demo";
 import type { Demo3D } from "@polywar/3d-demo";
 import { Matrix4 } from "@papit/matrix";
-import { Grid, Model, Renderer, type Drawable, type Scene, type TexturedGLTF } from "./render";
+import { Grid, Model, Renderer, type Drawable, type Scene, type TexturedGLTF } from "@polywar/renderer";
 import { MeshBuilder, upload, type GPUMesh } from "@papit/game-mesh";
 import "@papit/button";
 

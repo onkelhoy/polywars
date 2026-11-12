@@ -1,7 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
-`restructure-materials` branch (fixes f1-f7 next). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
+`restructure-materials` branch (f1-f7 done, task 8 next). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
 ## Facts
 - Blender 5.2 headless. Scripts in `tools/blender/` (`lib/pw.py`, `lib/gun_rig.py`, `export.py`, `packs/ww2_weapons.py`).
@@ -9,7 +9,7 @@
 - Pack script keeps existing files (hand edits); `--force` or delete one file to regenerate it.
 - Guns: muzzle +Y Blender (glTF -Z), up +Z. Bones: root > body > action, trigger, hammer?, mag > round, muzzle, eject. Moving parts = vertex groups in `gun.blend`. Actions: idle, fire, reload, reload-empty.
 - `game-mesh` has no textures → `export.py` bakes image textures into vertex colours.
-- Render code (Renderer, Model, Grid, gltfFromMesh) lives in `packages/stage/3d-asset-preview/src/render`, exported by `@polywar/3d-asset-preview`.
+- Render code (Renderer, Model, Grid, gltfFromMesh) is `@polywar/renderer` (`packages/render/renderer`); shading styles + preview ball are `@polywar/shading`.
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
 
 ## Tasks
@@ -20,7 +20,7 @@ Fixes + material styles (confirmed 2026-11-12, branch `restructure-materials`; r
 - f4. [x] 3d-demo pivot: `panZoom.start` sets pivot to the ground hit (`controllers.ts`), so `look(from, to)` orbits the wrong point. Pivot = `to`. Preview already centres the mesh (bbox), so it then orbits the mesh centre.
 - f5. [x] 3d-demo `pan="ground | screen"`: screen = pan in the view plane (up/down too). 3d-asset-preview (so mesh-bake) uses screen.
 - f6. [x] Origin dot (yellow, black border, Blender-like) in 3d-demo, toggle in bar, settable position; preview puts it on the asset's own origin.
-- f7. [ ] Materials gallery with shading styles: Renderer/Model/Grid out of 3d-asset-preview into `packages/render/`; its shading as materials (lit, toon 2/3 bands, unlit, normal-mapped); each material on a Blender-like preview ball (grass keeps its patch). Water etc. later as `render/materials/*`. Gallery view: `packages/stage/gallery` view `materials`.
+- f7. [x] Materials gallery with shading styles: Renderer/Model/Grid out of 3d-asset-preview into `packages/render/`; its shading as materials (lit, toon 2/3 bands, unlit, normal-mapped); each material on a Blender-like preview ball (grass keeps its patch). Water etc. later as `render/materials/*`. Gallery view: `packages/stage/gallery` view `materials`.
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
 
 ## Medieval buildings + baked surfaces (confirmed 2026-11-11)
@@ -46,4 +46,4 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 - `@papit/quaternion`: `writeMatrix(out, position)` and `fromAxisAngle(axis)` are typed `{x,y,z}` but read `[0],[1],[2]` (NaN with objects).
 - `@papit/matrix`: static `Matrix4.multiply(a, b)` fails to type-check (`this` of `typeof Matrix4`); `multiply(Float32Array(16))` reads it as 16x1 (wrap in `Matrix4.create`); no point transform (`m.clone.multiply([x,y,z,1])` works).
 - `@papit/game-engine`: `fps` walks on the ground only and `pan` is 2D (3d-demo has its own `fly` / `panZoom`); theme custom properties come back unresolved (`light-dark()`), read a resolved colour instead.
-- `@papit/game-engine`: no lit mesh renderer (polywar keeps `Renderer` in 3d-asset-preview); `Layer3D.createProgram` keeps the shader objects after linking.
+- `@papit/game-engine`: no lit mesh renderer (polywar has `@polywar/renderer`); `Layer3D.createProgram` keeps the shader objects after linking.

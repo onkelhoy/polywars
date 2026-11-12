@@ -1,7 +1,7 @@
 import '@polywar/3d-demo';
 import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Matrix4 } from '@papit/matrix';
-import { Grid, Renderer } from '@polywar/3d-asset-preview';
+import { Grid, Renderer } from '@polywar/renderer';
 
 const demo = document.querySelector('pw-3d-demo');
 await demo.ready;

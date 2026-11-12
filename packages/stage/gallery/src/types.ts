@@ -1,5 +1,5 @@
 import type { Mesh } from "@papit/game-mesh";
-import type { Scene, TexturedGLTF } from "@polywar/3d-asset-preview";
+import type { Scene, TexturedGLTF } from "@polywar/renderer";
 
 /** `model` and `material` are 3D tiles */
 export type AssetKind = "model" | "material" | "source" | "audio" | "image" | "video" | "other";

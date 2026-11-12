@@ -69,7 +69,8 @@
     "playwright": "1.64.1",
     "typescript": "5.9.3",
     "@papit/theme": "*",
-    "@polywar/3d-asset-preview": "*"
+    "@polywar/3d-asset-preview": "*",
+    "@polywar/renderer": "*"
   },
   "browserslist": [
     "defaults",

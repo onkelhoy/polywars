@@ -1,10 +1,17 @@
 import '@polywar/gallery';
 import { GRASS_LOOKS, GrassPatch } from '@polywar/grass-material';
+import { SHADINGS, ShadingBall } from '@polywar/shading';
 
-// every material: shader materials draw a sample of themselves (scene), textured ones are their baked quads.
+// every material: shader materials draw a sample of themselves (scene: shadings on a preview ball, grass its patch),
+// textured ones are their baked quads.
 // click a tile: pw-3d-asset-preview with its light panel
 const gallery = document.querySelector('pw-gallery');
 gallery.kinds = ['material'];
+
+const shadings = Object.entries(SHADINGS).map(([name, shading]) => ({
+    name, group: 'materials/shading', kind: 'material', note: '@polywar/shading',
+    scene: layer => new ShadingBall(layer, shading),
+}));
 
 const grass = Object.entries(GRASS_LOOKS).map(([name, look]) => ({
     name, group: 'materials/grass', kind: 'material', note: '@polywar/grass-material',
@@ -21,4 +28,4 @@ const textured = files.filter(f => /\/model\.glb$/.test(f) && files.some(o => o 
     return { name: parts.at(-2), group: `materials/textured/${parts.at(-4)}`, kind: 'material', src: file, note: '@polywar/textured' };
 });
 
-gallery.items = [...grass, ...textured];
+gallery.items = [...shadings, ...grass, ...textured];

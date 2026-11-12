@@ -59,10 +59,9 @@
     "@papit/game-engine": "*",
     "@papit/button": "*",
     "@papit/game-mesh": "*",
-    "@polywar/textured": "*",
     "@papit/matrix": "*",
-    "@papit/quaternion": "*",
-    "@polywar/3d-demo": "*"
+    "@polywar/3d-demo": "*",
+    "@polywar/renderer": "*"
   },
   "peerDependencies": {
     "react": "^19"

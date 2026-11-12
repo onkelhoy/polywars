@@ -5,7 +5,8 @@ import "@papit/button";
 import "@papit/dialog";
 import type { Dialog } from "@papit/dialog";
 import "@polywar/3d-asset-preview";
-import { Model, Renderer, gltfFromMesh, type AssetPreview3D, type Drawable, type TexturedGLTF } from "@polywar/3d-asset-preview";
+import type { AssetPreview3D } from "@polywar/3d-asset-preview";
+import { Model, Renderer, gltfFromMesh, type Drawable, type TexturedGLTF } from "@polywar/renderer";
 import { Matrix4 } from "@papit/matrix";
 
 // local

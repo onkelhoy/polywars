@@ -62,7 +62,8 @@
     "@papit/dialog": "*",
     "@polywar/3d-asset-preview": "*",
     "@papit/game-mesh": "*",
-    "@papit/matrix": "*"
+    "@papit/matrix": "*",
+    "@polywar/renderer": "*"
   },
   "peerDependencies": {
     "react": "^19"
@@ -79,7 +80,8 @@
     "@papit/theme": "*",
     "@papit/translator": "*",
     "@papit/codeblock": "*",
-    "@polywar/grass-material": "*"
+    "@polywar/grass-material": "*",
+    "@polywar/shading": "*"
   },
   "browserslist": [
     "defaults",

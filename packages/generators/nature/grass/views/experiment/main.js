@@ -1,6 +1,6 @@
 import '@polywar/3d-demo';
 import { MeshBuilder, loadGLTF, upload } from '@papit/game-mesh';
-import { Renderer } from '@polywar/3d-asset-preview';
+import { Renderer } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 
 const $ = s => document.querySelector(s);
