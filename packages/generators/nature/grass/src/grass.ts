@@ -56,6 +56,9 @@ export class Grass {
     }
     /** tufts planted */
     get count() { return this.placed?.count ?? 0; }
+    /** true when `maxTufts` thinned the planting; `density` is what was used */
+    get capped() { return this.placed?.capped ?? false; }
+    get density() { return this.placed?.density ?? this.o.q.density; }
 
     get quality() { return this.o.quality; }
     set quality(quality: Quality) { this.set({ quality }); }

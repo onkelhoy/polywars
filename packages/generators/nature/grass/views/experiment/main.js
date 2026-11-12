@@ -159,7 +159,7 @@ demo.tick = dt => {
         if (clock > .5) { rate = frames / clock; frames = clock = 0; }
         walkers.forEach((w, i) => placed[i] = [Math.cos(time * w.speed) * w.r, w.size, Math.sin(time * w.speed) * w.r, w.size * 1.6]);
         grass.push($('#pushing').checked ? placed : []);
-        $('#info').value = `${grass.count} planted · ${grass.drawn} drawn\n${rate.toFixed(0)} fps`;
+        $('#info').value = `${grass.count} planted · ${grass.drawn} drawn${grass.capped ? ` · capped (${grass.density.toFixed(1)}/m²)` : ''}\n${rate.toFixed(0)} fps`;
     }
 };
 demo.draw = camera => {
