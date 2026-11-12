@@ -86,7 +86,7 @@ light();
 // ---- tweaks: every number / colour in the look, ranges by name ----
 const RANGES = {
     opacity: [0, 1, .01], clarity: [.2, 40, .1], sky: [0, 1, .01], horizon: [0, 1, .01], 'paint.amount': [0, 1, .01], 'paint.scale': [1, 120, 1],
-    'glints.dark': [0, .5, .01], 'glints.scale': [.2, 6, .05], 'glints.length': [.2, 10, .1], 'glints.lane': [0, 1, .01], 'glints.strength': [0, 2, .05], 'glints.specks': [0, 1, .01], 'glints.speed': [0, 2, .01], 'glints.far': [0, 4000, 10], 'glints.density': [0, 1, .01], 'glints.melt': [0, 1, .01], 'glints.glow': [0, 1, .01],
+    'glints.dark': [0, .5, .01], 'glints.scale': [.2, 6, .05], 'glints.length': [.2, 10, .1], 'glints.lane': [0, 1, .01], 'glints.strength': [0, 2, .05], 'glints.specks': [0, 1, .01], 'glints.speed': [0, 2, .01], 'glints.far': [0, 4000, 10], 'glints.density': [0, 1, .01], 'glints.melt': [0, 1, .01], 'glints.glow': [0, 1, .01], 'glints.fade': [.5, 40, .5],
     'foam.rim': [0, 3, .01], 'foam.wobble': [0, 3, .05], 'foam.wobbleScale': [.5, 40, .5], 'foam.lines': [0, 8, 1], 'foam.width': [.02, 1, .01], 'foam.spacing': [.3, 10, .1], 'foam.speed': [0, .5, .01], 'foam.amount': [0, 1, .01], 'foam.far': [0, 2000, 10],
     'streaks.amount': [0, 1, .01], 'streaks.length': [.3, 15, .1], 'streaks.width': [.02, 1, .01],
     'under.clarity': [.5, 60, .5], 'under.density': [0, 1, .005], 'under.sun': [0, 1, .005], 'under.caustics': [0, 2, .05],

@@ -70,7 +70,7 @@ in vec4 vFlow;
 in vec2 vDir;
 uniform vec3 shallow, deep, foamColor;
 uniform float time, opacity, clarity, skyTint;
-uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar, glintDensity, glintMelt, glintGlow;
+uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar, glintDensity, glintMelt, glintGlow, glintFade;
 uniform float foamRim, foamWobble, foamWobbleScale, foamLines, foamWidth, foamSpacing, foamSpeed, foamPieces, foamAmount, foamFar;
 uniform float streakAmount, streakLength, streakWidth, foamContact, paintAmount, paintScale, horizon;
 uniform vec3 contacts[32]; // x z radius: things standing in the water
@@ -211,7 +211,9 @@ void main() {
             float h = atan(dir.y, dir.x) / 6.2831853 * 16.0, h0 = floor(h), drift = time * glintSpeed;
             float n = mix(streaks(vFlow.xy, h0, size, drift), streaks(vFlow.xy, h0 + 1.0, size, drift), h - h0);
             n = mix(.5, n, pixels(size.y * 2.0, mpp) * near);
-            shade = 1.0 + (n - .5) * 2.0 * glintDark * (1.0 - lit * .5);
+            // the streaks belong to the shallows: they fade out over deep water and with distance (calm, not busy from afar)
+            float calm = exp(-waterDepth / max(glintFade, .1)) * (1.0 - smoothstep(glintFar * .15, glintFar * .5, dist));
+            shade = 1.0 + (n - .5) * 2.0 * glintDark * (1.0 - lit * .5) * calm;
             // the crests catch the sun: white spots, fatter and more in the glare's core so there they melt together
             d = hard(mix(.78, .6, core * glintMelt) - glintDensity * .08, n) * pixels(size.y, mpp) * near;
         }
@@ -251,7 +253,7 @@ void main() {
             float dl = (fract(phase) - .5) * foamSpacing + (fbm3(vWorld.xz / max(foamSpacing * .5, .05) + k * 3.3) - .5) * foamWidth;
             float thick = foamWidth * (.35 + .9 * vnoise(vWorld.xz / max(foamSpacing * 1.5, .05) + k * 1.7));
             float line = (1.0 - hard(thick * .5, abs(dl))) * pixels(foamWidth, mppw) * step(0.0, sl);
-            line *= smoothstep(1.0, .55, life) * smoothstep(0.0, .3, life) * step(hash2(vec2(k, 3.0)), .75) * .6;
+            line *= smoothstep(1.0, .55, life) * smoothstep(0.0, .3, life) * step(hash2(vec2(k, 3.0)), .75) * .45;
             line *= hard(foamPieces, vnoise(vWorld.xz / (foamSpacing * 4.0) + vec2(k * 7.31, k * 3.17))) * clamp(vFlow.w + .3, 0.0, 1.0);
             // things in the water (rocks, legs): the same broken foam, a thin ring
             // ring width grows with the thing: a leg gets a few centimetres, a big rock most of a shore rim

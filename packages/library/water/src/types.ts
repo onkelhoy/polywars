@@ -21,9 +21,9 @@ export type WaterLook = {
      * Toon surface detail: short wavy dashes along the shore drifting in at `speed` m/s, `scale` apart, `length` long, a shade darker (`dark` 0..1) and white where they
      * catch the sun (`lane` 0..1 how wide the sun's reflection is); tiny white specks (`specks` 0..1 how many). Fade out by `far`.
      * `density` 0..1 how many dashes; in the sun's reflection only the part of a dash under it lights up, dashes grow fat and melt together
-     * there (`melt` 0..1) over a soft wash of light (`glow`).
+     * there (`melt` 0..1) over a soft wash of light (`glow`). The darker / lighter streaks fade out over `fade` metres of water depth.
      */
-    glints: { dark: number; scale: number; length: number; lane: number; strength: number; specks: number; speed: number; far: number; density: number; melt: number; glow: number };
+    glints: { dark: number; scale: number; length: number; lane: number; strength: number; specks: number; speed: number; far: number; density: number; melt: number; glow: number; fade: number };
     /**
      * Shore foam: `contact` metres of foam round things in the water (plus 15% of their radius) (`use(..., { contacts })`), a rim `rim` wide, wavy by `wobble` over `wobbleScale` (smooth noise), then `lines` thin lines `width` wide,
      * `spacing` apart running in at `speed` (lines a second), broken into pieces (`pieces` 0 whole .. 1 mostly gone).
