@@ -231,6 +231,8 @@ export class WaterSample {
 
     /** x z radius of every rock where it meets the water, for the foam rings */
     readonly contacts: number[] = [];
+    /** 12 radius scales per rock contact: its outline at the water */
+    readonly outlines: number[] = [];
 
     /** `contacts`: more x z radius triples (e.g. legs of animals standing in the water) */
     drawWater(view: View, light: Light, time: number, contacts: number[] = []) {
@@ -246,7 +248,7 @@ export class WaterSample {
         {
             // from below only the body the eye is in looks like a ceiling; the others draw as seen from above
             const under = surface !== null && (level === null ? false : Math.abs(surface - level) < .01);
-            if (m && this.material.use(view, light, time, { fresh, under, surface: surface ?? 0, contacts: all })) this.mesh(m);
+            if (m && this.material.use(view, light, time, { fresh, under, surface: surface ?? 0, contacts: all, outlines: this.outlines })) this.mesh(m);
         }
         gl.depthMask(true);
         if (cull) gl.enable(gl.CULL_FACE);
@@ -297,16 +299,30 @@ export class WaterSample {
             const level = this.surfaceAt(rx, rz);
             if (level !== null)
             {
-                let sum = 0, count = 0;
-                for (const f of faces) for (let e = 0; e < 3; e++)
+                // each face the water cuts gives a segment of the outline: walk it, keep the farthest point per 30° slice
+                const bins = new Array(12).fill(0);
+                for (const f of faces)
                 {
-                    const p = (base + f[e]) * 3, q = (base + f[(e + 1) % 3]) * 3, ya = pos[p + 1] - level, yb = pos[q + 1] - level;
-                    if (ya * yb >= 0) continue;
-                    const t = ya / (ya - yb);
-                    sum += Math.hypot(pos[p] + (pos[q] - pos[p]) * t - rx, pos[p + 2] + (pos[q + 2] - pos[p + 2]) * t - rz);
-                    count++;
+                    const cut: V2[] = [];
+                    for (let e = 0; e < 3; e++)
+                    {
+                        const p = (base + f[e]) * 3, q = (base + f[(e + 1) % 3]) * 3, ya = pos[p + 1] - level, yb = pos[q + 1] - level;
+                        if (ya * yb >= 0) continue;
+                        const t = ya / (ya - yb);
+                        cut.push([pos[p] + (pos[q] - pos[p]) * t - rx, pos[p + 2] + (pos[q + 2] - pos[p + 2]) * t - rz]);
+                    }
+                    if (cut.length < 2) continue;
+                    for (let k = 0; k <= 16; k++)
+                    {
+                        const x = cut[0][0] + (cut[1][0] - cut[0][0]) * k / 16, z = cut[0][1] + (cut[1][1] - cut[0][1]) * k / 16;
+                        const b = Math.floor(((Math.atan2(z, x) / (Math.PI * 2) + 1) % 1) * 12) % 12;
+                        bins[b] = Math.max(bins[b], Math.hypot(x, z));
+                    }
                 }
-                if (count) this.contacts.push(rx, rz, sum / count);
+                // empty slices take their neighbours
+                for (let k = 0; k < 12; k++) if (!bins[k]) bins[k] = Math.max(bins[(k + 11) % 12], bins[(k + 1) % 12]);
+                const mean = bins.reduce((a, b) => a + b, 0) / 12;
+                if (mean > 0) { this.contacts.push(rx, rz, mean); this.outlines.push(...bins.map(b => (b || mean) / mean)); }
             }
         }
         // flat shading wants each triangle's colour from one vertex: unindex

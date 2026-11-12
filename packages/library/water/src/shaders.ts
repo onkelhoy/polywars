@@ -70,10 +70,11 @@ in vec4 vFlow;
 in vec2 vDir;
 uniform vec3 shallow, deep, foamColor;
 uniform float time, opacity, clarity, skyTint;
-uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar;
+uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar, glintDensity, glintMelt, glintGlow;
 uniform float foamRim, foamWobble, foamWobbleScale, foamLines, foamWidth, foamSpacing, foamSpeed, foamPieces, foamAmount, foamFar;
-uniform float streakAmount, streakLength, streakWidth, foamContact;
+uniform float streakAmount, streakLength, streakWidth, foamContact, paintAmount, paintScale, horizon;
 uniform vec3 contacts[32]; // x z radius: things standing in the water
+uniform vec4 contactShape[96]; // 12 radius scales per contact, round from +x toward +z: its real outline
 uniform int contactCount;
 uniform bool under;
 ${COMMON}
@@ -99,15 +100,24 @@ float dashes(vec2 p, vec2 cell, float halfLength, float thick, float keep, float
     return inside(thick * sqrt(taper), abs(m.y), px) * step(h, keep);
 }
 
-/** like \`dashes\` in square cells \`cell\` metres, each dash lying across \`dir\` (unit), never past its cell */
-float rdashes(vec2 p, vec2 dir, float cell, float halfLength, float thick, float keep, float seed, float px) {
-    vec2 g = p / cell, id = floor(g), f = fract(g);
+/** one dash of cell \`id\` (square cells \`cell\` metres) lying across \`dir\` (unit) */
+float rdash(vec2 p, vec2 id, vec2 dir, float cell, float halfLength, float thick, float keep, float seed, float px) {
     float h = hash2(id + seed), h2 = hash2(id + seed + 17.0);
-    vec2 m = (f - .5 - (vec2(h2, h) - .5) * .1) * cell;
+    if (h > keep) return 0.0;
+    vec2 m = p - (id + .5 + (vec2(h2, h) - .5) * .5) * cell;
     float mx = dot(m, vec2(-dir.y, dir.x)), my = dot(m, dir);
-    float len = min(halfLength * (.5 + h2 * .6), cell * .4), taper = 1.0 - clamp(abs(mx) / len, 0.0, 1.0);
-    my += (mx / max(len, .01)) * (mx / max(len, .01)) * thick * (h - .5) * 1.5;
-    return inside(thick * pow(taper, .35), abs(my), px) * step(abs(mx), len) * step(h, keep);
+    float len = min(halfLength * (.6 + h2 * .8), cell * 1.2), taper = 1.0 - clamp(abs(mx) / len, 0.0, 1.0);
+    my += (mx / len) * (mx / len) * thick * (h - .5) * 1.5;
+    return inside(thick * pow(taper, .35), abs(my), px) * step(abs(mx), len);
+}
+
+/** like \`dashes\`, each dash lying across \`dir\`; dashes may reach into the cells next to theirs (long lines) */
+float rdashes(vec2 p, vec2 dir, float cell, float halfLength, float thick, float keep, float seed, float px) {
+    vec2 id = floor(p / cell);
+    float d = 0.0;
+    for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++)
+        d = max(d, rdash(p, id + vec2(i, j), dir, cell, halfLength, thick, keep, seed, px));
+    return d;
 }
 
 void main() {
@@ -127,18 +137,33 @@ void main() {
     // flat colour: shallow to deep, lit as a plane; a little sky at grazing angles
     float deepness = 1.0 - exp(-max(vInfo.x, 0.0) / max(clarity, .01));
     vec3 c = mix(shallow, deep, deepness) * (hemi(up) + sunColor * sunStrength * max(l.y, 0.0) * .6);
-    float graze = pow(1.0 - max(v.y, 0.0), 4.0) * skyTint;
+    float grazing = pow(1.0 - max(v.y, 0.0), 4.0), graze = grazing * skyTint;
     c = mix(c, mix(ground, sky, .85) * ambient * 1.4, graze * .6);
+    float mpp = length(fwidth(vWorld.xz));
+    // paint: big soft patches a little lighter / darker and toward the shallow or deep hue, so it is not one flat colour
+    if (paintAmount > 0.0) {
+        float pn = fbm3(vWorld.xz / max(paintScale, .1) + 1.7) - .5, ph = vnoise(vWorld.xz / max(paintScale * 2.3, .1) + 8.3) - .5;
+        float fade = pixels(paintScale * .5, mpp);
+        vec3 hue = mix(shallow / max(dot(shallow, vec3(.333)), 1e-3), deep / max(dot(deep, vec3(.333)), 1e-3), ph + .5);
+        c *= 1.0 + pn * paintAmount * .6 * fade;
+        c = mix(c, c * hue, abs(ph) * paintAmount * .5 * fade);
+    }
     vec3 white = foamColor * (hemi(up) + sunColor * sunStrength * .8);
 
-    // toon glints: darker dashes, white inside the sun's reflection; tiny specks
+    // the sun's reflection: a lane narrow sideways, long toward the eye (like the sun on real water), opening up toward the horizon
+    vec3 rr = reflect(-v, up);
+    float w = (glintLane * .35 + .01) * (1.0 + 2.5 * grazing), side = acos(clamp(dot(normalize(rr.xz), normalize(l.xz)), -1.0, 1.0)), tilt = abs(asin(rr.y) - asin(l.y));
+    float lane = (1.0 - smoothstep(w * .2, w, side)) * (1.0 - smoothstep(w * 1.0, w * 4.0, tilt));
+
+    // toon glints: darker dashes, white inside the sun's reflection; tiny specks. Past \`far\` the dashes become a smooth sheen
     float near = 1.0 - smoothstep(glintFar * .5, glintFar, dist);
+    c = mix(c, white * 1.2, smoothstep(.1, .9, lane) * (1.0 - near) * glintStrength * .4);
     if (near > 0.0 && (glintDark > 0.0 || glintStrength > 0.0 || glintSpecks > 0.0)) {
-        // the sun's reflection: a lane narrow sideways, long toward the eye (like the sun on real water)
-        vec3 rr = reflect(-v, up);
-        float w = glintLane * .35 + .01, side = acos(clamp(dot(normalize(rr.xz), normalize(l.xz)), -1.0, 1.0)), tilt = abs(asin(rr.y) - asin(l.y));
-        float lane = (1.0 - smoothstep(w * .6, w, side)) * (1.0 - smoothstep(w * 2.0, w * 4.0, tilt));
-        float mpp = length(fwidth(vWorld.xz)), thick = glintScale * .07, d;
+        // the glare is a patch of light, not per dash: its edge is broken by noise so dashes light up only in pieces
+        float glare = clamp(lane * 1.5 + (vnoise(vWorld.xz / max(glintLength * 1.2, .05) + time * .05) - .5) * .9 - .25, 0.0, 1.0);
+        float core = smoothstep(.35, 1.0, glare);
+        // in the glare dashes grow fat and many, so in its core they melt together
+        float thick = glintScale * .11 * (1.0 + glintMelt * core * 1.6), keep = mix(glintDensity, 1.0, core * glintMelt), d;
         if (river > .5) {
             // rivers: across the stream, carried with it
             vec2 p = vec2(uv.y, vFlow.x);
@@ -149,14 +174,22 @@ void main() {
             // (a flow map), so the drift never piles up and the dashes come and go gently
             vec2 dir = dot(vDir, vDir) > 1e-4 ? normalize(vDir) : vec2(.87, .5);
             float period = 6.0, ph = time / period, f1 = fract(ph), f2 = fract(ph + .5), w1 = 1.0 - abs(f1 * 2.0 - 1.0);
-            float cell = glintLength * 1.4;
-            float d1 = rdashes(vFlow.xy - dir * f1 * period * glintSpeed, dir, cell, glintLength * .5, thick, .7, floor(ph) * 7.0, mpp);
-            float d2 = rdashes(vFlow.xy - dir * f2 * period * glintSpeed + cell * .5, dir, cell, glintLength * .5, thick, .7, floor(ph + .5) * 7.0 + 31.0, mpp);
+            float cell = glintLength * 1.1;
+            // two sizes of dashes, the smaller set offset between the bigger, so the surface reads as fine ripples
+            vec2 o1 = vFlow.xy - dir * f1 * period * glintSpeed, o2 = vFlow.xy - dir * f2 * period * glintSpeed;
+            float s1 = floor(ph) * 7.0, s2 = floor(ph + .5) * 7.0 + 31.0, c2 = cell * .62;
+            float d1 = max(rdashes(o1, dir, cell, glintLength * .8, thick, keep, s1, mpp),
+                           rdashes(o1 + c2 * .5, dir, c2, glintLength * .5, thick * .8, keep, s1 + 3.0, mpp));
+            float d2 = max(rdashes(o2 + cell * .5, dir, cell, glintLength * .8, thick, keep, s2, mpp),
+                           rdashes(o2 + c2 * .25, dir, c2, glintLength * .5, thick * .8, keep, s2 + 3.0, mpp));
             d = d1 * w1 + d2 * (1.0 - w1);
         }
         d *= pixels(thick * 2.0, mpp) * near;
-        c *= 1.0 - d * glintDark * (1.0 - lane);
-        c = mix(c, white * 1.3, d * lane * glintStrength);
+        // outside the glare a faint shade; inside, only the part of a dash under the glare lights up (hard cut, streaks)
+        float lit = smoothstep(.05, .2, glare);
+        c *= 1.0 - d * glintDark * (1.0 - lit);
+        c += white * glintGlow * core * core * near * (.5 + vnoise(vWorld.xz / max(glintLength * 3.0, .1) - time * .03)); // soft, uneven wash of light under the merged dashes
+        c = mix(c, white * 1.4, d * lit * glintStrength);
         // specks: a few twinkling dots, more in the sun
         vec2 sp = vFlow.xy / (glintScale * 1.7), sid = floor(sp);
         float sh = hash2(sid + 5.0), r = glintScale * .035;
@@ -195,7 +228,11 @@ void main() {
             float cd = 1e4, cw = foamContact;
             for (int i = 0; i < 32; i++) {
                 if (i >= contactCount) break;
-                float di = length(vWorld.xz - contacts[i].xy) - contacts[i].z;
+                vec2 dv = vWorld.xz - contacts[i].xy;
+                float a = fract(atan(dv.y, dv.x) / 6.2831853) * 12.0, fa = fract(a);
+                int k0 = int(a) % 12, k1 = (k0 + 1) % 12;
+                float r0 = contactShape[i * 3 + k0 / 4][k0 % 4], r1 = contactShape[i * 3 + k1 / 4][k1 % 4];
+                float di = length(dv) - contacts[i].z * mix(r0, r1, fa);
                 if (di < cd) { cd = di; cw = foamContact + contacts[i].z * .15; }
             }
             float cr = fbm3(vWorld.xz / max(cw * 2.0, .02) + time * .05);
@@ -218,5 +255,7 @@ void main() {
 
     float a = clamp(mix(opacity, 1.0, deepness) + graze * .3 + foam, 0.0, 1.0);
     c = mix(c, fogColor, 1.0 - exp(-dist * fogDensity));
+    // the far sea melts into the sky at the horizon
+    c = mix(c, fogColor, pow(1.0 - max(v.y, 0.0), 12.0) * horizon);
     outColor = vec4(pow(c, vec3(1.0 / 2.2)) * a, a);
 }`;

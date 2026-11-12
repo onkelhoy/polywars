@@ -11,6 +11,7 @@
 
 <body>
     <pw-3d-demo id="view" near=".1" far="20000" speed="8" max-distance="3000"></pw-3d-demo>
+    <div id="sun" title="drag to move the sun"></div>
     <aside>
         <h1>water</h1>
         <output id="info"></output>
@@ -19,7 +20,8 @@
             <button data-cam="close">close</button><button data-cam="cow">cow</button><button data-cam="river">river</button>
             <button data-cam="mid">mid</button><button data-cam="far">far</button><button data-cam="under">under</button>
         </div>
-        <details open><summary>sun / screen</summary><div id="scene"></div></details>
+        <div class="buttons"><button id="export">export JSON</button><button id="import">import JSON</button><input id="file" type="file" accept=".json" hidden></div>
+        <details open><summary>sun / screen</summary><small id="sunInfo"></small><div id="scene"></div></details>
         <div id="tweaks"></div>
     </aside>
 </body>

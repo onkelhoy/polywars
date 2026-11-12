@@ -9,3 +9,5 @@ label { display: grid; grid-template-columns: 95px 1fr 42px; gap: 6px; align-ite
 label span { text-align: right; font-variant-numeric: tabular-nums; }
 summary { cursor: pointer; font-weight: 600; margin: 6px 0 2px; }
 .buttons { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+#sun { position: fixed; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: radial-gradient(#fffbe8 30%, #ffe08a 45%, transparent 70%); cursor: grab; z-index: 5; touch-action: none; }
+#sun[hidden] { display: none; }

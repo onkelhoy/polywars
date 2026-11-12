@@ -14,7 +14,9 @@ export const WATER_LOOK: WaterLook = {
     opacity: .5,
     clarity: 6,
     sky: .4,
-    glints: { dark: .06, scale: .7, length: 1, lane: .4, strength: 1, specks: .3, speed: .25, far: 220 },
+    horizon: .6,
+    paint: { amount: .35, scale: 18 },
+    glints: { dark: .06, scale: .7, length: 1.4, lane: .5, strength: 1, specks: .3, speed: .25, far: 220, density: .8, melt: .8, glow: .12 },
     foam: { color: "#ffffff", contact: .08, rim: .6, wobble: .35, wobbleScale: 7, lines: 4, width: .16, spacing: 1.3, speed: .35, pieces: .4, amount: .9, far: 300 },
     streaks: { amount: .8, length: 4, width: .2 },
     under: { shallow: "#3aa7b8", deep: "#0b2e52", clarity: 14, density: .035, sun: .06 },
@@ -86,7 +88,7 @@ export class WaterMaterial {
     readonly gl: WebGL2RenderingContext;
     private o: WaterLook;
     private program?: Program;
-    private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
+    private f32 = { view: new Float32Array(16), projection: new Float32Array(16), shape: new Float32Array(32 * 12) };
     private id = ids++;
 
     constructor(readonly layer: Layer3D, look: Partial<WaterLook> = {}) {
@@ -100,9 +102,10 @@ export class WaterMaterial {
 
     /**
      * Bind for the next draw. `fresh` uses the lake / river colours; `under`: the eye is below this water, whose surface is at
-     * `surface` metres there. `contacts`: x z radius per thing standing in the water (up to 32) for a thin foam ring. False while linking.
+     * `surface` metres there. `contacts`: x z radius per thing standing in the water (up to 32) for a thin foam ring; `outlines`: 12 radius scales per
+     * contact (round from +x toward +z) so the ring follows its real outline (missing: round). False while linking.
      */
-    use(view: View, light: Light, time: number, { fresh = false, under = false, surface = 0, contacts = [] as ArrayLike<number> } = {}): boolean {
+    use(view: View, light: Light, time: number, { fresh = false, under = false, surface = 0, contacts = [] as ArrayLike<number>, outlines = [] as ArrayLike<number> } = {}): boolean {
         const gl = this.gl, o = this.o, p = this.program;
         if (!p) return false;
         const u = p.u;
@@ -137,6 +140,9 @@ export class WaterMaterial {
         gl.uniform1f(u("glintSpecks"), g.specks);
         gl.uniform1f(u("glintSpeed"), g.speed);
         gl.uniform1f(u("glintFar"), g.far);
+        gl.uniform1f(u("glintDensity"), g.density);
+        gl.uniform1f(u("glintMelt"), g.melt);
+        gl.uniform1f(u("glintGlow"), g.glow);
         gl.uniform3fv(u("foamColor"), linear(f.color));
         gl.uniform1f(u("foamRim"), f.rim);
         gl.uniform1f(u("foamWobble"), f.wobble);
@@ -151,10 +157,19 @@ export class WaterMaterial {
         gl.uniform1f(u("foamContact"), f.contact);
         const count = Math.min(32, Math.floor(contacts.length / 3));
         gl.uniform1i(u("contactCount"), count);
-        if (count) gl.uniform3fv(u("contacts[0]"), Float32Array.from(Array.prototype.slice.call(contacts, 0, count * 3)));
+        if (count)
+        {
+            gl.uniform3fv(u("contacts[0]"), Float32Array.from(Array.prototype.slice.call(contacts, 0, count * 3)));
+            const shape = this.f32.shape;
+            for (let k = 0; k < count * 12; k++) shape[k] = k < outlines.length ? outlines[k] : 1;
+            gl.uniform4fv(u("contactShape[0]"), shape.subarray(0, count * 12));
+        }
         gl.uniform1f(u("streakAmount"), o.streaks.amount);
         gl.uniform1f(u("streakLength"), o.streaks.length);
         gl.uniform1f(u("streakWidth"), o.streaks.width);
+        gl.uniform1f(u("paintAmount"), o.paint.amount);
+        gl.uniform1f(u("paintScale"), o.paint.scale);
+        gl.uniform1f(u("horizon"), o.horizon);
         gl.uniform1i(u("under"), under ? 1 : 0);
         bindUnder(gl, u, o.under, surface);
         return true;
