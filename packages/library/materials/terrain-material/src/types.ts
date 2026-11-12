@@ -1,3 +1,4 @@
+import type { WaterLook } from "@polywar/water";
 export type Vec3 = [number, number, number];
 
 /** Biomes in palette order; the mesh `data.x` attribute is the index. */
@@ -27,8 +28,8 @@ export type TerrainLook = {
     debug: Debug;
 };
 
-/** What the ground needs from the water: its texture (caustics), and the underwater fog when the eye is below the surface. */
-export type Underwater = { texture: WebGLTexture | null; time: number; caustics: number; color: string; density: number; eyeUnder: boolean };
+/** What the ground needs from the water: its underwater look (bed tint, caustics, fog) and the surface over the eye (null: eye above water). */
+export type Underwater = { time: number; under: WaterLook["under"]; eyeSurface: number | null };
 
 /** Same shape as the polywar `Renderer.light`, so that one can be passed in. Colours linear. */
 export type Light = {

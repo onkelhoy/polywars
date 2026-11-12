@@ -52,7 +52,7 @@
   "dependencies": {
     "@papit/game-engine": "*",
     "@polywar/noise": "*",
-    "@polywar/water-material": "*"
+    "@polywar/water": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

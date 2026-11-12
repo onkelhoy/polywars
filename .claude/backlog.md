@@ -27,7 +27,7 @@ Grouped by feature. `[ ]` open, `[x]` done.
   - [x] Adaptive mesh (RTIN): flat land few triangles, ridges full detail
   - [x] LOD by distance (per chunk RTIN, skirts)
   - [x] Rivers (drainage tree, carved beds)
-  - [x] Water: `@polywar/water-material` (waves, shore foam, gloss, ripples, caustics, underwater)
+  - [x] Water: `@polywar/water` (waves, shore foam, gloss, ripples, caustics, underwater)
   - [ ] Water by hand: tune foam / underwater look, renderer models not tinted under water
   - [ ] Ocean mesh LOD (now one quad per mesh cell)
   - [ ] Share code helper shared by grass + terrain (copied now)

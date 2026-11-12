@@ -4,6 +4,7 @@ import { Renderer } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 import { BIOMES, DEFAULTS, MAPS, Terrain } from '@polywar/terrain';
 import { TERRAIN_LOOKS, linear } from '@polywar/terrain-material';
+import { WaterScreen } from '@polywar/water';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-3d-demo');
@@ -15,6 +16,7 @@ renderer.light.fogColor = [.62, .72, .82];
 const terrain = new Terrain(layer);
 const marker = upload(layer.gl, new MeshBuilder().sphere([.95, .3, .2], {}, 1).build());
 let grass;
+const waterScreen = new WaterScreen(layer);
 
 // ---- tweaks: [path, min, max, step] into the terrain options; booleans have no range ----
 const numbers = [
@@ -36,12 +38,12 @@ const numbers = [
     ['mesh.detail', .02, 1, .01], ['mesh.adaptive', 0, 1, .01], ['lod.levels', 1, 6, 1], ['lod.distance', 50, 2000, 10], ['lod.factor', 1.5, 6, .1], ['mesh.chunk', 16, 512, 16], ['mesh.edges', 0, 10, .1], ['mesh.skirt', 0, 20000, 100],
     ['look.variation', 0, .3, .01], ['look.flat'], ['look.bands', 0, 6, 1], ['look.lighting.wrap', -1, 1, .05], ['look.lighting.steepness', .5, 4, .05],
     ['look.rock.slope', 0, 1, .01], ['look.rock.softness', 0, .3, .01], ['look.snow.height', 0, 2000, 5], ['look.snow.softness', 0, 200, 1], ['look.snow.slope', 0, 1, .01],
-    ['water.opacity', 0, 1, .01], ['water.clarity', .5, 30, .5], ['water.sky', 0, 1, .01], ['water.sparkle.strength', 0, 2, .05], ['water.sparkle.size', 0, 1, .01], ['water.sparkle.scale', 1, 30, .5], ['water.sparkle.far', 0, 1000, 10],
-    ['water.foam.width', 0, 80, 1], ['water.foam.spacing', 1, 30, .5], ['water.foam.speed', 0, 1, .01], ['water.foam.amount', 0, 1, .01], ['water.foam.shore', 0, 10, .1], ['water.foam.far', 0, 2000, 10], ['water.streaks.amount', 0, 1, .01], ['water.streaks.length', 1, 60, 1], ['water.streaks.width', .2, 5, .1],
+    ['water.opacity', 0, 1, .01], ['water.clarity', .5, 30, .5], ['water.sky', 0, 1, .01], ['water.glints.dark', 0, .5, .01], ['water.glints.strength', 0, 2, .05], ['water.glints.specks', 0, 1, .01], ['water.glints.scale', .2, 6, .05], ['water.glints.far', 0, 1000, 10],
+    ['water.foam.lines', 0, 8, 1], ['water.foam.width', .02, 1, .01], ['water.foam.spacing', .3, 10, .1], ['water.foam.speed', 0, .5, .01], ['water.foam.amount', 0, 1, .01], ['water.foam.wobble', 0, 3, .05], ['water.foam.rim', 0, 3, .01], ['water.foam.far', 0, 2000, 10], ['water.streaks.amount', 0, 1, .01], ['water.streaks.length', 1, 60, 1], ['water.streaks.width', .2, 5, .1],
     ['water.under.caustics', 0, 2, .05], ['look.contours', 0, 100, 1],
     ['sun.elevation', 5, 90, 1], ['sun.azimuth', 0, 360, 1], ['fog', 0, 6, .05],
 ];
-const colors = [...BIOMES.map(b => 'look.colors.' + b), 'look.rock.color', 'look.snow.color', 'water.shallow', 'water.deep', 'water.fresh.shallow', 'water.fresh.deep', 'water.foam.color', 'water.under.color'];
+const colors = [...BIOMES.map(b => 'look.colors.' + b), 'look.rock.color', 'look.snow.color', 'water.shallow', 'water.deep', 'water.fresh.shallow', 'water.fresh.deep', 'water.foam.color', 'water.under.shallow', 'water.under.deep'];
 const sun = { elevation: 40, azimuth: 35 };
 
 /** effective value: the option, else (look) the material's current look */
@@ -246,7 +248,7 @@ demo.tick = dt => {
 };
 demo.draw = camera => {
     const under = camera.worldPosition && terrain.underwater(camera.worldPosition);
-    renderer.begin(camera, under ? [...linear(terrain.water.look.under.color).map(c => Math.pow(c, 1 / 2.2)), 1] : [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
+    renderer.begin(camera, under ? [...linear(terrain.water.look.under.shallow).map(c => Math.pow(c, 1 / 2.2)), 1] : [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
     terrain.draw(camera, renderer.light, demo.time);
     if (grass) { grass.drawGround(camera, renderer.light, demo.time); grass.draw(camera, renderer.light, demo.time); }
     if ($('#markers').checked) for (const c of terrain.cities)
@@ -254,6 +256,7 @@ demo.draw = camera => {
         const k = Math.max(3, c.radius * .08);
         renderer.draw(marker, [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, c.x, c.y + k, c.z, 1]);
     }
+    waterScreen.draw(!!under, demo.time, terrain.water.look.under.shallow);
 };
 
 light();

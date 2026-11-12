@@ -1,6 +1,6 @@
 {
-  "name": "@polywar/water-material",
-  "description": "Water rendering: waves, shore foam, gloss, ripples, underwater, caustics",
+  "name": "@polywar/water",
+  "description": "Low poly water: flat depth colour, toon glints, shore foam, river streaks, underwater fog and screen effects",
   "keywords": [
     "papit",
     "typescript",
@@ -36,27 +36,28 @@
     "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
-  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/materials/water-material",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/library/water",
   "bugs": {
     "url": "https://github.com/henry/polywar/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/henry/polywar.git",
-    "directory": "packages/library/materials/water-material"
+    "directory": "packages/library/water"
   },
   "sideEffects": true,
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/game-engine": "*",
-    "@polywar/noise": "*"
+    "@papit/game-engine": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",
     "@papit/theme": "*",
-    "@polywar/3d-asset-preview": "*"
+    "@polywar/3d-demo": "*",
+    "@polywar/renderer": "*",
+    "@papit/matrix": "*"
   },
   "browserslist": [
     "defaults",
@@ -66,6 +67,6 @@
   "papit": {
     "publish": true,
     "type": "browser",
-    "main": "water-material"
+    "main": "water"
   }
 }

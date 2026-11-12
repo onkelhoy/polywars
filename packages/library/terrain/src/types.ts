@@ -1,5 +1,5 @@
 import type { Biome, TerrainLook } from "@polywar/terrain-material";
-import type { WaterLook } from "@polywar/water-material";
+import type { WaterLook } from "@polywar/water";
 
 export type Quality = "low" | "medium" | "high";
 

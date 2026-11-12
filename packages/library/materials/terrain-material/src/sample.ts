@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { fbm, ridged, simplex } from "@polywar/noise";
-import { WaterMaterial } from "@polywar/water-material";
+import { WATER_LOOK, WaterMaterial } from "@polywar/water";
 import { TerrainMaterial } from "./material";
 import { BIOMES, type Biome, type Light, type TerrainLook, type View } from "./types";
 
@@ -27,7 +27,7 @@ export class TerrainSample {
             range: [0, height], contours: look.contours ? height / 12 : 0,
             ...look,
         });
-        this.water = new WaterMaterial(layer, { foam: { color: "#fff", width: 0, spacing: 1, speed: 0, amount: 0, shore: 0, far: 0 }, sparkle: { strength: 1, size: .3, scale: .4, far: 20 } });
+        this.water = new WaterMaterial(layer, { foam: { ...WATER_LOOK.foam, amount: 0 }, glints: { ...WATER_LOOK.glints, scale: .05, length: .1, far: 20 } });
         this.level = sea;
         this.size = [extent, height, extent];
         const n = simplex(seed), gl = this.gl, step = extent / cells, v = cells + 1;
@@ -63,9 +63,9 @@ export class TerrainSample {
     draw(view: View, light: Light, time: number) {
         const gl = this.gl;
         gl.enable(gl.DEPTH_TEST);
-        const under = { texture: this.water.texture, time, caustics: .6, color: this.water.look.under.color, density: this.water.look.under.density, eyeUnder: (view.worldPosition?.y ?? 1) < this.level };
+        const eyeUnder = (view.worldPosition?.y ?? 1) < this.level, under = { time, under: this.water.look.under, eyeSurface: eyeUnder ? this.level : null };
         if (this.material.useGround(view, light, under)) this.drawMesh(this.ground);
-        if (this.water.use(view, light, time, { under: under.eyeUnder }))
+        if (this.water.use(view, light, time, { under: eyeUnder, surface: this.level }))
         {
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

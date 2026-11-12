@@ -1,7 +1,7 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
 import { TerrainMaterial, type Biome, type Light, type TerrainLook, type View } from "@polywar/terrain-material";
-import { WaterMaterial } from "@polywar/water-material";
+import { WaterMaterial } from "@polywar/water";
 import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
 import { Generator } from "./generate";
@@ -122,8 +122,8 @@ export class Terrain {
         gl.disable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
         this.drawn = 0;
-        const eye = view.worldPosition ?? { x: 0, y: 0, z: 0 }, under = this.underwater(eye), wl = this.water.look;
-        if (m.useGround(view, light, { texture: this.water.texture, time, caustics: wl.under.caustics, color: wl.under.color, density: wl.under.density, eyeUnder: under }))
+        const eye = view.worldPosition ?? { x: 0, y: 0, z: 0 }, surface = this.surfaceAt(eye.x, eye.z), eyeSurface = surface !== null && eye.y < surface ? surface : null;
+        if (m.useGround(view, light, { time, under: this.water.look.under, eyeSurface }))
         {
             this.f32.view.set(view.viewMatrix);
             this.f32.projection.set(view.projectionMatrix);
@@ -134,7 +134,7 @@ export class Terrain {
         }
         for (const [w, fresh] of [[this.riverWater, true], [this.lakes, true], [this.ocean, false]] as const)
         {
-            if (!w || !this.water.use(view, light, time, { fresh, under })) continue;
+            if (!w || !this.water.use(view, light, time, { fresh, under: eyeSurface !== null, surface: eyeSurface ?? 0 })) continue;
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.depthMask(false);

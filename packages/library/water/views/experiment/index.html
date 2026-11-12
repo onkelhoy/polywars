@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>water</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-3d-demo id="view" near=".1" far="20000" speed="8" max-distance="3000"></pw-3d-demo>
+    <aside>
+        <h1>water</h1>
+        <output id="info"></output>
+        <label>look <select id="look"></select></label>
+        <div class="buttons">
+            <button data-cam="close">close</button><button data-cam="cow">cow</button><button data-cam="river">river</button>
+            <button data-cam="mid">mid</button><button data-cam="far">far</button><button data-cam="under">under</button>
+        </div>
+        <details open><summary>sun / screen</summary><div id="scene"></div></details>
+        <div id="tweaks"></div>
+    </aside>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-import { CAUSTICS_GLSL } from "@polywar/water-material";
+import { CAUSTICS_GLSL, UNDER_GLSL } from "@polywar/water";
 import { BIOMES } from "./types";
 
 const N = BIOMES.length;
@@ -12,8 +12,7 @@ float toon(float d) {
     return clamp(ceil(d * bands) / bands, 0.0, 1.0);
 }
 
-uniform vec3 underColor;
-uniform float underDensity;
+${UNDER_GLSL}
 uniform bool eyeUnder;
 
 vec3 lit(vec3 albedo, vec3 n, vec3 world, float extra) {
@@ -22,7 +21,7 @@ vec3 lit(vec3 albedo, vec3 n, vec3 world, float extra) {
     vec3 c = albedo * (hemi + sunColor * sunStrength * toon(d)) + sunColor * sunStrength * extra;
     float dist = length(world - eye);
     // under water the fog is the water's
-    if (eyeUnder) return mix(c, underColor, 1.0 - exp(-dist * underDensity));
+    if (eyeUnder) return underFog(c, world, eye);
     return mix(c, fogColor, 1.0 - exp(-dist * fogDensity));
 }
 `;
@@ -72,7 +71,6 @@ uniform float variation, contours, seaLevel;
 uniform bool flatShade;
 uniform vec2 range;
 uniform int debug;
-uniform sampler2D waterTex;
 uniform float caustics, time;
 ${COMMON}
 ${CAUSTICS_GLSL}
@@ -108,8 +106,8 @@ void main() {
     // under water: tinted with depth, caustic light on the bed
     float wet = vSurface - vWorld.y, light = 0.0;
     if (wet > 0.0 && debug == 0) {
-        c = mix(c, underColor, (1.0 - exp(-wet * .12)) * .7);
-        if (caustics > 0.0) light = causticsAt(waterTex, vWorld.xz, time) * caustics * exp(-wet * .08) * max(dot(n, normalize(sunDirection)), 0.0);
+        c = mix(c, c * underColorAt(wet) * 1.4, 1.0 - exp(-wet * .25));
+        if (caustics > 0.0) light = causticsAt(vWorld.xz, time) * caustics * exp(-wet * underSun * 1.5) * max(dot(n, normalize(sunDirection)), 0.0);
     }
     vec3 shaded = debug == 0 ? lit(c, n, vWorld, light) : c * (.55 + .45 * max(dot(n, normalize(sunDirection)), 0.0));
     outColor = vec4(pow(shaded, vec3(1.0 / 2.2)), 1.0);
