@@ -1,0 +1,6 @@
+{
+    "name": "Pug",
+    "model": "Pug.glb",
+    "rig": "Pug.rig.json",
+    "base": "quadruped"
+}

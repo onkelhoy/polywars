@@ -21,5 +21,23 @@ export const HUMANOID: BaseRig = {
     sockets: { "hand.R": "prop.R", "hand.L": "prop.L", head: "head" },
 };
 
+/** The farm pack rig (Cow, Horse, Pig, ...): body, neck + head, four legs with foot IK. Tails are extra. */
+export const QUADRUPED: BaseRig = {
+    name: "quadruped",
+    bones: [
+        "root", "Body", "Hips", "Torso", "Back", "Shoulders", "Neck", "Head",
+        ...sides(["FrontLeg", "FrontUpLeg", "FrontLowLeg", "FrontFoot", "BackLeg", "BackUpLeg", "BackLowLeg", "BackFoot"]),
+    ],
+    parts: {
+        head: ["Head", "Neck"],
+        torso: ["Body", "Hips", "Torso", "Back", "Shoulders"],
+        ...Object.fromEntries(["L", "R"].flatMap(s => [
+            [`leg.front.${s}`, [`FrontLeg.${s}`, `FrontUpLeg.${s}`, `FrontLowLeg.${s}`]],
+            [`leg.back.${s}`, [`BackLeg.${s}`, `BackUpLeg.${s}`, `BackLowLeg.${s}`]],
+        ])),
+    },
+    sockets: { saddle: "Back", head: "Head" },
+};
+
 /** Base rigs by name (`character.json` `base`). */
-export const RIGS: Record<string, BaseRig> = { humanoid: HUMANOID };
+export const RIGS: Record<string, BaseRig> = { humanoid: HUMANOID, quadruped: QUADRUPED };

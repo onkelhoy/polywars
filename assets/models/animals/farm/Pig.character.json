@@ -1,0 +1,6 @@
+{
+    "name": "Pig",
+    "model": "Pig.glb",
+    "rig": "Pig.rig.json",
+    "base": "quadruped"
+}

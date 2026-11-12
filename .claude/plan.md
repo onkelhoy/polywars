@@ -29,7 +29,7 @@ Goal: base humanoid rig (Blender editable, IK controls), basic clips, bones draw
 ## Next tasks
 - n1. [x] `@polywar/characters` (`packages/library/characters`): one package for all characters: base rig specs (humanoid now), `character.json` loader (sockets, parts, skins), view.
 - n2. [x] Skeleton view: click a bone, drag it (FK rotate / move IK targets) to play with the pose.
-- n3. [ ] Animal rigs: the farm pack glbs have a skin + clips (Idle, Walk, Run, ...) but bones show scattered: node scale (unsupported in papit `rig()` and `Skeleton`). Fix in Skeleton, then base rigs quadruped (cow) and biped (chicken).
+- n3. [x] Animal rigs: the "scattered" bones were missing lengths (no node scale in the farm pack). export.py now always writes rig.json (lengths + the pack's leg IK); `QUADRUPED` base rig + `<Name>.character.json` per farm animal. Biped (chicken) open: no chicken/bird model in assets yet.
 - n4. [ ] Guns in the catalog: show their rig bones (gun_rig.py), check clips.
 - n5. [ ] Bone map for downloaded humanoid models (Mixamo etc.) onto the base rig, once the owner has one.
 - n6. [ ] Weapons come alive (sniper scope, fire anims, flash, bullet, shell), FPS arms on hand IK; per weapon later.

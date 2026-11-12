@@ -1,0 +1,127 @@
+{
+ "bones": {
+  "root": {
+   "length": 0.54483,
+   "deform": true
+  },
+  "FrontFoot.R": {
+   "length": 0.77833,
+   "deform": true
+  },
+  "Body": {
+   "length": 0.77833,
+   "deform": true
+  },
+  "FrontLeg.R": {
+   "length": 0.40957,
+   "deform": true
+  },
+  "FrontUpLeg.R": {
+   "length": 1.15228,
+   "deform": true
+  },
+  "FrontLowLeg.R": {
+   "length": 1.2358,
+   "deform": true
+  },
+  "BackLeg.R": {
+   "length": 0.36549,
+   "deform": true
+  },
+  "BackUpLeg.R": {
+   "length": 1.14164,
+   "deform": true
+  },
+  "BackLowLeg.R": {
+   "length": 1.29904,
+   "deform": true
+  },
+  "FrontLeg.L": {
+   "length": 0.40957,
+   "deform": true
+  },
+  "FrontUpLeg.L": {
+   "length": 1.15228,
+   "deform": true
+  },
+  "FrontLowLeg.L": {
+   "length": 1.2358,
+   "deform": true
+  },
+  "BackLeg.L": {
+   "length": 0.36549,
+   "deform": true
+  },
+  "BackUpLeg.L": {
+   "length": 1.14164,
+   "deform": true
+  },
+  "BackLowLeg.L": {
+   "length": 1.29904,
+   "deform": true
+  },
+  "Back": {
+   "length": 0.88209,
+   "deform": true
+  },
+  "Shoulders": {
+   "length": 0.92233,
+   "deform": true
+  },
+  "Neck": {
+   "length": 1.28071,
+   "deform": true
+  },
+  "Head": {
+   "length": 1.17516,
+   "deform": true
+  },
+  "Hips": {
+   "length": 1.00588,
+   "deform": true
+  },
+  "Torso": {
+   "length": 1.18852,
+   "deform": true
+  },
+  "BackFoot.R": {
+   "length": 0.52501,
+   "deform": true
+  },
+  "FrontFoot.L": {
+   "length": 0.77833,
+   "deform": true
+  },
+  "BackFoot.L": {
+   "length": 0.52501,
+   "deform": true
+  }
+ },
+ "ik": [
+  {
+   "bone": "FrontLowLeg.R",
+   "chain": 3,
+   "target": "FrontFoot.R",
+   "weight": 1.0
+  },
+  {
+   "bone": "BackLowLeg.R",
+   "chain": 3,
+   "target": "BackFoot.R",
+   "weight": 1.0
+  },
+  {
+   "bone": "FrontLowLeg.L",
+   "chain": 3,
+   "target": "FrontFoot.L",
+   "weight": 1.0
+  },
+  {
+   "bone": "BackLowLeg.L",
+   "chain": 3,
+   "target": "BackFoot.L",
+   "weight": 1.0
+  }
+ ],
+ "copyRotation": []
+}

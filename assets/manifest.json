@@ -86,9 +86,19 @@
          "size": 970088
         },
         {
+         "name": "Cow.character.json",
+         "file": "/assets/models/animals/farm/Cow.character.json",
+         "size": 98
+        },
+        {
          "name": "Cow.glb",
          "file": "/assets/models/animals/farm/Cow.glb",
          "size": 351752
+        },
+        {
+         "name": "Cow.rig.json",
+         "file": "/assets/models/animals/farm/Cow.rig.json",
+         "size": 2135
         },
         {
          "name": "Horse.blend",
@@ -96,9 +106,19 @@
          "size": 975328
         },
         {
+         "name": "Horse.character.json",
+         "file": "/assets/models/animals/farm/Horse.character.json",
+         "size": 104
+        },
+        {
          "name": "Horse.glb",
          "file": "/assets/models/animals/farm/Horse.glb",
          "size": 319808
+        },
+        {
+         "name": "Horse.rig.json",
+         "file": "/assets/models/animals/farm/Horse.rig.json",
+         "size": 2135
         },
         {
          "name": "Llama.blend",
@@ -106,9 +126,19 @@
          "size": 928212
         },
         {
+         "name": "Llama.character.json",
+         "file": "/assets/models/animals/farm/Llama.character.json",
+         "size": 104
+        },
+        {
          "name": "Llama.glb",
          "file": "/assets/models/animals/farm/Llama.glb",
          "size": 286428
+        },
+        {
+         "name": "Llama.rig.json",
+         "file": "/assets/models/animals/farm/Llama.rig.json",
+         "size": 1918
         },
         {
          "name": "Pig.blend",
@@ -116,9 +146,19 @@
          "size": 904380
         },
         {
+         "name": "Pig.character.json",
+         "file": "/assets/models/animals/farm/Pig.character.json",
+         "size": 98
+        },
+        {
          "name": "Pig.glb",
          "file": "/assets/models/animals/farm/Pig.glb",
          "size": 279520
+        },
+        {
+         "name": "Pig.rig.json",
+         "file": "/assets/models/animals/farm/Pig.rig.json",
+         "size": 1903
         },
         {
          "name": "Pug.blend",
@@ -126,9 +166,19 @@
          "size": 859268
         },
         {
+         "name": "Pug.character.json",
+         "file": "/assets/models/animals/farm/Pug.character.json",
+         "size": 98
+        },
+        {
          "name": "Pug.glb",
          "file": "/assets/models/animals/farm/Pug.glb",
          "size": 275464
+        },
+        {
+         "name": "Pug.rig.json",
+         "file": "/assets/models/animals/farm/Pug.rig.json",
+         "size": 1902
         },
         {
          "name": "Sheep.blend",
@@ -136,9 +186,19 @@
          "size": 923936
         },
         {
+         "name": "Sheep.character.json",
+         "file": "/assets/models/animals/farm/Sheep.character.json",
+         "size": 104
+        },
+        {
          "name": "Sheep.glb",
          "file": "/assets/models/animals/farm/Sheep.glb",
          "size": 279236
+        },
+        {
+         "name": "Sheep.rig.json",
+         "file": "/assets/models/animals/farm/Sheep.rig.json",
+         "size": 1903
         },
         {
          "name": "Zebra.blend",
@@ -146,9 +206,19 @@
          "size": 981412
         },
         {
+         "name": "Zebra.character.json",
+         "file": "/assets/models/animals/farm/Zebra.character.json",
+         "size": 104
+        },
+        {
          "name": "Zebra.glb",
          "file": "/assets/models/animals/farm/Zebra.glb",
          "size": 393152
+        },
+        {
+         "name": "Zebra.rig.json",
+         "file": "/assets/models/animals/farm/Zebra.rig.json",
+         "size": 2135
         }
        ]
       }

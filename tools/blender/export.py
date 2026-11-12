@@ -7,7 +7,7 @@
   weights, every other vertex goes to the parent bone. game-mesh then animates them via the rig.
 - Actions on NLA tracks (or the active one) export as glTF animations.
 - Image textures are baked into vertex colours (game-mesh draws base colour x COLOR_0 only).
-- An armature with IK / Copy Rotation constraints also writes `<out>.rig.json` (glTF drops constraints):
+- An armature also writes `<out>.rig.json` (glTF drops bone lengths and constraints):
   { bones: { name: { length, deform } }, ik: [{ bone, chain, target, pole, weight }],
     copyRotation: [{ bone, target, weight }] }. Weights are the rest values (actions may key them).
 """
@@ -128,8 +128,6 @@ def write_rig(arm, out):
                 rig["ik"].append(ik)
             elif c.type == "COPY_ROTATION" and c.subtarget:
                 rig["copyRotation"].append({"bone": pb.name, "target": c.subtarget, "weight": round(c.influence, 4)})
-    if not rig["ik"] and not rig["copyRotation"]:
-        return
     path = os.path.splitext(out)[0] + ".rig.json"
     with open(path, "w") as f:
         json.dump(rig, f, indent=1)
