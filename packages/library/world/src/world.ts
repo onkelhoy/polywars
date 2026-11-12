@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Ecosystem, DEFAULTS as ECOSYSTEM, decode as decodeEco, isCode as isEcoCode, type EcosystemSettings } from "@polywar/ecosystem";
-import { Grass } from "@polywar/grass";
+import { DEFAULTS as GRASS_DEFAULTS, Grass, type GrassOptions } from "@polywar/grass";
 import { modelUrl, type NatureList } from "@polywar/nature";
 import type { Light, Renderer, View } from "@polywar/renderer";
 import { Scatter } from "@polywar/scatter";
@@ -10,6 +10,17 @@ import type { WorldSettings, WorldView } from "./types";
 
 /** grass draw window per quality, metres (about the grass draw distance) */
 const WINDOW = { low: 30, medium: 50, high: 75 };
+/** tuft cap per quality: the window is big, so more than the grass presets */
+const MAX_TUFTS = { low: 30_000, medium: 120_000, high: 260_000 };
+
+/** the world's grass look (owner's code `g2.eyJ…`): bigger, fuller; density still follows the cover maps */
+export const GRASS: Partial<GrassOptions> = {
+    settings: { density: 32, sizeScale: 1.75, softBands: .25 },
+    look: { bands: 3 },
+    bladeShare: .25,
+    variation: .16,
+    patches: GRASS_DEFAULTS.patches.map((p, i) => i === 0 ? { ...p, scale: .023 } : p),
+};
 
 /**
  * A whole world: terrain (with water), ecosystem (props + grass cover), drawn with `@polywar/scatter` and `@polywar/grass`.
@@ -31,7 +42,7 @@ export class World {
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, name => modelUrl(nature, name), { quality: this.v.quality });
-        this.grass = new Grass(layer, { quality: this.v.quality, style: this.v.style });
+        this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
         this.terrain = new Terrain(layer, s.terrain ?? {});
         this.terrain.onchange = data => this.grow(data);
@@ -58,7 +69,7 @@ export class World {
         if (this.v.quality !== before.quality || this.v.style !== before.style)
         {
             this.scatter.set({ quality: this.v.quality });
-            this.grass.set({ quality: this.v.quality, style: this.v.style });
+            this.grass.set(this.grassOptions());
             this.plantGrass();
         }
     }
@@ -96,6 +107,10 @@ export class World {
     }
 
     // ---- internals ----
+
+    private grassOptions(): Partial<GrassOptions> {
+        return { ...GRASS, settings: { ...GRASS.settings, maxTufts: MAX_TUFTS[this.v.quality] }, quality: this.v.quality, style: this.v.style };
+    }
 
     private grow(data: TerrainData) {
         this.data = data;

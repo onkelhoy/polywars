@@ -106,14 +106,18 @@ export class Grass {
         const key = `${i0},${i1},${j0},${j1}`;
         if (key === this.shown) return;
         this.shown = key;
-        // density so a full window stays under the cap
-        const side = (i1 - i0 + 1) * chunk, density = Math.min(this.o.q.density, this.o.q.maxTufts / Math.max(1, side * side));
-        const keep: ChunkTufts[] = [], wanted = new Set<string>();
+        // round window: skip corner chunks wholly outside
+        const inside: [number, number][] = [];
         for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++)
         {
-            // round window: skip corner chunks wholly outside
             const dx = Math.max(0, Math.abs(pl.area.x + (i + .5) * chunk - x) - chunk / 2), dz = Math.max(0, Math.abs(pl.area.z + (j + .5) * chunk - z) - chunk / 2);
-            if (dx * dx + dz * dz > r * r) continue;
+            if (dx * dx + dz * dz <= r * r) inside.push([i, j]);
+        }
+        // density so a full window (the chunks really kept) stays under the cap
+        const density = Math.min(this.o.q.density, this.o.q.maxTufts / Math.max(1, inside.length * chunk * chunk));
+        const keep: ChunkTufts[] = [], wanted = new Set<string>();
+        for (const [i, j] of inside)
+        {
             const k = `${i}:${j}`;
             wanted.add(k);
             let c = this.cache.get(k);
