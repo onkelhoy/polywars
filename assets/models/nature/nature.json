@@ -1,0 +1,337 @@
+{
+  "about": "Hand kept list of the nature models in this folder (Quaternius, CC0). One family = numbered models of one kind; variants line up by index with `models`. Add a family when new models land. Fields: see @polywar/nature README.",
+  "base": "/assets/models/nature/",
+  "missing": ["mushrooms", "ferns (Plant_* stand in)", "reeds", "desert shrubs", "flower patches (more kinds)"],
+  "families": [
+    {
+      "name": "PineTree",
+      "kind": "tree",
+      "tags": ["pine", "conifer"],
+      "biomes": ["forest", "hills", "mountain", "snow", "plateau", "grassland"],
+      "models": ["PineTree_1", "PineTree_2", "PineTree_3", "PineTree_4", "PineTree_5"],
+      "variants": {
+        "snow": ["PineTree_Snow_1", "PineTree_Snow_2", "PineTree_Snow_3", "PineTree_Snow_4", "PineTree_Snow_5"],
+        "autumn": ["PineTree_Autumn_1", "PineTree_Autumn_2", "PineTree_Autumn_3", "PineTree_Autumn_4", "PineTree_Autumn_5"]
+      },
+      "height": 3.12,
+      "radius": 0.9,
+      "scale": [2.2, 3.6],
+      "slope": 0.55,
+      "sway": 0.25,
+      "grass": "ring"
+    },
+    {
+      "name": "BirchTree",
+      "kind": "tree",
+      "tags": ["birch", "broadleaf"],
+      "biomes": ["forest", "grassland", "hills"],
+      "models": ["BirchTree_1", "BirchTree_2", "BirchTree_3", "BirchTree_4", "BirchTree_5"],
+      "variants": {
+        "snow": ["BirchTree_Snow_1", "BirchTree_Snow_2", "BirchTree_Snow_3", "BirchTree_Snow_4", "BirchTree_Snow_5"],
+        "autumn": ["BirchTree_Autumn_1", "BirchTree_Autumn_2", "BirchTree_Autumn_3", "BirchTree_Autumn_4", "BirchTree_Autumn_5"]
+      },
+      "height": 4.05,
+      "radius": 1.11,
+      "scale": [1.8, 3],
+      "slope": 0.35,
+      "sway": 0.45,
+      "grass": "ring"
+    },
+    {
+      "name": "CommonTree",
+      "kind": "tree",
+      "tags": ["oak", "broadleaf"],
+      "biomes": ["forest", "grassland", "hills", "plateau", "savanna"],
+      "models": ["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "CommonTree_5"],
+      "variants": {
+        "snow": ["CommonTree_Snow_1", "CommonTree_Snow_2", "CommonTree_Snow_3", "CommonTree_Snow_4", "CommonTree_Snow_5"],
+        "autumn": ["CommonTree_Autumn_1", "CommonTree_Autumn_2", "CommonTree_Autumn_3", "CommonTree_Autumn_4", "CommonTree_Autumn_5"]
+      },
+      "height": 2.87,
+      "radius": 1.09,
+      "scale": [2, 3.4],
+      "slope": 0.3,
+      "sway": 0.4,
+      "grass": "ring"
+    },
+    {
+      "name": "Willow",
+      "kind": "tree",
+      "tags": ["willow", "broadleaf", "wet"],
+      "biomes": ["grassland", "forest", "beach"],
+      "models": ["Willow_1", "Willow_2", "Willow_3", "Willow_4", "Willow_5"],
+      "variants": {
+        "snow": ["Willow_Snow_1", "Willow_Snow_2", "Willow_Snow_3", "Willow_Snow_4", "Willow_Snow_5"],
+        "autumn": ["Willow_Autumn_1", "Willow_Autumn_2", "Willow_Autumn_3", "Willow_Autumn_4", "Willow_Autumn_5"]
+      },
+      "height": 2.87,
+      "radius": 1.31,
+      "scale": [2, 3],
+      "slope": 0.2,
+      "sway": 0.6,
+      "grass": "ring",
+      "water": "near"
+    },
+    {
+      "name": "BirchTree_Dead",
+      "kind": "tree",
+      "tags": ["birch", "dead"],
+      "biomes": ["forest", "snow", "hills"],
+      "models": ["BirchTree_Dead_1", "BirchTree_Dead_2", "BirchTree_Dead_3", "BirchTree_Dead_4", "BirchTree_Dead_5"],
+      "variants": {
+        "snow": ["BirchTree_Dead_Snow_1", "BirchTree_Dead_Snow_2", "BirchTree_Dead_Snow_3", "BirchTree_Dead_Snow_4", "BirchTree_Dead_Snow_5"]
+      },
+      "height": 3.02,
+      "radius": 0.69,
+      "scale": [1.8, 2.8],
+      "slope": 0.4,
+      "sway": 0.1,
+      "grass": "ring"
+    },
+    {
+      "name": "CommonTree_Dead",
+      "kind": "tree",
+      "tags": ["oak", "dead"],
+      "biomes": ["savanna", "desert", "forest", "hills"],
+      "models": ["CommonTree_Dead_1", "CommonTree_Dead_2", "CommonTree_Dead_3", "CommonTree_Dead_4", "CommonTree_Dead_5"],
+      "variants": {
+        "snow": ["CommonTree_Dead_Snow_1", "CommonTree_Dead_Snow_2", "CommonTree_Dead_Snow_3", "CommonTree_Dead_Snow_4", "CommonTree_Dead_Snow_5"]
+      },
+      "height": 2.57,
+      "radius": 0.7,
+      "scale": [1.8, 3],
+      "slope": 0.4,
+      "sway": 0.1,
+      "grass": "ring"
+    },
+    {
+      "name": "Willow_Dead",
+      "kind": "tree",
+      "tags": ["willow", "dead", "wet"],
+      "biomes": ["grassland", "beach"],
+      "models": ["Willow_Dead_1", "Willow_Dead_2", "Willow_Dead_3", "Willow_Dead_4", "Willow_Dead_5"],
+      "variants": {
+        "snow": ["Willow_Dead_Snow_1", "Willow_Dead_Snow_2", "Willow_Dead_Snow_3", "Willow_Dead_Snow_4", "Willow_Dead_Snow_5"]
+      },
+      "height": 2.44,
+      "radius": 1.03,
+      "scale": [1.8, 2.6],
+      "slope": 0.2,
+      "sway": 0.1,
+      "grass": "ring",
+      "water": "near"
+    },
+    {
+      "name": "PalmTree",
+      "kind": "tree",
+      "tags": ["palm", "hot"],
+      "biomes": ["beach", "savanna", "desert"],
+      "models": ["PalmTree_1", "PalmTree_2", "PalmTree_3", "PalmTree_4"],
+      "height": 3.7,
+      "radius": 1.44,
+      "scale": [1.8, 2.8],
+      "slope": 0.25,
+      "sway": 0.5,
+      "grass": "keep",
+      "water": "near"
+    },
+    {
+      "name": "Bush",
+      "kind": "bush",
+      "tags": ["bush"],
+      "biomes": ["forest", "grassland", "hills", "plateau", "savanna", "mountain", "snow"],
+      "models": ["Bush_1", "Bush_2"],
+      "variants": {
+        "snow": ["Bush_Snow_1", "Bush_Snow_2"]
+      },
+      "height": 1.18,
+      "radius": 0.76,
+      "scale": [0.7, 1.4],
+      "slope": 0.5,
+      "sway": 0.3,
+      "grass": "ring"
+    },
+    {
+      "name": "BushBerries",
+      "kind": "bush",
+      "tags": ["bush", "berries"],
+      "biomes": ["forest", "grassland"],
+      "models": ["BushBerries_1", "BushBerries_2"],
+      "height": 1.21,
+      "radius": 0.77,
+      "scale": [0.7, 1.2],
+      "slope": 0.4,
+      "sway": 0.3,
+      "grass": "ring"
+    },
+    {
+      "name": "Cactus",
+      "kind": "cactus",
+      "tags": ["cactus", "hot", "dry"],
+      "biomes": ["desert", "savanna"],
+      "models": ["Cactus_1", "Cactus_2", "Cactus_3", "Cactus_4", "Cactus_5"],
+      "height": 1.27,
+      "radius": 0.42,
+      "scale": [1, 2.2],
+      "slope": 0.4,
+      "sway": 0,
+      "grass": "none"
+    },
+    {
+      "name": "CactusFlowers",
+      "kind": "cactus",
+      "tags": ["cactus", "flowers", "hot", "dry"],
+      "biomes": ["desert"],
+      "models": ["CactusFlowers_2", "CactusFlowers_3", "CactusFlowers_4", "CactusFlowers_5"],
+      "height": 1.48,
+      "radius": 0.51,
+      "scale": [1, 1.8],
+      "slope": 0.4,
+      "sway": 0,
+      "grass": "none"
+    },
+    {
+      "name": "CactusFlower",
+      "kind": "plant",
+      "tags": ["cactus", "small", "hot", "dry"],
+      "biomes": ["desert", "savanna"],
+      "models": ["CactusFlower_1"],
+      "height": 0.36,
+      "radius": 0.44,
+      "scale": [0.8, 1.4],
+      "slope": 0.5,
+      "sway": 0,
+      "grass": "none"
+    },
+    {
+      "name": "Rock",
+      "kind": "rock",
+      "tags": ["rock"],
+      "biomes": ["mountain", "hills", "plateau", "desert", "savanna", "beach", "grassland", "snow", "forest"],
+      "models": ["Rock_1", "Rock_2", "Rock_3", "Rock_4", "Rock_5", "Rock_6", "Rock_7"],
+      "variants": {
+        "moss": ["Rock_Moss_1", "Rock_Moss_2", "Rock_Moss_3", "Rock_Moss_4", "Rock_Moss_5", "Rock_Moss_6", "Rock_Moss_7"],
+        "snow": ["Rock_Snow_1", "Rock_Snow_2", "Rock_Snow_3", "Rock_Snow_4", "Rock_Snow_5", "Rock_Snow_6", "Rock_Snow_7"]
+      },
+      "height": 0.74,
+      "radius": 0.45,
+      "scale": [0.6, 4],
+      "slope": 0.9,
+      "sway": 0,
+      "grass": "none"
+    },
+    {
+      "name": "TreeStump",
+      "kind": "deadwood",
+      "tags": ["stump", "wood"],
+      "biomes": ["forest", "hills", "grassland"],
+      "models": ["TreeStump"],
+      "variants": {
+        "moss": ["TreeStump_Moss"],
+        "snow": ["TreeStump_Snow"]
+      },
+      "height": 0.62,
+      "radius": 0.68,
+      "scale": [0.6, 1],
+      "slope": 0.4,
+      "sway": 0,
+      "grass": "ring"
+    },
+    {
+      "name": "WoodLog",
+      "kind": "deadwood",
+      "tags": ["log", "wood"],
+      "biomes": ["forest", "hills"],
+      "models": ["WoodLog"],
+      "variants": {
+        "moss": ["WoodLog_Moss"],
+        "snow": ["WoodLog_Snow"]
+      },
+      "height": 0.75,
+      "radius": 1.33,
+      "scale": [0.6, 1],
+      "slope": 0.25,
+      "sway": 0,
+      "grass": "ring"
+    },
+    {
+      "name": "Plant",
+      "kind": "plant",
+      "tags": ["fern", "leafy", "small"],
+      "biomes": ["forest", "grassland", "beach"],
+      "models": ["Plant_1", "Plant_2", "Plant_3", "Plant_4", "Plant_5"],
+      "height": 1.08,
+      "radius": 0.69,
+      "scale": [0.5, 1],
+      "slope": 0.5,
+      "sway": 0.5,
+      "grass": "keep"
+    },
+    {
+      "name": "Flowers",
+      "kind": "flower",
+      "tags": ["flowers", "small", "meadow"],
+      "biomes": ["grassland", "plateau", "hills"],
+      "models": ["Flowers"],
+      "height": 0.83,
+      "radius": 0.3,
+      "scale": [0.5, 0.9],
+      "slope": 0.4,
+      "sway": 0.7,
+      "grass": "keep"
+    },
+    {
+      "name": "GrassClump",
+      "kind": "grass",
+      "tags": ["grass", "small", "tall"],
+      "biomes": ["grassland", "savanna", "plateau", "hills", "beach"],
+      "models": ["Grass", "Grass_2", "Grass_Short"],
+      "height": 0.87,
+      "radius": 0.21,
+      "scale": [0.5, 1],
+      "slope": 0.5,
+      "sway": 0.8,
+      "grass": "keep"
+    },
+    {
+      "name": "Lilypad",
+      "kind": "water",
+      "tags": ["lilypad", "wet"],
+      "biomes": ["lake", "river"],
+      "models": ["Lilypad"],
+      "height": 0.22,
+      "radius": 0.6,
+      "scale": [0.6, 1.4],
+      "slope": 1,
+      "sway": 0,
+      "grass": "keep",
+      "water": "on"
+    },
+    {
+      "name": "Corn",
+      "kind": "crop",
+      "tags": ["crop", "farm"],
+      "biomes": [],
+      "models": ["Corn_1", "Corn_2"],
+      "height": 1.98,
+      "radius": 0.55,
+      "scale": [0.9, 1.1],
+      "slope": 0.2,
+      "sway": 0.5,
+      "grass": "none"
+    },
+    {
+      "name": "Wheat",
+      "kind": "crop",
+      "tags": ["crop", "farm"],
+      "biomes": [],
+      "models": ["Wheat"],
+      "height": 1.1,
+      "radius": 0.18,
+      "scale": [0.9, 1.1],
+      "slope": 0.2,
+      "sway": 0.7,
+      "grass": "none"
+    }
+  ]
+}

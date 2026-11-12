@@ -1,6 +1,7 @@
 # Plan: M1 assets + browser
 
 ## Where we are
+Branch `feature/ecosystem` (confirmed 2026-11-12, owner away: e1-e7 in one go): see "Ecosystem" below.
 Branch `feature/terrain`: `packages/tools` → `packages/utils`; `@polywar/noise` (utils, grass-material uses it), `@polywar/terrain-material`, `@polywar/terrain` (generator + editor view), catalog shows terrain looks + map presets. Adaptive RTIN ground mesh (`quality.error`, `mesh.edges`). Camera controllers moved to `@polywar/viewport-camera`; `pw-3d-demo` pans in the view plane by default. `mesh.detail` (triangle budget) + `mesh.adaptive` (where they go), flat low poly water (flecks, near foam, river streaks), rivers as a tree through lake outlets (`rivers.cut`). Water done (`@polywar/water`: scene depth for the exact waterline, smooth shore map, wind streaks, sun glare, JSON presets). Next: weapons.
 On `main`: character rig work merged (rigs, posing, characters, base rigs). Next: "Next tasks" n5 (needs a downloaded model) / n6, or task 8. `@polywar/renderer` + `@polywar/shading` done (materials gallery). Grass done (`@polywar/grass`, open bits in backlog). City: `.claude/plan-city.md` tasks 1-17 done, READMEs in `packages/generators/city*`. Baking tasks b3-b4 paused. Git LFS question for the .blend files still open.
 
@@ -12,6 +13,18 @@ On `main`: character rig work merged (rigs, posing, characters, base rigs). Next
 - `game-mesh` has no textures → `export.py` bakes image textures into vertex colours.
 - Render code (Renderer, Model, Grid, gltfFromMesh) is `@polywar/renderer` (`packages/ui/viewport/renderer`); shading styles + preview ball are `@polywar/shading`.
 - Dev server treats folders named `asset`/`assets`/`public` as raw assets: never name a package that.
+
+## Ecosystem (confirmed 2026-11-12)
+Cover maps (per grid node) from terrain data drive props + grass; one seed + JSON rules; world code = terrain + ecosystem.
+Packages: `@polywar/nature` (asset list), `@polywar/ecosystem` (maps + placement, pure CPU), `@polywar/scatter` (instanced props, ui/viewport), `@polywar/world` (puts it together, view).
+- e1. [ ] `@polywar/nature`: `assets/models/nature/nature.json` (hand kept: kind, tags, biomes, footprint, slope, scale, cluster, variants), gallery view.
+- e2. [ ] `@polywar/ecosystem`: cover maps (trees, grass density / height / dry / flowers) from biome (blurred, smooth borders), climate, slope, water, cities.
+- e3. [ ] Placement: seeded clusters with spacing, trees > rocks > bushes / stumps / logs > small plants; footprints change grass (none under rocks, tall ring round trees, sometimes bare).
+- e4. [ ] `@polywar/scatter`: instanced glTF props in chunks, frustum cull, draw distance per kind, tree sway.
+- e5. [ ] Grass from the maps: per tuft height / dry / flowers, planting window follows the camera (chunk cache).
+- e6. [ ] View: terrain + ecosystem, fly / walk, settings, seed, share code, counts.
+- e7. [ ] World code: terrain + water + ecosystem in one share code.
+Later (backlog): fireflies / butterflies / birds near the camera (arrow-warfare `birds.ts`), animals, farms / castles.
 
 ## Tasks
 8. [ ] `@papit/static`: serve root `assets/` on GitHub Pages (check, report if papit lacks it).
