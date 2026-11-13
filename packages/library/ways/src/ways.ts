@@ -1,11 +1,13 @@
 import { merge, sweep, type Profile } from "@polywar/sweep";
 import { track } from "@polywar/rail";
-import { PORTAL, bridge, bridgeFor, fence, portal, steps } from "@polywar/bridges";
+import { PORTAL, bridge, bridgeFor, fence, logSteps, portal } from "@polywar/bridges";
 import { junctionPads } from "./junctions";
 import type { ClassStyle, Mesh, Structure, Vec3, WaysInput, WaysResult } from "./types";
 
-/** paths steeper than this (rise / run) get steps */
-export const STEEP = .3;
+/** paths steeper than this (rise / run, over a few metres) get log steps; only such hot spots, never near roads */
+export const STEEP = .55;
+/** metres a trail must stay steep to get steps; ground lower than this (m) beside it gets a railing on that side */
+const STEEP_RUN = 8, DROP = 2.5;
 /** surface + a skirt down each side (reads as a bank on fills, hidden in the ground on cuts) */
 const strip = (top: [number, number, number], side: [number, number, number], edge = 1.35): Profile => ({ points: [[-edge, -1.2], [-1, 0], [1, 0], [edge, -1.2]], colors: [side, top, side] });
 
@@ -47,23 +49,38 @@ export function chains<W extends WaysInput["roads"][0]>(roads: W[]): W[] {
  */
 export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> = STYLES): WaysResult {
     const meshes: Mesh[] = [], sleepers: { data: Float32Array; count: number }[] = [], structures: Structure[] = [], ground = input.ground;
-    // paths have no surface; only where they get very steep: stone steps + a railing on one side
+    // other ways (not trails): no steps next to them (their banks make the ground look steep)
+    const B = 16, near = new Set<number>(), key = (x: number, z: number) => (Math.floor(x / B) + 4096) * 8192 + Math.floor(z / B) + 4096;
+    for (const r of input.roads) if (r.class !== "path") for (const p of r.points) near.add(key(p[0], p[2]));
+    const byRoad = (x: number, z: number) => { for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) if (near.has(key(x + a * B, z + b * B))) return true; return false; };
+    // paths have no surface; only very steep stretches get log steps (+ a railing on the drop side, if there is a drop)
     const stairs = (part: Vec3[], width: number) => {
-        const pts = part.map(([x, , z]) => [x, ground(x, z), z] as Vec3);
-        let a = -1;
-        for (let i = 1; i <= pts.length; i++)
+        const pts = part.map(([x, , z]) => [x, ground(x, z), z] as Vec3), n = pts.length;
+        const len = (i: number) => Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][2] - pts[i - 1][2]) || 1;
+        const steep = pts.map((_, i) => i > 0 && Math.abs(pts[i][1] - pts[i - 1][1]) / len(i) > STEEP && !byRoad(pts[i][0], pts[i][2]));
+        for (let i = 1; i < n;)
         {
-            const steep = i < pts.length && Math.abs(pts[i][1] - pts[i - 1][1]) / (Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][2] - pts[i - 1][2]) || 1) > STEEP;
-            if (steep) { if (a < 0) a = i - 1; continue; }
-            if (a >= 0 && i - a >= 2)
+            if (!steep[i]) { i++; continue; }
+            let e = i;
+            while (e + 1 < n && steep[e + 1]) e++;
+            const a = i - 1, run = pts.slice(a, e + 1);
+            let l = 0; for (let k = a + 1; k <= e; k++) l += len(k);
+            i = e + 1;
+            if (l < STEEP_RUN) continue;
+            meshes.push(logSteps(run, ground, Math.max(1.2, width)));
+            // railing only over a real drop, on that side only
+            const side = (k: number) => { const p = run[Math.min(k + 1, run.length - 1)], q = run[Math.max(0, k - 1)], d = Math.hypot(p[0] - q[0], p[2] - q[2]) || 1; return [-(p[2] - q[2]) / d, (p[0] - q[0]) / d]; };
+            for (const sgn of [1, -1])
             {
-                const run = pts.slice(a, i);
-                meshes.push(steps(run, Math.max(1.2, width)));
-                const d = (k: number) => { const p = run[Math.min(k + 1, run.length - 1)], q = run[Math.max(0, k - 1)], l = Math.hypot(p[0] - q[0], p[2] - q[2]) || 1; return [-(p[2] - q[2]) / l, (p[0] - q[0]) / l]; };
-                meshes.push(fence(run.map((p, k) => { const [ox, oz] = d(k), x = p[0] + ox * (width / 2 + .4), z = p[2] + oz * (width / 2 + .4); return [x, ground(x, z), z] as Vec3; })));
-                structures.push({ kind: "steps", road: road.id, x: run[0][0], y: run[0][1], z: run[0][2], to: run[run.length - 1] });
+                const off = width / 2 + .5, rail: Vec3[] = [];
+                const flush = () => { if (rail.length >= 3) meshes.push(fence(rail)); rail.length = 0; };
+                run.forEach((p, k) => {
+                    const [ox, oz] = side(k), x = p[0] + ox * off * sgn, z = p[2] + oz * off * sgn, far = ground(p[0] + ox * (off + 2.5) * sgn, p[2] + oz * (off + 2.5) * sgn);
+                    if (p[1] - far > DROP) rail.push([x, ground(x, z), z]); else flush();
+                });
+                flush();
             }
-            a = -1;
+            structures.push({ kind: "steps", road: road.id, x: run[0][0], y: run[0][1], z: run[0][2], to: run[run.length - 1] });
         }
     };
     let road!: WaysInput["roads"][0];

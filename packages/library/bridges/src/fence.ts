@@ -34,3 +34,26 @@ export function steps(path: Vec3[], width = 1.6, rise = .25): Mesh {
     }
     return s.mesh();
 }
+
+/**
+ * Log steps up a steep trail: a round-ish log across the way every `rise` m of climb, each laid on the ground where it
+ * falls (half sunk, so it never floats or hides), a short peg at each end. `ground` = drawn ground height.
+ */
+export function logSteps(path: Vec3[], ground: (x: number, z: number) => number, width = 1.4, rise = .35): Mesh {
+    const s = new Soup();
+    let last = ground(path[0][0], path[0][2]);
+    for (let i = 0; i < path.length - 1; i++)
+    {
+        const a = path[i], b = path[i + 1], dx = b[0] - a[0], dz = b[2] - a[2], len = Math.hypot(dx, dz) || 1, sx = -dz / len, sz = dx / len;
+        for (let d = 0; d < len; d += .25)
+        {
+            const x = a[0] + dx * d / len, z = a[2] + dz * d / len, y = ground(x, z);
+            if (Math.abs(y - last) < rise) continue;
+            last = y;
+            const h = width / 2, l: Vec3 = [x - sx * h, ground(x - sx * h, z - sz * h) + .06, z - sz * h], r: Vec3 = [x + sx * h, ground(x + sx * h, z + sz * h) + .06, z + sz * h];
+            s.beam(l, r, .24, .2, i % 2 ? WOOD : WOOD_DARK);
+            for (const p of [l, r]) s.beam([p[0], p[1] - .2, p[2]], [p[0], p[1] + .22, p[2]], .08, .08, WOOD_DARK);
+        }
+    }
+    return s.mesh();
+}

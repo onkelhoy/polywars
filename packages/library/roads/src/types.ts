@@ -14,7 +14,7 @@ export type Ground = {
 export type RoadClass = "highway" | "road" | "lane" | "path" | "rail";
 
 /** part of a road: indices into `points` (inclusive) */
-export type Span = { kind: "ground" | "bridge" | "tunnel"; from: number; to: number };
+export type Span = { kind: "ground" | "bridge" | "tunnel"; from: number; to: number; /** made after grading (a big fill / cut), not routed */ auto?: boolean };
 
 export type Road = {
     id: number; class: RoadClass;

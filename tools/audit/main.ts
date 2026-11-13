@@ -71,7 +71,7 @@ for (const r of net.roads)
                 for (let i = 1; i < pts.length; i++)
                 {
                     const g0 = ground(pts[i - 1][0], pts[i - 1][2]), g1 = ground(pts[i][0], pts[i][2]), l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][2] - pts[i - 1][2]) || 1;
-                    if (Math.abs(g1 - g0) / l > STEEP) run++; else { if (run >= 1) add("path steps", run, at(pts[i])); run = 0; }
+                    if (Math.abs(g1 - g0) / l > STEEP) run++; else { if (run >= 2) add("path steps", run, at(pts[i])); run = 0; }
                 }
             }
         }

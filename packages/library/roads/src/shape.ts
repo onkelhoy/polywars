@@ -222,7 +222,7 @@ export function structures(plan: Plan, heightAt: (x: number, z: number) => numbe
                 const last = out[out.length - 1];
                 if (last && last.kind === "ground" && last.to > from) last.to = from;
                 if (last && last.kind === "ground" && last.to <= last.from) out.pop();
-                out.push({ kind: k, from, to });
+                out.push({ kind: k, from, to, auto: true });
                 a = to;
                 continue;
             }
@@ -232,5 +232,5 @@ export function structures(plan: Plan, heightAt: (x: number, z: number) => numbe
             a = b + 1;
         }
     }
-    plan.spans = out.filter(s => s.to > s.from).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
+    plan.spans = out.filter(s => s.to > s.from).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) { p.to = Math.max(p.to, s.to); if (!s.auto) delete p.auto; } else o.push({ ...s }); return o; }, []);
 }

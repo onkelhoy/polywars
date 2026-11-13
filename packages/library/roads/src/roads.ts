@@ -384,6 +384,12 @@ export function levelCrossings(roads: Road[], step: number) {
         if (done.has(id)) continue;
         done.add(id);
         const ka = kindAt(A, ia), kb = kindAt(Bw, ib);
+        // an auto bridge (big fill) crossing another bridge: back to the ground (an embankment), bridges never cross
+        if (ka === "bridge" && kb === "bridge")
+        {
+            for (const [r, i] of [[A, ia], [Bw, ib]] as const) { const sp = r.spans.find(s => i >= s.from && i < s.to); if (sp?.auto) { sp.kind = "ground"; delete sp.auto; break; } }
+            continue;
+        }
         if (ka !== "ground" || kb !== "ground") continue;
         const ya = a0[1] + (a1[1] - a0[1]) * s, yb = b0[1] + (b1[1] - b0[1]) * t;
         // near a shared junction both are pinned already: leave them

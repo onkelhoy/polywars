@@ -18,6 +18,7 @@ export const SCENARIOS = [
     { name: 'bridge over river', height: flat, water: river, sites: [site(0, 0, -250), site(1, 30, 250), site(2, -250, -200)], links: [['road', 0, 1], ['path', 2, 1]] },
     { name: 'tunnel through hill', height: hill, sites: [site(0, -280, 0, 'city'), site(1, 280, 0, 'city')], links: [['rail', 0, 1]] },
     { name: 'road + rail, same towns', height: flat, sites: [site(0, -250, 0, 'city'), site(1, 250, 0, 'city')], links: [['rail', 0, 1], ['road', 0, 1]] },
+    { name: 'steep path (log steps)', zoom: 4, height: (x, z) => 20 + Math.max(0, 40 - Math.abs(x) * 1.6) + (Math.abs(z) > 30 ? 60 : 0), sites: [site(0, -60, 0, 'viewpoint'), site(1, 60, 0, 'viewpoint')], links: [['path', 0, 1]] },
     { name: 'two ways over one valley', height: valley, sites: [site(0, -260, -120, 'city'), site(1, 260, 120, 'city'), site(2, -260, 120), site(3, 260, -120)], links: [['rail', 0, 1], ['road', 2, 3]] },
 ];
 
