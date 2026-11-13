@@ -242,8 +242,20 @@ export class World {
         {
             if (s.points.length < 2) continue;
             const t = Math.min(1, (s.order - 1) / 3), c: [number, number, number] = [.25 - .1 * t, .5 - .12 * t, .62 - .05 * t];
-            const pts = s.points.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z) - .3) + .08, z] as Vec3);
-            meshes.push(sweep(pts, { width: s.points.map(p => Math.max(1, p[3])), profile: { points: [[-1, 0], [1, 0]], color: c }, bank: "flat", step: 3 }));
+            // only the parts outside lakes / swamps / sea: a river reaches a shore and leaves at the outlet, never drawn over the lake
+            const open = s.points.map(([x, , z]) => { const d = this.terrain.data, k = this.node(x, z); return !d || k < 0 || (d.water[k] !== 1 && d.water[k] !== 2); });
+            let a = -1;
+            for (let i = 0; i <= open.length; i++)
+            {
+                if (i < open.length && open[i]) { if (a < 0) a = i; continue; }
+                if (a < 0) continue;
+                // one point into the water each side so the ribbon meets the shore
+                const part = s.points.slice(Math.max(0, a - 1), Math.min(s.points.length, i + 1));
+                a = -1;
+                if (part.length < 2) continue;
+                const pts = part.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z) - .3) + .08, z] as Vec3);
+                meshes.push(sweep(pts, { width: part.map(p => Math.max(1, p[3])), profile: { points: [[-1, 0], [1, 0]], color: c }, bank: "flat", step: 3 }));
+            }
         }
         if (meshes.length) this.riverMesh = upload(this.layer.gl, merge(meshes));
     }
