@@ -64,3 +64,8 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 ### Tunnel holes (round 2)
 - `TerrainData.holes?: Uint8Array` (n*n). terrain lod refines hole borders and drops triangles whose centre node is a hole.
 - roads `tunnelHoles(network, g, depth=12)` marks mouth cells in the fix hook; bridges `portal({top})` sets the face wall height, lining is double-sided, depth 13.
+
+## Ways debugging (round 3)
+- `node tools/audit-ways.mjs [low|medium] [seed]`: lists way faults (bridges, tight curves, steps, junction gaps, overlaps, lake steps). Env `AT=x,z`, `CHAIN=id`, `WATER=x,z`, `TUNNELS=1`. World view runs at medium.
+- `node tools/world-shot.mjs <prefix> "x,z,dist,yaw,pitch" ...`: world view screenshots (dev server on :4000, run `npm run build` in changed packages first).
+- Roads are routed on final ground + water (`fix` hook), one chain per through road (shared junction spots), `structures` auto bridges/tunnels, `levelCrossings`, `trimTunnels`.

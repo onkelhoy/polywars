@@ -2,6 +2,7 @@
 
 ## Where we are
 Round 3 (owner review 2026-11-13 evening, 14 screenshots on Desktop): "it looks buggy, fix it all". Owner away, runs on its own: "next task" through all, commit per task on `feature/infrastructure`, no merge.
+Round 3 tasks 1–9 all done (2026-11-13), waiting for owner review. Open: tight highway switchbacks, long mountain viaducts, rail station tangles, fragmented rivers, river→lake outlet steps.
 Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 done, see git log.
 
 ## Rules for this plan
@@ -26,7 +27,7 @@ Seen in screenshots: bridge snaking along a river, bridge ends in grass / in the
 - [x] 6. Paths on slopes: no staircases by default; only short very steep hot spots get wooden beams (log steps set into the ground, each on the ground) or stepping stones; railing one side only, on the drop side, only over a real drop. No steps near roads / on flat.
 - [x] 7. Fences: trail fences only on the drop side, never both, never two runs on top of each other, posts on the ground.
 - [x] 8. Lakes: one level per lake (no two water planes side by side), river + lake surfaces meet.
-- [ ] 9. Tunnels that work: scenario view first (hole visible, portal frames it, lining under ground), then world.
+- [x] 9. Tunnels that work: scenario view first (hole visible, portal frames it, lining under ground), then world.
 
 ## Notes
 - Owner trains while this runs: run "next task" through all, one line status each, commit per task on the branch. Don't merge to main; owner reviews.
