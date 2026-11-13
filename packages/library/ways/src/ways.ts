@@ -80,34 +80,68 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
         return (start && r.spans.some(s => s.kind === "bridge" && s.from === 0)) || (end && r.spans.some(s => s.kind === "bridge" && s.to === P.length - 1));
     };
     const deckJunctions = (input.junctions ?? []).map(j => ({ j, decks: j.roads.map(a => wayById.get(a.road)!).filter(r => r && bridged(r, j)) })).filter(x => x.decks.length);
-    /** another chain's deck through a junction at (x, z): its half width (+ parapet), else 0 */
+    /** other chains' decks through a junction at (x, z) (a deck forking off them starts at their edge) */
     const deckAt = (x: number, z: number, chain?: number) => {
         for (const { j, decks } of deckJunctions) if (Math.hypot(j.x - x, j.z - z) < .5)
         {
             const through = decks.filter(r => chain === undefined || r.chain !== chain);
-            if (through.length >= 2) return Math.max(...through.map(r => r.width)) / 2 + .6;
+            if (through.length >= 2) return through;
         }
-        return 0;
+        return [];
     };
-    const joins = (deck: Vec3[], chain?: number) => {
-        const gaps: { from: number; to: number; side: -1 | 1 }[] = [];
-        let d = 0;
-        for (let i = 1; i < deck.length - 1; i++)
+    /** (x, z) still over one of `decks` (centre line within its half width + parapet) */
+    const overDeck = (x: number, z: number, decks: WaysInput["roads"]) => decks.some(r => {
+        for (let i = 0; i < r.points.length - 1; i++)
         {
-            d += Math.hypot(deck[i][0] - deck[i - 1][0], deck[i][2] - deck[i - 1][2]);
-            for (const j of input.junctions ?? [])
+            const a = r.points[i], b = r.points[i + 1], dx = b[0] - a[0], dz = b[2] - a[2], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[2]) * dz) / (dx * dx + dz * dz || 1)));
+            if (Math.hypot(x - a[0] - dx * t, z - a[2] - dz * t) < r.width / 2 + .6) return true;
+        }
+        return false;
+    });
+    const joins = (deck: Vec3[], chain?: number, width = 0) => {
+        const gaps: { from: number; to: number; side: -1 | 1 }[] = [];
+        const at = [0];
+        for (let i = 1; i < deck.length; i++) at.push(at[i - 1] + Math.hypot(deck[i][0] - deck[i - 1][0], deck[i][2] - deck[i - 1][2]));
+        /** (along, across) of (x, z) on the deck line */
+        const project = (x: number, z: number) => {
+            let best = { d: Infinity, along: 0, across: 0 };
+            for (let i = 0; i < deck.length - 1; i++)
             {
-                if (Math.hypot(j.x - deck[i][0], j.z - deck[i][2]) > .5) continue;
-                const l = Math.hypot(deck[i + 1][0] - deck[i - 1][0], deck[i + 1][2] - deck[i - 1][2]) || 1, fx = (deck[i + 1][0] - deck[i - 1][0]) / l, fz = (deck[i + 1][2] - deck[i - 1][2]) / l;
-                for (const a of j.roads)
+                const a = deck[i], b = deck[i + 1], dx = b[0] - a[0], dz = b[2] - a[2], l = Math.hypot(dx, dz) || 1, t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[2]) * dz) / (l * l)));
+                const px = a[0] + dx * t, pz = a[2] + dz * t, d = Math.hypot(x - px, z - pz);
+                if (d < best.d) best = { d, along: at[i] + l * t, across: (-(x - a[0]) * dz + (z - a[2]) * dx) / l };
+            }
+            return best;
+        };
+        // junctions along the deck and at its ends (a fork leaving a deck: both decks open on their inner sides)
+        for (let i = 0; i < deck.length; i++) for (const j of input.junctions ?? [])
+        {
+            if (Math.hypot(j.x - deck[i][0], j.z - deck[i][2]) > .5) continue;
+            for (const a of j.roads)
+            {
+                const r = wayById.get(a.road);
+                if (!r || (chain !== undefined && r.chain === chain)) continue;
+                // the joining way, outward from the junction: open the side it lies on for as long as its edge is
+                // inside the parapet (a narrow fork runs beside the deck a long way)
+                const P = Math.hypot(r.points[0][0] - j.x, r.points[0][2] - j.z) < .5 ? r.points : r.points.slice().reverse();
+                const reach = width / 2 + r.width / 2 + 1.2, L = at[at.length - 1];
+                // at a deck end, a way going on past the end (not back along the deck) needs no opening
+                if ((i === 0 || i === deck.length - 1) && P.length > 2) { const q = project(P[2][0], P[2][2]); if (q.along < .01 || q.along > L - .01) continue; }
+                let from = at[i], to = at[i], side = 0;
+                for (const p of P)
                 {
-                    const r = wayById.get(a.road);
-                    if (!r || (chain !== undefined && r.chain === chain)) continue;
-                    const ux = Math.cos(a.angle), uz = Math.sin(a.angle), along = ux * fx + uz * fz, across = -ux * fz + uz * fx;
-                    if (Math.abs(along) > .9) continue;
-                    const half = (r.width / 2 + 1.5) / Math.max(.4, Math.abs(across));
-                    gaps.push({ from: d - half, to: d + half, side: across > 0 ? 1 : -1 });
+                    const q = project(p[0], p[2]);
+                    if (Math.abs(q.across) > reach) break;
+                    from = Math.min(from, q.along); to = Math.max(to, q.along);
+                    if (Math.abs(q.across) > .5) side = Math.sign(q.across);
                 }
+                const half = r.width / 2 + 1.5;
+                if (!side)
+                {
+                    const k = Math.min(i + 1, deck.length - 1), h = Math.max(0, i - 1), l = Math.hypot(deck[k][0] - deck[h][0], deck[k][2] - deck[h][2]) || 1;
+                    side = -Math.cos(a.angle) * (deck[k][2] - deck[h][2]) / l + Math.sin(a.angle) * (deck[k][0] - deck[h][0]) / l;
+                }
+                gaps.push({ from: from - half, to: to + half, side: side > 0 ? 1 : -1 });
             }
         }
         return gaps;
@@ -136,14 +170,14 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                 for (const end of [0, 1])
                 {
                     const p = end ? deck[deck.length - 1] : deck[0], other = deckAt(p[0], p[2], road.chain);
-                    if (!other || deck.length < 3) continue;
+                    if (!other.length || deck.length < 3) continue;
                     const list = end ? deck.slice().reverse() : deck;
                     let i = 1;
-                    while (i < list.length - 1 && Math.hypot(list[i][0] - p[0], list[i][2] - p[2]) < other) i++;
+                    while (i < list.length - 1 && overDeck(list[i][0], list[i][2], other)) i++;
                     const kept = list.slice(i - 1);
                     deck = end ? kept.reverse() : kept;
                 }
-                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road", gaps: joins(deck, road.chain) });
+                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road", gaps: joins(deck, road.chain, road.width) });
                 meshes.push(b.mesh);
                 structures.push({ kind: `bridge-${b.type}`, road: road.id, x: raw[0][0], y: raw[0][1], z: raw[0][2], to: raw[raw.length - 1] });
                 if (rail) lay(raw);

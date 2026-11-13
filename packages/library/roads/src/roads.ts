@@ -127,8 +127,9 @@ export class Roads {
         t0 = performance.now();
         const { roads, out } = this.shape(raws.filter(r => r.nodes.length > 1), junctions);
         unzip(roads, out);
-        // tunnels trimmed first: their open approaches are ground the crossings below must see
+        // tunnels trimmed first: their open approaches are ground the merges / crossings below must see
         trimTunnels(roads, this.heightAt);
+        mergeAlong(roads, out);
         levelCrossings(roads, o.step);
         for (const r of roads)
         {
@@ -462,7 +463,7 @@ export function levelCrossings(roads: Road[], step: number) {
  * it really leaves the bigger one's surface, the bigger one gets a junction there (split, same chain so it still
  * draws as one sweep). One running along all the way is dropped. In place; road ids are renumbered.
  */
-export function unzip(roads: Road[], out: Junction[], maxAngle = .45) {
+export function unzip(roads: Road[], out: Junction[], maxAngle = .6) {
     const seg = (p: number[], a: number[], b: number[]) => {
         const dx = b[0] - a[0], dz = b[2] - a[2], t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[2] - a[2]) * dz) / (dx * dx + dz * dz || 1)));
         return { d: Math.hypot(p[0] - a[0] - dx * t, p[2] - a[2] - dz * t), t };
@@ -501,7 +502,15 @@ export function unzip(roads: Road[], out: Junction[], maxAngle = .45) {
                     roads.splice(roads.indexOf(B.r), 1);
                     changed = true; continue;
                 }
-                if (k < 2) continue;
+                // B parts at a narrow angle right away: its strip still lies over A's for a while (a messy wedge);
+                // it leaves A from the last point still over A's surface (one road until there, then a clean fork)
+                if (k < 2)
+                {
+                    if (free - k < 3) continue;
+                    k = free - 1;
+                    while (k > 2 && near(P[k]).d > on + B.r.width / 2) k--;
+                    if (k < 2) continue;
+                }
                 // split A's chain at the point nearest P[k]
                 const q = near(P[k]), R = q.r, m = q.t < .5 ? q.i : q.i + 1;
                 let jid: number;
@@ -543,6 +552,92 @@ export function unzip(roads: Road[], out: Junction[], maxAngle = .45) {
             if (changed) break;
         }
         if (!changed) break;
+    }
+    roads.forEach((r, i) => r.id = i);
+}
+
+/** spans of `r` cut to points `a..b`, renumbered from 0 */
+const sliceSpans = (r: Road, a: number, b: number): Span[] => r.spans.filter(sp => sp.to > a && sp.from < b).map(sp => ({ ...sp, from: Math.max(sp.from, a) - a, to: Math.min(sp.to, b) - a })).filter(sp => sp.to > sp.from);
+
+/**
+ * Ways running on top of each other away from their ends (side by side, or crossing at a shallow angle): one road
+ * there. Where the smaller way's centre runs on the bigger one's surface it ends at a junction on the bigger way and
+ * starts again where it leaves; the stretch in between is dropped. In place; road ids renumbered.
+ */
+export function mergeAlong(roads: Road[], out: Junction[]) {
+    const seg = (p: number[], a: number[], b: number[]) => {
+        const dx = b[0] - a[0], dz = b[2] - a[2], t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[2] - a[2]) * dz) / (dx * dx + dz * dz || 1)));
+        return { d: Math.hypot(p[0] - a[0] - dx * t, p[2] - a[2] - dz * t), t, y: a[1] + (b[1] - a[1]) * t };
+    };
+    const kindAt = (r: Road, i: number) => r.spans.find(sp => i >= sp.from && i <= sp.to)?.kind ?? "ground";
+    const box = (r: Road) => { const b = [Infinity, Infinity, -Infinity, -Infinity]; for (const p of r.points) { b[0] = Math.min(b[0], p[0]); b[1] = Math.min(b[1], p[2]); b[2] = Math.max(b[2], p[0]); b[3] = Math.max(b[3], p[2]); } return b; };
+    /** junction on `R` at point `m` (an end's junction, or a new one splitting `R`) */
+    const split = (R: Road, m: number) => {
+        if (m <= 0) return R.from;
+        if (m >= R.points.length - 1) return R.to;
+        const pt = R.points[m], jid = out.length;
+        out.push({ id: jid, x: pt[0], z: pt[2], y: pt[1], roads: [] });
+        const tail: Road = { ...R, from: jid, points: R.points.slice(m), spans: sliceSpans(R, m, R.points.length - 1) };
+        R.spans = sliceSpans(R, 0, m);
+        R.points = R.points.slice(0, m + 1);
+        R.to = jid;
+        roads.splice(roads.indexOf(R) + 1, 0, tail);
+        return jid;
+    };
+    for (let guard = 0; guard < 400; guard++)
+    {
+        let done = true;
+        search: for (const B of roads)
+        {
+            if (B.class === "rail" || B.points.length < 4) continue;
+            for (const A of roads)
+            {
+                if (A === B || A.class === "rail" || (A.chain !== undefined && A.chain === B.chain)) continue;
+                // A: the bigger one (same class: the longer)
+                if (RANK[A.class] < RANK[B.class] || (RANK[A.class] === RANK[B.class] && A.points.length < B.points.length)) continue;
+                // strips overlapping (not just touching at a crossing)
+                const on = (A.width + B.width) / 2 * .85, P = B.points, n = P.length;
+                const ba = box(A), bb = box(B);
+                if (ba[0] > bb[2] + on || bb[0] > ba[2] + on || ba[1] > bb[3] + on || bb[1] > ba[3] + on) continue;
+                const near = (p: number[]) => {
+                    let best = { d: Infinity, i: 0, t: 0, y: 0 };
+                    for (let i = 0; i < A.points.length - 1; i++) { const q = seg(p, A.points[i], A.points[i + 1]); if (q.d < best.d) best = { ...q, i }; }
+                    return best;
+                };
+                // first run of points on A's surface away from B's ends (ends on A are unzip's job / real junctions;
+                // a single point is a plain crossing)
+                const over = (i: number) => { const q = near(P[i]); return q.d < on && Math.abs(q.y - P[i][1]) < 3; };
+                let a = -1, b = -1;
+                for (let i = 0; i < n; )
+                {
+                    if (!over(i)) { i++; continue; }
+                    let e = i;
+                    while (e + 1 < n && over(e + 1)) e++;
+                    if (i > 0 && e < n - 1 && e - i >= 2) { a = i; b = e; break; }
+                    i = e + 1;
+                }
+                if (a < 0) continue;
+                for (let i = a; i <= b; i++) if (kindAt(B, i) !== "ground") continue search;
+                const qa = near(P[a]), qb = near(P[b]);
+                const ma = qa.t < .5 ? qa.i : qa.i + 1, mb = qb.t < .5 ? qb.i : qb.i + 1;
+                // crossing at a shallow angle (both ends nearest one point of A): one four way junction there
+                let [lo, hi] = ma < mb ? [ma, mb] : [mb, ma];
+                if (hi - lo <= 1) lo = hi;
+                // split A at the later point first (indices before it stay valid)
+                const jHi = split(A, hi), jLo = lo === hi ? jHi : split(A, lo), ja = ma < mb ? jLo : jHi, jb = ma < mb ? jHi : jLo;
+                const head = out[ja], tail = out[jb];
+                const first: Road = { ...B, to: ja, points: [...P.slice(0, a).map(p => [p[0], p[1], p[2]] as [number, number, number]), [head.x, head.y, head.z]], spans: sliceSpans(B, 0, a) };
+                const second: Road = { ...B, from: jb, points: [[tail.x, tail.y, tail.z], ...P.slice(b + 1).map(p => [p[0], p[1], p[2]] as [number, number, number])], spans: sliceSpans(B, b, n - 1) };
+                // ease both onto the junction heights over a few points
+                for (let k = 1; k <= Math.min(3, first.points.length - 1); k++) { const w = 1 - k / 4, q = first.points[first.points.length - 1 - k]; q[1] += (head.y - q[1]) * w; }
+                for (let k = 1; k <= Math.min(3, second.points.length - 1); k++) { const w = 1 - k / 4, q = second.points[k]; q[1] += (tail.y - q[1]) * w; }
+                const at = roads.indexOf(B);
+                roads.splice(at, 1, ...[first, second].filter(r => r.points.length >= 2));
+                done = false;
+                break search;
+            }
+        }
+        if (done) break;
     }
     roads.forEach((r, i) => r.id = i);
 }

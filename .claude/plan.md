@@ -22,7 +22,7 @@ Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 d
 - [x] 1. Wireframe shows roads, bridges, tunnels, portals, fences, built props.
 - [x] 2. Fewer bridges: dearer in routing, only over water / ways / real gaps; auto bridges from fills back to embankment unless very tall; no tall wood (lanes / paths max ~6 m).
 - [x] 3. No bridges to nowhere: bridge ends on connected ground; drop stub ways that are mostly bridge.
-- [ ] 4. Merge ways: overlapping / side-by-side roads become one way; joining decks one deck, truss / parapet open over the whole join.
+- [x] 4. Merge ways: overlapping / side-by-side roads become one way; joining decks one deck, truss / parapet open over the whole join.
 - [ ] 5. Rail × road: clean level crossing (rail flush) or a real overpass.
 - [ ] 6. Small ways on the ground: lanes / paths (gravel roads where flat) painted into the terrain material, no mesh.
 - [ ] 7. Perf: way meshes chunked + culled, 2–3 lods (far: coarse step, no railings / lamps, simple truss); built props lods; profile before / after.

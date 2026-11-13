@@ -60,8 +60,16 @@ export function trimAtPads<W extends Way & { chain?: number; from?: number; to?:
 
 export function junctionPads(junctions: WayJunction[], roads: Way[], ground: (x: number, z: number) => number, styles: Record<string, ClassStyle>): Mesh | undefined {
     const byId = new Map(roads.map(r => [r.id, r])), p: number[] = [], n: number[] = [], c: number[] = [];
+    // a junction out on bridge decks (two or more arms end on a deck there): the decks are the surface, no pad
+    const onDeck = (j: WayJunction) => j.roads.filter(a => {
+        const r = byId.get(a.road);
+        if (!r) return false;
+        const P = r.points, i = Math.hypot(P[0][0] - j.x, P[0][2] - j.z) < .5 ? 0 : P.length - 1;
+        return r.spans.some(s => s.kind === "bridge" && (s.from === i || s.to === i));
+    }).length >= 2;
     for (const { j, arms, big, e } of padded(junctions, roads, styles))
     {
+        if (onDeck(j)) continue;
         const style = styles[big.class]!, col = style.profile!.colors?.[1] ?? style.profile!.color ?? [.5, .5, .5], lift = style.lift + .03;
         // ring: per gap between two neighbour arms, a curve from a's left edge (out `e` along it) to b's right edge,
         // bent towards where the two edges meet; points stay in angle order, so the fan never folds
