@@ -3,6 +3,7 @@ import type { HydrologyOptions } from "./types";
 export const DEFAULTS: HydrologyOptions = {
     seed: 1,
     catchment: 60000,
+    spring: 600,
     length: 300,
     width: 4,
     maxWidth: 40,

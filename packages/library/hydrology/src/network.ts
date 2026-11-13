@@ -33,10 +33,18 @@ export function plan(g: Ground, o: HydrologyOptions, lakes: Lake[], rng: Random)
     }
     sources.sort((a, b) => len.get(b)! - len.get(a)!);
 
+    // each node's biggest feeder: streams are traced back up it to their spring
+    const up = new Int32Array(total).fill(-1);
+    for (let m = 0; m < total; m++) { const k = down[m]; if (k >= 0 && (up[k] < 0 || acc[m] > acc[up[k]])) up[k] = m; }
+    const spring = (s: number) => {
+        const head: number[] = [];
+        for (let k = up[s], l = 0; k >= 0 && acc[k] >= threshold * .08 && l < o.spring / cell; k = up[k], l++) head.push(k);
+        return head.reverse();
+    };
     const owner = new Int32Array(total).fill(-1), raw: { nodes: number[]; parent: number; sea: boolean }[] = [];
     for (const s of sources)
     {
-        const nodes = [s];
+        const nodes = [...spring(s), s];
         let parent = -1, toSea = false;
         for (let k = down[s]; ; k = down[k])
         {
@@ -52,7 +60,7 @@ export function plan(g: Ground, o: HydrologyOptions, lakes: Lake[], rng: Random)
         raw.push({ nodes, parent, sea: toSea });
     }
 
-    const width = (k: number) => Math.min(o.maxWidth, o.width * Math.sqrt(acc[k] / threshold));
+    const width = (k: number) => Math.max(1, Math.min(o.maxWidth, o.width * Math.sqrt(acc[k] / threshold)));
     const out: Path[] = [];
     for (const r of raw)
     {

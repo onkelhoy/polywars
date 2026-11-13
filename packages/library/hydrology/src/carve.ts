@@ -6,25 +6,27 @@ type Grid = { n: number; size: number; height: Float32Array; seaLevel: number };
 const smoothstep = (a: number, b: number, v: number) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /**
- * Beds along each path: following the ground but never rising (a climb up to `cut` is cut through, more starts a
- * new piece behind the rim). A drop of `fall` or more in one step is a waterfall. `stop(k)` ends a piece at a node (lakes, sea).
+ * Beds along each path: following the ground but never rising (a climb up to `cut` is cut through, past a higher rim the
+ * river only goes on where the ground is below its bed again). A drop of `fall` or more in one step is a waterfall. `stop(k)` ends a piece at a node (lakes, sea).
  */
 function beds(p: Path, g: Grid, o: HydrologyOptions, stop?: (k: number) => boolean) {
     const pieces: { i: number[]; bed: number[]; depth: number[]; ground: number[]; falls: number[] }[] = [];
-    let cur: typeof pieces[number] | null = null, bed = Infinity;
+    let cur: typeof pieces[number] | null = null, bed = Infinity, blocked = false;
     for (let i = 0; i < p.x.length; i++)
     {
         const ground = sample(g.height, g.n, g.size, p.x[i], p.z[i]), depth = o.depth * Math.min(3, Math.sqrt(p.w[i] / o.width));
         const k = node(g.n, g.size, p.x[i], p.z[i]), end = stop?.(k) ?? false;
         // never below the sea floor near the coast: no pits
         const want = Math.max(ground - depth, g.seaLevel - depth * 2);
-        if (!cur || want - bed > o.cut)
+        // a rim too high to cut: water can't climb it, so no new river starts up there; it goes on once the ground is below the bed again
+        if (cur && want - bed > o.cut) { if (cur.i.length > 1) pieces.push(cur); cur = null; blocked = true; continue; }
+        if (blocked && want > bed) continue;
+        blocked = false;
+        if (!cur)
         {
-            if (cur && cur.i.length > 1) pieces.push(cur);
-            cur = null;
             if (end) continue;
             cur = { i: [], bed: [], depth: [], ground: [], falls: [] };
-            bed = want;
+            bed = Math.min(bed, want);
         }
         else if (want < bed) { if (bed - want >= o.fall) cur.falls.push(cur.i.length); bed = want; }
         cur.i.push(i); cur.bed.push(bed); cur.depth.push(depth); cur.ground.push(ground);
@@ -62,7 +64,16 @@ export function carveValleys(paths: Path[], g: Grid, o: HydrologyOptions, hard: 
             }
         });
     }
+    // the carved shape inside the valleys (NaN outside): erosion may not dig far below it
+    const shape = new Float32Array(target.length).fill(NaN);
+    for (let k = 0; k < target.length; k++) if (target[k] < height[k]) shape[k] = target[k];
     height.set(target);
+    return shape;
+}
+
+/** after erosion: nowhere in a valley more than `dig` m below its carved shape (water gathers there and erosion runs deep) */
+export function limitErosion(height: Float32Array, shape: Float32Array, dig = 2) {
+    for (let k = 0; k < height.length; k++) if (shape[k] === shape[k] && height[k] < shape[k] - dig) height[k] = shape[k] - dig;
 }
 
 type Wet = Grid & { water: Uint8Array; surface: Float32Array };
@@ -82,14 +93,17 @@ export function carveBeds(paths: Path[], g: Wet, o: HydrologyOptions): Stream[] 
             const bed = piece.bed[q], depth = piece.depth[q], w2 = p.w[i] / 2, top = bed + depth * .8, x0 = p.x[i], z0 = p.z[i];
             const k0 = node(n, size, x0, z0);
             points.push([x0, still(k0) ? surface[k0] : top, z0, p.w[i]]);
-            const reach = w2 + depth * 2 + cell * 2;
+            // banks: as high as the ground beside the channel, so a deep cut gets canyon walls, not a slot
+            let rim = -Infinity;
+            for (let a = 0; a < 8; a++) rim = Math.max(rim, sample(height, n, size, x0 + Math.cos(a * .785) * (w2 + cell * 2), z0 + Math.sin(a * .785) * (w2 + cell * 2)));
+            const cut = Math.max(0, rim - bed - depth), bank = cut > 6 ? o.canyon : 1, reach = Math.min(w2 + depth * 2 + cell * 2 + cut / bank, 300);
             const i0 = Math.max(0, Math.floor((x0 - reach + half) / cell)), i1 = Math.min(n - 1, Math.ceil((x0 + reach + half) / cell));
             const j0 = Math.max(0, Math.floor((z0 - reach + half) / cell)), j1 = Math.min(n - 1, Math.ceil((z0 + reach + half) / cell));
             for (let j = j0; j <= j1; j++) for (let ii = i0; ii <= i1; ii++)
             {
                 const k = j * n + ii, d = Math.hypot(ii * cell - half - x0, j * cell - half - z0);
                 if (d > reach || still(k)) continue;
-                const v = d < w2 ? bed + depth * (d / w2) ** 2 : bed + depth + (d - w2);
+                const v = d < w2 ? bed + depth * (d / w2) ** 2 : bed + depth + (d - w2) * bank;
                 if (v < target[k]) target[k] = v;
                 // the channel itself gets exactly the bed shape (erosion pits filled)
                 if (d < w2 && v < chan[k]) chan[k] = v;
@@ -118,10 +132,33 @@ export function despike(g: Wet) {
     }
 }
 
-/** dry pits (land basins no lake kept) filled up to `keep` metres under where they spill */
-export function fillPits(g: Wet, keep = 1.5) {
-    const { n, height: h, water } = g, { filled } = drainage(h, n, g.seaLevel);
-    let count = 0;
-    for (let k = 0; k < h.length; k++) if (!water[k] && filled[k] - h[k] > keep) { h[k] = filled[k] - keep; count++; }
-    return count;
+/**
+ * Closed basins left after carving: big ones (`lake` m², `depth` m deep) fill with water up to their spill level (a lake
+ * behind a rim), small ones fill with ground up to `keep` m under it. Returns the number of lakes made.
+ */
+export function fillPits(g: Wet, keep = 1.5, lake = 3000, depth = 3) {
+    const { n, size, height: h, water, surface } = g, { filled } = drainage(h, n, g.seaLevel), cell = size / (n - 1);
+    const pit = (k: number) => (water[k] === 0 || water[k] === 3) && filled[k] - h[k] > .3;
+    const seen = new Uint8Array(n * n);
+    let lakes = 0;
+    for (let s = 0; s < h.length; s++)
+    {
+        if (seen[s] || !pit(s)) continue;
+        const part = [s], stack = [s];
+        seen[s] = 1;
+        let deepest = 0;
+        while (stack.length)
+        {
+            const k = stack.pop()!, i = k % n;
+            deepest = Math.max(deepest, filled[k] - h[k]);
+            for (const m of [k - 1, k + 1, k - n, k + n])
+            {
+                if (m < 0 || m >= n * n || Math.abs((m % n) - i) > 1 || seen[m] || !pit(m)) continue;
+                seen[m] = 1; part.push(m); stack.push(m);
+            }
+        }
+        if (part.length * cell * cell >= lake && deepest >= depth) { for (const k of part) { water[k] = 2; surface[k] = filled[k]; } lakes++; }
+        else for (const k of part) if (filled[k] - h[k] > keep) h[k] = filled[k] - keep;
+    }
+    return lakes;
 }

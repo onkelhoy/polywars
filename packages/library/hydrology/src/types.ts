@@ -7,6 +7,8 @@ export type HydrologyOptions = {
     seed: number;
     /** m² of catchment where a stream starts */
     catchment: number;
+    /** metres a stream is traced up past where it gets big enough, thinning out to its spring */
+    spring: number;
     /** streams shorter than this (metres) are dropped */
     length: number;
     /** metres wide / deep at the source; width grows with the catchment up to `maxWidth` */

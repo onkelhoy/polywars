@@ -155,9 +155,9 @@ export class Terrain {
         if (!fill) { if (cull) gl.enable(gl.CULL_FACE); return; }
         // the water reads the ground's depth: exact edge and rim where it meets the land
         this.water.capture();
-        for (const [w, fresh] of [[this.riverWater, true], [this.lakes, true], [this.ocean, false]] as const)
+        for (const [w, fresh, still] of [[this.riverWater, true, false], [this.lakes, true, true], [this.ocean, false, false]] as const)
         {
-            if (!w || !this.water.use(view, light, time, { fresh, under: eyeSurface !== null, surface: eyeSurface ?? 0, shore: this.shore })) continue;
+            if (!w || !this.water.use(view, light, time, { fresh, still, under: eyeSurface !== null, surface: eyeSurface ?? 0, shore: this.shore })) continue;
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.depthMask(false);
@@ -213,7 +213,7 @@ export class Terrain {
         const gl = this.gl, o = this.o;
         this.clear();
         this.ground = new Ground(gl, d, o.mesh.detail, o.mesh.adaptive, o.mesh.edges, o.mesh.chunk, o.lod);
-        this.material.biomes({ n: d.n, size: d.size, biome: d.biome, toWater: d.toWater });
+        this.material.biomes({ n: d.n, size: d.size, biome: d.biome });
         this.triangles = { used: 0, full: this.ground.full };
         const step = Math.max(1, Math.round((d.n - 1) / 512));
         const edge = o.edge.type;
