@@ -1,6 +1,7 @@
 # Plan
 
 ## Where we are
+Round 6 (19.43 screenshots + owner notes) confirmed: tasks below, commit per task, no merge.
 Round 3 (owner review 2026-11-13 evening, 14 screenshots on Desktop): "it looks buggy, fix it all". Owner away, runs on its own: "next task" through all, commit per task on `feature/infrastructure`, no merge.
 Round 5 (19:09 screenshots: tunnels not connected, roads climbing into / blocking portals) done, waiting for owner review. Round 4 tasks 1–6 done. Next idea from owner: more tunnel detail once tunnels work. Round 3 tasks 1–9 done. Open: tight highway switchbacks, long mountain viaducts, rail station tangles, fragmented rivers, river→lake outlet steps.
 Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 done, see git log.
@@ -16,6 +17,15 @@ Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 d
 - Arches / tunnels: `buildings/modular-village/Stone_Arch`, `Stone_Arch_Outer`, `Stucco_Arch_*`; `buildings/castle/Tunnel`, `Bridge`, `WallEntrance`.
 - Railings / posts: `modular-village/Wood_Railing_*`, `Wood_Post_Large`, `Stone_Stairs_Railing`; `buildings/farm/Fence`, `Fence2`.
 - Props: `assets/models/props/village/` (copied from arrow-warfare: bench, street-lamp, double-lamp, signpost, fence, lantern, stone-lantern, log, woodpile, barrel, crate, ...). `modular-village/Prop_Lamp_Street`, `Wall_Prop_Sign_1` (notice board). Rocks in `nature/`.
+
+## Tasks (round 6)
+- [x] 1. Wireframe shows roads, bridges, tunnels, portals, fences, built props.
+- [ ] 2. Fewer bridges: dearer in routing, only over water / ways / real gaps; auto bridges from fills back to embankment unless very tall; no tall wood (lanes / paths max ~6 m).
+- [ ] 3. No bridges to nowhere: bridge ends on connected ground; drop stub ways that are mostly bridge.
+- [ ] 4. Merge ways: overlapping / side-by-side roads become one way; joining decks one deck, truss / parapet open over the whole join.
+- [ ] 5. Rail × road: clean level crossing (rail flush) or a real overpass.
+- [ ] 6. Small ways on the ground: lanes / paths (gravel roads where flat) painted into the terrain material, no mesh.
+- [ ] 7. Perf: way meshes chunked + culled, 2–3 lods (far: coarse step, no railings / lamps, simple truss); built props lods; profile before / after.
 
 ## Tasks (round 4)
 Owner review 2026-11-13 18:36 (11 screenshots on Desktop): "massively improved", but:

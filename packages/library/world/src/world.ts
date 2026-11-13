@@ -21,6 +21,10 @@ import type { ScatterBatch } from "@polywar/scatter";
 import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
 import type { Mesh } from "@papit/game-mesh";
 
+/** a GPU mesh + its CPU indices (wireframe needs them) */
+type Uploaded = ReturnType<typeof upload> & { indices?: ArrayLike<number> };
+const put = (gl: WebGL2RenderingContext, m: Mesh): Uploaded => Object.assign(upload(gl, m), { indices: m.indices });
+
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 import type { WorldSettings, WorldView } from "./types";
 /** debug site sphere colour per kind */
@@ -66,9 +70,9 @@ export class World {
     readonly roads: RoadHooks;
     /** lakes, streams and rivers, carved inside the terrain pipeline (before roads) */
     readonly hydrology: HydrologyHooks;
-    private roadMesh?: ReturnType<typeof upload>;
-    private fenceMesh?: ReturnType<typeof upload>;
-    private riverMesh?: ReturnType<typeof upload>;
+    private roadMesh?: Uploaded;
+    private fenceMesh?: Uploaded;
+    private riverMesh?: Uploaded;
     private siteMesh?: ReturnType<typeof upload>;
     /** made on first use of `view.wire` */
     private wire?: Wire;
@@ -140,12 +144,15 @@ export class World {
         p?.end();
         if (wire) { for (const [m, wallDrop] of ground) wire.draw(view, m, { wallDrop }); this.renderer.reset(); }
         if (!this.data) return;
-        if (this.v.rivers && this.riverMesh) this.renderer.draw(this.riverMesh, IDENTITY);
-        if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, IDENTITY);
-        if (this.v.roads && this.fenceMesh) this.renderer.draw(this.fenceMesh, IDENTITY);
+        const solid: Uploaded[] = [];
+        if (this.v.rivers && this.riverMesh) solid.push(this.riverMesh);
+        if (this.v.roads && this.roadMesh) solid.push(this.roadMesh);
+        if (this.v.roads && this.fenceMesh) solid.push(this.fenceMesh);
+        if (fill) for (const m of solid) this.renderer.draw(m, IDENTITY);
+        if (wire) { for (const m of solid) wire.draw(view, m); this.renderer.reset(); }
         if (this.v.sites && this.siteMesh) this.renderer.draw(this.siteMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
-        if (this.v.roads) this.built.draw(view, time);
+        if (this.v.roads) this.built.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
         if (this.v.props) this.scatter.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
         p?.end();
         if (wire) { for (const [m, model, instances] of parts) wire.draw(view, m, { model, instances }); this.renderer.reset(); }
@@ -211,7 +218,7 @@ export class World {
         if (!r) return;
         const w = buildWays({ roads: r.network.roads, junctions: r.network.junctions, ground: (x, z) => this.terrain.groundAt(x, z), wet: (x, z) => this.wetAt(x, z), surface: (x, z) => this.surfaceAt(x, z) });
         this.structures = w.structures;
-        if (w.mesh) this.roadMesh = upload(this.layer.gl, w.mesh);
+        if (w.mesh) this.roadMesh = put(this.layer.gl, w.mesh);
         if (w.sleepers.count) this.builtBatches.push({ model: SLEEPER_MODEL, kind: "sleeper", ...w.sleepers });
     }
 
@@ -265,7 +272,7 @@ export class World {
                 meshes.push(sweep(pts, { width: part.map(p => Math.max(1, p[3])), profile: { points: [[-1, 0], [1, 0]], color: c }, bank: "flat", step: 3 }));
             }
         }
-        if (meshes.length) this.riverMesh = upload(this.layer.gl, merge(meshes));
+        if (meshes.length) this.riverMesh = put(this.layer.gl, merge(meshes));
     }
 
     /** structures + trail furniture into the placement record, then their instances into the built scatter */
@@ -285,7 +292,7 @@ export class World {
         P.applyChanges();
         // generated fences (posts on the ground, rails follow the slope)
         const runs = P.all().filter(p => p.kind === "fence:run").map(p => fence(p.params!.points as Vec3[]));
-        this.fenceMesh = runs.length ? upload(this.layer.gl, merge(runs)) : undefined;
+        this.fenceMesh = runs.length ? put(this.layer.gl, merge(runs)) : undefined;
         this.builtBatches.push(...P.batches(k => k.includes(":") || k === "portal" ? undefined : k, k => k.startsWith("nature/") ? "rock" : "trail"));
     }
 
