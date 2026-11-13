@@ -9958,187 +9958,187 @@
         {
          "name": "bale.glb",
          "file": "/assets/models/props/village/bale.glb",
-         "size": 1384
+         "size": 3084
         },
         {
          "name": "banner.glb",
          "file": "/assets/models/props/village/banner.glb",
-         "size": 1916
+         "size": 5240
         },
         {
          "name": "barrel.glb",
          "file": "/assets/models/props/village/barrel.glb",
-         "size": 4392
+         "size": 14896
         },
         {
          "name": "basket.glb",
          "file": "/assets/models/props/village/basket.glb",
-         "size": 3952
+         "size": 19204
         },
         {
          "name": "bench.glb",
          "file": "/assets/models/props/village/bench.glb",
-         "size": 2028
+         "size": 5888
         },
         {
          "name": "big-pumpkin.glb",
          "file": "/assets/models/props/village/big-pumpkin.glb",
-         "size": 7852
+         "size": 48036
         },
         {
          "name": "brazier.glb",
          "file": "/assets/models/props/village/brazier.glb",
-         "size": 4424
+         "size": 15160
         },
         {
          "name": "bread-stall.glb",
          "file": "/assets/models/props/village/bread-stall.glb",
-         "size": 18968
+         "size": 104196
         },
         {
          "name": "bucket.glb",
          "file": "/assets/models/props/village/bucket.glb",
-         "size": 2072
+         "size": 5316
         },
         {
          "name": "cart-hay.glb",
          "file": "/assets/models/props/village/cart-hay.glb",
-         "size": 4092
+         "size": 20772
         },
         {
          "name": "cart-pumpkins.glb",
          "file": "/assets/models/props/village/cart-pumpkins.glb",
-         "size": 31020
+         "size": 205440
         },
         {
          "name": "cart-sacks.glb",
          "file": "/assets/models/props/village/cart-sacks.glb",
-         "size": 11076
+         "size": 67416
         },
         {
          "name": "chair.glb",
          "file": "/assets/models/props/village/chair.glb",
-         "size": 3176
+         "size": 10628
         },
         {
          "name": "cloth-stall.glb",
          "file": "/assets/models/props/village/cloth-stall.glb",
-         "size": 17232
+         "size": 94116
         },
         {
          "name": "crate.glb",
          "file": "/assets/models/props/village/crate.glb",
-         "size": 3912
+         "size": 13904
         },
         {
          "name": "double-lamp.glb",
          "file": "/assets/models/props/village/double-lamp.glb",
-         "size": 8976
+         "size": 33444
         },
         {
          "name": "fence.glb",
          "file": "/assets/models/props/village/fence.glb",
-         "size": 2512
+         "size": 10512
         },
         {
          "name": "firepit.glb",
          "file": "/assets/models/props/village/firepit.glb",
-         "size": 5580
+         "size": 26588
         },
         {
          "name": "fish-stall.glb",
          "file": "/assets/models/props/village/fish-stall.glb",
-         "size": 15616
+         "size": 85052
         },
         {
          "name": "flower-pot.glb",
          "file": "/assets/models/props/village/flower-pot.glb",
-         "size": 3596
+         "size": 16820
         },
         {
          "name": "food-cart.glb",
          "file": "/assets/models/props/village/food-cart.glb",
-         "size": 6800
+         "size": 36836
         },
         {
          "name": "fruit-stall.glb",
          "file": "/assets/models/props/village/fruit-stall.glb",
-         "size": 29436
+         "size": 173956
         },
         {
          "name": "hay.glb",
          "file": "/assets/models/props/village/hay.glb",
-         "size": 2556
+         "size": 7600
         },
         {
          "name": "lantern.glb",
          "file": "/assets/models/props/village/lantern.glb",
-         "size": 3748
+         "size": 12624
         },
         {
          "name": "log.glb",
          "file": "/assets/models/props/village/log.glb",
-         "size": 5976
+         "size": 12592
         },
         {
          "name": "pottery-stall.glb",
          "file": "/assets/models/props/village/pottery-stall.glb",
-         "size": 21136
+         "size": 119340
         },
         {
          "name": "pumpkin.glb",
          "file": "/assets/models/props/village/pumpkin.glb",
-         "size": 7844
+         "size": 48024
         },
         {
          "name": "sack.glb",
          "file": "/assets/models/props/village/sack.glb",
-         "size": 2868
+         "size": 12728
         },
         {
          "name": "signpost.glb",
          "file": "/assets/models/props/village/signpost.glb",
-         "size": 1556
+         "size": 4000
         },
         {
          "name": "stone-lantern.glb",
          "file": "/assets/models/props/village/stone-lantern.glb",
-         "size": 3108
+         "size": 10096
         },
         {
          "name": "stook.glb",
          "file": "/assets/models/props/village/stook.glb",
-         "size": 3444
+         "size": 10304
         },
         {
          "name": "stool.glb",
          "file": "/assets/models/props/village/stool.glb",
-         "size": 2120
+         "size": 6152
         },
         {
          "name": "street-lamp.glb",
          "file": "/assets/models/props/village/street-lamp.glb",
-         "size": 5572
+         "size": 18952
         },
         {
          "name": "table.glb",
          "file": "/assets/models/props/village/table.glb",
-         "size": 3424
+         "size": 11648
         },
         {
          "name": "washing-line.glb",
          "file": "/assets/models/props/village/washing-line.glb",
-         "size": 2496
+         "size": 7692
         },
         {
          "name": "well.glb",
          "file": "/assets/models/props/village/well.glb",
-         "size": 6640
+         "size": 33320
         },
         {
          "name": "woodpile.glb",
          "file": "/assets/models/props/village/woodpile.glb",
-         "size": 5976
+         "size": 19364
         }
        ]
       }
