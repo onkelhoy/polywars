@@ -13,6 +13,7 @@ import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
 import { SLEEPER_MODEL, track } from "@polywar/rail";
+import { PORTAL, bridgeFor, portal } from "@polywar/bridges";
 import type { ScatterBatch } from "@polywar/scatter";
 import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
 import type { Mesh } from "@papit/game-mesh";
@@ -61,6 +62,8 @@ export class World {
     readonly built: Scatter;
     /** batches for `built`, gathered while the world grows */
     private builtBatches: ScatterBatch[] = [];
+    /** bridges and tunnel mouths built on the roads (where nature and trail props react) */
+    structures: { kind: string; road: number; x: number; y: number; z: number; to: Vec3 }[] = [];
     private v: WorldView;
     private data?: TerrainData;
     /** sites + roads, built inside the terrain pipeline (before erosion) */
@@ -195,15 +198,35 @@ export class World {
         this.roadMesh = undefined;
         const r = this.roads.roads;
         if (!r) return;
-        const meshes: Mesh[] = [], sleepers: { data: Float32Array; count: number }[] = [];
+        const meshes: Mesh[] = [], sleepers: { data: Float32Array; count: number }[] = [], ground = (x: number, z: number) => this.terrain.groundAt(x, z);
+        this.structures = [];
         for (const road of r.network.roads)
         {
             const style = ROAD_STYLE[road.class] ?? ROAD_STYLE.road, rail = road.class === "rail";
             const spans = road.spans.length ? road.spans : [{ kind: "ground", from: 0, to: road.points.length - 1 }];
             for (const span of spans)
             {
-                if (span.kind !== "ground" || span.to - span.from < 1) continue;
-                const pts = road.points.slice(span.from, span.to + 1).map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3);
+                if (span.to - span.from < 1) continue;
+                const raw = road.points.slice(span.from, span.to + 1).map(p => [p[0], p[1], p[2]] as Vec3);
+                if (span.kind === "bridge")
+                {
+                    const b = bridgeFor(road.class, raw, { width: road.width, ground: ground, use: rail ? "rail" : road.class === "path" ? "path" : "road" });
+                    meshes.push(b.mesh);
+                    this.structures.push({ kind: `bridge-${b.type}`, road: road.id, x: raw[0][0], y: raw[0][1], z: raw[0][2], to: raw[raw.length - 1] });
+                    if (rail) { const t = track(raw); meshes.push(t.lods[0]); sleepers.push(t.sleepers); }
+                    continue;
+                }
+                if (span.kind === "tunnel")
+                {
+                    const size = PORTAL[rail ? "rail" : road.class === "highway" || road.class === "road" ? "road" : "lane"];
+                    for (const [a, b] of [[raw[0], raw[1]], [raw[raw.length - 1], raw[raw.length - 2]]])
+                    {
+                        meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: Math.max(size.width, road.width + 2) }));
+                        this.structures.push({ kind: "portal", road: road.id, x: a[0], y: a[1], z: a[2], to: b });
+                    }
+                    continue;
+                }
+                const pts = raw.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3);
                 if (!rail) { meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step, bands: style.bands })); continue; }
                 const t = track(pts);
                 meshes.push(t.lods[0]);

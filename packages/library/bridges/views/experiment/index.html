@@ -3,27 +3,23 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bridges | experiment</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-
-    <!-- Styles -->
+    <title>bridges | experiment</title>
     <link rel="stylesheet" href="style.css" />
-
     <script defer type="module" src="main.js"></script>
 </head>
 
 <body>
-
-    <h1>Bridges | experiment</h1>
-    <section>
-        <h2>Example</h2>
-        <pap-codeblock>
-            <undefined-bridges></undefined-bridges>
-        </pap-codeblock>
-    </section>
+    <pw-gallery location=""></pw-gallery>
+    <aside>
+        <h1>bridges</h1>
+        <label>span <input id="span" type="range" min="6" max="250" step="2" value="60" /><span></span></label>
+        <label>height <input id="height" type="range" min="1" max="50" step="1" value="12" /><span></span></label>
+        <label>width <input id="width" type="range" min="1" max="12" step=".5" value="6" /><span></span></label>
+        <label>curve <input id="curve" type="range" min="0" max=".4" step=".02" value="0" /><span></span></label>
+        <label>use <select id="use"><option>road</option><option>rail</option><option>path</option></select></label>
+        <output id="info"></output>
+    </aside>
 </body>
 
 </html>
