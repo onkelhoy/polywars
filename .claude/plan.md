@@ -2,7 +2,7 @@
 
 ## Where we are
 Round 3 (owner review 2026-11-13 evening, 14 screenshots on Desktop): "it looks buggy, fix it all". Owner away, runs on its own: "next task" through all, commit per task on `feature/infrastructure`, no merge.
-Round 4 running (owner away, plan + execute, commit per task). Round 3 tasks 1–9 done. Open: tight highway switchbacks, long mountain viaducts, rail station tangles, fragmented rivers, river→lake outlet steps.
+Round 4 tasks 1–6 done (2026-11-13), waiting for owner review. Next idea from owner: more tunnel detail once tunnels work. Round 3 tasks 1–9 done. Open: tight highway switchbacks, long mountain viaducts, rail station tangles, fragmented rivers, river→lake outlet steps.
 Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 done, see git log.
 
 ## Rules for this plan
@@ -24,7 +24,7 @@ Owner review 2026-11-13 18:36 (11 screenshots on Desktop): "massively improved",
 - [x] 3. Junction raised spots: pads at the exact arm surface, no lifted patches over roads (s 2, 6, 8).
 - [x] 4. Roads joining bridges: no junction on a bridge with railings / truss; joining ways meet on ground or the railing / truss opens there (s 4).
 - [x] 5. Curved bridges: truss + deck sides follow the curve, no empty spots (s 5).
-- [ ] 6. Water wedge above a lake (s 3): river mesh piece sticking out over the lake surface.
+- [x] 6. Water wedge above a lake (s 3): river mesh piece sticking out over the lake surface.
 
 ## Notes
 - Owner trains while this runs: run "next task" through all, one line status each, commit per task on the branch. Don't merge to main; owner reviews.

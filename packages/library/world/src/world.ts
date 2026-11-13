@@ -256,7 +256,12 @@ export class World {
                 const part = s.points.slice(Math.max(0, a - 1), Math.min(s.points.length, i + 1));
                 a = -1;
                 if (part.length < 2) continue;
-                const pts = part.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z) - .3) + .08, z] as Vec3);
+                // the end points in the lake / sea sit on its surface: the ribbon slopes into it, never stands over it
+                const pts = part.map(([x, y, z]) => {
+                    const d = this.terrain.data, k = this.node(x, z);
+                    if (d && k >= 0 && (d.water[k] === 1 || d.water[k] === 2)) return [x, (d.water[k] === 1 ? d.seaLevel : d.surface[k]) - .05, z] as Vec3;
+                    return [x, Math.max(y, this.terrain.groundAt(x, z) - .3) + .08, z] as Vec3;
+                });
                 meshes.push(sweep(pts, { width: part.map(p => Math.max(1, p[3])), profile: { points: [[-1, 0], [1, 0]], color: c }, bank: "flat", step: 3 }));
             }
         }
