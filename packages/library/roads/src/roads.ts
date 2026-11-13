@@ -3,7 +3,7 @@ import { dry, routingGrid, sampler, toNode, toXZ, type Grid } from "./grid";
 import { CLASSES, RANK, resolve } from "./presets";
 import { Router } from "./route";
 import { shapeRoute } from "./shape";
-import { topology } from "./topology";
+import { topology, type Link } from "./topology";
 import type { Ground, Junction, Network, Road, RoadClass, RoadsOptions, Site, Span } from "./types";
 
 type Raw = { id: number; cls: RoadClass; nodes: number[]; tags: number[]; from: number; to: number };
@@ -35,7 +35,8 @@ export class Roads {
         this.router = new Router(this.grid, this.o.greed);
     }
 
-    build(sites: Site[]): Network {
+    /** `links`: which sites to join and how (default: `topology(sites)`); scenario views pass their own */
+    build(sites: Site[], links: Link[] = topology(sites, this.o)): Network {
         const { grid, router, o } = this, m = grid.m;
         router.used.fill(0); router.rail.fill(0);
         const raws: Raw[] = [], junctions: RawJunction[] = [];
@@ -66,7 +67,7 @@ export class Roads {
 
         let cls: RoadClass | null = null, t0 = performance.now();
         this.timings = {};
-        for (const link of topology(sites, o))
+        for (const link of links)
         {
             if (link.cls !== cls) { if (cls) this.timings[cls] = performance.now() - t0; cls = link.cls; t0 = performance.now(); }
             const c = o.classes[link.cls], rank = RANK[link.cls], isRail = link.cls === "rail", net = isRail ? "rail" : "road";

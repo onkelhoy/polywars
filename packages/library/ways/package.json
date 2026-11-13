@@ -3,7 +3,6 @@
   "description": "Road, rail and path network to meshes: surfaces, tracks, bridges, tunnel mouths",
   "keywords": [
     "papit",
-    "web-component",
     "typescript",
     "ways"
   ],
@@ -12,12 +11,8 @@
     "build": "npx @papit/build -- --error --ancestors",
     "watch": "tsc -w",
     "start": "npx @papit/server --info --live",
-    "test": "npx playwright test -c tests/playwright.config.ts",
     "preversion": "papit-version",
-    "postversion": "papit-version",
-    "component": "npm create @papit -- --component",
-    "test:update-snapshots": "npx playwright test --update-snapshots -c tests/playwright.config.ts",
-    "test:chrome": "npm test -- --project=chromium"
+    "postversion": "papit-version"
   },
   "main": "./lib/bundle.js",
   "types": "./lib/bundle.d.ts",
@@ -52,14 +47,15 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/game-mesh": "*",
+    "@polywar/sweep": "*",
+    "@polywar/rail": "*",
+    "@polywar/bridges": "*"
+  },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
-    "playwright": "1.64.1",
     "typescript": "5.9.3",
-    "@papit/theme": "*",
-    "@papit/translator": "*",
-    "@papit/codeblock": "*"
+    "@papit/theme": "*"
   },
   "browserslist": [
     "defaults",
@@ -69,12 +65,6 @@
   "papit": {
     "publish": true,
     "type": "browser",
-    "main": "ways",
-    "htmlprefix": "",
-    "components": {
-      "ways": {
-        "className": "Ways"
-      }
-    }
+    "main": "ways"
   }
 }

@@ -55,7 +55,13 @@
     "typescript": "5.9.3",
     "@papit/theme": "*",
     "@polywar/terrain": "*",
-    "@polywar/sites": "*"
+    "@polywar/sites": "*",
+    "@polywar/ways": "*",
+    "@polywar/rail": "*",
+    "@polywar/sweep": "*",
+    "@polywar/renderer": "*",
+    "@polywar/gallery": "*",
+    "@papit/game-mesh": "*"
   },
   "browserslist": [
     "defaults",

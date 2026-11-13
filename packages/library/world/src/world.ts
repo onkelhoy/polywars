@@ -12,8 +12,8 @@ import { generateSites } from "@polywar/sites";
 import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
-import { SLEEPER_MODEL, track } from "@polywar/rail";
-import { PORTAL, bridge, bridgeFor, portal } from "@polywar/bridges";
+import { SLEEPER_MODEL } from "@polywar/rail";
+import { buildWays } from "@polywar/ways";
 import { Placements } from "@polywar/placements";
 import { furnish } from "@polywar/trails";
 import type { ScatterBatch } from "@polywar/scatter";
@@ -21,15 +21,6 @@ import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
 import type { Mesh } from "@papit/game-mesh";
 
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-const strip = (top: [number, number, number], side: [number, number, number], edge = 1.12): Profile => ({ points: [[-edge, -.3], [-1, 0], [1, 0], [edge, -.3]], colors: [side, top, side] });
-/** surface per road class (1940s): concrete slabs on highways, gravel roads, dirt lanes and paths, ballast under rail */
-const ROAD_STYLE: Record<string, { profile: Profile; step: number; lift: number; bands?: { every: number; shade: number } }> = {
-    highway: { profile: strip([.62, .61, .58], [.42, .4, .36]), step: 4, lift: .15, bands: { every: 6, shade: .08 } },
-    road: { profile: strip([.55, .5, .43], [.4, .36, .3]), step: 4, lift: .12 },
-    lane: { profile: strip([.47, .38, .28], [.38, .31, .23]), step: 3, lift: .1 },
-    path: { profile: strip([.5, .41, .3], [.42, .34, .25], 1.2), step: 2, lift: .08 },
-    rail: { profile: strip([.42, .4, .38], [.33, .31, .29], 1.3), step: 4, lift: 0 },
-};
 import type { WorldSettings, WorldView } from "./types";
 /** debug site sphere colour per kind */
 const SITE_COLOUR: Record<string, [number, number, number]> = { city: [1, .2, .2], village: [1, .6, .2], farm: [1, 1, .3], peak: [.9, .9, .9], beach: [1, .9, .6], lake: [.3, .6, 1], pass: [.7, .5, 1], viewpoint: [.3, 1, .5] };
@@ -212,68 +203,13 @@ export class World {
     /** road surfaces: one sweep per ground span (bridges / tunnels are drawn by their own builders), a bit over the drawn ground */
     private buildRoads() {
         this.roadMesh = undefined;
+        this.structures = [];
         const r = this.roads.roads;
         if (!r) return;
-        const meshes: Mesh[] = [], sleepers: { data: Float32Array; count: number }[] = [], ground = (x: number, z: number) => this.terrain.groundAt(x, z);
-        this.structures = [];
-        for (const road of r.network.roads)
-        {
-            const style = ROAD_STYLE[road.class] ?? ROAD_STYLE.road, rail = road.class === "rail";
-            const spans = road.spans.length ? road.spans : [{ kind: "ground", from: 0, to: road.points.length - 1 }];
-            for (const span of spans)
-            {
-                if (span.to - span.from < 1) continue;
-                const raw = road.points.slice(span.from, span.to + 1).map(p => [p[0], p[1], p[2]] as Vec3);
-                if (span.kind === "bridge")
-                {
-                    const b = bridgeFor(road.class, raw, { width: road.width, ground: ground, use: rail ? "rail" : road.class === "path" ? "path" : "road" });
-                    meshes.push(b.mesh);
-                    this.structures.push({ kind: `bridge-${b.type}`, road: road.id, x: raw[0][0], y: raw[0][1], z: raw[0][2], to: raw[raw.length - 1] });
-                    if (rail) { const t = track(raw); meshes.push(t.lods[0]); sleepers.push(t.sleepers); }
-                    continue;
-                }
-                if (span.kind === "tunnel")
-                {
-                    const size = PORTAL[rail ? "rail" : road.class === "highway" || road.class === "road" ? "road" : "lane"];
-                    for (const [a, b] of [[raw[0], raw[1]], [raw[raw.length - 1], raw[raw.length - 2]]])
-                    {
-                        meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: Math.max(size.width, road.width + 2) }));
-                        this.structures.push({ kind: "portal", road: road.id, x: a[0], y: a[1], z: a[2], to: b });
-                    }
-                    continue;
-                }
-                // trails over wet ground (lake / swamp water or just over a water surface): boardwalk runs
-                if (road.class === "path" || road.class === "lane")
-                {
-                    const wet = raw.map(([x, , z]) => this.wetAt(x, z));
-                    let a = 0;
-                    for (let i = 0; i <= raw.length; i++)
-                    {
-                        if (i < raw.length && wet[i] === wet[a]) continue;
-                        const part = raw.slice(Math.max(0, a - 1), Math.min(raw.length, i + 1));
-                        if (wet[a] && part.length >= 3)
-                        {
-                            const deck = part.map(([x, y, z]) => [x, Math.max(y, this.wetAt(x, z) ? this.surfaceAt(x, z) + .5 : this.terrain.groundAt(x, z) + .3), z] as Vec3);
-                            meshes.push(bridge("foot-wood", deck, { width: Math.max(1.6, road.width), ground, use: "path" }));
-                            this.structures.push({ kind: "bridge-boardwalk", road: road.id, x: deck[0][0], y: deck[0][1], z: deck[0][2], to: deck[deck.length - 1] });
-                        }
-                        else if (part.length >= 2) meshes.push(sweep(part.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3), { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step }));
-                        a = i;
-                    }
-                    continue;
-                }
-                const pts = raw.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3);
-                if (!rail) { meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step, bands: style.bands })); continue; }
-                const t = track(pts);
-                meshes.push(t.lods[0]);
-                sleepers.push(t.sleepers);
-            }
-        }
-        if (meshes.length) this.roadMesh = upload(this.layer.gl, merge(meshes));
-        const count = sleepers.reduce((n, s) => n + s.count, 0), data = new Float32Array(count * 8);
-        let at = 0;
-        for (const s of sleepers) { data.set(s.data.subarray(0, s.count * 8), at); at += s.count * 8; }
-        if (count) this.builtBatches.push({ model: SLEEPER_MODEL, kind: "sleeper", data, count });
+        const w = buildWays({ roads: r.network.roads, junctions: r.network.junctions, ground: (x, z) => this.terrain.groundAt(x, z), wet: (x, z) => this.wetAt(x, z), surface: (x, z) => this.surfaceAt(x, z) });
+        this.structures = w.structures;
+        if (w.mesh) this.roadMesh = upload(this.layer.gl, w.mesh);
+        if (w.sleepers.count) this.builtBatches.push({ model: SLEEPER_MODEL, kind: "sleeper", ...w.sleepers });
     }
 
     /** grid node under (x, z) of the current terrain, -1 outside */
@@ -316,7 +252,7 @@ export class World {
     private furnish() {
         const P = this.placements, r = this.roads.roads;
         P.clear("structures"); P.clear("trails");
-        for (const st of this.structures) P.add("structures", st.kind.startsWith("bridge") ? `bridge:${st.kind.slice(7)}` : st.kind, st.x, st.y, st.z, Math.atan2(st.to[0] - st.x, st.to[2] - st.z), 1, { road: st.road, to: st.to });
+        for (const st of this.structures) P.add("structures", st.kind.startsWith("bridge-") ? `bridge:${st.kind.slice(7)}` : st.kind, st.x, st.y, st.z, Math.atan2(st.to[0] - st.x, st.to[2] - st.z), 1, { road: st.road, to: st.to });
         if (r)
         {
             const items = furnish({
