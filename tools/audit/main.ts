@@ -93,6 +93,23 @@ for (const r of net.roads) for (let i = 1; i < r.points.length - 1; i++)
     const ux = b[0] - a[0], uz = b[2] - a[2], vx = c[0] - b[0], vz = c[2] - b[2];
     if (ux * vx + uz * vz < 0) add(`spike (${r.class})`, 1, `${at(b)} road ${r.id} i ${i}/${r.points.length}`);
 }
+// crossings of two ways on the ground (no junction): one height
+for (const A of net.roads) for (const Bw of net.roads)
+{
+    if (A.id >= Bw.id || (A.chain !== undefined && A.chain === Bw.chain)) continue;
+    const kind = (r: typeof A, i: number) => r.spans.find(s => i >= s.from && i < s.to)?.kind ?? "ground";
+    for (let i = 0; i < A.points.length - 1; i++) for (let k = 0; k < Bw.points.length - 1; k++)
+    {
+        const a0 = A.points[i], a1 = A.points[i + 1], b0 = Bw.points[k], b1 = Bw.points[k + 1];
+        if (Math.abs(a0[0] - b0[0]) > 10 || Math.abs(a0[2] - b0[2]) > 10) continue;
+        const d1x = a1[0] - a0[0], d1z = a1[2] - a0[2], d2x = b1[0] - b0[0], d2z = b1[2] - b0[2], den = d1x * d2z - d1z * d2x;
+        if (Math.abs(den) < 1e-9) continue;
+        const s = ((b0[0] - a0[0]) * d2z - (b0[2] - a0[2]) * d2x) / den, t = ((b0[0] - a0[0]) * d1z - (b0[2] - a0[2]) * d1x) / den;
+        if (s < 0 || s > 1 || t < 0 || t > 1 || kind(A, i) !== "ground" || kind(Bw, k) !== "ground") continue;
+        const dy = Math.abs(a0[1] + (a1[1] - a0[1]) * s - b0[1] - (b1[1] - b0[1]) * t);
+        if (dy > .5) add(`crossing height step (${A.class}/${Bw.class})`, dy, `${at(a0)} ${dy.toFixed(1)} m`);
+    }
+}
 // junction ends: every road end at a junction should be at the same spot and height
 for (const j of net.junctions)
 {

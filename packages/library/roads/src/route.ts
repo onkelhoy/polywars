@@ -83,7 +83,7 @@ export class Router {
             if (o === 2) extraCost += CROSS;
             else if (o === 1) k *= 3;
             // own network nodes beside a road we don't ride: no parallel twins
-            if (own[t] === 1 && used[t] < rank && !isRail) k *= 1.5;
+            if (own[t] === 1 && used[t] < rank && !isRail) k *= 4;
             // sharp turns cost more than gentle ones (a 90° bend is far dearer than four 22.5° ones)
             return len * k + (turn + turn * turn * .5) * turnCost + extraCost;
         };

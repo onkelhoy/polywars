@@ -126,6 +126,7 @@ export class Roads {
 
         t0 = performance.now();
         const { roads, out } = this.shape(raws.filter(r => r.nodes.length > 1), junctions);
+        levelCrossings(roads, o.step);
         for (const r of roads)
         {
             const p = r.points, k = Math.min(3, p.length - 1);
@@ -342,4 +343,53 @@ export function generateRoads(ground: Ground, sites: Site[], options: Partial<Ro
     const r = new Roads(ground, options);
     r.build(sites);
     return r;
+}
+
+/**
+ * Ways crossing without a junction (rail / road level crossings, ...): both meet at one height there (the smaller
+ * way ramps to the bigger, rail never moves). Bridges / tunnels over or under other ways are left alone.
+ */
+export function levelCrossings(roads: Road[], step: number) {
+    const B = 32, cells = new Map<number, [number, number][]>(), key = (x: number, z: number) => (Math.floor(x / B) + 4096) * 8192 + Math.floor(z / B) + 4096;
+    for (const r of roads) for (let i = 0; i < r.points.length - 1; i++)
+    {
+        const a = r.points[i], b = r.points[i + 1], ks = new Set([key(a[0], a[2]), key(b[0], b[2])]);
+        for (const k of ks) (cells.get(k) ?? cells.set(k, []).get(k)!).push([r.id, i]);
+    }
+    const kindAt = (r: Road, i: number) => r.spans.find(s => i >= s.from && i < s.to)?.kind ?? "ground";
+    const weight = (r: Road) => r.class === "rail" ? 10 : RANK[r.class];
+    const done = new Set<string>();
+    const ramp = (r: Road, i: number, t: number, target: number) => {
+        const y = r.points[i][1] + (r.points[i + 1][1] - r.points[i][1]) * t, dy = target - y, W = Math.max(3, Math.round(40 / step)), n = r.points.length;
+        for (let k = Math.max(1, i - W); k <= Math.min(n - 2, i + 1 + W); k++)
+        {
+            if (kindAt(r, k) !== "ground") continue;
+            // fades to nothing at the piece ends (they are junctions, pinned)
+            const d = k <= i ? i - k : k - i - 1, f = Math.max(0, 1 - d / W) * Math.min(1, Math.min(k, n - 1 - k) / 3);
+            r.points[k][1] += dy * f * f * (3 - 2 * f);
+        }
+    };
+    for (const list of cells.values()) for (let p = 0; p < list.length; p++) for (let q = p + 1; q < list.length; q++)
+    {
+        const [ra, ia] = list[p], [rb, ib] = list[q];
+        if (ra === rb) continue;
+        const A = roads[ra], Bw = roads[rb];
+        if (A.chain !== undefined && A.chain === Bw.chain) continue;
+        const a0 = A.points[ia], a1 = A.points[ia + 1], b0 = Bw.points[ib], b1 = Bw.points[ib + 1];
+        const d1x = a1[0] - a0[0], d1z = a1[2] - a0[2], d2x = b1[0] - b0[0], d2z = b1[2] - b0[2], den = d1x * d2z - d1z * d2x;
+        if (Math.abs(den) < 1e-9) continue;
+        const s = ((b0[0] - a0[0]) * d2z - (b0[2] - a0[2]) * d2x) / den, t = ((b0[0] - a0[0]) * d1z - (b0[2] - a0[2]) * d1x) / den;
+        if (s < 0 || s > 1 || t < 0 || t > 1) continue;
+        const id = `${Math.min(ra, rb)}:${Math.max(ra, rb)}:${ra < rb ? ia : ib}:${ra < rb ? ib : ia}`;
+        if (done.has(id)) continue;
+        done.add(id);
+        const ka = kindAt(A, ia), kb = kindAt(Bw, ib);
+        if (ka !== "ground" || kb !== "ground") continue;
+        const ya = a0[1] + (a1[1] - a0[1]) * s, yb = b0[1] + (b1[1] - b0[1]) * t;
+        // near a shared junction both are pinned already: leave them
+        const nearEnd = (r: Road, i: number) => i < 3 || i > r.points.length - 5;
+        if (nearEnd(A, ia) && nearEnd(Bw, ib)) continue;
+        const [hi, lo] = weight(A) >= weight(Bw) ? [[A, ia, s, ya], [Bw, ib, t, yb]] as const : [[Bw, ib, t, yb], [A, ia, s, ya]] as const;
+        ramp(lo[0], lo[1], lo[2], hi[3]);
+    }
 }
