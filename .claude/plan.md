@@ -19,7 +19,7 @@ Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 d
 
 ## Tasks (round 4)
 Owner review 2026-11-13 18:36 (11 screenshots on Desktop): "massively improved", but:
-- [ ] 1. Real tunnels: tunnel = after erosion (fix hook). Terrain over the whole tube raised to cover it (nothing pokes in), front cut to road level, hole only right behind each face; terrain drops every triangle touching a hole node (no spikes). New `tunnel()` tube mesh in `@polywar/bridges`: floor (road), walls, vault, kerbs / side rails, lamps; portal without plug / lining + apron in front. Ways builds the tube for every tunnel span.
+- [x] 1. Real tunnels: tunnel = after erosion (fix hook). Terrain over the whole tube raised to cover it (nothing pokes in), front cut to road level, hole only right behind each face; terrain drops every triangle touching a hole node (no spikes). New `tunnel()` tube mesh in `@polywar/bridges`: floor (road), walls, vault, kerbs / side rails, lamps; portal without plug / lining + apron in front. Ways builds the tube for every tunnel span.
 - [ ] 2. Props on roads: trail furniture (lamps, signposts, benches) never on any way (check all ways, not only its own).
 - [ ] 3. Junction raised spots: pads at the exact arm surface, no lifted patches over roads (s 2, 6, 8).
 - [ ] 4. Roads joining bridges: no junction on a bridge with railings / truss; joining ways meet on ground or the railing / truss opens there (s 4).

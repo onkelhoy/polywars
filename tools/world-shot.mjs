@@ -1,4 +1,4 @@
-// World view screenshots headless: `node tools/world-shot.mjs out-prefix "x,z,dist,yawDeg,pitchDeg" ...`
+// World view screenshots headless: `node tools/world-shot.mjs out-prefix "x,z,dist,yawDeg,pitchDeg[,y]" ...`
 import { chromium } from "playwright";
 const [prefix, ...views] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
@@ -12,14 +12,14 @@ await page.waitForTimeout(3000);
 let i = 0;
 for (const v of views)
 {
-    const [x, z, d, yaw, pitch] = v.split(",").map(Number);
-    await page.evaluate(([x, z, d, yaw, pitch]) => {
+    const [x, z, d, yaw, pitch, fy] = v.split(",").map(Number);
+    await page.evaluate(([x, z, d, yaw, pitch, fy]) => {
         const demo = document.querySelector("pw-viewport"), cam = demo.layer.camera, c = cam.controllers?.[0] ?? demo.layer.camera.controller;
-        const y = window.world.terrain.groundAt(x, z), ya = yaw * Math.PI / 180, pa = pitch * Math.PI / 180;
+        const y = Number.isFinite(fy) ? fy : window.world.terrain.groundAt(x, z), ya = yaw * Math.PI / 180, pa = pitch * Math.PI / 180;
         cam.rotation.set([pa, ya, 0]);
         c.start?.(cam);
         c.pivot.set([x, y, z]); c.distance = d;
-    }, [x, z, d, yaw, pitch]);
+    }, [x, z, d, yaw, pitch, fy]);
     await page.waitForTimeout(2500);
     await page.screenshot({ path: `${prefix}-${i++}.png` });
 }

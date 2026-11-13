@@ -118,27 +118,53 @@ export const roadEdge = (roads: Roads, far = 30) => (x: number, z: number) => {
 
 
 /**
- * Tunnel mouths: ground that would cut into the tunnel (lower than the opening top) near each mouth becomes a hole
- * in the drawn terrain (`data.holes`), from a little in front of the mouth to `depth` m in.
+ * Ground around tunnels (after erosion, in place): over the whole tube the ground is raised to cover it (`cover` m over
+ * the vault, nothing pokes in), in front of each mouth it is cut to road level (forecourt), and the nodes right behind
+ * each face become holes in the drawn terrain (`data.holes`: the terrain drops every triangle touching one), the ground
+ * around them sits at the portal hood's top (`TUNNEL_HEIGHT` + `cover`): the hood covers the opening, the ground meets it.
  */
-export function tunnelHoles(network: Network, g: { n: number; size: number; height: Float32Array; holes?: Uint8Array }, depth = 12) {
-    const { n, size } = g, cell = size / (n - 1);
+export function tunnelHoles(network: Network, g: { n: number; size: number; height: Float32Array; water?: Uint8Array; holes?: Uint8Array }, cover = 2) {
+    const { n, size } = g, cell = size / (n - 1), node = (x: number) => (x / size + .5) * (n - 1);
+    const holes = (g.holes ??= new Uint8Array(n * n));
     for (const r of network.roads) for (const s of r.spans)
     {
         if (s.kind !== "tunnel" || s.to - s.from < 1) continue;
-        const half = Math.max(r.width + 2, 6) / 2 + 1, top = (TUNNEL_HEIGHT[r.class] ?? 6) + 1.5;
-        for (const [a, b] of [[r.points[s.from], r.points[s.to]], [r.points[s.to], r.points[s.from]]])
+        const P = r.points.slice(s.from, s.to + 1), top = TUNNEL_HEIGHT[r.class] ?? 6;
+        // half widths: the tube (portal opening + wall), the face wall
+        const tube = Math.max(r.width + 2, 6) / 2 + 1, face = tube + 1.5, raise = tube + cell * 2;
+        // along-length of each point
+        const at = [0];
+        for (let i = 1; i < P.length; i++) at.push(at[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][2] - P[i - 1][2]));
+        const L = at[at.length - 1];
+        // raise over the tube: nearest segment, along + across
+        for (let i = 0; i < P.length - 1; i++)
         {
-            const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, ux = (b[0] - a[0]) / l, uz = (b[2] - a[2]) / l, grade = (b[1] - a[1]) / l;
-            const reach = Math.min(depth, l / 2), r0 = Math.ceil((reach + half + 4) / cell);
-            const ci = Math.round((a[0] / size + .5) * (n - 1)), cj = Math.round((a[2] / size + .5) * (n - 1));
-            for (let j = cj - r0; j <= cj + r0; j++) for (let i = ci - r0; i <= ci + r0; i++)
+            const [ax, ay, az] = P[i], [bx, by, bz] = P[i + 1], dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz || 1;
+            const i0 = Math.max(0, Math.floor(node(Math.min(ax, bx) - raise))), i1 = Math.min(n - 1, Math.ceil(node(Math.max(ax, bx) + raise)));
+            const j0 = Math.max(0, Math.floor(node(Math.min(az, bz) - raise))), j1 = Math.min(n - 1, Math.ceil(node(Math.max(az, bz) + raise)));
+            for (let j = j0; j <= j1; j++) for (let q = i0; q <= i1; q++)
             {
-                if (i < 0 || j < 0 || i >= n || j >= n) continue;
-                const x = i * cell - size / 2 - a[0], z = j * cell - size / 2 - a[2], d = x * ux + z * uz, across = Math.abs(-x * uz + z * ux);
-                if (d < -3 || d > reach || across > half) continue;
-                const k = j * n + i;
-                if (g.height[k] < a[1] + grade * d + top) (g.holes ??= new Uint8Array(n * n))[k] = 1;
+                const x = q * cell - size / 2, z = j * cell - size / 2, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l2));
+                const d = Math.hypot(x - ax - dx * t, z - az - dz * t), along = at[i] + (at[i + 1] - at[i]) * t, k = j * n + q;
+                if (d > raise || along < cell * .5 || along > L - cell * .5 || g.water?.[k]) continue;
+                const need = ay + (by - ay) * t + top + cover, w = d <= tube + cell * .5 ? 1 : 1 - (d - tube - cell * .5) / (raise - tube - cell * .5);
+                if (g.height[k] < need) g.height[k] += (need - g.height[k]) * w;
+            }
+        }
+        // each mouth: forecourt cut in front, holes behind the face
+        for (const [a, b] of [[P[0], P[1]], [P[P.length - 1], P[P.length - 2]]])
+        {
+            const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, ux = (b[0] - a[0]) / l, uz = (b[2] - a[2]) / l;
+            const r0 = Math.ceil((face + cell * 3) / cell), ci = Math.round(node(a[0])), cj = Math.round(node(a[2]));
+            for (let j = cj - r0; j <= cj + r0; j++) for (let q = ci - r0; q <= ci + r0; q++)
+            {
+                if (q < 0 || j < 0 || q >= n || j >= n) continue;
+                const x = q * cell - size / 2 - a[0], z = j * cell - size / 2 - a[2], d = x * ux + z * uz, across = Math.abs(-x * uz + z * ux), k = j * n + q;
+                if (g.water?.[k]) continue;
+                if (d >= -.01 && d <= cell * 1.2 && across <= Math.max(tube - .5, face - cell)) holes[k] = 1;
+                // right behind the face: exactly the portal hood's top, so the ground meets it
+                else if (d >= -.01 && d <= cell * 2.2 && across <= face + cell) g.height[k] = a[1] + top + cover;
+                else if (d < 0 && d > -cell * 2.5 && across <= face + cell) g.height[k] = Math.min(g.height[k], a[1] - .3);
             }
         }
     }

@@ -21,11 +21,28 @@ export type PortalOptions = {
     wall: number;
     /** wing walls length, m (0 = none) */
     wings: number;
-    /** how far the lining goes into the hill, m */
+    /** how far the lining goes into the hill, m (0: none, a `tunnel` tube follows) */
     depth: number;
+    /** hood: roof + side walls from the face `hood` m back over the tube (covers the hole the ground has there), m */
+    hood?: number;
+    /** paved apron in front of the face, m (covers the ground's edge at the opening) */
+    apron?: number;
     stone: RGB;
     /** face wall height over the road (so it meets the hill above the mouth), m; default from height + wall */
     top?: number;
+};
+
+export type TunnelOptions = {
+    /** opening width / height (to the vault top), m: same as the portal */
+    width: number;
+    height: number;
+    /** walkway width each side, kerb height, m */
+    walkway: number;
+    kerb: number;
+    /** wall lamp spacing, m (alternating sides) */
+    lampEvery: number;
+    stone: RGB;
+    lamp: RGB;
 };
 
 export type { Mesh };

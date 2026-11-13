@@ -154,14 +154,10 @@ export class Ground {
         let { nodes, triangles } = triangulate(this.errorsOf(c), s, this.levelError(level));
         if (d.holes)
         {
-            // drop triangles whose centre node is a hole
-            const keep: number[] = [];
+            // drop every triangle touching a hole node: the opening is exactly the hole nodes' cells, no slivers over it
+            const keep: number[] = [], hole = (k: number) => d.holes![(c.j0 + ((k / s) | 0)) * n + c.i0 + k % s];
             for (let t = 0; t < triangles.length; t += 3)
-            {
-                let ci = 0, cj = 0;
-                for (let e = 0; e < 3; e++) { const k = nodes[triangles[t + e]]; ci += k % s; cj += (k / s) | 0; }
-                if (!d.holes[(c.j0 + Math.round(cj / 3)) * n + c.i0 + Math.round(ci / 3)]) keep.push(triangles[t], triangles[t + 1], triangles[t + 2]);
-            }
+                if (!hole(nodes[triangles[t]]) && !hole(nodes[triangles[t + 1]]) && !hole(nodes[triangles[t + 2]])) keep.push(triangles[t], triangles[t + 1], triangles[t + 2]);
             triangles = new Uint32Array(keep) as typeof triangles;
         }
 

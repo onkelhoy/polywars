@@ -1,6 +1,6 @@
 import { merge, sweep, type Profile } from "@polywar/sweep";
 import { track } from "@polywar/rail";
-import { PORTAL, bridge, bridgeFor, fence, logSteps, portal } from "@polywar/bridges";
+import { PORTAL, bridge, bridgeFor, fence, logSteps, portal, tunnel } from "@polywar/bridges";
 import { junctionPads } from "./junctions";
 import type { ClassStyle, Mesh, Structure, Vec3, WaysInput, WaysResult } from "./types";
 
@@ -97,16 +97,18 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                 const size = PORTAL[rail ? "rail" : road.class === "highway" || road.class === "road" ? "road" : "lane"];
                 for (const [a, b] of [[raw[0], raw[1]], [raw[raw.length - 1], raw[raw.length - 2]]])
                 {
-                    // the face wall reaches up to the hill over the mouth
-                    const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, sx = -(b[2] - a[2]) / l, sz = (b[0] - a[0]) / l, w = Math.max(size.width, road.width + 2);
-                    let hill = 0;
-                    for (const f of [-1, -.5, 0, .5, 1]) for (const d of [0, 1.5]) hill = Math.max(hill, ground(a[0] + sx * f * w / 2 + (b[0] - a[0]) / l * d, a[2] + sz * f * w / 2 + (b[2] - a[2]) / l * d) - a[1]);
+                    // face + hood top meet the ground the terrain hook (`tunnelHoles`, cover 2 m) set behind the face
+                    const w = Math.max(size.width, road.width + 2);
                     // a mouth deep under the hill (the tunnel goes on through a junction underground): no portal
                     if (ground(a[0], a[2]) - a[1] > size.height + 6) continue;
-                    meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: w, top: Math.min(hill + .8, size.height + 14) }));
+                    meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: w, depth: 0, apron: 4, hood: 8, top: size.height + 1.8 }));
                     structures.push({ kind: "portal", road: road.id, x: a[0], y: a[1], z: a[2], to: b });
                 }
+                // the tube all the way through, the road (or track) on its floor
+                meshes.push(tunnel(raw, { width: Math.max(size.width, road.width + 2), height: size.height, walkway: road.class === "path" ? .4 : .8 }));
+                const floor = raw.map(([x, y, z]) => [x, y + style.lift, z] as Vec3);
                 if (rail) lay(raw);
+                else if (style.profile) meshes.push(sweep(floor, { width: road.width, profile: style.profile, bank: { max: 0, gain: 0 }, step: style.step, bands: style.bands }));
                 continue;
             }
             const surface = (part: Vec3[]) => {

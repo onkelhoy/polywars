@@ -34,12 +34,22 @@ export function portal(at: Vec3, dir: [number, number], options: Partial<PortalO
     // keystone + voussoir ring
     s.block(P(0, o.height - .3, -.15), [fx, fz], [.6, 1.1, 1], dark);
     for (let i = 1; i < N; i += 2) { const [x, y] = arch[i], ux = x / r, uy = (y - spring) / r; s.beam(P(x, y, -.1), P(x + ux * .8, y + uy * .8, -.1), .5, .4, dark); }
-    // lining: jamb walls + arch vault into the hill (seen from inside: faces point in)
-    s.quad2(P(-r, below, 0), P(-r, below, o.depth), P(-r, spring, o.depth), P(-r, spring, 0), dark);
-    s.quad2(P(r, spring, 0), P(r, spring, o.depth), P(r, below, o.depth), P(r, below, 0), dark);
-    for (let i = 0; i < N; i++) { const [xa, ya] = arch[i], [xb, yb] = arch[i + 1]; s.quad2(P(xb, yb, 0), P(xb, yb, o.depth), P(xa, ya, o.depth), P(xa, ya, 0), dark); }
-    // dark plug
-    s.quad(P(r, below, o.depth), P(-r, below, o.depth), P(-r, o.height, o.depth), P(r, o.height, o.depth), DARK);
+    // lining: jamb walls + arch vault into the hill (seen from inside: faces point in), dark plug at the back
+    if (o.depth > 0)
+    {
+        s.quad2(P(-r, below, 0), P(-r, below, o.depth), P(-r, spring, o.depth), P(-r, spring, 0), dark);
+        s.quad2(P(r, spring, 0), P(r, spring, o.depth), P(r, below, o.depth), P(r, below, 0), dark);
+        for (let i = 0; i < N; i++) { const [xa, ya] = arch[i], [xb, yb] = arch[i + 1]; s.quad2(P(xb, yb, 0), P(xb, yb, o.depth), P(xa, ya, o.depth), P(xa, ya, 0), dark); }
+        s.quad(P(r, below, o.depth), P(-r, below, o.depth), P(-r, o.height, o.depth), P(r, o.height, o.depth), DARK);
+    }
+    // hood: roof + side walls back over the tube, the ground behind meets its top
+    if (o.hood)
+    {
+        s.block(P(0, H, o.hood / 2), [fx, fz], [o.hood, .5, W * 2], dark);
+        for (const k of [-1, 1]) s.block(P(k * (W - .5), below, o.hood / 2), [fx, fz], [o.hood, H - below, 1], stone);
+    }
+    // apron: paving in front of the face, just under the road surface
+    if (o.apron) s.block(P(0, below, -o.apron / 2), [fx, fz], [o.apron, -below + .05, W * 2], dark);
     // wing walls: out and back from the face edges, stepping down
     if (o.wings > 0) for (const k of [-1, 1])
     {
