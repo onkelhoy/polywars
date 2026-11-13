@@ -1,4 +1,4 @@
-import { node, sample } from "./grid";
+import { drainage, node, sample } from "./grid";
 import type { Path } from "./network";
 import type { HydrologyOptions, Stream } from "./types";
 
@@ -116,4 +116,12 @@ export function despike(g: Wet) {
         if (h[k] < lo - 3) h[k] = lo;
         else if (h[k] > hi + 3) h[k] = hi;
     }
+}
+
+/** dry pits (land basins no lake kept) filled up to `keep` metres under where they spill */
+export function fillPits(g: Wet, keep = 1.5) {
+    const { n, height: h, water } = g, { filled } = drainage(h, n, g.seaLevel);
+    let count = 0;
+    for (let k = 0; k < h.length; k++) if (!water[k] && filled[k] - h[k] > keep) { h[k] = filled[k] - keep; count++; }
+    return count;
 }

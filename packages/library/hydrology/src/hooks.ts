@@ -1,5 +1,5 @@
 import { Random } from "@papit/random";
-import { carveBeds, carveValleys } from "./carve";
+import { carveBeds, carveValleys, fillPits } from "./carve";
 import { digLakes, fillLakes } from "./lakes";
 import { plan, type Path } from "./network";
 import { resolve } from "./presets";
@@ -40,6 +40,7 @@ export function hydrologyHooks(options: Partial<HydrologyOptions> = {}): Hydrolo
         fix: data => {
             h.network.lakes = fillLakes(h.network.lakes, data);
             h.network.streams = carveBeds(h.paths, data, o);
+            fillPits(data);
             for (const s of h.network.streams) data.rivers.push({ points: s.points });
         },
     };
