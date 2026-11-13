@@ -3,27 +3,22 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rail | experiment</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-
-    <!-- Styles -->
+    <title>rail | experiment</title>
     <link rel="stylesheet" href="style.css" />
-
     <script defer type="module" src="main.js"></script>
 </head>
 
 <body>
-
-    <h1>Rail | experiment</h1>
-    <section>
-        <h2>Example</h2>
-        <pap-codeblock>
-            <undefined-rail></undefined-rail>
-        </pap-codeblock>
-    </section>
+    <pw-gallery location=""></pw-gallery>
+    <aside>
+        <h1>rail</h1>
+        <label>seed <input id="seed" type="number" value="1" /></label>
+        <label>length <input id="length" type="range" min="10" max="200" step="5" value="50" /><span></span></label>
+        <label>curvy <input id="curvy" type="range" min="0" max="1" step=".05" value=".4" /><span></span></label>
+        <label>hills <input id="hills" type="range" min="0" max="10" step=".5" value="2" /><span></span></label>
+        <output id="info"></output>
+    </aside>
 </body>
 
 </html>

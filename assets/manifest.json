@@ -10314,6 +10314,11 @@
          "name": "RailwayTrack_Straight.glb",
          "file": "/assets/models/transport/train/RailwayTrack_Straight.glb",
          "size": 71980
+        },
+        {
+         "name": "rail-sleeper.glb",
+         "file": "/assets/models/transport/train/rail-sleeper.glb",
+         "size": 1712
         }
        ]
       }

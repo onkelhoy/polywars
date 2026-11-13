@@ -12,6 +12,8 @@ import { generateSites } from "@polywar/sites";
 import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
+import { SLEEPER_MODEL, track } from "@polywar/rail";
+import type { ScatterBatch } from "@polywar/scatter";
 import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
 import type { Mesh } from "@papit/game-mesh";
 
@@ -23,7 +25,7 @@ const ROAD_STYLE: Record<string, { profile: Profile; step: number; lift: number;
     road: { profile: strip([.55, .5, .43], [.4, .36, .3]), step: 4, lift: .12 },
     lane: { profile: strip([.47, .38, .28], [.38, .31, .23]), step: 3, lift: .1 },
     path: { profile: strip([.5, .41, .3], [.42, .34, .25], 1.2), step: 2, lift: .08 },
-    rail: { profile: strip([.42, .4, .38], [.33, .31, .29], 1.3), step: 4, lift: .15 },
+    rail: { profile: strip([.42, .4, .38], [.33, .31, .29], 1.3), step: 4, lift: 0 },
 };
 import type { WorldSettings, WorldView } from "./types";
 /** debug site sphere colour per kind */
@@ -55,6 +57,10 @@ export class World {
     readonly ecosystem: Ecosystem;
     readonly grass: Grass;
     readonly scatter: Scatter;
+    /** built things (sleepers, bridges, trail props, ...): asset models by path under `assets/models/` */
+    readonly built: Scatter;
+    /** batches for `built`, gathered while the world grows */
+    private builtBatches: ScatterBatch[] = [];
     private v: WorldView;
     private data?: TerrainData;
     /** sites + roads, built inside the terrain pipeline (before erosion) */
@@ -74,6 +80,8 @@ export class World {
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
+        const models = nature.base.replace(/[^/]+\/$/, "");
+        this.built = new Scatter(renderer, (name, lod) => lod ? undefined : `${models}${name}.glb`, { quality: this.v.quality, lods: [], distance: { sleeper: 120, default: 400 } });
         this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
         this.roads = roadHooks(raw => generateSites(raw, raw.cities, s.sites ?? {}), s.roads ?? {}, JSON.stringify(s.sites ?? {}));
@@ -103,6 +111,7 @@ export class World {
         if (this.v.quality !== before.quality || this.v.style !== before.style)
         {
             this.scatter.set({ quality: this.v.quality });
+            this.built.set({ quality: this.v.quality });
             this.grass.set(this.grassOptions());
             this.plantGrass();
         }
@@ -135,6 +144,7 @@ export class World {
         if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, IDENTITY);
         if (this.v.sites && this.siteMesh) this.renderer.draw(this.siteMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
+        if (this.v.roads) this.built.draw(view, time);
         if (this.v.props) this.scatter.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
         p?.end();
         if (wire) { for (const [m, model, instances] of parts) wire.draw(view, m, { model, instances }); this.renderer.reset(); }
@@ -157,6 +167,7 @@ export class World {
     destroy() {
         this.terrain.destroy();
         this.scatter.destroy();
+        this.built.destroy();
         this.grass.destroy();
         this.wire?.destroy();
     }
@@ -170,9 +181,11 @@ export class World {
     private grow(data: TerrainData) {
         this.data = data;
         const look = this.terrain.material.look;
+        this.builtBatches = [];
         this.buildRoads();
         this.buildRivers();
         this.buildSites();
+        this.built.place(this.builtBatches);
         const road = this.roads.roads ? roadEdge(this.roads.roads) : undefined;
         this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
     }
@@ -182,19 +195,26 @@ export class World {
         this.roadMesh = undefined;
         const r = this.roads.roads;
         if (!r) return;
-        const meshes: Mesh[] = [];
+        const meshes: Mesh[] = [], sleepers: { data: Float32Array; count: number }[] = [];
         for (const road of r.network.roads)
         {
-            const style = ROAD_STYLE[road.class] ?? ROAD_STYLE.road;
+            const style = ROAD_STYLE[road.class] ?? ROAD_STYLE.road, rail = road.class === "rail";
             const spans = road.spans.length ? road.spans : [{ kind: "ground", from: 0, to: road.points.length - 1 }];
             for (const span of spans)
             {
                 if (span.kind !== "ground" || span.to - span.from < 1) continue;
                 const pts = road.points.slice(span.from, span.to + 1).map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3);
-                meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step, bands: style.bands }));
+                if (!rail) { meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step, bands: style.bands })); continue; }
+                const t = track(pts);
+                meshes.push(t.lods[0]);
+                sleepers.push(t.sleepers);
             }
         }
         if (meshes.length) this.roadMesh = upload(this.layer.gl, merge(meshes));
+        const count = sleepers.reduce((n, s) => n + s.count, 0), data = new Float32Array(count * 8);
+        let at = 0;
+        for (const s of sleepers) { data.set(s.data.subarray(0, s.count * 8), at); at += s.count * 8; }
+        if (count) this.builtBatches.push({ model: SLEEPER_MODEL, kind: "sleeper", data, count });
     }
 
     /** water ribbons along streams and rivers: flat across (no bank), width per point, at the water surface */
