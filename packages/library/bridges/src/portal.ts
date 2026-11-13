@@ -49,7 +49,7 @@ export function portal(at: Vec3, dir: [number, number], options: Partial<PortalO
         for (const k of [-1, 1]) s.block(P(k * (W - .5), below, o.hood / 2), [fx, fz], [o.hood, H - below, 1], stone);
     }
     // apron: paving in front of the face, just under the road surface
-    if (o.apron) s.block(P(0, below, -o.apron / 2), [fx, fz], [o.apron, -below + .05, W * 2], dark);
+    if (o.apron) s.block(P(0, below, -o.apron / 2), [fx, fz], [o.apron, -below - .25, W * 2], dark);
     // wing walls: out and back from the face edges, stepping down
     if (o.wings > 0) for (const k of [-1, 1])
     {

@@ -41,7 +41,7 @@ function cut(path: Vec3[], a: number, b: number): Vec3[] {
 
 /** deck sweep with the parapet open in `o.gaps` (rail .05 there, per side) */
 function deck(path: Vec3[], o: BridgeOptions, thick: number, rail: number, side: RGB, top: RGB, edge: number, opts: { step: number; bands?: { every: number; shade: number } }) {
-    const sw = (pts: Vec3[], l: number, r: number) => sweep(pts, { width: o.width, profile: deckProfile(thick, l, side, top, edge, r), bank: "flat", ...opts });
+    const sw = (pts: Vec3[], l: number, r: number) => sweep(pts, { width: o.width, profile: deckProfile(thick, l, side, top, edge, r), bank: "flat", caps: true, ...opts });
     const gaps = rail > .05 ? (o.gaps ?? []) : [];
     if (!gaps.length) return sw(path, rail, rail);
     const L = length(path), cuts = [...new Set([0, L, ...gaps.flatMap(g => [Math.max(0, g.from), Math.min(L, g.to)])])].sort((a, b) => a - b), parts = [];

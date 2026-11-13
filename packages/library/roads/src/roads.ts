@@ -361,8 +361,11 @@ export function levelCrossings(roads: Road[], step: number) {
     const kindAt = (r: Road, i: number) => r.spans.find(s => i >= s.from && i < s.to)?.kind ?? "ground";
     const weight = (r: Road) => r.class === "rail" ? 10 : RANK[r.class];
     const done = new Set<string>();
+    const GRADE: Record<string, number> = { highway: .06, road: .1, lane: .15, rail: .04, path: .3 };
     const ramp = (r: Road, i: number, t: number, target: number) => {
-        const y = r.points[i][1] + (r.points[i + 1][1] - r.points[i][1]) * t, dy = target - y, W = Math.max(3, Math.round(40 / step)), n = r.points.length;
+        const y = r.points[i][1] + (r.points[i + 1][1] - r.points[i][1]) * t, dy = target - y, n = r.points.length;
+        // long enough to stay in the way's grade (both sides of the crossing)
+        const W = Math.max(3, Math.round(Math.max(40, Math.abs(dy) / (GRADE[r.class] ?? .1) * 1.6) / step));
         for (let k = Math.max(1, i - W); k <= Math.min(n - 2, i + 1 + W); k++)
         {
             if (kindAt(r, k) !== "ground") continue;
@@ -370,6 +373,20 @@ export function levelCrossings(roads: Road[], step: number) {
             const d = k <= i ? i - k : k - i - 1, f = Math.max(0, 1 - d / W) * Math.min(1, Math.min(k, n - 1 - k) / 3);
             r.points[k][1] += dy * f * f * (3 - 2 * f);
         }
+    };
+    // the way on top bridges the crossing: ±4 points (inside the piece, ground only) become an auto bridge span
+    const overpass = (r: Road, i: number) => {
+        const n = r.points.length, a = Math.max(1, i - 3), b = Math.min(n - 2, i + 4);
+        if (b - a < 2) return;
+        const out: Span[] = [];
+        for (const sp of r.spans.length ? r.spans : [{ kind: "ground" as const, from: 0, to: n - 1 }])
+        {
+            if (sp.kind !== "ground" || sp.to <= a || sp.from >= b) { out.push(sp); continue; }
+            if (sp.from < a) out.push({ ...sp, to: a });
+            out.push({ kind: "bridge", from: Math.max(a, sp.from), to: Math.min(b, sp.to), auto: true });
+            if (sp.to > b) out.push({ ...sp, from: b });
+        }
+        r.spans = out.filter(s => s.to > s.from);
     };
     for (const list of cells.values()) for (let p = 0; p < list.length; p++) for (let q = p + 1; q < list.length; q++)
     {
@@ -398,7 +415,14 @@ export function levelCrossings(roads: Road[], step: number) {
         const nearEnd = (r: Road, i: number) => i < 3 || i > r.points.length - 5;
         if (nearEnd(A, ia) && nearEnd(Bw, ib)) continue;
         const [hi, lo] = weight(A) >= weight(Bw) ? [[A, ia, s, ya], [Bw, ib, t, yb]] as const : [[Bw, ib, t, yb], [A, ia, s, ya]] as const;
-        ramp(lo[0], lo[1], lo[2], hi[3]);
+        const dy = lo[3] - hi[3];
+        // close in height: one level crossing (the smaller way ramps gently)
+        if (Math.abs(dy) <= 2.5) { ramp(lo[0], lo[1], lo[2], hi[3]); continue; }
+        // far apart: grade separated, the smaller way eased to a clearance under / over the bigger one, the upper one bridges
+        const CLEAR = 7.5;
+        if (Math.abs(dy) < CLEAR) ramp(lo[0], lo[1], lo[2], hi[3] + Math.sign(dy) * CLEAR);
+        const [up, ui] = dy > 0 ? [lo[0], lo[1]] : [hi[0], hi[1]];
+        overpass(up, ui);
     }
 }
 

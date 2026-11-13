@@ -110,6 +110,20 @@ for (const A of net.roads) for (const Bw of net.roads)
         if (dy > .5) add(`crossing height step (${A.class}/${Bw.class})`, dy, `${at(a0)} ${dy.toFixed(1)} m`);
     }
 }
+// grade: over ~20 m stretches, steeper than 2x the class max (roads climbing / dropping into tunnels, ...)
+{
+    const MAX: Record<string, number> = { highway: .06, road: .1, lane: .15, rail: .04, path: .6 };
+    for (const r of net.roads)
+    {
+        let worst = 0, where = r.points[0];
+        for (let i = 0; i + 5 < r.points.length; i++)
+        {
+            const a = r.points[i], b = r.points[i + 5], l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, g = Math.abs(b[1] - a[1]) / l;
+            if (g > worst) { worst = g; where = a; }
+        }
+        if (worst > (MAX[r.class] ?? .2) * 2) add(`steep (${r.class})`, worst, `${at(where)} ${(worst * 100).toFixed(0)}% road ${r.id} ${r.spans.map(s => s.kind[0]).join("")}`);
+    }
+}
 // junction ends: every road end at a junction should be at the same spot and height
 for (const j of net.junctions)
 {

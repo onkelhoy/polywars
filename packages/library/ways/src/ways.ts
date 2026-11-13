@@ -112,6 +112,13 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
         }
         return gaps;
     };
+    // tunnel mouths out in the open (x, z): a tunnel end where no other way's tunnel ends too
+    const mouths: [number, number][] = [];
+    for (const r of input.roads) for (const sp of r.spans) if (sp.kind === "tunnel") for (const i of [sp.from, sp.to])
+    {
+        const p = r.points[i];
+        if (!input.roads.some(o => o !== r && o.spans.some(t => t.kind === "tunnel" && [t.from, t.to].some(k => Math.hypot(o.points[k][0] - p[0], o.points[k][2] - p[2]) < .5)))) mouths.push([p[0], p[2]]);
+    }
     const lay = (pts: Vec3[]) => { const t = track(pts); meshes.push(t.lods[0]); sleepers.push(t.sleepers); };
     for (road of chains(input.junctions ? trimAtPads(input.junctions, input.roads, styles) : input.roads))
     {
@@ -149,8 +156,8 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                 {
                     // face + hood top meet the ground the terrain hook (`tunnelHoles`, cover 2 m) set behind the face
                     const w = Math.max(size.width, road.width + 2);
-                    // a mouth deep under the hill (the tunnel goes on through a junction underground): no portal
-                    if (ground(a[0], a[2]) - a[1] > size.height + 6) continue;
+                    // an end meeting another tunnel underground (through a junction): no portal
+                    if (!mouths.some(m => Math.hypot(m[0] - a[0], m[1] - a[2]) < .5)) continue;
                     meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: w, depth: 0, apron: 4, hood: 8, top: size.height + 1.8 }));
                     structures.push({ kind: "portal", road: road.id, x: a[0], y: a[1], z: a[2], to: b });
                 }
@@ -163,10 +170,12 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
             }
             const surface = (part: Vec3[]) => {
                 if (part.length < 2) return;
-                const pts = part.map(([x, y, z]) => [x, Math.max(y, ground(x, z)) + style.lift, z] as Vec3);
+                // on the graded line, lifted over the ground only away from tunnel mouths (the hill right over a mouth
+                // would pull the approach up into the opening)
+                const pts = part.map(([x, y, z]) => [x, (mouths.some(m => Math.hypot(m[0] - x, m[1] - z) < 16) ? y : Math.max(y, ground(x, z))) + style.lift, z] as Vec3);
                 if (rail) lay(pts);
                 else if (!style.profile && road.class === "path") stairs(part, road.width);
-                else if (style.profile) meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .015, gain: 4 }, step: style.step, bands: style.bands }));
+                else if (style.profile) meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .015, gain: 4 }, step: style.step, bands: style.bands, caps: true }));
             };
             if (!trail || !input.wet) { surface(raw); continue; }
             // trails over wet ground: boardwalk runs

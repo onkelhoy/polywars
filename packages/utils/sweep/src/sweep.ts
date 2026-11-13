@@ -94,7 +94,8 @@ export function sweep(path: Vec3[], options: Partial<SweepOptions> = {}): Mesh {
         }
     }
     const colour = (j: number): RGB => o.profile.colors?.[j] ?? o.profile.color ?? [.6, .6, .6];
-    const tris = (n - 1) * (m - 1) * 2;
+    const cap = o.caps && n > 1 ? earClip(prof) : [];
+    const tris = (n - 1) * (m - 1) * 2 + cap.length / 3 * 4;
     const positions = new Float32Array(tris * 9), normals = new Float32Array(tris * 9), colors = new Float32Array(tris * 12);
     let v = 0;
     const put = (k: number, c: RGB, shade: number, nx: number, ny: number, nz: number) => {
@@ -122,7 +123,49 @@ export function sweep(path: Vec3[], options: Partial<SweepOptions> = {}): Mesh {
             }
         }
     }
-    return { positions, normals, colors, bounds: bounds(positions) };
+    // end caps: the profile polygon at the first and last ring, both windings
+    for (const i of cap.length ? [0, n - 1] : [])
+    {
+        const col = colour(0);
+        for (let t = 0; t < cap.length; t += 3)
+        {
+            const [p, q, s] = [cap[t], cap[t + 1], cap[t + 2]].map(j => (i * m + j) * 3);
+            const ux = ring[q] - ring[p], uy = ring[q + 1] - ring[p + 1], uz = ring[q + 2] - ring[p + 2];
+            const wx = ring[s] - ring[p], wy = ring[s + 1] - ring[p + 1], wz = ring[s + 2] - ring[p + 2];
+            let nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx;
+            const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+            put(p, col, 1, nx, ny, nz); put(q, col, 1, nx, ny, nz); put(s, col, 1, nx, ny, nz);
+            put(p, col, 1, -nx, -ny, -nz); put(s, col, 1, -nx, -ny, -nz); put(q, col, 1, -nx, -ny, -nz);
+        }
+    }
+    return { positions: positions.subarray(0, v * 3), normals: normals.subarray(0, v * 3), colors: colors.subarray(0, v * 4), bounds: bounds(positions.subarray(0, v * 3)) };
+}
+
+/** triangles (index triples) filling a simple polygon (the closing point may repeat the first) */
+function earClip(poly: [number, number][]): number[] {
+    let idx = poly.map((_, i) => i);
+    const a0 = poly[0], aN = poly[poly.length - 1];
+    if (idx.length > 3 && Math.abs(a0[0] - aN[0]) < 1e-9 && Math.abs(a0[1] - aN[1]) < 1e-9) idx.pop();
+    const area = idx.reduce((s, i, k) => { const p = poly[i], q = poly[idx[(k + 1) % idx.length]]; return s + p[0] * q[1] - q[0] * p[1]; }, 0), dir = Math.sign(area) || 1;
+    const cross = (a: number[], b: number[], c: number[]) => ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) * dir;
+    const inside = (p: number[], a: number[], b: number[], c: number[]) => cross(a, b, p) > 0 && cross(b, c, p) > 0 && cross(c, a, p) > 0;
+    const out: number[] = [];
+    for (let guard = 0; idx.length > 3 && guard < 200; guard++)
+    {
+        let cut = false;
+        for (let k = 0; k < idx.length; k++)
+        {
+            const i0 = idx[(k + idx.length - 1) % idx.length], i1 = idx[k], i2 = idx[(k + 1) % idx.length], a = poly[i0], b = poly[i1], c = poly[i2];
+            const c2 = cross(a, b, c);
+            if (c2 < 0) continue;
+            if (c2 > 1e-12 && idx.some(j => j !== i0 && j !== i1 && j !== i2 && inside(poly[j], a, b, c))) continue;
+            if (c2 > 1e-12) out.push(i0, i1, i2);
+            idx.splice(k, 1); cut = true; break;
+        }
+        if (!cut) break;
+    }
+    if (idx.length === 3) out.push(idx[0], idx[1], idx[2]);
+    return out;
 }
 
 /** one mesh per LOD level: level 0 = `options`, level i overrides with `lods[i - 1]` */

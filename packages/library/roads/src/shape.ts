@@ -153,6 +153,24 @@ export function gradeRoute(plan: Plan, c: ClassOptions, step: number, pins: Map<
         for (let i = n - 2; i >= 0; i--) if (!pins.has(i)) { const g = c.maxGrade * d(i + 1); sm[i] = Math.min(sm[i + 1] + g, Math.max(sm[i + 1] - g, sm[i])); }
         pin(); straight();
     }
+    // last word: the grade limit everywhere but the pins (bridge / tunnel decks too: a pin next to one must not
+    // make it dive)
+    for (let pass = 0; pass < 2; pass++)
+    {
+        for (let i = 1; i < n; i++) if (!pins.has(i)) { const g = c.maxGrade * d(i); sm[i] = Math.min(sm[i - 1] + g, Math.max(sm[i - 1] - g, sm[i])); }
+        for (let i = n - 2; i >= 0; i--) if (!pins.has(i)) { const g = c.maxGrade * d(i + 1); sm[i] = Math.min(sm[i + 1] + g, Math.max(sm[i + 1] - g, sm[i])); }
+    }
+    // pins too far apart in height for the limit (set by other ways at junctions): one even slope between them,
+    // never a cliff next to one of them
+    const at = [0];
+    for (let i = 1; i < n; i++) at.push(at[i - 1] + d(i));
+    const pinned = [...pins.keys()].filter(i => i >= 0 && i < n).sort((a, b) => a - b);
+    for (let q = 0; q + 1 < pinned.length; q++)
+    {
+        const a = pinned[q], b = pinned[q + 1], L = at[b] - at[a];
+        if (b - a < 2 || L <= 0 || Math.abs(sm[b] - sm[a]) / L <= c.maxGrade) continue;
+        for (let i = a + 1; i < b; i++) sm[i] = sm[a] + (sm[b] - sm[a]) * (at[i] - at[a]) / L;
+    }
     for (let i = 0; i < n; i++) points[i][1] = sm[i];
 }
 

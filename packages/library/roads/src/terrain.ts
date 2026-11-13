@@ -151,21 +151,43 @@ export function tunnelHoles(network: Network, g: { n: number; size: number; heig
                 if (g.height[k] < need) g.height[k] += (need - g.height[k]) * w;
             }
         }
-        // each mouth: forecourt cut in front, holes behind the face
+        // each mouth out in the open (not an end meeting another tunnel underground): forecourt cut in front, holes behind the face
         for (const [a, b] of [[P[0], P[1]], [P[P.length - 1], P[P.length - 2]]])
         {
+            if (!isMouth(network.roads, r, a)) continue;
             const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, ux = (b[0] - a[0]) / l, uz = (b[2] - a[2]) / l;
-            const r0 = Math.ceil((face + cell * 3) / cell), ci = Math.round(node(a[0])), cj = Math.round(node(a[2]));
+            const r0 = Math.ceil((face + cell * 6) / cell), ci = Math.round(node(a[0])), cj = Math.round(node(a[2]));
             for (let j = cj - r0; j <= cj + r0; j++) for (let q = ci - r0; q <= ci + r0; q++)
             {
                 if (q < 0 || j < 0 || q >= n || j >= n) continue;
                 const x = q * cell - size / 2 - a[0], z = j * cell - size / 2 - a[2], d = x * ux + z * uz, across = Math.abs(-x * uz + z * ux), k = j * n + q;
                 if (g.water?.[k]) continue;
-                if (d >= -.01 && d <= cell * 1.2 && across <= Math.max(tube - .5, face - cell)) holes[k] = 1;
+                // hole nodes at road level: the ground in front (what the approach road reads) stays low up to the face
+                if (d >= -.01 && d <= cell * 1.2 && across <= Math.max(tube - .5, face - cell)) { holes[k] = 1; g.height[k] = a[1] - .3; }
                 // right behind the face: exactly the portal hood's top, so the ground meets it
-                else if (d >= -.01 && d <= cell * 2.2 && across <= face + cell) g.height[k] = a[1] + top + cover;
-                else if (d < 0 && d > -cell * 2.5 && across <= face + cell) g.height[k] = Math.min(g.height[k], a[1] - .3);
+                // first row behind the face still at road level (the climb happens behind the face wall, never in front)
+                else if (d >= -.01 && d < cell && across <= face + cell) g.height[k] = Math.min(g.height[k], a[1] - .3);
+                else if (d >= cell && d <= cell * 2.2 && across <= face + cell) g.height[k] = a[1] + top + cover;
+                // forecourt: flat at road level in front of the face, banks rising 1:1 beside and ahead (a cutting, no cliff)
+                else if (d < 0 && d > -cell * 5 && across <= face + cell * 5) g.height[k] = Math.min(g.height[k], a[1] - .3 + Math.max(0, across - face) + Math.max(0, -d - cell * 2));
             }
         }
     }
+}
+
+/**
+ * A tunnel end `p` of road `r` is a real mouth (out in the open) unless another way's tunnel also ends right there
+ * (the tunnel goes on underground through a junction).
+ */
+export function isMouth(roads: { points: number[][]; spans: Span[] }[], r: { points: number[][] }, p: number[]) {
+    for (const o of roads)
+    {
+        if (o === r) continue;
+        for (const s of o.spans) if (s.kind === "tunnel") for (const i of [s.from, s.to])
+        {
+            const q = o.points[i];
+            if (q && Math.hypot(q[0] - p[0], q[2] - p[2]) < .5) return false;
+        }
+    }
+    return true;
 }

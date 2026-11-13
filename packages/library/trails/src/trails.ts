@@ -104,7 +104,7 @@ export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}):
                     if (!side || (runSide && side !== runSide)) { flush(); if (!side) continue; }
                     runSide = side;
                     const ex = c.p[0] - c.d[1] * side * (half + .7), ez = c.p[2] + c.d[0] * side * (half + .7);
-                    if (!free(ex, ez, .3)) { flush(); continue; }
+                    if (!free(ex, ez, .3) || (world.mouths ?? []).some(m => Math.hypot(m.x - ex, m.z - ez) < 16)) { flush(); continue; }
                     run.push([ex, g(ex, ez), ez]);
                 }
                 flush();

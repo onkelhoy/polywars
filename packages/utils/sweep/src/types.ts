@@ -23,6 +23,8 @@ export type SweepOptions = {
     bands?: { every: number; shade: number };
     /** profile point x scaled by width / 2, but then clamped so the inner side never folds on tight curves */
     noFold: boolean;
+    /** close both ends with the profile's shape (both sides drawn), in `colors[0]` / `color` */
+    caps?: boolean;
     /** faces get their own normals (low poly look); false = smooth normals across the profile */
     flat: boolean;
 };
