@@ -60,7 +60,8 @@
     "@polywar/roads": "*",
     "@polywar/hydrology": "*",
     "@polywar/sites": "*",
-    "@papit/game-mesh": "*"
+    "@papit/game-mesh": "*",
+    "@polywar/sweep": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

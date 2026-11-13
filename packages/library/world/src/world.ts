@@ -12,8 +12,19 @@ import { generateSites } from "@polywar/sites";
 import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
-/** debug road lines per class (unlit, bright) */
-const ROAD_COLOUR: Record<string, [number, number, number]> = { highway: [1, .75, 0], road: [1, 1, 1], lane: [1, .45, .1], path: [1, .2, .8], rail: [0, .9, 1] };
+import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
+import type { Mesh } from "@papit/game-mesh";
+
+const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+const strip = (top: [number, number, number], side: [number, number, number], edge = 1.12): Profile => ({ points: [[-edge, -.3], [-1, 0], [1, 0], [edge, -.3]], colors: [side, top, side] });
+/** surface per road class (1940s): concrete slabs on highways, gravel roads, dirt lanes and paths, ballast under rail */
+const ROAD_STYLE: Record<string, { profile: Profile; step: number; lift: number; bands?: { every: number; shade: number } }> = {
+    highway: { profile: strip([.62, .61, .58], [.42, .4, .36]), step: 4, lift: .15, bands: { every: 6, shade: .08 } },
+    road: { profile: strip([.55, .5, .43], [.4, .36, .3]), step: 4, lift: .12 },
+    lane: { profile: strip([.47, .38, .28], [.38, .31, .23]), step: 3, lift: .1 },
+    path: { profile: strip([.5, .41, .3], [.42, .34, .25], 1.2), step: 2, lift: .08 },
+    rail: { profile: strip([.42, .4, .38], [.33, .31, .29], 1.3), step: 4, lift: .15 },
+};
 import type { WorldSettings, WorldView } from "./types";
 /** debug site sphere colour per kind */
 const SITE_COLOUR: Record<string, [number, number, number]> = { city: [1, .2, .2], village: [1, .6, .2], farm: [1, 1, .3], peak: [.9, .9, .9], beach: [1, .9, .6], lake: [.3, .6, 1], pass: [.7, .5, 1], viewpoint: [.3, 1, .5] };
@@ -120,8 +131,8 @@ export class World {
         p?.end();
         if (wire) { for (const [m, wallDrop] of ground) wire.draw(view, m, { wallDrop }); this.renderer.reset(); }
         if (!this.data) return;
-        if (this.v.rivers && this.riverMesh) this.renderer.draw(this.riverMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
-        if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
+        if (this.v.rivers && this.riverMesh) this.renderer.draw(this.riverMesh, IDENTITY);
+        if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, IDENTITY);
         if (this.v.sites && this.siteMesh) this.renderer.draw(this.siteMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
         if (this.v.props) this.scatter.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
@@ -166,54 +177,38 @@ export class World {
         this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
     }
 
-    /** debug: road centre lines (no road geometry), a bit over the drawn ground, coloured by class */
+    /** road surfaces: one sweep per ground span (bridges / tunnels are drawn by their own builders), a bit over the drawn ground */
     private buildRoads() {
         this.roadMesh = undefined;
         const r = this.roads.roads;
         if (!r) return;
-        const pos: number[] = [], col: number[] = [];
-        const at = (p: number[]) => [p[0], Math.max(p[1], this.terrain.groundAt(p[0], p[2])) + .4, p[2]];
+        const meshes: Mesh[] = [];
         for (const road of r.network.roads)
         {
-            const c = ROAD_COLOUR[road.class] ?? [1, 0, 0];
-            for (let i = 0; i < road.points.length - 1; i++) { pos.push(...at(road.points[i]), ...at(road.points[i + 1])); col.push(...c, 1, ...c, 1); }
+            const style = ROAD_STYLE[road.class] ?? ROAD_STYLE.road;
+            const spans = road.spans.length ? road.spans : [{ kind: "ground", from: 0, to: road.points.length - 1 }];
+            for (const span of spans)
+            {
+                if (span.kind !== "ground" || span.to - span.from < 1) continue;
+                const pts = road.points.slice(span.from, span.to + 1).map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3);
+                meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step, bands: style.bands }));
+            }
         }
-        const positions = new Float32Array(pos), normals = new Float32Array(pos.length);
-        for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
-        const h = this.terrain.data?.size ?? 1;
-        this.roadMesh = upload(this.layer.gl, { positions, normals, colors: new Float32Array(col), bounds: { min: { x: -h, y: -h, z: -h }, max: { x: h, y: h, z: h }, radius: h * 2 } });
+        if (meshes.length) this.roadMesh = upload(this.layer.gl, merge(meshes));
     }
 
-    /** debug: river lines (no water mesh yet): light blue streams to deep blue rivers, banks for wide ones, white falls, lake rims */
+    /** water ribbons along streams and rivers: flat across (no bank), width per point, at the water surface */
     private buildRivers() {
         this.riverMesh = undefined;
-        const pos: number[] = [], col: number[] = [], line = (a: number[], b: number[], c: number[]) => { pos.push(...a, ...b); col.push(...c, 1, ...c, 1); };
-        const at = (x: number, y: number, z: number) => [x, Math.max(y, this.terrain.groundAt(x, z)) + .5, z];
+        const meshes: Mesh[] = [];
         for (const s of this.hydrology.network.streams)
         {
-            const t = Math.min(1, (s.order - 1) / 3), c = [.45 - .4 * t, .8 - .4 * t, 1];
-            const p = s.points;
-            for (let i = 0; i < p.length - 1; i++)
-            {
-                const [ax, ay, az, w] = p[i], [bx, by, bz] = p[i + 1];
-                line(at(ax, ay, az), at(bx, by, bz), c);
-                if (w < 8) continue;
-                // banks
-                const l = Math.hypot(bx - ax, bz - az) || 1, nx = -(bz - az) / l * w / 2, nz = (bx - ax) / l * w / 2;
-                for (const f of [-1, 1]) line(at(ax + nx * f, ay, az + nz * f), at(bx + nx * f, by, bz + nz * f), c);
-            }
-            for (const f of s.falls) if (p[f - 1]) { const [x, y, z] = p[f], top = p[f - 1][1]; line([x, y, z], [x, top + 10, z], [1, 1, 1]); }
+            if (s.points.length < 2) continue;
+            const t = Math.min(1, (s.order - 1) / 3), c: [number, number, number] = [.25 - .1 * t, .5 - .12 * t, .62 - .05 * t];
+            const pts = s.points.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z) - .3) + .08, z] as Vec3);
+            meshes.push(sweep(pts, { width: s.points.map(p => Math.max(1, p[3])), profile: { points: [[-1, 0], [1, 0]], color: c }, bank: "flat", step: 3 }));
         }
-        for (const l of this.hydrology.network.lakes) for (let a = 0; a < 48; a++)
-        {
-            const r = l.radius, a0 = a / 48 * Math.PI * 2, a1 = (a + 1) / 48 * Math.PI * 2;
-            line(at(l.x + Math.cos(a0) * r, l.level, l.z + Math.sin(a0) * r), at(l.x + Math.cos(a1) * r, l.level, l.z + Math.sin(a1) * r), [0, .3, 1]);
-        }
-        if (!pos.length) return;
-        const positions = new Float32Array(pos), normals = new Float32Array(pos.length);
-        for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
-        const h = this.terrain.data?.size ?? 1;
-        this.riverMesh = upload(this.layer.gl, { positions, normals, colors: new Float32Array(col), bounds: { min: { x: -h, y: -h, z: -h }, max: { x: h, y: h, z: h }, radius: h * 2 } });
+        if (meshes.length) this.riverMesh = upload(this.layer.gl, merge(meshes));
     }
 
     /** debug: wire sphere (3 rings + 2 tilted) per site, coloured by kind */
