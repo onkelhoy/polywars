@@ -98,22 +98,26 @@ export class Router {
             const cellAt = (s: number) => { const x = fi + dx * s, z = fj + dz * s; return x < 2 || z < 2 || x >= m - 2 || z >= m - 2 ? -1 : z * m + x; };
             // a jump starts and ends on `run` cells of straight dry ground (roads meet bridges / tunnels straight)
             const run = runout(c, cell), lead = run * unit;
-            const straightGround = (s0: number, y: number) => {
+            // `cut`: tunnels may run in / out through a cutting (ground higher than the way)
+            const straightGround = (s0: number, y: number, cut = false) => {
                 for (let q = 1; q <= run; q++)
                 {
                     const k = cellAt(s0 + q);
-                    if (k < 0 || water[k] || this.tunnel[k] || !Number.isNaN(this.deck[k]) || Math.abs(height[k] - y) > c.maxGrade * unit * q + 2) return false;
+                    if (k < 0 || water[k] || this.tunnel[k] || !Number.isNaN(this.deck[k])) return false;
+                    const dy = height[k] - y, g = c.maxGrade * unit * q + 2;
+                    if (dy < -g || (!cut && dy > g)) return false;
                 }
                 return true;
             };
-            if (!straightGround(0, height[from])) return;
-            const node = cellAt(run), i = node % m, j = (node / m) | 0, h0 = height[node];
+            const leadFlat = straightGround(0, height[from]), leadCut = leadFlat || straightGround(0, height[from], true);
+            if (!leadCut) return;
+            const node = cellAt(run), i = node % m, j = (node / m) | 0, h0 = leadFlat ? height[node] : height[from];
             const at = (s: number) => cellAt(run + s);
             const a1 = at(1), a2 = at(2);
             if (a1 < 0 || a2 < 0) return;
-            const land = (s: number, y: number) => straightGround(run + s, y) ? at(s + run) : -1;
+            const land = (s: number, y: number, cut = false) => straightGround(run + s, y, cut) ? at(s + run) : -1;
             // bridge: water ahead or a valley
-            if (c.bridge.max > 0 && (water[a1] || height[a2] < h0 - 10))
+            if (leadFlat && c.bridge.max > 0 && (water[a1] || height[a2] < h0 - 10))
             {
                 let wet = false, low = Infinity, wetRun = 0, dryAfter = false;
                 // water across the line at a wet cell (both sides, cells): a crossing is short along, wide across
@@ -146,14 +150,17 @@ export class Router {
                     // over water, or a valley at least 20 m deep
                     if ((wet || low < Math.min(h0, end) - 20) && Math.abs(end - h0) / len <= c.maxGrade)
                     {
+                        // no straight landing here: try a little further
                         const l = land(s, end);
-                        if (l >= 0) push(l, heading, len * c.bridge.cost + 2 * lead, BRIDGE);
+                        if (l < 0) continue;
+                        push(l, heading, len * c.bridge.cost + 2 * lead, BRIDGE);
                         break;
                     }
                 }
             }
             // tunnel: ground ahead rises steeply
-            if (c.tunnel.max > 0 && height[a2] > h0 + 6)
+            const a3 = at(3);
+            if (c.tunnel.max > 0 && a3 >= 0 && Math.max(height[a2], height[a3]) > h0 + 6)
             {
                 for (let s = 3; s * unit <= c.tunnel.max; s++)
                 {
@@ -164,7 +171,7 @@ export class Router {
                     // covered along the middle
                     let covered = true;
                     for (let q = 1; q < s && covered; q++) { const t = q / s; if (height[at(q)] < h0 + (end - h0) * t + (t > .15 && t < .85 ? c.tunnel.cover : 0)) covered = false; }
-                    if (covered) { const l = land(s, end); if (l >= 0) push(l, heading, len * c.tunnel.cost + 2 * lead, TUNNEL); break; }
+                    if (covered) { const l = land(s, end, true); if (l < 0) continue; push(l, heading, len * c.tunnel.cost + 2 * lead, TUNNEL); break; }
                 }
             }
         };

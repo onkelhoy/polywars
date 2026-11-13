@@ -197,3 +197,40 @@ function resample(p: P[], step: number): P[] {
 }
 
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
+
+/**
+ * After grading: ground stretches far over the ground become bridges (viaducts), far under it tunnels, so no way
+ * floats on a wall of fill or sits in a canyon of cut. Metres of `fill` / `cut` allowed on the ground.
+ */
+export function structures(plan: Plan, heightAt: (x: number, z: number) => number, fill = 14, cut = 28) {
+    const P = plan.points, out: Span[] = [];
+    for (const s of plan.spans)
+    {
+        if (s.kind !== "ground") { out.push(s); continue; }
+        const d = P.map(p => p[1] - heightAt(p[0], p[2]));
+        const kindAt = (i: number): Span["kind"] => i < s.from || i > s.to ? "ground" : d[i] > fill ? "bridge" : d[i] < -cut ? "tunnel" : "ground";
+        let a = s.from;
+        while (a < s.to)
+        {
+            const k = kindAt(a);
+            let b = a;
+            while (b < s.to && kindAt(b + 1) === k) b++;
+            // structures reach a point past where they're needed (onto the ground), at least 3 points long
+            if (k !== "ground" && b - a >= 2)
+            {
+                const from = Math.max(s.from, a - 1), to = Math.min(s.to, b + 1);
+                const last = out[out.length - 1];
+                if (last && last.kind === "ground" && last.to > from) last.to = from;
+                if (last && last.kind === "ground" && last.to <= last.from) out.pop();
+                out.push({ kind: k, from, to });
+                a = to;
+                continue;
+            }
+            const last = out[out.length - 1];
+            if (last && last.kind === "ground" && last.to >= a) last.to = Math.max(last.to, b + (b < s.to ? 1 : 0));
+            else out.push({ kind: "ground", from: a, to: Math.min(s.to, b + 1) });
+            a = b + 1;
+        }
+    }
+    plan.spans = out.filter(s => s.to > s.from).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
+}

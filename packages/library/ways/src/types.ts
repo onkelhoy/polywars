@@ -3,7 +3,7 @@ import type { Profile } from "@polywar/sweep";
 export type Vec3 = [number, number, number];
 
 /** what ways read of a road network (`@polywar/roads` `Network` fits) */
-export type Way = { id: number; class: string; points: [number, number, number][]; width: number; spans: { kind: string; from: number; to: number }[] };
+export type Way = { id: number; class: string; points: [number, number, number][]; width: number; spans: { kind: string; from: number; to: number }[]; /** roads of one chain join into one sweep */ chain?: number };
 export type WayJunction = { id: number; x: number; z: number; y: number; roads: { road: number; angle: number; class: string }[] };
 
 export type WaysInput = {

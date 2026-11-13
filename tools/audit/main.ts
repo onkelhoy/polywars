@@ -86,6 +86,13 @@ for (const r of net.roads)
         if (dd > .35) add(`kink at ${s.kind} end (${r.class})`, dd * 57.3, `${at(b)} ${(dd * 57.3).toFixed(0)}°`);
     }
 }
+// spikes: the line turns back on itself (> 90° between neighbour segments), drawn as a fold
+for (const r of net.roads) for (let i = 1; i < r.points.length - 1; i++)
+{
+    const a = r.points[i - 1], b = r.points[i], c = r.points[i + 1];
+    const ux = b[0] - a[0], uz = b[2] - a[2], vx = c[0] - b[0], vz = c[2] - b[2];
+    if (ux * vx + uz * vz < 0) add(`spike (${r.class})`, 1, `${at(b)} road ${r.id} i ${i}/${r.points.length}`);
+}
 // junction ends: every road end at a junction should be at the same spot and height
 for (const j of net.junctions)
 {
@@ -161,3 +168,5 @@ if (process.env.AT)
         console.log("  " + r.points.slice(Math.max(0, i - 6), i + 7).map((p, k) => `${Math.max(0, i - 6) + k}:${p[0].toFixed(1)},${p[2].toFixed(1)},${p[1].toFixed(1)}`).join(" "));
     }
 }
+if (process.env.CHAIN) for (const r of net.roads.filter(r => r.chain === +process.env.CHAIN!)) console.log(`road ${r.id} ${r.from}→${r.to} ${JSON.stringify(r.spans)} ` + r.points.filter((_, i) => i % 3 === 0).map(p => `${p[0].toFixed(0)},${p[2].toFixed(0)}:${(p[1] - ground(p[0], p[2])).toFixed(0)}`).join(" "));
+if (process.env.WATER) { const [x, z] = process.env.WATER.split(",").map(Number); for (let b = -3; b <= 3; b++) console.log(Array.from({ length: 7 }, (_, a) => { const k = node(x + (a - 3) * 30, z + b * 30); return `${d.water[k]}:${d.height[k].toFixed(0)}/${d.surface[k].toFixed(0)}`; }).join("  ")); }

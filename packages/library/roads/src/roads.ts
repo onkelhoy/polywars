@@ -2,7 +2,7 @@ import type { GridResult } from "@polywar/pathfinding";
 import { dry, routingGrid, sampler, toNode, toXZ, type Grid } from "./grid";
 import { CLASSES, RANK, resolve } from "./presets";
 import { Router } from "./route";
-import { gradeRoute, planRoute, shapeRoute } from "./shape";
+import { gradeRoute, planRoute, shapeRoute, structures } from "./shape";
 import { topology, type Link } from "./topology";
 import type { Ground, Junction, Network, Road, RoadClass, RoadsOptions, Site, Span } from "./types";
 
@@ -247,6 +247,7 @@ export class Roads {
                 }
             });
             gradeRoute(plan, c, o.step, pins);
+            structures(plan, this.heightAt);
             idx.forEach((i, q) => { if (!spot.has(ids[q])) spot.set(ids[q], [P[i][0], P[i][1], P[i][2]]); });
             chain.forEach(([r, rev], q) => {
                 const a = idx[q], b = Math.max(idx[q + 1], a + 1), raw = raws[r];

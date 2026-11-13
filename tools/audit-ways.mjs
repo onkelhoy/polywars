@@ -16,5 +16,6 @@ const src = {
     },
 };
 const out = join(root, "node_modules/.cache/audit-ways.mjs");
-await build({ entryPoints: [join(root, "tools/audit/main.ts")], bundle: true, platform: "node", format: "esm", outfile: out, plugins: [src], logLevel: "error" });
+const entry = process.argv[2] === "scen" ? "tools/audit/scen.ts" : "tools/audit/main.ts";
+await build({ entryPoints: [join(root, entry)], bundle: true, platform: "node", format: "esm", outfile: out, plugins: [src], logLevel: "error" });
 await import(pathToFileURL(out).href);

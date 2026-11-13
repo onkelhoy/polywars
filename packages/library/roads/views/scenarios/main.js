@@ -12,7 +12,7 @@ const sleeper = (await loadGLTF(`/assets/models/${SLEEPER_MODEL}.glb`)).meshes[0
 
 /** flat shaded ground grid (every 2nd node), water cells blue at their surface */
 function groundMesh(g) {
-    const p = [], n = [], c = [], s = 2, at = (i, j) => [(i / (N - 1) - .5) * SIZE, g.height[j * N + i], (j / (N - 1) - .5) * SIZE];
+    const p = [], n = [], c = [], s = 1, at = (i, j) => [(i / (N - 1) - .5) * SIZE, g.height[j * N + i], (j / (N - 1) - .5) * SIZE];
     const tri = (a, b, d, col) => {
         const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], v = [d[0] - a[0], d[1] - a[1], d[2] - a[2]];
         let nx = u[1] * v[2] - u[2] * v[1], ny = u[2] * v[0] - u[0] * v[2], nz = u[0] * v[1] - u[1] * v[0]; const l = Math.hypot(nx, ny, nz) || 1;
@@ -20,7 +20,7 @@ function groundMesh(g) {
     };
     for (let j = 0; j < N - s; j += s) for (let i = 0; i < N - s; i += s)
     {
-        if (g.holes?.[(j + 1) * N + i + 1]) continue;
+        if (g.holes?.[j * N + i]) continue;
         const wet = g.water[j * N + i], col = wet ? [.25, .45, .6] : [.36, .52, .3];
         const a = at(i, j), b = at(i + s, j), d = at(i, j + s), e = at(i + s, j + s);
         if (wet) for (const q of [a, b, d, e]) q[1] += 2.4;

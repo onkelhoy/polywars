@@ -6,7 +6,8 @@ import type { ClassStyle, Mesh, Structure, Vec3, WaysInput, WaysResult } from ".
 
 /** paths steeper than this (rise / run) get steps */
 export const STEEP = .3;
-const strip = (top: [number, number, number], side: [number, number, number], edge = 1.12): Profile => ({ points: [[-edge, -.3], [-1, 0], [1, 0], [edge, -.3]], colors: [side, top, side] });
+/** surface + a skirt down each side (reads as a bank on fills, hidden in the ground on cuts) */
+const strip = (top: [number, number, number], side: [number, number, number], edge = 1.35): Profile => ({ points: [[-edge, -1.2], [-1, 0], [1, 0], [edge, -1.2]], colors: [side, top, side] });
 
 /** surface per class (1940s): concrete slabs on highways, gravel roads, dirt lanes; paths have no surface (ground only) */
 export const STYLES: Record<string, ClassStyle> = {
@@ -16,6 +17,29 @@ export const STYLES: Record<string, ClassStyle> = {
     path: { profile: null, step: 2, lift: 0 },
     rail: { profile: null, step: 4, lift: 0 },
 };
+
+/**
+ * Roads of one chain (`chain` id, consecutive, each starting where the last ended) joined into one way, so a road
+ * going on through junctions is one sweep (no seams, no overlapping ends).
+ */
+export function chains<W extends WaysInput["roads"][0]>(roads: W[]): W[] {
+    const out: W[] = [];
+    for (const r of roads)
+    {
+        const last = out[out.length - 1], a = last?.points[last.points.length - 1], b = r.points[0];
+        if (last && last.chain !== undefined && last.chain === r.chain && last.class === r.class && Math.hypot(a[0] - b[0], a[2] - b[2]) < .01)
+        {
+            const off = last.points.length - 1;
+            last.points = [...last.points, ...r.points.slice(1)];
+            const spans = last.spans.length ? last.spans : [{ kind: "ground", from: 0, to: off }];
+            last.spans = [...spans, ...(r.spans.length ? r.spans : [{ kind: "ground", from: 0, to: r.points.length - 1 }]).map(s => ({ ...s, from: s.from + off, to: s.to + off }))]
+                .reduce<W["spans"]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
+            continue;
+        }
+        out.push({ ...r, points: r.points.slice(), spans: r.spans.map(s => ({ ...s })) });
+    }
+    return out;
+}
 
 /**
  * A road network to meshes: surfaces per class (sweeps), rail tracks (ballast + rails, sleepers as instances),
@@ -44,7 +68,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
     };
     let road!: WaysInput["roads"][0];
     const lay = (pts: Vec3[]) => { const t = track(pts); meshes.push(t.lods[0]); sleepers.push(t.sleepers); };
-    for (road of input.roads)
+    for (road of chains(input.roads))
     {
         const style = styles[road.class] ?? styles.road, rail = road.class === "rail", trail = road.class === "path" || road.class === "lane";
         const spans = road.spans.length ? road.spans : [{ kind: "ground", from: 0, to: road.points.length - 1 }];
@@ -54,7 +78,9 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
             const raw = road.points.slice(span.from, span.to + 1).map(p => [p[0], p[1], p[2]] as Vec3);
             if (span.kind === "bridge")
             {
-                const b = bridgeFor(road.class, raw, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road" });
+                // deck top = the road surface it continues (same lift), so road and deck meet flush
+                const deck = raw.map(([x, y, z], i) => [x, (i === 0 || i === raw.length - 1 ? Math.max(y, ground(x, z)) : y) + style.lift, z] as Vec3);
+                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road" });
                 meshes.push(b.mesh);
                 structures.push({ kind: `bridge-${b.type}`, road: road.id, x: raw[0][0], y: raw[0][1], z: raw[0][2], to: raw[raw.length - 1] });
                 if (rail) lay(raw);
@@ -80,7 +106,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                 const pts = part.map(([x, y, z]) => [x, Math.max(y, ground(x, z)) + style.lift, z] as Vec3);
                 if (rail) lay(pts);
                 else if (!style.profile && road.class === "path") stairs(part, road.width);
-                else if (style.profile) meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step, bands: style.bands }));
+                else if (style.profile) meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .015, gain: 4 }, step: style.step, bands: style.bands }));
             };
             if (!trail || !input.wet) { surface(raw); continue; }
             // trails over wet ground: boardwalk runs
