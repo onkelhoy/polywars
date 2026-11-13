@@ -43,6 +43,15 @@ Knowledge that outlives a plan. Trust code over this.
 - Road tools use `shapeOnly` (raw map ~1.5 s) instead of the full pipeline. Pathfinding is `@polywar/pathfinding` (utils).
 - `npm create @papit` auto commits; quote flags per arg (zsh doesn't word split).
 
+## Infrastructure (2026-11-13)
+- `@polywar/sweep` (utils): mesh along a 3D path (profile x in half widths, y metres; `bank` "flat" for water or `{max, gain}`; `noFold`; `bands`; flat shaded, non indexed). Roads, rivers, rail, bridge decks use it.
+- `@polywar/rail`: sleeper `assets/models/transport/train/rail-sleeper.glb` cut by `tools/blender/cut_rail.py`; `track(path)` = ballast + rails sweeps (3 lods) + sleeper instances (scatter batch, model `transport/train/rail-sleeper`).
+- `@polywar/bridges`: `bridge(type, path, {width, ground, use})`, `pick(class, span, height)`, `portal(at, dir, PORTAL.rail|road|lane)`. Types: foot-wood, slab-stone, arch-stone, trestle-wood, girder.
+- `@polywar/placements` (utils): one record; ids `hash(source:n)` (stable per build order), `changes` (remove / move) replayed after regeneration, `pack()` binary for network. Generator kinds `bridge:<type>` / `portal` (not drawn by scatter); asset kinds = path under `assets/models/`.
+- `@polywar/trails`: `furnish(world)` pure rules → items (benches, lanterns, logs, signposts, fences above drops, street lamps in towns, rocks at tunnel mouths).
+- World: second Scatter `world.built` (assets by path, lod 0 only) draws sleepers + placements; `world.structures` (bridges, portals, boardwalks); ecosystem keeps trees off portals (14 m) and trail props. View toggles roads / rivers / sites (wire spheres per site).
+- Village props (`assets/models/props/village`, from arrow-warfare) made flat shaded with `tools/blender/flat.py`.
+
 ## Layout (2026-11-12)
 `animation/skeleton` · `library/{catalog (@polywar/assets), materials/*, grass, city, building-builder}` · `ui/game/*` · `ui/viewport/{viewport, 3d-asset-preview, gallery, renderer}` · `network/*` · `utils/{mesh-bake, noise}`.
 `npm run assets` serves `library/catalog` (`views/`, no sub views). Folder `catalog` (not `assets`: the dev server serves such folders raw).

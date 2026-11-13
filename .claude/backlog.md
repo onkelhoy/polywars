@@ -14,6 +14,7 @@ Grouped by feature. `[ ]` open, `[x]` done.
 - [ ] Lighting
 - [x] Toon shading (`@polywar/shading`)
 - [ ] Pixel style variant
+- [ ] River flow shader looked bad (owner): redo later
 
 ## Animation / rig
 - [x] Proper rigs (FK + IK), full animation control
