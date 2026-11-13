@@ -60,3 +60,7 @@ Knowledge that outlives a plan. Trust code over this.
 Goal: buildings like the store screenshots (gables, jetties, timber frame), flat stone/ground pieces as quad + maps for phones.
 - Baked pieces: `assets/models/modular-village-baked/<Piece>/model.glb` + `color.png`, `normal.png`, `ao.png`, `spec.png` (glb references them). Rebake: `node tools/bake-village.mjs`.
 - mesh-bake: `papit.type` is `node` so `src/bin.ts` builds to `lib/bin.js` (browser type fails on `node:` imports); `lib/bundle.js` stays browser safe (bin is not exported from index).
+
+### Tunnel holes (round 2)
+- `TerrainData.holes?: Uint8Array` (n*n). terrain lod refines hole borders and drops triangles whose centre node is a hole.
+- roads `tunnelHoles(network, g, depth=12)` marks mouth cells in the fix hook; bridges `portal({top})` sets the face wall height, lining is double-sided, depth 13.

@@ -10,7 +10,7 @@
         "build": "npx @papit/build",
         "test": "node bin/test.mjs",
         "create": "npm create @papit -- --package",
-        "start": "node bin/start.mjs",
+        "start": "node bin/start.mjs -- --port 4000",
         "version:reset": "npx @papit/version --reset",
         "version:sync": "npx @papit/version --sync",
         "assets": "node bin/assets.mjs",

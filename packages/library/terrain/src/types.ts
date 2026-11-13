@@ -152,6 +152,8 @@ export type TerrainData = {
     waves: Float32Array;
     cities: City[];
     rivers: River[];
+    /** n², 1 = no ground drawn here (tunnel mouths; set by hooks in `fix`) */
+    holes?: Uint8Array;
     seaLevel: number;
 };
 

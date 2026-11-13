@@ -65,7 +65,11 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                 const size = PORTAL[rail ? "rail" : road.class === "highway" || road.class === "road" ? "road" : "lane"];
                 for (const [a, b] of [[raw[0], raw[1]], [raw[raw.length - 1], raw[raw.length - 2]]])
                 {
-                    meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: Math.max(size.width, road.width + 2) }));
+                    // the face wall reaches up to the hill over the mouth
+                    const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, sx = -(b[2] - a[2]) / l, sz = (b[0] - a[0]) / l, w = Math.max(size.width, road.width + 2);
+                    let hill = 0;
+                    for (const f of [-1, -.5, 0, .5, 1]) for (const d of [0, 1.5]) hill = Math.max(hill, ground(a[0] + sx * f * w / 2 + (b[0] - a[0]) / l * d, a[2] + sz * f * w / 2 + (b[2] - a[2]) / l * d) - a[1]);
+                    meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: w, top: Math.min(hill + .8, size.height + 14) }));
                     structures.push({ kind: "portal", road: road.id, x: a[0], y: a[1], z: a[2], to: b });
                 }
                 if (rail) lay(raw);

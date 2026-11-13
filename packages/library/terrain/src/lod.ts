@@ -76,8 +76,10 @@ export class Ground {
         const g = (i: number, j: number) => (c.j0 + j) * n + c.i0 + i;
         const h = new Float32Array(s * s), b = new Uint8Array(s * s);
         for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { h[j * s + i] = d.height[g(i, j)]; b[j * s + i] = d.biome[g(i, j)]; }
-        const edges = this.edges;
-        return c.errors = errors(h, s, edges > 0 ? (m, a, q) => b[m] !== b[a] || b[m] !== b[q] ? edges : 0 : undefined, this.adaptive);
+        const edges = this.edges, holes = d.holes, o = new Uint8Array(s * s);
+        if (holes) for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) o[j * s + i] = holes[g(i, j)];
+        // biome borders keep some error; hole borders are always split to the finest triangles
+        return c.errors = errors(h, s, (m, a, q) => (holes && (o[m] !== o[a] || o[m] !== o[q] || o[m]) ? 1e6 : 0) + (edges > 0 && (b[m] !== b[a] || b[m] !== b[q]) ? edges : 0), this.adaptive);
     }
 
     /** height of the finest drawn ground (level 0 triangles) at world x / z; grass and props stand on this */
@@ -149,7 +151,19 @@ export class Ground {
 
     private build(c: Chunk, level: number): Mesh {
         const d = this.d, n = d.n, s = this.size + 1, half = d.size / 2;
-        const { nodes, triangles } = triangulate(this.errorsOf(c), s, this.levelError(level));
+        let { nodes, triangles } = triangulate(this.errorsOf(c), s, this.levelError(level));
+        if (d.holes)
+        {
+            // drop triangles whose centre node is a hole
+            const keep: number[] = [];
+            for (let t = 0; t < triangles.length; t += 3)
+            {
+                let ci = 0, cj = 0;
+                for (let e = 0; e < 3; e++) { const k = nodes[triangles[t + e]]; ci += k % s; cj += (k / s) | 0; }
+                if (!d.holes[(c.j0 + Math.round(cj / 3)) * n + c.i0 + Math.round(ci / 3)]) keep.push(triangles[t], triangles[t + 1], triangles[t + 2]);
+            }
+            triangles = new Uint32Array(keep) as typeof triangles;
+        }
 
         // skirt: border edges get a wall down, deep enough to cover a coarser neighbour
         const on = (k: number) => { const i = k % s, j = (k / s) | 0; return [i === 0, i === s - 1, j === 0, j === s - 1]; };

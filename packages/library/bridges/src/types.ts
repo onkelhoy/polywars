@@ -24,6 +24,8 @@ export type PortalOptions = {
     /** how far the lining goes into the hill, m */
     depth: number;
     stone: RGB;
+    /** face wall height over the road (so it meets the hill above the mouth), m; default from height + wall */
+    top?: number;
 };
 
 export type { Mesh };

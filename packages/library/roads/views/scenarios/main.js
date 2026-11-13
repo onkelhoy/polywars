@@ -4,7 +4,7 @@ import { loadGLTF } from '@papit/game-mesh';
 import { merge, bounds } from '@polywar/sweep';
 import { SLEEPER_MODEL, bake } from '@polywar/rail';
 import { buildWays } from '@polywar/ways';
-import { Roads, sampler } from '@polywar/roads';
+import { Roads, sampler, tunnelHoles } from '@polywar/roads';
 import { SCENARIOS, ground, N, SIZE } from './scenarios.js';
 
 const $ = s => document.querySelector(s);
@@ -20,6 +20,7 @@ function groundMesh(g) {
     };
     for (let j = 0; j < N - s; j += s) for (let i = 0; i < N - s; i += s)
     {
+        if (g.holes?.[(j + 1) * N + i + 1]) continue;
         const wet = g.water[j * N + i], col = wet ? [.25, .45, .6] : [.36, .52, .3];
         const a = at(i, j), b = at(i + s, j), d = at(i, j + s), e = at(i + s, j + s);
         if (wet) for (const q of [a, b, d, e]) q[1] += 2.4;
@@ -58,6 +59,7 @@ for (const sc of SCENARIOS)
 {
     const g = ground(sc), roads = new Roads(g, { cell: 4 }), byId = new Map(sc.sites.map(s => [s.id, s]));
     roads.build(sc.sites, sc.links.map(([cls, a, b]) => ({ cls, a: byId.get(a), b: byId.get(b) })));
+    tunnelHoles(roads.network, g);
     const heightAt = sampler(g);
     const wet = (x, z) => { const i = Math.round((x / SIZE + .5) * (N - 1)), j = Math.round((z / SIZE + .5) * (N - 1)); return g.water[j * N + i] > 0; };
     const w = buildWays({ ...roads.network, ground: heightAt, wet, surface: (x, z) => heightAt(x, z) + 2.4 });

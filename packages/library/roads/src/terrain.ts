@@ -96,7 +96,7 @@ export function roadHooks(sitesOf: (raw: Ground & { cities: any[] }) => Site[], 
             h.roads.build(h.sites);
             return { hard: carve(h.roads, raw) };
         },
-        fix: data => { if (h.roads) { bridgeWater(h.roads.network, data); h.roads.load(h.roads.network); } },
+        fix: data => { if (h.roads) { bridgeWater(h.roads.network, data); tunnelHoles(h.roads.network, data); h.roads.load(h.roads.network); } },
     };
     return h;
 }
@@ -106,3 +106,33 @@ export const roadEdge = (roads: Roads, far = 30) => (x: number, z: number) => {
     const r = roads.nearest(x, z, far);
     return r ? r.distance - r.road.width / 2 : far;
 };
+
+/** opening height per class at a tunnel mouth, metres (portals in `@polywar/bridges` match) */
+export const TUNNEL_HEIGHT: Record<string, number> = { rail: 7, highway: 7, road: 7, lane: 5, path: 3 };
+
+/**
+ * Tunnel mouths: ground that would cut into the tunnel (lower than the opening top) near each mouth becomes a hole
+ * in the drawn terrain (`data.holes`), from a little in front of the mouth to `depth` m in.
+ */
+export function tunnelHoles(network: Network, g: { n: number; size: number; height: Float32Array; holes?: Uint8Array }, depth = 12) {
+    const { n, size } = g, cell = size / (n - 1);
+    for (const r of network.roads) for (const s of r.spans)
+    {
+        if (s.kind !== "tunnel" || s.to - s.from < 1) continue;
+        const half = Math.max(r.width + 2, 6) / 2 + 1, top = (TUNNEL_HEIGHT[r.class] ?? 6) + 1.5;
+        for (const [a, b] of [[r.points[s.from], r.points[s.to]], [r.points[s.to], r.points[s.from]]])
+        {
+            const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, ux = (b[0] - a[0]) / l, uz = (b[2] - a[2]) / l, grade = (b[1] - a[1]) / l;
+            const reach = Math.min(depth, l / 2), r0 = Math.ceil((reach + half + 4) / cell);
+            const ci = Math.round((a[0] / size + .5) * (n - 1)), cj = Math.round((a[2] / size + .5) * (n - 1));
+            for (let j = cj - r0; j <= cj + r0; j++) for (let i = ci - r0; i <= ci + r0; i++)
+            {
+                if (i < 0 || j < 0 || i >= n || j >= n) continue;
+                const x = i * cell - size / 2 - a[0], z = j * cell - size / 2 - a[2], d = x * ux + z * uz, across = Math.abs(-x * uz + z * ux);
+                if (d < -3 || d > reach || across > half) continue;
+                const k = j * n + i;
+                if (g.height[k] < a[1] + grade * d + top) (g.holes ??= new Uint8Array(n * n))[k] = 1;
+            }
+        }
+    }
+}

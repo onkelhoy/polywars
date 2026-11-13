@@ -2,9 +2,9 @@ import { Soup } from "./geometry";
 import type { Mesh, PortalOptions, RGB, Vec3 } from "./types";
 
 export const PORTAL: Record<"rail" | "road" | "lane", PortalOptions> = {
-    rail: { width: 6, height: 7, wall: 2.5, wings: 7, depth: 10, stone: [.5, .48, .44] },
-    road: { width: 9, height: 7, wall: 2.5, wings: 8, depth: 10, stone: [.55, .52, .47] },
-    lane: { width: 5, height: 5, wall: 1.8, wings: 5, depth: 8, stone: [.52, .5, .45] },
+    rail: { width: 6, height: 7, wall: 2.5, wings: 7, depth: 13, stone: [.5, .48, .44] },
+    road: { width: 9, height: 7, wall: 2.5, wings: 8, depth: 13, stone: [.55, .52, .47] },
+    lane: { width: 5, height: 5, wall: 1.8, wings: 5, depth: 13, stone: [.52, .5, .45] },
 };
 
 const DARK: RGB = [.05, .05, .05];
@@ -16,7 +16,7 @@ const DARK: RGB = [.05, .05, .05];
 export function portal(at: Vec3, dir: [number, number], options: Partial<PortalOptions> = {}): Mesh {
     const o = { ...PORTAL.road, ...options }, s = new Soup();
     const l = Math.hypot(dir[0], dir[1]) || 1, fx = dir[0] / l, fz = dir[1] / l, sx = -fz, sz = fx;
-    const r = o.width / 2, spring = o.height - r, W = r + o.wall, H = o.height + o.wall * .6, N = 12;
+    const r = o.width / 2, spring = o.height - r, W = r + o.wall, H = Math.max(o.height + o.wall * .6, o.top ?? 0), N = 12;
     const stone = o.stone, dark: RGB = [stone[0] * .75, stone[1] * .75, stone[2] * .75];
     // local (x across, y up, d into the hill) to world
     const P = (x: number, y: number, d = 0): Vec3 => [at[0] + sx * x + fx * d, at[1] + y, at[2] + sz * x + fz * d];
@@ -35,9 +35,9 @@ export function portal(at: Vec3, dir: [number, number], options: Partial<PortalO
     s.block(P(0, o.height - .3, -.15), [fx, fz], [.6, 1.1, 1], dark);
     for (let i = 1; i < N; i += 2) { const [x, y] = arch[i], ux = x / r, uy = (y - spring) / r; s.beam(P(x, y, -.1), P(x + ux * .8, y + uy * .8, -.1), .5, .4, dark); }
     // lining: jamb walls + arch vault into the hill (seen from inside: faces point in)
-    s.quad(P(-r, below, 0), P(-r, below, o.depth), P(-r, spring, o.depth), P(-r, spring, 0), dark);
-    s.quad(P(r, spring, 0), P(r, spring, o.depth), P(r, below, o.depth), P(r, below, 0), dark);
-    for (let i = 0; i < N; i++) { const [xa, ya] = arch[i], [xb, yb] = arch[i + 1]; s.quad(P(xb, yb, 0), P(xb, yb, o.depth), P(xa, ya, o.depth), P(xa, ya, 0), dark); }
+    s.quad2(P(-r, below, 0), P(-r, below, o.depth), P(-r, spring, o.depth), P(-r, spring, 0), dark);
+    s.quad2(P(r, spring, 0), P(r, spring, o.depth), P(r, below, o.depth), P(r, below, 0), dark);
+    for (let i = 0; i < N; i++) { const [xa, ya] = arch[i], [xb, yb] = arch[i + 1]; s.quad2(P(xb, yb, 0), P(xb, yb, o.depth), P(xa, ya, o.depth), P(xa, ya, 0), dark); }
     // dark plug
     s.quad(P(r, below, o.depth), P(-r, below, o.depth), P(-r, o.height, o.depth), P(r, o.height, o.depth), DARK);
     // wing walls: out and back from the face edges, stepping down
