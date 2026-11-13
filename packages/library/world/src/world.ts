@@ -15,6 +15,8 @@ import type { TerrainHooks } from "@polywar/terrain";
 /** debug road lines per class (unlit, bright) */
 const ROAD_COLOUR: Record<string, [number, number, number]> = { highway: [1, .75, 0], road: [1, 1, 1], lane: [1, .45, .1], path: [1, .2, .8], rail: [0, .9, 1] };
 import type { WorldSettings, WorldView } from "./types";
+/** debug site sphere colour per kind */
+const SITE_COLOUR: Record<string, [number, number, number]> = { city: [1, .2, .2], village: [1, .6, .2], farm: [1, 1, .3], peak: [.9, .9, .9], beach: [1, .9, .6], lake: [.3, .6, 1], pass: [.7, .5, 1], viewpoint: [.3, 1, .5] };
 
 /** grass draw distance per quality, metres (further than the grass presets) */
 const DISTANCE = { low: 34, medium: 60, high: 90 };
@@ -50,13 +52,14 @@ export class World {
     readonly hydrology: HydrologyHooks;
     private roadMesh?: ReturnType<typeof upload>;
     private riverMesh?: ReturnType<typeof upload>;
+    private siteMesh?: ReturnType<typeof upload>;
     /** made on first use of `view.wire` */
     private wire?: Wire;
     /** after the nature is grown (terrain or ecosystem change) */
     onchange?: (world: World) => void;
 
     constructor(readonly layer: Layer3D, readonly renderer: Renderer, readonly nature: NatureList, settings: Partial<WorldSettings> | string = {}, view: Partial<WorldView> = {}) {
-        this.v = { quality: "medium", grass: true, props: true, roads: true, rivers: true, style: "pixel", wire: "off", ...view };
+        this.v = { quality: "medium", grass: true, props: true, roads: true, rivers: true, sites: false, style: "pixel", wire: "off", ...view };
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
@@ -119,6 +122,7 @@ export class World {
         if (!this.data) return;
         if (this.v.rivers && this.riverMesh) this.renderer.draw(this.riverMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
+        if (this.v.sites && this.siteMesh) this.renderer.draw(this.siteMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
         if (this.v.props) this.scatter.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
         p?.end();
@@ -157,6 +161,7 @@ export class World {
         const look = this.terrain.material.look;
         this.buildRoads();
         this.buildRivers();
+        this.buildSites();
         const road = this.roads.roads ? roadEdge(this.roads.roads) : undefined;
         this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
     }
@@ -209,6 +214,26 @@ export class World {
         for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
         const h = this.terrain.data?.size ?? 1;
         this.riverMesh = upload(this.layer.gl, { positions, normals, colors: new Float32Array(col), bounds: { min: { x: -h, y: -h, z: -h }, max: { x: h, y: h, z: h }, radius: h * 2 } });
+    }
+
+    /** debug: wire sphere (3 rings + 2 tilted) per site, coloured by kind */
+    private buildSites() {
+        this.siteMesh = undefined;
+        const pos: number[] = [], col: number[] = [], N = 32;
+        for (const s of this.roads.sites)
+        {
+            const c = SITE_COLOUR[s.kind] ?? [1, 1, 1], r = s.radius, y = this.terrain.groundAt(s.x, s.z);
+            const ring = (f: (a: number) => number[]) => { for (let i = 0; i < N; i++) { const a = f(i / N * Math.PI * 2), b = f((i + 1) / N * Math.PI * 2); pos.push(s.x + a[0] * r, y + a[1] * r, s.z + a[2] * r, s.x + b[0] * r, y + b[1] * r, s.z + b[2] * r); col.push(...c, 1, ...c, 1); } };
+            ring(a => [Math.cos(a), 0, Math.sin(a)]);
+            ring(a => [Math.cos(a), Math.sin(a), 0]);
+            ring(a => [0, Math.sin(a), Math.cos(a)]);
+            for (const h of [.5, -.5]) ring(a => [Math.cos(a) * .866, h, Math.sin(a) * .866]);
+        }
+        if (!pos.length) return;
+        const positions = new Float32Array(pos), normals = new Float32Array(pos.length);
+        for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
+        const h = this.terrain.data?.size ?? 1;
+        this.siteMesh = upload(this.layer.gl, { positions, normals, colors: new Float32Array(col), bounds: { min: { x: -h, y: -h, z: -h }, max: { x: h, y: h, z: h }, radius: h * 2 } });
     }
 
     /** ecosystem grown: hand props to the scatter and replant the grass */

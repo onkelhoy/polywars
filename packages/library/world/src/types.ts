@@ -20,6 +20,8 @@ export type WorldView = {
     roads: boolean;
     /** debug river / stream lines */
     rivers: boolean;
+    /** debug: a wire sphere per site (city, village, farm, landmark), sized by its radius */
+    sites: boolean;
     /** grass look style */
     style: "pixel" | "smooth";
     /** debug: triangle edges and vertices of terrain and props, over the fill or alone (grass and far cards left out) */

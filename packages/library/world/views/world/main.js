@@ -83,6 +83,7 @@ quality($('#quality').value);
 $('#style').onchange = () => world.setView({ style: $('#style').value });
 $('#grass').onchange = () => world.setView({ grass: $('#grass').checked });
 $('#props').onchange = () => world.setView({ props: $('#props').checked });
+for (const k of ['roads', 'rivers', 'sites']) $('#' + k).onchange = () => world.setView({ [k]: $('#' + k).checked });
 $('#wire').onchange = () => world.setView({ wire: $('#wire').value });
 $('#wind').oninput = () => world.scatter.set({ wind: { ...world.scatter.options.wind, strength: Number($('#wind').value) } });
 $('#layer').onchange = () => minimap();
