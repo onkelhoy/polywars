@@ -30,6 +30,30 @@ function groundMesh(g) {
 }
 
 const items = [], info = [];
+const tops = document.createElement('div');
+tops.id = 'tops';
+document.body.append(tops);
+/** top-down drawing of a mesh: triangles by colour, lit by their normal */
+function top(name, mesh, zoom = 1) {
+    const c = document.createElement('canvas'), W = 420, ctx = c.getContext('2d');
+    c.width = c.height = W; c.title = name;
+    const k = W / SIZE * zoom, P = mesh.positions, C = mesh.colors, Nn = mesh.normals;
+    const order = [];
+    for (let t = 0; t < P.length / 9; t++) order.push([t, (P[t * 9 + 1] + P[t * 9 + 4] + P[t * 9 + 7]) / 3]);
+    order.sort((a, b) => a[1] - b[1]);
+    for (const [t] of order)
+    {
+        const l = .55 + .45 * Math.max(0, Nn[t * 9 + 1] * .8 + Nn[t * 9] * .3);
+        ctx.fillStyle = `rgb(${C[t * 12] * 255 * l},${C[t * 12 + 1] * 255 * l},${C[t * 12 + 2] * 255 * l})`;
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.beginPath();
+        for (let v = 0; v < 3; v++) { const x = W / 2 + P[t * 9 + v * 3] * k, y = W / 2 + P[t * 9 + v * 3 + 2] * k; v ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    const fig = document.createElement('figure');
+    fig.append(c, Object.assign(document.createElement('figcaption'), { textContent: name }));
+    tops.append(fig);
+}
 for (const sc of SCENARIOS)
 {
     const g = ground(sc), roads = new Roads(g, { cell: 4 }), byId = new Map(sc.sites.map(s => [s.id, s]));
@@ -40,7 +64,9 @@ for (const sc of SCENARIOS)
     const parts = [groundMesh(g)];
     if (w.mesh) parts.push(w.mesh);
     if (w.sleepers.count) parts.push(...sleeper.map(m => bake(m, w.sleepers)));
-    items.push({ name: sc.name, group: 'scenarios', kind: 'model', gltf: gltfFromMesh(merge(parts)) });
+    const all = merge(parts);
+    top(sc.name, all, sc.zoom ?? 1);
+    items.push({ name: sc.name, group: 'scenarios', kind: 'model', gltf: gltfFromMesh(all) });
     const kinds = {}; for (const r of roads.network.roads) for (const s of r.spans) kinds[s.kind] = (kinds[s.kind] ?? 0) + 1;
     info.push(`${sc.name}: ${roads.network.roads.length} roads, ${roads.network.junctions.length} junctions, spans ${JSON.stringify(kinds)}, ${w.structures.map(s => s.kind).join(' ')}`);
 }

@@ -1,6 +1,7 @@
 import { merge, sweep, type Profile } from "@polywar/sweep";
 import { track } from "@polywar/rail";
 import { PORTAL, bridge, bridgeFor, portal } from "@polywar/bridges";
+import { junctionPads } from "./junctions";
 import type { ClassStyle, Mesh, Structure, Vec3, WaysInput, WaysResult } from "./types";
 
 const strip = (top: [number, number, number], side: [number, number, number], edge = 1.12): Profile => ({ points: [[-edge, -.3], [-1, 0], [1, 0], [edge, -.3]], colors: [side, top, side] });
@@ -73,6 +74,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
             }
         }
     }
+    if (input.junctions) { const pads = junctionPads(input.junctions, input.roads, ground, styles); if (pads) meshes.push(pads); }
     const count = sleepers.reduce((n, s) => n + s.count, 0), data = new Float32Array(count * 8);
     let at = 0;
     for (const s of sleepers) { data.set(s.data.subarray(0, s.count * 8), at); at += s.count * 8; }

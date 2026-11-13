@@ -18,3 +18,8 @@ pw-gallery { position: fixed; inset: 0; }
 aside { z-index: 2; }
 aside { left: auto; right: 8px; }
 aside { top: auto; bottom: 8px; width: 460px; }
+pw-gallery { display: none; }
+body { overflow: auto; }
+#tops { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; }
+#tops figure { margin: 0; }
+#tops figcaption { color: #ccc; }

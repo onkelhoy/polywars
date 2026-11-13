@@ -8,9 +8,9 @@ const hill = (x) => 20 + Math.max(0, 80 - Math.abs(x) * .7);
 const valley = (x) => 20 + Math.min(1, Math.abs(x) / 60) * 45;
 
 export const SCENARIOS = [
-    { name: 'T junction', height: flat, sites: [site(0, -250, 0), site(1, 250, 0), site(2, 0, 250)], links: [['road', 0, 1], ['road', 2, 0]] },
-    { name: 'X crossing', height: flat, sites: [site(0, -250, 0), site(1, 250, 0), site(2, 0, -250), site(3, 0, 250)], links: [['road', 0, 1], ['road', 2, 3]] },
-    { name: 'Y angled', height: flat, sites: [site(0, -250, 100), site(1, 250, 100), site(2, 0, -250)], links: [['road', 0, 1], ['road', 2, 1], ['lane', 2, 0]] },
+    { name: 'T junction', zoom: 3, height: flat, sites: [site(0, -250, 0), site(1, 250, 0), site(2, 0, 250), site(3, 0, 0, 'farm')], links: [['road', 0, 1], ['road', 2, 3]] },
+    { name: 'X crossing', zoom: 3, height: flat, sites: [site(0, -250, 0), site(1, 250, 0), site(2, 0, -250), site(3, 0, 250)], links: [['road', 0, 1], ['road', 2, 3]] },
+    { name: 'Y angled', zoom: 2, height: flat, sites: [site(0, -250, 100), site(1, 250, 100), site(2, 0, -250)], links: [['road', 0, 1], ['road', 2, 1], ['lane', 2, 0]] },
     { name: 'road + path beside', height: flat, sites: [site(0, -250, 0, 'city'), site(1, 250, 0), site(2, 200, 150, 'viewpoint')], links: [['road', 0, 1], ['path', 0, 2]] },
     { name: 'road / rail crossing', height: flat, sites: [site(0, -250, -50, 'city'), site(1, 250, 50, 'city'), site(2, 0, -250), site(3, 0, 250)], links: [['rail', 0, 1], ['road', 2, 3]] },
     { name: 'rail over road (valley)', height: valley, sites: [site(0, -250, 0, 'city'), site(1, 250, 0, 'city'), site(2, 0, -250), site(3, 0, 250)], links: [['rail', 0, 1], ['road', 2, 3]] },
