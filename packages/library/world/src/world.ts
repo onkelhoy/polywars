@@ -14,6 +14,8 @@ import type { TerrainHooks } from "@polywar/terrain";
 
 import { SLEEPER_MODEL, track } from "@polywar/rail";
 import { PORTAL, bridgeFor, portal } from "@polywar/bridges";
+import { Placements } from "@polywar/placements";
+import { furnish } from "@polywar/trails";
 import type { ScatterBatch } from "@polywar/scatter";
 import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
 import type { Mesh } from "@papit/game-mesh";
@@ -62,6 +64,8 @@ export class World {
     readonly built: Scatter;
     /** batches for `built`, gathered while the world grows */
     private builtBatches: ScatterBatch[] = [];
+    /** everything placed on the world (bridges, portals, trail props, ...): one record, saved / sent per player changes */
+    readonly placements = new Placements();
     /** bridges and tunnel mouths built on the roads (where nature and trail props react) */
     structures: { kind: string; road: number; x: number; y: number; z: number; to: Vec3 }[] = [];
     private v: WorldView;
@@ -84,7 +88,7 @@ export class World {
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
         const models = nature.base.replace(/[^/]+\/$/, "");
-        this.built = new Scatter(renderer, (name, lod) => lod ? undefined : `${models}${name}.glb`, { quality: this.v.quality, lods: [], distance: { sleeper: 120, default: 400 } });
+        this.built = new Scatter(renderer, (name, lod) => lod ? undefined : `${models}${name}.glb`, { quality: this.v.quality, lods: [], distance: { sleeper: 120, trail: 180, rock: 400, default: 400 } });
         this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
         this.roads = roadHooks(raw => generateSites(raw, raw.cities, s.sites ?? {}), s.roads ?? {}, JSON.stringify(s.sites ?? {}));
@@ -188,8 +192,20 @@ export class World {
         this.buildRoads();
         this.buildRivers();
         this.buildSites();
+        this.furnish();
         this.built.place(this.builtBatches);
-        const road = this.roads.roads ? roadEdge(this.roads.roads) : undefined;
+        const edge = this.roads.roads ? roadEdge(this.roads.roads) : undefined, keep = this.placements.all().filter(p => p.source === "trails" || p.kind === "portal");
+        // no trees on roads, at tunnel mouths or right on trail props (ecosystem: <= 0 means on the road)
+        // 16 m buckets of the kept spots (each also in its neighbours' reach through the 3x3 lookup)
+        const C = 16, cells = new Map<number, typeof keep>(), key = (i: number, j: number) => (i + 4096) * 8192 + j + 4096;
+        for (const p of keep) { const k = key(Math.floor(p.x / C), Math.floor(p.z / C)); (cells.get(k) ?? cells.set(k, []).get(k)!).push(p); }
+        const road = edge && ((x: number, z: number) => {
+            let d = edge(x, z);
+            const i = Math.floor(x / C), j = Math.floor(z / C);
+            for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const p of cells.get(key(i + a, j + b)) ?? [])
+            { const r = p.kind === "portal" ? 14 : 2.5, q = Math.hypot(p.x - x, p.z - z) - r; if (q < d) d = q; }
+            return d;
+        });
         this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
     }
 
@@ -252,6 +268,23 @@ export class World {
             meshes.push(sweep(pts, { width: s.points.map(p => Math.max(1, p[3])), profile: { points: [[-1, 0], [1, 0]], color: c }, bank: "flat", step: 3 }));
         }
         if (meshes.length) this.riverMesh = upload(this.layer.gl, merge(meshes));
+    }
+
+    /** structures + trail furniture into the placement record, then their instances into the built scatter */
+    private furnish() {
+        const P = this.placements, r = this.roads.roads;
+        P.clear("structures"); P.clear("trails");
+        for (const st of this.structures) P.add("structures", st.kind.startsWith("bridge") ? `bridge:${st.kind.slice(7)}` : st.kind, st.x, st.y, st.z, Math.atan2(st.to[0] - st.x, st.to[2] - st.z), 1, { road: st.road, to: st.to });
+        if (r)
+        {
+            const items = furnish({
+                ways: r.network.roads, spots: this.roads.sites, ground: (x, z) => this.terrain.groundAt(x, z),
+                mouths: this.structures.filter(s => s.kind === "portal").map(s => ({ x: s.x, y: s.y, z: s.z, dx: s.to[0] - s.x, dz: s.to[2] - s.z })),
+            }, { seed: this.ecosystem.seed });
+            for (const it of items) P.add("trails", it.kind, it.x, it.y, it.z, it.yaw, it.scale ?? 1);
+        }
+        P.applyChanges();
+        this.builtBatches.push(...P.batches(k => k.includes(":") || k === "portal" ? undefined : k, k => k.startsWith("nature/") ? "rock" : "trail"));
     }
 
     /** debug: wire sphere (3 rings + 2 tilted) per site, coloured by kind */

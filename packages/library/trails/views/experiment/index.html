@@ -3,27 +3,24 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trails | experiment</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-
-    <!-- Styles -->
+    <title>trails | experiment</title>
     <link rel="stylesheet" href="style.css" />
-
     <script defer type="module" src="main.js"></script>
 </head>
 
 <body>
-
-    <h1>Trails | experiment</h1>
-    <section>
-        <h2>Example</h2>
-        <pap-codeblock>
-            <undefined-trails></undefined-trails>
-        </pap-codeblock>
-    </section>
+    <canvas id="map"></canvas>
+    <aside>
+        <h1>trails</h1>
+        <label>seed <input id="seed" type="number" value="1" /></label>
+        <label>hills <input id="hills" type="range" min="0" max="60" step="1" value="30" /><span></span></label>
+        <label>rest every <input id="restEvery" type="range" min="40" max="500" step="10" value="180" /><span></span></label>
+        <label>view m <input id="view" type="range" min="0" max="30" step="1" value="10" /><span></span></label>
+        <label>fence drop <input id="drop" type="range" min=".5" max="10" step=".5" value="2.5" /><span></span></label>
+        <output id="info"></output>
+        <div class="legend" id="legend"></div>
+    </aside>
 </body>
 
 </html>

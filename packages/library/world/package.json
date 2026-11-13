@@ -63,7 +63,9 @@
     "@papit/game-mesh": "*",
     "@polywar/sweep": "*",
     "@polywar/rail": "*",
-    "@polywar/bridges": "*"
+    "@polywar/bridges": "*",
+    "@polywar/placements": "*",
+    "@polywar/trails": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

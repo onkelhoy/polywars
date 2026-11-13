@@ -47,15 +47,10 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {
-    "@papit/game-mesh": "*",
-    "@polywar/placements": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "5.9.3",
-    "@papit/theme": "*",
-    "@polywar/gallery": "*",
-    "@polywar/renderer": "*"
+    "@papit/theme": "*"
   },
   "browserslist": [
     "defaults",
