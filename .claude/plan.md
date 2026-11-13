@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Round 6 (19.43 screenshots + owner notes) confirmed: tasks below, commit per task, no merge.
+Round 6 done (19.43 screenshots + owner notes), waiting for owner review. Open: rail at (268,-437) 20 m under ground in an uncarved cut; rail all-bridge into a station at highway-bridge height (-104,-704); gravel roads still meshes; built props no lods.
 Round 3 (owner review 2026-11-13 evening, 14 screenshots on Desktop): "it looks buggy, fix it all". Owner away, runs on its own: "next task" through all, commit per task on `feature/infrastructure`, no merge.
 Round 5 (19:09 screenshots: tunnels not connected, roads climbing into / blocking portals) done, waiting for owner review. Round 4 tasks 1–6 done. Next idea from owner: more tunnel detail once tunnels work. Round 3 tasks 1–9 done. Open: tight highway switchbacks, long mountain viaducts, rail station tangles, fragmented rivers, river→lake outlet steps.
 Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 done, see git log.
