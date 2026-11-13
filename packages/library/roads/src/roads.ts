@@ -236,8 +236,11 @@ export class Roads {
             idx.push(n - 1);
             const rigid = (i: number) => plan.spans.some(s => s.kind !== "ground" && i > s.from && i < s.to);
             const pins = new Map<number, number>();
+            // a chain passing one junction twice (a loop): both visits at one height, the first one's ground
+            const twice = new Map<number, [number, number, number]>();
+            idx.forEach((i, q) => { if (!spot.has(ids[q]) && ids.indexOf(ids[q]) !== q) twice.set(ids[q], [P[idx[ids.indexOf(ids[q])]][0], this.heightAt(P[idx[ids.indexOf(ids[q])]][0], P[idx[ids.indexOf(ids[q])]][2]), P[idx[ids.indexOf(ids[q])]][2]]); });
             idx.forEach((i, q) => {
-                const at = spot.get(ids[q]);
+                const at = spot.get(ids[q]) ?? twice.get(ids[q]);
                 if (!at) return;
                 pins.set(i, at[1]);
                 if (q === 0 || q === idx.length - 1) return;

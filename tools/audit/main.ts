@@ -220,3 +220,13 @@ if (process.env.ROAD) { const r = net.roads[+process.env.ROAD]; console.log(r.po
 if (process.env.CHAIN) for (const r of net.roads.filter(r => r.chain === +process.env.CHAIN!)) console.log(`road ${r.id} ${r.from}→${r.to} ${JSON.stringify(r.spans)} ` + r.points.filter((_, i) => i % 3 === 0).map(p => `${p[0].toFixed(0)},${p[2].toFixed(0)}:${(p[1] - ground(p[0], p[2])).toFixed(0)}`).join(" "));
 if (process.env.WATER) { const [x, z] = process.env.WATER.split(",").map(Number); for (let b = -3; b <= 3; b++) console.log(Array.from({ length: 7 }, (_, a) => { const k = node(x + (a - 3) * 6, z + b * 6); return `${d.water[k]}:${d.height[k].toFixed(0)}/${d.surface[k].toFixed(0)}`; }).join("  ")); }
 if (process.env.TUNNELS) for (const r of net.roads) for (const s of r.spans) if (s.kind === "tunnel") { const a = r.points[s.from], b = r.points[s.to]; console.log(`tunnel ${r.class} ${at(a)}→${at(b)} y ${a[1].toFixed(0)}/${b[1].toFixed(0)} ground ${ground(a[0], a[2]).toFixed(0)}/${ground(b[0], b[2]).toFixed(0)}`); }
+// bridges at a dead end: the way ends (no other way at that end) on or right after a bridge
+{
+    const ends = new Map<string, number>(), k = (p: number[]) => `${Math.round(p[0])},${Math.round(p[2])}`;
+    for (const r of net.roads) for (const p of [r.points[0], r.points[r.points.length - 1]]) ends.set(k(p), (ends.get(k(p)) ?? 0) + 1);
+    for (const r of net.roads) for (const s of r.spans) if (s.kind === "bridge")
+    {
+        const n = r.points.length - 1, deadStart = s.from <= 2 && ends.get(k(r.points[0]))! < 2, deadEnd = s.to >= n - 2 && ends.get(k(r.points[n]))! < 2;
+        if (deadStart || deadEnd) console.log(`  bridge to nowhere (${r.class}) road ${r.id} ${at(r.points[s.from])}→${at(r.points[s.to])}`);
+    }
+}
