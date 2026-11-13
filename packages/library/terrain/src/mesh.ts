@@ -79,7 +79,9 @@ export function skirt(gl: WebGL2RenderingContext, d: TerrainData, level: number,
  * Water material attributes: 1 (depth, shore distance), 2 (world x z, no flow, swell), 3 (toward land). Swell fades out near the map
  * border so the ocean ring (out to `skirt` metres, flat) meets it without gaps.
  */
-export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 2, step: number, skirtSize = 0) {
+export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 2, step: number, skirtSize = 0, sub = -1) {
+    // `sub`: only water of this `waterKind` (-1 any)
+    const is = (k: number) => d.water[k] === kind && (sub < 0 || (d.waterKind?.[k] ?? 0) === sub);
     const n = d.n, half = d.size / 2, pos: number[] = [], info: number[] = [], flow: number[] = [], dir: number[] = [], idx: number[] = [];
     const fade = 12 * step;
     const land = (i: number, j: number) => d.toLand[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))];
@@ -91,7 +93,7 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
     const emit = (i: number, j: number, i1: number, j1: number) => {
         const ks = [j * n + i, j * n + i1, j1 * n + i1, j1 * n + i];
         let level = -Infinity;
-        for (const k of ks) if (d.water[k] === kind) level = Math.max(level, d.surface[k]);
+        for (const k of ks) if (is(k)) level = Math.max(level, d.surface[k]);
         if (level === -Infinity) return;
         const xy = [[i, j], [i1, j], [i1, j1], [i, j1]];
         quad(ks.map((k, c) => {
@@ -109,7 +111,7 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
         for (let b = j; b <= j + s; b += step) for (let a = i; a <= i + s; a += step)
         {
             const k = b * n + a;
-            if (d.water[k] !== kind || d.surface[k] !== level || d.toLand[k] < 40) return false;
+            if (!is(k) || d.surface[k] !== level || d.toLand[k] < 40) return false;
             const depth = level - d.height[k];
             lo = Math.min(lo, depth); hi = Math.max(hi, depth);
         }

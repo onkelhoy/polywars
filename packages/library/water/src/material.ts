@@ -132,7 +132,8 @@ export class WaterMaterial {
     }
 
     get look(): Readonly<WaterLook> { return this.o; }
-    set(look: Partial<WaterLook>) { this.o = merge(this.o, look); }
+    set(look: Partial<WaterLook>) { this.o = merge(this.o, look); this.looks = new WeakMap(); }
+    private looks = new WeakMap<Partial<WaterLook>, WaterLook>();
 
     /**
      * Bind for the next draw. `fresh` uses the lake / river colours; `under`: the eye is below this water, whose surface is at
@@ -140,9 +141,11 @@ export class WaterMaterial {
      * After `capture()` the water reads the scene depth: exact see-through edge and rim foam wherever it meets anything. `outlines`: 12 radius scales per
      * contact (round from +x toward +z) so the ring follows its real outline (missing: round). False while linking.
      */
-    use(view: View, light: Light, time: number, { fresh = false, still = false, under = false, surface = 0, contacts = [] as ArrayLike<number>, outlines = [] as ArrayLike<number>, shore = undefined as ShoreMap | undefined } = {}): boolean {
-        const gl = this.gl, o = this.o, p = this.program;
+    use(view: View, light: Light, time: number, { fresh = false, still = false, look = undefined as Partial<WaterLook> | undefined, under = false, surface = 0, contacts = [] as ArrayLike<number>, outlines = [] as ArrayLike<number>, shore = undefined as ShoreMap | undefined } = {}): boolean {
+        const gl = this.gl, p = this.program;
         if (!p) return false;
+        // `look`: this draw only (lake kinds), merged once per look object
+        const o = look ? this.looks.get(look) ?? this.looks.set(look, merge(this.o, look)).get(look)! : this.o;
         const u = p.u;
         gl.useProgram(p.program);
         this.f32.view.set(view.viewMatrix);

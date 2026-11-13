@@ -129,6 +129,8 @@ export type TerrainData = {
     height: Float32Array;
     /** 0 land, 1 ocean, 2 lake, 3 river */
     water: Uint8Array;
+    /** lake water kind per node: 0 clear, 1 muddy, 2 swamp (set by hooks) */
+    waterKind?: Uint8Array;
     /** water surface, metres (sea level on land) */
     surface: Float32Array;
     /** index into `BIOMES` */

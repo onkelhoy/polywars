@@ -33,7 +33,7 @@ export type Features = { hard?: Float32Array };
 export type TerrainHooks = {
     key?: string;
     features?: (raw: RawGround) => Features | void | Promise<Features | void>;
-    fix?: (data: Pick<TerrainData, "n" | "cell" | "size" | "height" | "water" | "surface" | "rivers" | "cities" | "seaLevel" | "toWater">) => void | Promise<void>;
+    fix?: (data: Pick<TerrainData, "n" | "cell" | "size" | "height" | "water" | "waterKind" | "surface" | "rivers" | "cities" | "seaLevel" | "toWater">) => void | Promise<void>;
 };
 
 type Cache = Partial<{
@@ -42,7 +42,7 @@ type Cache = Partial<{
     features: { height: Float32Array; hard: Float32Array };
     erosion: { h: Float32Array; flow: Float32Array };
     water: { height: Float32Array; water: Uint8Array; surface: Float32Array; down: Int32Array; acc: Float32Array; toOcean: Float32Array };
-    rivers: { height: Float32Array; slope: Float32Array; water: Uint8Array; surface: Float32Array; toWater: Float32Array; toLand: Float32Array; waves: Float32Array; rivers: TerrainData["rivers"] };
+    rivers: { height: Float32Array; slope: Float32Array; water: Uint8Array; waterKind: Uint8Array; surface: Float32Array; toWater: Float32Array; toLand: Float32Array; waves: Float32Array; rivers: TerrainData["rivers"] };
     climate: { temperature: Float32Array; moisture: Float32Array };
     biomes: { biome: Uint8Array };
 }>;
@@ -122,7 +122,7 @@ export class Generator {
         }
         if ((key = stale("rivers")))
         {
-            const w = c.water!, r = { height: w.height.slice(), water: w.water.slice(), surface: w.surface.slice() };
+            const w = c.water!, r = { height: w.height.slice(), water: w.water.slice(), waterKind: new Uint8Array(n * n), surface: w.surface.slice() };
             // rivers come from hooks (`fix` pushes into the list)
             const list: TerrainData["rivers"] = [];
             const city = c.cities!.cities.map(x => ({ ...x }));
@@ -150,7 +150,7 @@ export class Generator {
         onProgress?.("done", 1);
         return {
             n, cell, size: o.size, seaLevel,
-            height: c.rivers!.height, water: c.rivers!.water, surface: c.rivers!.surface, biome: c.biomes!.biome,
+            height: c.rivers!.height, water: c.rivers!.water, waterKind: c.rivers!.waterKind, surface: c.rivers!.surface, biome: c.biomes!.biome,
             slope: c.rivers!.slope, moisture: c.climate!.moisture, temperature: c.climate!.temperature,
             flow: c.erosion!.flow, plateau: c.shape!.plateau, toWater: c.rivers!.toWater, toOcean: c.water!.toOcean, toLand: c.rivers!.toLand, waves: c.rivers!.waves,
             cities: c.cities!.cities, rivers: c.rivers!.rivers,

@@ -1,7 +1,7 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
 import { TerrainMaterial, type Biome, type Light, type TerrainLook, type View } from "@polywar/terrain-material";
-import { WaterMaterial, createShoreMap, deleteShoreMap, type ShoreMap } from "@polywar/water";
+import { WATER_LOOKS, WaterMaterial, createShoreMap, deleteShoreMap, type ShoreMap, type WaterLook } from "@polywar/water";
 import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
 import { Generator, type TerrainHooks } from "./generate";
@@ -10,6 +10,9 @@ import { BIOME, free, riverMesh, skirt, waterMesh, type Mesh } from "./mesh";
 import { DEFAULTS, resolve, type Resolved } from "./presets";
 import { biomeAt, heightAt, nearest, slopeAt, waterAt } from "./query";
 import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./types";
+
+/** lake looks by `waterKind`: 0 clear (the material's own), 1 muddy, 2 swamp */
+const LAKE_LOOKS: (Partial<WaterLook> | undefined)[] = [undefined, WATER_LOOKS.muddy, WATER_LOOKS.swamp];
 
 /**
  * A generated low poly map: noise shape, droplet erosion, sea and lakes, climate, biomes and town spots,
@@ -28,7 +31,8 @@ export class Terrain {
     private skirtMesh?: Mesh;
     private ocean: Mesh | null = null;
     private shore?: ShoreMap;
-    private lakes: Mesh | null = null;
+    /** lakes per water kind (clear, muddy, swamp) */
+    private lakes: (Mesh | null)[] = [];
     private riverWater: Mesh | null = null;
     private meshKey = "";
     /** draw river water ribbons (off while rivers are debug lines) */
@@ -155,9 +159,10 @@ export class Terrain {
         if (!fill) { if (cull) gl.enable(gl.CULL_FACE); return; }
         // the water reads the ground's depth: exact edge and rim where it meets the land
         this.water.capture();
-        for (const [w, fresh, still] of [[this.riverWater, true, false], [this.lakes, true, true], [this.ocean, false, false]] as const)
+        const draws: [Mesh | null, boolean, boolean, Partial<WaterLook> | undefined][] = [[this.riverWater, true, false, undefined], ...this.lakes.map((m, i): [Mesh | null, boolean, boolean, Partial<WaterLook> | undefined] => [m, true, true, LAKE_LOOKS[i]]), [this.ocean, false, false, undefined]];
+        for (const [w, fresh, still, look] of draws)
         {
-            if (!w || !this.water.use(view, light, time, { fresh, still, under: eyeSurface !== null, surface: eyeSurface ?? 0, shore: this.shore })) continue;
+            if (!w || !this.water.use(view, light, time, { fresh, still, look, under: eyeSurface !== null, surface: eyeSurface ?? 0, shore: this.shore })) continue;
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
             gl.depthMask(false);
@@ -220,7 +225,7 @@ export class Terrain {
         if (edge !== "none" && o.mesh.skirt > 0)
             this.skirtMesh = skirt(gl, d, edge === "ocean" ? -.12 * o.height : o.edge.level * o.height, o.mesh.skirt, BIOME(edge === "ocean" ? "ocean" : "grassland"));
         this.ocean = waterMesh(gl, d, 1, step, edge === "ocean" ? o.mesh.skirt : 0);
-        this.lakes = waterMesh(gl, d, 2, step);
+        this.lakes = [0, 1, 2].map(kind => waterMesh(gl, d, 2, step, 0, kind));
         this.riverWater = this.ribbons ? riverMesh(gl, d.rivers) : null;
         // signed metres to the shore of the sea and the lakes, smooth, for the wave lines
         const signed = new Float32Array(d.n * d.n);
@@ -232,10 +237,10 @@ export class Terrain {
     private clear() {
         const gl = this.gl;
         this.ground?.destroy();
-        free(gl, [...[this.skirtMesh, this.ocean, this.lakes, this.riverWater].filter((m): m is Mesh => !!m)]);
+        free(gl, [...[this.skirtMesh, this.ocean, ...this.lakes, this.riverWater].filter((m): m is Mesh => !!m)]);
         if (this.shore) deleteShoreMap(gl, this.shore);
         this.shore = undefined;
-        this.ground = undefined; this.skirtMesh = undefined; this.ocean = this.lakes = this.riverWater = null;
+        this.ground = undefined; this.skirtMesh = undefined; this.ocean = this.riverWater = null; this.lakes = [];
     }
 
     private mesh(m: Mesh) {

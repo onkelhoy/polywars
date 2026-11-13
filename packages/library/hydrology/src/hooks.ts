@@ -2,6 +2,7 @@ import { Random } from "@papit/random";
 import { carveBeds, carveValleys, fillPits, limitErosion } from "./carve";
 import { digLakes, fillLakes } from "./lakes";
 import { plan, type Path } from "./network";
+import { lakeKinds, swamps } from "./wetlands";
 import { resolve } from "./presets";
 import type { Ground, HydrologyOptions, Network, Wet } from "./types";
 
@@ -43,6 +44,12 @@ export function hydrologyHooks(options: Partial<HydrologyOptions> = {}): Hydrolo
             h.network.lakes = fillLakes(h.network.lakes, data);
             h.network.streams = carveBeds(h.paths, data, o);
             fillPits(data);
+            if (data.waterKind)
+            {
+                const wet = { ...data, waterKind: data.waterKind };
+                swamps(h.network.streams, wet, o, new Random(o.seed + 7));
+                lakeKinds(wet, o);
+            }
             for (const s of h.network.streams) data.rivers.push({ points: s.points });
         },
     };

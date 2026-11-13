@@ -1,7 +1,7 @@
 /** a height grid in metres, `n` × `n` nodes over `size` metres, centred on the origin */
 export type Ground = { n: number; size: number; height: Float32Array; seaLevel: number; top: number; water?: Uint8Array };
 /** after lakes: water 0 land, 1 ocean, 2 lake, 3 river; surface metres */
-export type Wet = { n: number; size: number; height: Float32Array; water: Uint8Array; surface: Float32Array; seaLevel: number };
+export type Wet = { n: number; size: number; height: Float32Array; water: Uint8Array; surface: Float32Array; seaLevel: number; waterKind?: Uint8Array };
 
 export type HydrologyOptions = {
     seed: number;
@@ -26,6 +26,10 @@ export type HydrologyOptions = {
     fall: number;
     /** highland lakes: count, radius range metres, basin depth metres, lowest spot as share of `top` */
     lakes: { count: number; radius: [number, number]; depth: number; height: number };
+    /** swamps beside rivers at least `width` m wide, under `height` m above sea, where the ground varies less than `flat` m; radius range m */
+    swamps: { count: number; width: number; height: number; flat: number; radius: [number, number] };
+    /** lakes under `height` m above sea and shallower than `depth` m (mean) are muddy */
+    muddy: { height: number; depth: number };
     /** rivers at least `width` metres wide split into `branches` (max) over the last `length` metres before the sea */
     delta: { width: number; branches: number; length: number };
 };
