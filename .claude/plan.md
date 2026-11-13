@@ -24,7 +24,7 @@ Seen in screenshots: bridge snaking along a river, bridge ends in grass / in the
 - [x] 4. Joined meshes: ways draws chains (continuing roads) as one sweep; junction pads built from the exact end vertices of the trimmed arms (shared vertices, no overlap); bridge decks start exactly at the road end (same width / height); road surfaces never under the ground, never floating (skirt down to ground).
 - [x] 5. No ways on ways: paths / lanes that run along a bigger road for a stretch ride it (reuse) or keep a clear gap; no overlapping strips.
 - [x] 6. Paths on slopes: no staircases by default; only short very steep hot spots get wooden beams (log steps set into the ground, each on the ground) or stepping stones; railing one side only, on the drop side, only over a real drop. No steps near roads / on flat.
-- [ ] 7. Fences: trail fences only on the drop side, never both, never two runs on top of each other, posts on the ground.
+- [x] 7. Fences: trail fences only on the drop side, never both, never two runs on top of each other, posts on the ground.
 - [ ] 8. Lakes: one level per lake (no two water planes side by side), river + lake surfaces meet.
 - [ ] 9. Tunnels that work: scenario view first (hole visible, portal frames it, lining under ground), then world.
 

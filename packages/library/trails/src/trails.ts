@@ -10,7 +10,7 @@ export const DEFAULTS: TrailOptions = {
     trails: ["path", "lane"],
     restEvery: 180,
     view: 10,
-    fence: { drop: 2.5, reach: 5, length: 2.5 },
+    fence: { drop: 4, reach: 5, length: 2.5 },
     lampEvery: 28,
     rocks: 6,
 };
@@ -90,16 +90,19 @@ export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}):
                 else if (r < .7) put(o.assets.woodpile, ax + ox, az + oz, rnd() * 6.28);
                 if (rnd() < .35) put(o.assets.signpost, best.p[0] - ox * (half + .8), best.p[2] - oz * (half + .8), yawAlong(ox, oz));
             }
-            // fences above drops: runs of edge points (each side), posts follow the ground
-            for (const f of [-1, 1])
+            // fences above drops: one side only (the drop side; none on a ridge with drops both ways), posts on the ground
             {
-                let run: Vec3[] = [];
-                const flush = () => { if (run.length >= 2) fences.push(run); run = []; };
+                let run: Vec3[] = [], runSide = 0;
+                const flush = () => { if (run.length >= 3) fences.push(run); run = []; runSide = 0; };
                 for (const c of walk(pts, o.fence.length, 0))
                 {
-                    const ox = -c.d[1] * f, oz = c.d[0] * f, ex = c.p[0] + ox * (half + .7), ez = c.p[2] + oz * (half + .7);
-                    const drop = c.p[1] - g(c.p[0] + ox * (half + o.fence.reach), c.p[2] + oz * (half + o.fence.reach));
-                    if (drop > o.fence.drop && !onBridge(w, index(c.p))) run.push([ex, g(ex, ez), ez]); else flush();
+                    const y = g(c.p[0], c.p[2]), drop = (f: number) => y - g(c.p[0] - c.d[1] * f * (half + o.fence.reach), c.p[2] + c.d[0] * f * (half + o.fence.reach));
+                    const l = drop(-1), r = drop(1), f = l > r ? -1 : 1, big = Math.max(l, r), small = Math.min(l, r);
+                    const side = big > o.fence.drop && small < o.fence.drop * .4 && !onBridge(w, index(c.p)) ? f : 0;
+                    if (!side || (runSide && side !== runSide)) { flush(); if (!side) continue; }
+                    runSide = side;
+                    const ex = c.p[0] - c.d[1] * side * (half + .7), ez = c.p[2] + c.d[0] * side * (half + .7);
+                    run.push([ex, g(ex, ez), ez]);
                 }
                 flush();
             }
