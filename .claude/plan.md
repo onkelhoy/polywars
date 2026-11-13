@@ -1,6 +1,9 @@
 # Plan
 
 ## Where we are
+NEXT SESSION: owner wants to focus on individual scenarios (roads scenario view), one at a time.
+- Task 8 NOT really done: world data has holes (81 cells, ~5x3 cells = 15x9 m per mouth, cell 3 m) but nothing visible: portal wall hides it, lining tube pokes out above ground (seen from top). Redo in tunnel scenario first.
+- Steps on steep paths: owner likes them, still buggy, needs tightening.
 Round 2 (owner review 2026-11-13, screenshots): network fixes + scenario views. Confirmed: level crossings OK, no roundabouts for now. Branch `feature/infrastructure`.
 Round 1 (tasks 0–9: sweep, rail, bridges, portals, placements, trails, boardwalks) done, see git log.
 
@@ -24,7 +27,7 @@ Round 1 (tasks 0–9: sweep, rail, bridges, portals, placements, trails, boardwa
 - [x] 5. Rivers and lakes: a river enters a lake at one point and leaves at another (outlet); the ribbon stops at the shore, never drawn over the lake / swamp.
 - [x] 6. Paths: no surface mesh (ground only, later a ground tint); only structures: boardwalks / docks on wet ground, steps + railing on very steep passes.
 - [x] 7. Fences follow the ground: generated fence runs (posts on the ground, rails between posts) instead of flat instanced pieces; asset fence kept for flat ground.
-- [x] 8. Tunnels that work: real hole in the terrain mesh at each mouth (terrain gets a `holes` option: triangles inside a mouth box are dropped), portal frames the hole, lining + dark plug inside; portal where cover ≥ portal height, cutting up to the face. Scenario view first, then world.
+- [ ] 8. Tunnels that work: real hole in the terrain mesh at each mouth (terrain gets a `holes` option: triangles inside a mouth box are dropped), portal frames the hole, lining + dark plug inside; portal where cover ≥ portal height, cutting up to the face. Scenario view first, then world.
 
 ## Notes
 - Owner trains while this runs: run "next task" through all, one line status each, commit per task on the branch. Don't merge to main; owner reviews.
