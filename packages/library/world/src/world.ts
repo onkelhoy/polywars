@@ -13,7 +13,7 @@ import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
 import { SLEEPER_MODEL, track } from "@polywar/rail";
-import { PORTAL, bridgeFor, portal } from "@polywar/bridges";
+import { PORTAL, bridge, bridgeFor, portal } from "@polywar/bridges";
 import { Placements } from "@polywar/placements";
 import { furnish } from "@polywar/trails";
 import type { ScatterBatch } from "@polywar/scatter";
@@ -242,6 +242,26 @@ export class World {
                     }
                     continue;
                 }
+                // trails over wet ground (lake / swamp water or just over a water surface): boardwalk runs
+                if (road.class === "path" || road.class === "lane")
+                {
+                    const wet = raw.map(([x, , z]) => this.wetAt(x, z));
+                    let a = 0;
+                    for (let i = 0; i <= raw.length; i++)
+                    {
+                        if (i < raw.length && wet[i] === wet[a]) continue;
+                        const part = raw.slice(Math.max(0, a - 1), Math.min(raw.length, i + 1));
+                        if (wet[a] && part.length >= 3)
+                        {
+                            const deck = part.map(([x, y, z]) => [x, Math.max(y, this.wetAt(x, z) ? this.surfaceAt(x, z) + .5 : this.terrain.groundAt(x, z) + .3), z] as Vec3);
+                            meshes.push(bridge("foot-wood", deck, { width: Math.max(1.6, road.width), ground, use: "path" }));
+                            this.structures.push({ kind: "bridge-boardwalk", road: road.id, x: deck[0][0], y: deck[0][1], z: deck[0][2], to: deck[deck.length - 1] });
+                        }
+                        else if (part.length >= 2) meshes.push(sweep(part.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3), { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step }));
+                        a = i;
+                    }
+                    continue;
+                }
                 const pts = raw.map(([x, y, z]) => [x, Math.max(y, this.terrain.groundAt(x, z)) + style.lift, z] as Vec3);
                 if (!rail) { meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .04, gain: 4 }, step: style.step, bands: style.bands })); continue; }
                 const t = track(pts);
@@ -254,6 +274,28 @@ export class World {
         let at = 0;
         for (const s of sleepers) { data.set(s.data.subarray(0, s.count * 8), at); at += s.count * 8; }
         if (count) this.builtBatches.push({ model: SLEEPER_MODEL, kind: "sleeper", data, count });
+    }
+
+    /** grid node under (x, z) of the current terrain, -1 outside */
+    private node(x: number, z: number) {
+        const d = this.terrain.data;
+        if (!d) return -1;
+        const i = Math.round((x + d.size / 2) / d.cell), j = Math.round((z + d.size / 2) / d.cell);
+        return i < 0 || j < 0 || i >= d.n || j >= d.n ? -1 : j * d.n + i;
+    }
+    /** lake / swamp water, or ground less than .4 m over a water surface next to it */
+    private wetAt(x: number, z: number) {
+        const d = this.terrain.data, k = this.node(x, z);
+        if (!d || k < 0) return false;
+        if (d.water[k] === 2 || d.water[k] === 3) return true;
+        for (const o of [1, -1, d.n, -d.n]) { const m = k + o; if (m >= 0 && m < d.water.length && d.water[m] >= 2 && this.terrain.groundAt(x, z) - d.surface[m] < .4) return true; }
+        return false;
+    }
+    private surfaceAt(x: number, z: number) {
+        const d = this.terrain.data!, k = this.node(x, z);
+        let s = -Infinity;
+        for (const o of [0, 1, -1, d.n, -d.n]) { const m = k + o; if (m >= 0 && m < d.water.length && d.water[m] >= 2) s = Math.max(s, d.surface[m]); }
+        return Number.isFinite(s) ? s : this.terrain.groundAt(x, z);
     }
 
     /** water ribbons along streams and rivers: flat across (no bank), width per point, at the water surface */
