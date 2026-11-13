@@ -72,3 +72,10 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 - Tunnels: `tunnelHoles` (roads/terrain.ts, fix hook) raises ground over the tube (cover 2 m), cuts a forecourt, holes right behind each face and sets the ground there to the portal hood top. Terrain drops every triangle touching a hole node. Ways draws `tunnel()` tube + road floor + `portal(depth 0, hood 8, apron 4)`. Change the cover → change the portal `top` in ways too.
 - Junctions: `unzip` (roads.ts) splits the bigger way where a smaller one really parts; ways `trimAtPads` cuts non-through arms back to the pad edge. Bridge `gaps` open parapets / trusses where ways join a deck.
 - `tools/world-shot.mjs` takes an optional 6th value: target y (e.g. inside a tunnel).
+
+## Ways look / perf (round 6)
+- Lanes / paths have no mesh: `groundPaint` (ways) → `TerrainMaterial.paths(map)` (RG8 distance field: cover, dirt..gravel), drawn on the paint cells. World grid per quality (`PAINT`).
+- `buildWays(input, styles, lod)`: lod 1 = coarse strips, `bridge({lod: 1})` (deck + piers, girder chords), ballast only, no tubes / steps / sleepers. `inside` = tunnel tubes + their floors / track.
+- World: `tiles(mesh, 192)` per lod, frustum culled; far tiles (`WAYS_FAR` per quality) lod 1, fences only < 300 m, tunnel insides < 140 m (any distance when the eye is under the ground).
+- Roads: lanes / paths hug the ground (`bridge.fill` 0), bridge `valley` depth per class (0: water only), small way pieces up cliffs are left out; `mergeAlong` after `trimTunnels` (overlapping ways → junctions on the bigger one); level crossings: `inlaid` rails flush in the road.
+- Tools: `WIRE=overlay|only` for world-shot; audit env `WAYS=1` (vertex counts), `ROAD=id` (points + ground), prints bridges per class (`*` = auto) and bridges to nowhere.

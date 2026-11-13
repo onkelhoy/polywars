@@ -63,7 +63,7 @@ const clearance = (path: Vec3[], ground: BridgeOptions["ground"]) => Math.max(0,
 /** A bridge along `path` (deck line x y z; supports reach down to `ground`). */
 export function bridge(type: BridgeType, path: Vec3[], options: Partial<BridgeOptions> = {}): Mesh {
     const o = { ...DEFAULTS, ...options };
-    return BUILD[type](path, o);
+    return o.lod ? far(type, path, o) : BUILD[type](path, o);
 }
 
 /** the bridge for a road class (picks the type) */
@@ -191,6 +191,26 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
         return merge([deck(path, o, .8, 0, CONCRETE, STONE, 1.05, { step: 3 }), s.mesh()]);
     },
 };
+
+/** far look: the deck (low parapet, few points) on plain piers; girders keep their two top chords */
+function far(type: BridgeType, path: Vec3[], o: BridgeOptions): Mesh {
+    const s = new Soup(), L = length(path), look: Record<BridgeType, [RGB, RGB, number, number]> = {
+        "foot-wood": [WOOD_DARK, WOOD, .15, 4], "slab-stone": [STONE_DARK, STONE, .6, 7], "arch-stone": [STONE_DARK, STONE, .6, 14],
+        "trestle-wood": [WOOD_DARK, WOOD, .5, 5], girder: [STONE, CONCRETE, .8, 55],
+    };
+    const [side, top, thick, every] = look[type], n = Math.max(1, Math.round(L / every));
+    for (const a of along(path, L / n).slice(1, -1)) pier(s, a, o, o.width * 1.1, type === "girder" ? 3 : type.endsWith("wood") ? .4 : 1.2, side);
+    if (type === "girder")
+    {
+        const H = Math.max(4, Math.min(9, L / 12)), w = o.width / 2 * 1.04, st = along(path, Math.max(8, L / 12));
+        for (const k of [-1, 1]) for (let i = 0; i < st.length - 1; i++)
+        {
+            const a = st[i], b = st[i + 1], at = (q: typeof a): Vec3 => [q.p[0] + q.side[0] * w * k, q.p[1] + H, q.p[2] + q.side[1] * w * k];
+            s.beam(at(a), at(b), .4, .4, STEEL);
+        }
+    }
+    return merge([sweep(path, { width: o.width, profile: deckProfile(thick, type === "girder" ? 0 : .5, side, top, 1.08), bank: "flat", caps: true, step: 8 }), s.mesh()]);
+}
 
 /** pier from the ground (a bit under) to the deck bottom */
 function pier(s: Soup, a: { p: Vec3; dir: [number, number] }, o: BridgeOptions, across: number, alongSize: number, col: RGB) {

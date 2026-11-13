@@ -3,7 +3,7 @@ import { Ecosystem, DEFAULTS as ECOSYSTEM, decode as decodeEco, isCode as isEcoC
 import { DEFAULTS as GRASS_DEFAULTS, Grass, type GrassOptions } from "@polywar/grass";
 import { modelUrl, type NatureList } from "@polywar/nature";
 import { Wire, type Instances, type Light, type Renderer, type View, type WireMesh } from "@polywar/renderer";
-import { Scatter } from "@polywar/scatter";
+import { Scatter, frustum, visible } from "@polywar/scatter";
 import { DEFAULTS as TERRAIN, Terrain, decode, isCode, type TerrainData, type TerrainSettings } from "@polywar/terrain";
 import { BIOMES } from "@polywar/terrain-material";
 import { upload } from "@papit/game-mesh";
@@ -13,7 +13,7 @@ import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
 import { SLEEPER_MODEL } from "@polywar/rail";
-import { buildWays, groundPaint } from "@polywar/ways";
+import { buildWays, groundPaint, tiles } from "@polywar/ways";
 import { fence } from "@polywar/bridges";
 import { Placements } from "@polywar/placements";
 import { furnish } from "@polywar/trails";
@@ -21,6 +21,12 @@ import type { ScatterBatch } from "@polywar/scatter";
 import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
 import type { Mesh } from "@papit/game-mesh";
 
+/** ways / fences cut into tiles of this many metres (culled, lod picked per tile) */
+const TILE = 192;
+/** tiles further than this (metres, eye to tile edge) draw their far lod; fences none past `FENCE_FAR` */
+const WAYS_FAR = { low: 220, medium: 320, high: 480 }, FENCE_FAR = 300, TUNNEL_FAR = 140;
+/** one tile: centre, radius, a mesh per lod (missing: nothing at that lod) */
+type Tile = { c: [number, number, number]; r: number; lods: (Uploaded | undefined)[] };
 /** a GPU mesh + its CPU indices (wireframe needs them) */
 type Uploaded = ReturnType<typeof upload> & { indices?: ArrayLike<number> };
 const put = (gl: WebGL2RenderingContext, m: Mesh): Uploaded => Object.assign(upload(gl, m), { indices: m.indices });
@@ -72,8 +78,9 @@ export class World {
     readonly roads: RoadHooks;
     /** lakes, streams and rivers, carved inside the terrain pipeline (before roads) */
     readonly hydrology: HydrologyHooks;
-    private roadMesh?: Uploaded;
-    private fenceMesh?: Uploaded;
+    private wayTiles: Tile[] = [];
+    private fenceTiles: Tile[] = [];
+    private tunnelTiles: Tile[] = [];
     private riverMesh?: Uploaded;
     private siteMesh?: ReturnType<typeof upload>;
     /** made on first use of `view.wire` */
@@ -148,8 +155,25 @@ export class World {
         if (!this.data) return;
         const solid: Uploaded[] = [];
         if (this.v.rivers && this.riverMesh) solid.push(this.riverMesh);
-        if (this.v.roads && this.roadMesh) solid.push(this.roadMesh);
-        if (this.v.roads && this.fenceMesh) solid.push(this.fenceMesh);
+        if (this.v.roads)
+        {
+            // tiles in view, far ones at their low lod; fences only near
+            const planes = frustum(view.projectionMatrix, view.viewMatrix), e = view.worldPosition ?? { x: 0, y: 0, z: 0 }, far = WAYS_FAR[this.v.quality];
+            const pick = (list: Tile[], cut: number, max = Infinity) => {
+                for (const t of list)
+                {
+                    if (!visible(planes, t.c[0], t.c[1], t.c[2], t.r)) continue;
+                    const d = Math.hypot(t.c[0] - e.x, t.c[1] - e.y, t.c[2] - e.z) - t.r;
+                    if (d > max) continue;
+                    const m = t.lods[d > cut ? Math.min(1, t.lods.length - 1) : 0];
+                    if (m) solid.push(m);
+                }
+            };
+            pick(this.wayTiles, far);
+            pick(this.fenceTiles, Infinity, FENCE_FAR);
+            // inside a tunnel (under the ground) the tube is all there is to see: no limit then
+            pick(this.tunnelTiles, Infinity, e.y < this.terrain.groundAt(e.x, e.z) ? Infinity : TUNNEL_FAR);
+        }
         if (fill) for (const m of solid) this.renderer.draw(m, IDENTITY);
         if (wire) { for (const m of solid) wire.draw(view, m); this.renderer.reset(); }
         if (this.v.sites && this.siteMesh) this.renderer.draw(this.siteMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
@@ -180,6 +204,8 @@ export class World {
         this.built.destroy();
         this.grass.destroy();
         this.wire?.destroy();
+        this.dropTiles(this.wayTiles); this.dropTiles(this.fenceTiles); this.dropTiles(this.tunnelTiles);
+        this.riverMesh?.destroy();
     }
 
     // ---- internals ----
@@ -214,7 +240,8 @@ export class World {
 
     /** road surfaces: one sweep per ground span (bridges / tunnels are drawn by their own builders), a bit over the drawn ground */
     private buildRoads() {
-        this.roadMesh = undefined;
+        this.dropTiles(this.wayTiles); this.dropTiles(this.tunnelTiles);
+        this.wayTiles = []; this.tunnelTiles = [];
         this.structures = [];
         this.terrain.material.paths(null);
         const r = this.roads.roads;
@@ -224,9 +251,23 @@ export class World {
         const d = this.terrain.data;
         if (d) this.terrain.material.paths(groundPaint(r.network.roads, d.size, PAINT[this.v.quality]));
         this.structures = w.structures;
-        if (w.mesh) this.roadMesh = put(this.layer.gl, w.mesh);
+        const far = buildWays({ roads: r.network.roads, junctions: r.network.junctions, ground: (x, z) => this.terrain.groundAt(x, z), wet: (x, z) => this.wetAt(x, z), surface: (x, z) => this.surfaceAt(x, z) }, undefined, 1);
+        this.wayTiles = this.tile([w.mesh, far.mesh]);
+        this.tunnelTiles = w.inside ? this.tile([w.inside]) : [];
         if (w.sleepers.count) this.builtBatches.push({ model: SLEEPER_MODEL, kind: "sleeper", ...w.sleepers });
     }
+
+    /** meshes (one per lod) cut into tiles and uploaded */
+    private tile(lods: (Mesh | undefined)[]): Tile[] {
+        const cut = lods.map(m => m ? tiles(m, TILE) : new Map<string, Mesh>()), keys = new Set(cut.flatMap(c => [...c.keys()]));
+        return [...keys].map(k => {
+            const meshes = cut.map(c => c.get(k)), b = meshes.find(m => m)!.bounds;
+            const c: [number, number, number] = [(b.min.x + b.max.x) / 2, (b.min.y + b.max.y) / 2, (b.min.z + b.max.z) / 2];
+            const r = Math.max(...meshes.filter(m => m).map(m => Math.hypot(Math.max(Math.abs(m!.bounds.min.x - c[0]), Math.abs(m!.bounds.max.x - c[0])), Math.max(Math.abs(m!.bounds.min.y - c[1]), Math.abs(m!.bounds.max.y - c[1])), Math.max(Math.abs(m!.bounds.min.z - c[2]), Math.abs(m!.bounds.max.z - c[2])))));
+            return { c, r, lods: meshes.map(m => m ? put(this.layer.gl, m) : undefined) };
+        });
+    }
+    private dropTiles(list: Tile[]) { for (const t of list) for (const m of t.lods) m?.destroy(); }
 
     /** grid node under (x, z) of the current terrain, -1 outside */
     private node(x: number, z: number) {
@@ -298,7 +339,8 @@ export class World {
         P.applyChanges();
         // generated fences (posts on the ground, rails follow the slope)
         const runs = P.all().filter(p => p.kind === "fence:run").map(p => fence(p.params!.points as Vec3[]));
-        this.fenceMesh = runs.length ? put(this.layer.gl, merge(runs)) : undefined;
+        this.dropTiles(this.fenceTiles);
+        this.fenceTiles = runs.length ? this.tile([merge(runs)]) : [];
         this.builtBatches.push(...P.batches(k => k.includes(":") || k === "portal" ? undefined : k, k => k.startsWith("nature/") ? "rock" : "trail"));
     }
 

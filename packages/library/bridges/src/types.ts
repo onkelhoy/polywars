@@ -13,6 +13,8 @@ export type BridgeOptions = {
     use: "rail" | "road" | "path";
     /** openings in the parapet / truss where another way joins: `from`..`to` m along the path, `side` +1 = right (sweep +x) */
     gaps?: { from: number; to: number; side: -1 | 1 }[];
+    /** 0 full detail; 1 far: deck + piers only (girders keep their chords), few points */
+    lod?: number;
 };
 
 export type PortalOptions = {

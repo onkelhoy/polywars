@@ -3,7 +3,7 @@ import { generate, type TerrainHooks } from "@polywar/terrain";
 import { hydrologyHooks } from "@polywar/hydrology";
 import { roadHooks, sampler } from "@polywar/roads";
 import { generateSites } from "@polywar/sites";
-import { STEEP } from "@polywar/ways";
+import { STEEP, buildWays } from "@polywar/ways";
 
 const [quality = "low", seed = "1"] = process.argv.slice(2);
 const hydro = hydrologyHooks({}), roads = roadHooks(raw => generateSites(raw as any, raw.cities, {}), {}, "{}");
@@ -229,4 +229,12 @@ if (process.env.TUNNELS) for (const r of net.roads) for (const s of r.spans) if 
         const n = r.points.length - 1, deadStart = s.from <= 2 && ends.get(k(r.points[0]))! < 2, deadEnd = s.to >= n - 2 && ends.get(k(r.points[n]))! < 2;
         if (deadStart || deadEnd) console.log(`  bridge to nowhere (${r.class}) road ${r.id} ${at(r.points[s.from])}→${at(r.points[s.to])}`);
     }
+}
+
+// WAYS=1: vertex counts of the ways mesh by part
+if (process.env.WAYS)
+{
+    const verts = (roads: typeof net.roads, junctions = net.junctions) => buildWays({ roads, junctions, ground }).mesh?.positions.length! / 3 || 0;
+    const only = (k: string) => net.roads.map(r => ({ ...r, spans: (r.spans.length ? r.spans : [{ kind: "ground" as const, from: 0, to: r.points.length - 1 }]).filter(s => s.kind === k) })).filter(r => r.spans.length);
+    console.log(`ways verts: all ${verts(net.roads)}, ground ${verts(only("ground"), [])}, bridges ${verts(only("bridge"), [])}, tunnels ${verts(only("tunnel"), [])}, rail ${verts(net.roads.filter(r => r.class === "rail"), [])}`);
 }

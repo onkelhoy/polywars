@@ -26,5 +26,10 @@ export type ClassStyle = {
     paint?: number;
 };
 
-export type WaysResult = { mesh?: Mesh; sleepers: { data: Float32Array; count: number }; structures: Structure[] };
+export type WaysResult = {
+    mesh?: Mesh;
+    /** tunnel tubes and what runs in them (draw only near / inside) */
+    inside?: Mesh;
+    sleepers: { data: Float32Array; count: number }; structures: Structure[];
+};
 export type { Mesh };

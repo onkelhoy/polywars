@@ -1,4 +1,4 @@
-import { merge, sweep, type Profile } from "@polywar/sweep";
+import { bounds, merge, sweep, type Profile } from "@polywar/sweep";
 import { inlaid, track } from "@polywar/rail";
 import { resample } from "@polywar/sweep";
 import { PORTAL, bridge, bridgeFor, fence, logSteps, portal, tunnel } from "@polywar/bridges";
@@ -21,6 +21,36 @@ export const STYLES: Record<string, ClassStyle> = {
     path: { profile: null, step: 2, lift: 0, paint: 0 },
     rail: { profile: null, step: 4, lift: 0 },
 };
+
+/**
+ * A mesh cut into `size` m square tiles (by triangle centre), each with its bounds: draw / cull / pick a lod per tile.
+ * Keys are `i,j` tile indices (same grid for every mesh, so lods of one tile share a key).
+ */
+export function tiles(mesh: Mesh, size: number): Map<string, Mesh> {
+    const P = mesh.positions, N = mesh.normals, C = mesh.colors, I = mesh.indices, count = I ? I.length : P.length / 3;
+    const lists = new Map<string, number[]>();
+    for (let t = 0; t < count; t += 3)
+    {
+        let x = 0, z = 0;
+        for (let v = 0; v < 3; v++) { const i = I ? I[t + v] : t + v; x += P[i * 3]; z += P[i * 3 + 2]; }
+        const key = `${Math.floor(x / 3 / size)},${Math.floor(z / 3 / size)}`;
+        (lists.get(key) ?? lists.set(key, []).get(key)!).push(t);
+    }
+    const out = new Map<string, Mesh>();
+    for (const [key, tris] of lists)
+    {
+        const n = tris.length * 3, p = new Float32Array(n * 3), nn = new Float32Array(n * 3), c = C ? new Float32Array(n * 4) : undefined;
+        let o = 0;
+        for (const t of tris) for (let v = 0; v < 3; v++, o++)
+        {
+            const i = I ? I[t + v] : t + v;
+            p.set(P.subarray(i * 3, i * 3 + 3), o * 3); nn.set(N.subarray(i * 3, i * 3 + 3), o * 3);
+            if (c && C) c.set(C.subarray(i * 4, i * 4 + 4), o * 4);
+        }
+        out.set(key, { positions: p, normals: nn, colors: c, bounds: bounds(p) });
+    }
+    return out;
+}
 
 /**
  * Ways painted on the ground (classes with a `paint` style), ground spans only: an `n`² RG8 grid over `size` metres
@@ -79,8 +109,10 @@ export function chains<W extends WaysInput["roads"][0]>(roads: W[]): W[] {
  * A road network to meshes: surfaces per class (sweeps), rail tracks (ballast + rails, sleepers as instances),
  * bridges on bridge spans, portals at tunnel mouths, boardwalks where trails cross wet ground. Pure: one merged mesh.
  */
-export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> = STYLES): WaysResult {
-    const meshes: Mesh[] = [], sleepers: { data: Float32Array; count: number }[] = [], structures: Structure[] = [], ground = input.ground;
+export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> = STYLES, lod = 0): WaysResult {
+    // lod 1 (far): coarse strips, plain bridges, ballast only, no tunnel tubes / steps / sleepers
+    const far = lod > 0, coarse = far ? 3 : 1;
+    const meshes: Mesh[] = [], inside: Mesh[] = [], sleepers: { data: Float32Array; count: number }[] = [], structures: Structure[] = [], ground = input.ground;
     // other ways (not trails): no steps next to them (their banks make the ground look steep)
     const B = 16, near = new Set<number>(), key = (x: number, z: number) => (Math.floor(x / B) + 4096) * 8192 + Math.floor(z / B) + 4096;
     for (const r of input.roads) if (r.class !== "path") for (const p of r.points) near.add(key(p[0], p[2]));
@@ -205,6 +237,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
     };
     const lay = (pts: Vec3[]) => {
         const fine = resample(pts, 1).points, top = fine.map(p => roadTop(p[0], p[1], p[2]));
+        if (far) { meshes.push(track(pts).lods[2]); return; }
         if (top.every(t => Number.isNaN(t))) { const t = track(pts); meshes.push(t.lods[0]); sleepers.push(t.sleepers); return; }
         for (let a = 0; a < fine.length - 1;)
         {
@@ -249,7 +282,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                     const kept = list.slice(i - 1);
                     deck = end ? kept.reverse() : kept;
                 }
-                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road", gaps: joins(deck, road.chain, road.width) });
+                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road", gaps: joins(deck, road.chain, road.width), lod });
                 meshes.push(b.mesh);
                 structures.push({ kind: `bridge-${b.type}`, road: road.id, x: raw[0][0], y: raw[0][1], z: raw[0][2], to: raw[raw.length - 1] });
                 if (rail) lay(raw);
@@ -268,10 +301,12 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                     structures.push({ kind: "portal", road: road.id, x: a[0], y: a[1], z: a[2], to: b });
                 }
                 // the tube all the way through, the road (or track) on its floor
-                meshes.push(tunnel(raw, { width: Math.max(size.width, road.width + 2), height: size.height, walkway: road.class === "path" ? .4 : .8 }));
+                if (far) continue;
+                // the tube and what runs in it: `inside` (seen only from near / inside)
+                inside.push(tunnel(raw, { width: Math.max(size.width, road.width + 2), height: size.height, walkway: road.class === "path" ? .4 : .8 }));
                 const floor = raw.map(([x, y, z]) => [x, y + style.lift, z] as Vec3);
-                if (rail) lay(raw);
-                else if (style.profile) meshes.push(sweep(floor, { width: road.width, profile: style.profile, bank: { max: 0, gain: 0 }, step: style.step, bands: style.bands }));
+                if (rail) { const n = meshes.length; lay(raw); inside.push(...meshes.splice(n)); }
+                else if (style.profile) inside.push(sweep(floor, { width: road.width, profile: style.profile, bank: { max: 0, gain: 0 }, step: style.step, bands: style.bands }));
                 continue;
             }
             const surface = (part: Vec3[]) => {
@@ -280,8 +315,8 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                 // would pull the approach up into the opening)
                 const pts = part.map(([x, y, z]) => [x, (mouths.some(m => Math.hypot(m[0] - x, m[1] - z) < 16) ? y : Math.max(y, ground(x, z))) + style.lift, z] as Vec3);
                 if (rail) lay(pts);
-                else if (!style.profile && road.class === "path") stairs(part, road.width);
-                else if (style.profile) meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .015, gain: 4 }, step: style.step, bands: style.bands, caps: true }));
+                else if (!style.profile && road.class === "path") { if (!far) stairs(part, road.width); }
+                else if (style.profile) meshes.push(sweep(pts, { width: road.width, profile: style.profile, bank: { max: .015, gain: 4 }, step: style.step * coarse, bands: far ? undefined : style.bands, caps: true }));
             };
             if (!trail || !input.wet) { surface(raw); continue; }
             // trails over wet ground: boardwalk runs
@@ -294,7 +329,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                 if (wet[a] && part.length >= 3)
                 {
                     const deck = part.map(([x, y, z]) => [x, Math.max(y, input.wet!(x, z) ? (input.surface?.(x, z) ?? ground(x, z)) + .5 : ground(x, z) + .3), z] as Vec3);
-                    meshes.push(bridge("foot-wood", deck, { width: Math.max(1.6, road.width), ground, use: "path" }));
+                    meshes.push(bridge("foot-wood", deck, { width: Math.max(1.6, road.width), ground, use: "path", lod }));
                     structures.push({ kind: "boardwalk", road: road.id, x: deck[0][0], y: deck[0][1], z: deck[0][2], to: deck[deck.length - 1] });
                 }
                 else surface(part);
@@ -306,5 +341,5 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
     const count = sleepers.reduce((n, s) => n + s.count, 0), data = new Float32Array(count * 8);
     let at = 0;
     for (const s of sleepers) { data.set(s.data.subarray(0, s.count * 8), at); at += s.count * 8; }
-    return { mesh: meshes.length ? merge(meshes) : undefined, sleepers: { data, count }, structures };
+    return { mesh: meshes.length ? merge(meshes) : undefined, inside: inside.length ? merge(inside) : undefined, sleepers: { data, count }, structures };
 }
