@@ -29,7 +29,6 @@ const numbers = [
     ['plateaus.coverage', 0, 1, .01], ['plateaus.scale', 100, 4000, 10], ['plateaus.level', 0, 1, .01], ['plateaus.sharpness', .005, .3, .005], ['plateaus.steps', 0, 8, 1],
     ['erosion.lifetime', 4, 120, 1], ['erosion.inertia', 0, .9, .01], ['erosion.capacity', .5, 16, .1], ['erosion.minCapacity', 0, .1, .001], ['erosion.erode', 0, 1, .01],
     ['erosion.deposit', 0, 1, .01], ['erosion.evaporate', .001, .1, .001], ['erosion.gravity', .5, 20, .1], ['erosion.radius', 1, 60, 1],
-    ['rivers.enabled'], ['rivers.catchment', 10000, 2000000, 10000], ['rivers.width', 1, 30, .5], ['rivers.maxWidth', 2, 120, 1], ['rivers.depth', 0, 10, .1], ['rivers.length', 0, 2000, 10], ['rivers.cut', 0, 100, 1],
     ['lakes.depth', 0, 50, .5], ['lakes.area', 0, 50000, 100], ['lakes.level', 0, 1, .01],
     ['climate.temperature', 0, 1, .01], ['climate.moisture', 0, 1, .01], ['climate.scale', 100, 8000, 50], ['climate.variation', 0, 1, .01], ['climate.lapse', 0, 1.5, .01],
     ['climate.reach', 0, 1000, 5], ['climate.gradient.direction', 0, 360, 1], ['climate.gradient.strength', 0, 1, .01],

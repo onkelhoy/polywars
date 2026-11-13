@@ -56,7 +56,8 @@ export async function erode(h: Float32Array, n: number, count: number, o: Terrai
             if (sediment > cap || dh > 0)
             {
                 // fill the pit uphill, or drop the excess: bilinear onto the 4 nodes of the old cell
-                const soft = hard ? 1 - hard[k] : 1;
+                // hard nodes (river beds, roads) take nothing: drop all of it once off them, never dig past what can be refilled
+                const soft = hard ? 1 - Math.max(hard[k], hard[k + 1], hard[k + n], hard[k + n + 1]) : 1;
                 const amount = (dh > 0 ? Math.min(dh, sediment) : (sediment - cap) * deposit) * soft;
                 sediment -= amount;
                 h[k] += amount * (1 - fx) * (1 - fy);
@@ -67,17 +68,19 @@ export async function erode(h: Float32Array, n: number, count: number, o: Terrai
             else
             {
                 // never dig deeper than the step down
-                const amount = Math.min((cap - sediment) * erodeRate, -dh);
+                const amount = Math.min((cap - sediment) * erodeRate, -dh) * (hard ? 1 - hard[k] : 1);
                 for (let b = 0; b < bn; b++)
                 {
                     const cx = ix + bx[b], cy = iy + by[b];
                     if (cx < 0 || cx > max || cy < 0 || cy > max) continue;
-                    const m = cy * n + cx, take = amount * bw[b] * (hard ? 1 - hard[m] : 1);
+                    // never below where the droplet goes next: beside hard channels the step stays, digging would never end
+                    const m = cy * n + cx, take = Math.min(amount * bw[b] * (hard ? 1 - hard[m] : 1), Math.max(0, h[m] - height - dh));
                     h[m] -= take;
                     sediment += take;
                 }
             }
-            speed = Math.sqrt(Math.max(0, speed * speed - dh * gravity));
+            // capped: down long carved channels it would grow without end and dig runaway holes
+            speed = Math.min(8, Math.sqrt(Math.max(0, speed * speed - dh * gravity)));
             water *= 1 - evaporate;
         }
     }

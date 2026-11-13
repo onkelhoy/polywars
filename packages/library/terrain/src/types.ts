@@ -95,8 +95,6 @@ export type TerrainOptions = {
         /** moisture above which land is forest */
         forest: number;
     };
-    /** rivers where the catchment passes `catchment` m²; `width` / `depth` metres at that size, growing downstream; shorter than `length` metres are dropped; `cut` metres a river may cut through a rim to reach the next lake / the sea */
-    rivers: { enabled: boolean; cut: number; catchment: number; width: number; maxWidth: number; depth: number; length: number };
     /** flat dry spots for towns, best first */
     cities: { count: number; radius: number; spacing: number; maxSlope: number; flatten: number; water: number };
     /**
@@ -131,6 +129,8 @@ export type TerrainData = {
     height: Float32Array;
     /** 0 land, 1 ocean, 2 lake, 3 river */
     water: Uint8Array;
+    /** lake water kind per node: 0 clear, 1 muddy, 2 swamp (set by hooks) */
+    waterKind?: Uint8Array;
     /** water surface, metres (sea level on land) */
     surface: Float32Array;
     /** index into `BIOMES` */

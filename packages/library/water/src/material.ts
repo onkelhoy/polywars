@@ -132,7 +132,8 @@ export class WaterMaterial {
     }
 
     get look(): Readonly<WaterLook> { return this.o; }
-    set(look: Partial<WaterLook>) { this.o = merge(this.o, look); }
+    set(look: Partial<WaterLook>) { this.o = merge(this.o, look); this.looks = new WeakMap(); }
+    private looks = new WeakMap<Partial<WaterLook>, WaterLook>();
 
     /**
      * Bind for the next draw. `fresh` uses the lake / river colours; `under`: the eye is below this water, whose surface is at
@@ -140,9 +141,11 @@ export class WaterMaterial {
      * After `capture()` the water reads the scene depth: exact see-through edge and rim foam wherever it meets anything. `outlines`: 12 radius scales per
      * contact (round from +x toward +z) so the ring follows its real outline (missing: round). False while linking.
      */
-    use(view: View, light: Light, time: number, { fresh = false, under = false, surface = 0, contacts = [] as ArrayLike<number>, outlines = [] as ArrayLike<number>, shore = undefined as ShoreMap | undefined } = {}): boolean {
-        const gl = this.gl, o = this.o, p = this.program;
+    use(view: View, light: Light, time: number, { fresh = false, still = false, look = undefined as Partial<WaterLook> | undefined, under = false, surface = 0, contacts = [] as ArrayLike<number>, outlines = [] as ArrayLike<number>, shore = undefined as ShoreMap | undefined } = {}): boolean {
+        const gl = this.gl, p = this.program;
         if (!p) return false;
+        // `look`: this draw only (lake kinds), merged once per look object
+        const o = look ? this.looks.get(look) ?? this.looks.set(look, merge(this.o, look)).get(look)! : this.o;
         const u = p.u;
         gl.useProgram(p.program);
         this.f32.view.set(view.viewMatrix);
@@ -161,7 +164,10 @@ export class WaterMaterial {
         gl.uniform1f(u("fogDensity"), light.fogDensity);
         gl.uniform1f(u("time"), time);
 
-        const colors = fresh ? o.fresh : o, g = o.glints, f = o.foam;
+        const colors = fresh ? o.fresh : o, f0 = o.foam, g0 = o.glints;
+        // still water (lakes): no wave streaks or wave lines, a faint sheen and the rim only
+        const g = still ? { ...g0, dark: g0.dark * .15, strength: g0.strength * .15, specks: g0.specks * .2, glow: g0.glow * .2, speed: g0.speed * .3 } : g0;
+        const f = still ? { ...f0, lines: 0, wobble: f0.wobble * .3 } : f0;
         gl.uniform3fv(u("shallow"), linear(colors.shallow));
         gl.uniform3fv(u("deep"), linear(colors.deep));
         gl.uniform1f(u("opacity"), o.opacity);
