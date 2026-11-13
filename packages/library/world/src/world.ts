@@ -13,7 +13,7 @@ import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
 import { SLEEPER_MODEL } from "@polywar/rail";
-import { buildWays } from "@polywar/ways";
+import { buildWays, groundPaint } from "@polywar/ways";
 import { fence } from "@polywar/bridges";
 import { Placements } from "@polywar/placements";
 import { furnish } from "@polywar/trails";
@@ -30,6 +30,8 @@ import type { WorldSettings, WorldView } from "./types";
 /** debug site sphere colour per kind */
 const SITE_COLOUR: Record<string, [number, number, number]> = { city: [1, .2, .2], village: [1, .6, .2], farm: [1, 1, .3], peak: [.9, .9, .9], beach: [1, .9, .6], lake: [.3, .6, 1], pass: [.7, .5, 1], viewpoint: [.3, 1, .5] };
 
+/** ground paint grid per quality (lanes / paths), texels per side */
+const PAINT = { low: 1024, medium: 2048, high: 3072 };
 /** grass draw distance per quality, metres (further than the grass presets) */
 const DISTANCE = { low: 34, medium: 60, high: 90 };
 /** grass planting window per quality, metres (a bit past the draw distance) */
@@ -214,9 +216,13 @@ export class World {
     private buildRoads() {
         this.roadMesh = undefined;
         this.structures = [];
+        this.terrain.material.paths(null);
         const r = this.roads.roads;
         if (!r) return;
         const w = buildWays({ roads: r.network.roads, junctions: r.network.junctions, ground: (x, z) => this.terrain.groundAt(x, z), wet: (x, z) => this.wetAt(x, z), surface: (x, z) => this.surfaceAt(x, z) });
+        // lanes / paths are painted onto the ground (no mesh)
+        const d = this.terrain.data;
+        if (d) this.terrain.material.paths(groundPaint(r.network.roads, d.size, PAINT[this.v.quality]));
         this.structures = w.structures;
         if (w.mesh) this.roadMesh = put(this.layer.gl, w.mesh);
         if (w.sleepers.count) this.builtBatches.push({ model: SLEEPER_MODEL, kind: "sleeper", ...w.sleepers });

@@ -20,7 +20,11 @@ export type WaysInput = {
 /** a bridge, boardwalk or tunnel mouth that was built (`kind`: `bridge-<type>`, `boardwalk`, `portal`) */
 export type Structure = { kind: string; road: number; x: number; y: number; z: number; to: Vec3 };
 
-export type ClassStyle = { profile: Profile | null; step: number; lift: number; bands?: { every: number; shade: number } };
+export type ClassStyle = {
+    profile: Profile | null; step: number; lift: number; bands?: { every: number; shade: number };
+    /** painted onto the ground instead of a mesh (`groundPaint`): 0 dirt .. 1 gravel */
+    paint?: number;
+};
 
 export type WaysResult = { mesh?: Mesh; sleepers: { data: Float32Array; count: number }; structures: Structure[] };
 export type { Mesh };

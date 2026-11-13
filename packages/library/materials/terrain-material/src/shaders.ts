@@ -109,6 +109,9 @@ ${COMMON}
 out vec4 outColor;
 
 ${NOISE}
+uniform sampler2D pathMap; // painted ways: r cover, g surface (dirt .. gravel)
+uniform float pathSize; // metres the path map spans (0: none)
+uniform vec3 dirtColor, gravelColor;
 uniform sampler2D noiseMap; // fbm baked once (NOISE_FRAGMENT), mirrored every NOISE_SPAN units
 /** fbm from the baked texture: one fetch instead of 5 octaves of value noise (phones) */
 float fbm(vec2 p) { return texture(noiseMap, p / ${NOISE_SPAN}.0).r; }
@@ -161,6 +164,14 @@ void main() {
         c = mix(c, snowColor, s);
     }
     if (!far) c *= 1.0 + (vShade - .5) * 2.0 * variation;
+    // painted ways (lanes, paths): dirt / gravel on the ground, edges on the paint cells, worn a little at the rims
+    float way = 0.0;
+    if (pathSize > 0.0 && !far) {
+        vec2 pm = texture(pathMap, cell / pathSize + .5).rg;
+        float wear = fbm(cell * .35 + 5.3) - .5;
+        way = step(.5, pm.r + wear * .25);
+        c = mix(c, mix(dirtColor, gravelColor, pm.g) * (1.0 + wear * .25), way);
+    }
     // patches: layered blotches, each overlap one flat colour (deeper and cooler), warm between; optional rims / grain
     if (painted) {
         float deep = 0.0, rim = 0.0;

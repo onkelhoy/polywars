@@ -3,7 +3,7 @@ import { inlaid, track } from "@polywar/rail";
 import { resample } from "@polywar/sweep";
 import { PORTAL, bridge, bridgeFor, fence, logSteps, portal, tunnel } from "@polywar/bridges";
 import { junctionPads, trimAtPads } from "./junctions";
-import type { ClassStyle, Mesh, Structure, Vec3, WaysInput, WaysResult } from "./types";
+import type { ClassStyle, Mesh, Structure, Vec3, Way, WaysInput, WaysResult } from "./types";
 
 /** paths steeper than this (rise / run, over a few metres) get log steps; only such hot spots, never near roads */
 export const STEEP = .55;
@@ -16,10 +16,41 @@ const strip = (top: [number, number, number], side: [number, number, number], ed
 export const STYLES: Record<string, ClassStyle> = {
     highway: { profile: strip([.62, .61, .58], [.42, .4, .36]), step: 4, lift: .15, bands: { every: 6, shade: .08 } },
     road: { profile: strip([.55, .5, .43], [.4, .36, .3]), step: 4, lift: .12 },
-    lane: { profile: strip([.47, .38, .28], [.38, .31, .23]), step: 3, lift: .1 },
-    path: { profile: null, step: 2, lift: 0 },
+    // small ways are painted on the ground (no mesh): they follow it exactly and cost nothing to draw
+    lane: { profile: null, step: 3, lift: 0, paint: .7 },
+    path: { profile: null, step: 2, lift: 0, paint: 0 },
     rail: { profile: null, step: 4, lift: 0 },
 };
+
+/**
+ * Ways painted on the ground (classes with a `paint` style), ground spans only: an `n`² RG8 grid over `size` metres
+ * centred on the origin (R: .5 at the way's edge, more inside, a distance field so a linear filter keeps thin ways
+ * sharp; G: surface 0 dirt .. 255 gravel). For `TerrainMaterial.paths`.
+ */
+export function groundPaint(roads: Way[], size: number, n = 2048, styles: Record<string, ClassStyle> = STYLES) {
+    const data = new Uint8Array(n * n * 2), cell = size / n, half0 = size / 2;
+    for (const r of roads)
+    {
+        const st = styles[r.class];
+        if (st?.paint === undefined) continue;
+        const half = r.width / 2, g = Math.round(st.paint * 255), kind = (i: number) => r.spans.find(s => i >= s.from && i < s.to)?.kind ?? "ground";
+        for (let s = 0; s < r.points.length - 1; s++)
+        {
+            if (kind(s) !== "ground") continue;
+            const a = r.points[s], b = r.points[s + 1], dx = b[0] - a[0], dz = b[2] - a[2], l2 = dx * dx + dz * dz || 1, pad = half + cell * 2;
+            const i0 = Math.max(0, Math.floor((Math.min(a[0], b[0]) - pad + half0) / cell)), i1 = Math.min(n - 1, Math.ceil((Math.max(a[0], b[0]) + pad + half0) / cell));
+            const j0 = Math.max(0, Math.floor((Math.min(a[2], b[2]) - pad + half0) / cell)), j1 = Math.min(n - 1, Math.ceil((Math.max(a[2], b[2]) + pad + half0) / cell));
+            for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++)
+            {
+                const x = (i + .5) * cell - half0, z = (j + .5) * cell - half0, t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[2]) * dz) / l2));
+                const d = Math.hypot(x - a[0] - dx * t, z - a[2] - dz * t), v = Math.round(Math.max(0, Math.min(1, .5 + (half - d) / (cell * 2))) * 255);
+                const k = (j * n + i) * 2;
+                if (v > data[k]) { data[k] = v; data[k + 1] = g; }
+            }
+        }
+    }
+    return { data, n, size };
+}
 
 /**
  * Roads of one chain (`chain` id, consecutive, each starting where the last ended) joined into one way, so a road

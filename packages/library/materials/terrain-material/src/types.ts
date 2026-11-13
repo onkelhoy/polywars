@@ -21,6 +21,8 @@ export type TerrainLook = {
      * Biome borders (needs `material.biomes(map)`) bleed `edge` metres as the same billowy shapes (0: the mesh's borders).
      */
     paint: { edge: number; size: number; washes: number; rim: number; warmth: number; grain: number; pixel: number };
+    /** colours of ways painted on the ground (`material.paths(map)`) */
+    paths: { dirt: string; gravel: string };
     /** random brightness per face 0..1: the low poly look */
     variation: number;
     /** true: one normal per face (faceted); false: smooth normals */

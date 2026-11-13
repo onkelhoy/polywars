@@ -17,6 +17,7 @@ export const TERRAIN_LOOK: TerrainLook = {
     rock: { color: "#847670", slope: .55, softness: .08 },
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
     paint: { edge: 10, size: 30, washes: .5, rim: 0, warmth: .5, grain: 0, pixel: .3 },
+    paths: { dirt: "#8a6e4e", gravel: "#a59a86" },
     variation: 0,
     flat: false,
     bands: 3,
@@ -53,6 +54,7 @@ export class TerrainMaterial {
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     private id = ids++;
     private map?: { texture: WebGLTexture; n: number; size: number };
+    private pathMap?: { texture: WebGLTexture; n: number; size: number };
 
     /** Programs come from the layer (async); `useGround` returns false until they are linked. */
     constructor(readonly layer: Layer3D, look: Partial<TerrainLook> = {}) {
@@ -86,6 +88,26 @@ export class TerrainMaterial {
         this.map = { texture, n: map.n, size: map.size };
     }
 
+    /**
+     * Ways painted onto the ground (dirt lanes, gravel, paths): an `n`² RG8 grid over `size` metres centred on the
+     * origin, R = cover (0..255, drawn where over half), G = surface (0 dirt .. 255 gravel). null: none.
+     */
+    paths(map: { data: Uint8Array; n: number; size: number } | null) {
+        const gl = this.gl;
+        if (this.pathMap) gl.deleteTexture(this.pathMap.texture);
+        this.pathMap = undefined;
+        if (!map) return;
+        const texture = gl.createTexture()!;
+        gl.activeTexture(gl.TEXTURE9);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG8, map.n, map.n, 0, gl.RG, gl.UNSIGNED_BYTE, map.data);
+        for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+        for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+        gl.activeTexture(gl.TEXTURE0);
+        this.pathMap = { texture, n: map.n, size: map.size };
+    }
+
     /** How far chunk walls (flow -2 vertices) hang down, metres, for the next ground draws. Call after `useGround`. */
     wallDrop(metres: number) {
         const p = this.groundProgram;
@@ -117,6 +139,13 @@ export class TerrainMaterial {
         gl.bindTexture(gl.TEXTURE_2D, this.noise ?? null);
         gl.activeTexture(gl.TEXTURE0);
         gl.uniform1i(u("noiseMap"), 8);
+        gl.activeTexture(gl.TEXTURE9);
+        gl.bindTexture(gl.TEXTURE_2D, this.pathMap?.texture ?? null);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(u("pathMap"), 9);
+        gl.uniform1f(u("pathSize"), this.pathMap ? this.pathMap.size : 0);
+        gl.uniform3fv(u("dirtColor"), linear(o.paths.dirt));
+        gl.uniform3fv(u("gravelColor"), linear(o.paths.gravel));
         gl.uniform1i(u("biomeMap"), 5);
         gl.uniform1f(u("contours"), o.contours);
         gl.uniform1i(u("flatShade"), o.flat ? 1 : 0);
@@ -129,6 +158,7 @@ export class TerrainMaterial {
 
     destroy() {
         this.biomes(null);
+        this.paths(null);
         if (this.noise) this.gl.deleteTexture(this.noise);
         if (this.groundProgram) this.layer.deleteProgram(this.groundProgram.name);
     }
