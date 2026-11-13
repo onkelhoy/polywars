@@ -1,4 +1,4 @@
-import { Roads } from "./roads";
+import { Roads, TUNNEL_HEIGHT } from "./roads";
 import type { Ground, Network, RoadsOptions, Site, Span } from "./types";
 
 /**
@@ -116,8 +116,6 @@ export const roadEdge = (roads: Roads, far = 30) => (x: number, z: number) => {
     return r ? r.distance - r.road.width / 2 : far;
 };
 
-/** opening height per class at a tunnel mouth, metres (portals in `@polywar/bridges` match) */
-export const TUNNEL_HEIGHT: Record<string, number> = { rail: 7, highway: 7, road: 7, lane: 5, path: 3 };
 
 /**
  * Tunnel mouths: ground that would cut into the tunnel (lower than the opening top) near each mouth becomes a hole

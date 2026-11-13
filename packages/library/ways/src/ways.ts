@@ -101,6 +101,8 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                     const l = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1, sx = -(b[2] - a[2]) / l, sz = (b[0] - a[0]) / l, w = Math.max(size.width, road.width + 2);
                     let hill = 0;
                     for (const f of [-1, -.5, 0, .5, 1]) for (const d of [0, 1.5]) hill = Math.max(hill, ground(a[0] + sx * f * w / 2 + (b[0] - a[0]) / l * d, a[2] + sz * f * w / 2 + (b[2] - a[2]) / l * d) - a[1]);
+                    // a mouth deep under the hill (the tunnel goes on through a junction underground): no portal
+                    if (ground(a[0], a[2]) - a[1] > size.height + 6) continue;
                     meshes.push(portal(a, [b[0] - a[0], b[2] - a[2]], { ...size, width: w, top: Math.min(hill + .8, size.height + 14) }));
                     structures.push({ kind: "portal", road: road.id, x: a[0], y: a[1], z: a[2], to: b });
                 }

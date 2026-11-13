@@ -127,6 +127,7 @@ export class Roads {
         t0 = performance.now();
         const { roads, out } = this.shape(raws.filter(r => r.nodes.length > 1), junctions);
         levelCrossings(roads, o.step);
+        trimTunnels(roads, this.heightAt);
         for (const r of roads)
         {
             const p = r.points, k = Math.min(3, p.length - 1);
@@ -397,5 +398,42 @@ export function levelCrossings(roads: Road[], step: number) {
         if (nearEnd(A, ia) && nearEnd(Bw, ib)) continue;
         const [hi, lo] = weight(A) >= weight(Bw) ? [[A, ia, s, ya], [Bw, ib, t, yb]] as const : [[Bw, ib, t, yb], [A, ia, s, ya]] as const;
         ramp(lo[0], lo[1], lo[2], hi[3]);
+    }
+}
+
+/** opening height per class at a tunnel mouth, metres (portals in `@polywar/bridges` match) */
+export const TUNNEL_HEIGHT: Record<string, number> = { rail: 7, highway: 7, road: 7, lane: 5, path: 3 };
+
+/**
+ * Tunnels only where the hill covers them: the mouth moves in to where the ground is a portal height (+2 m) over the
+ * way, the stretch before it is a cutting (ground span, carved). A tunnel nothing covers is a bridge (over lower
+ * ground) or plain ground.
+ */
+export function trimTunnels(roads: Road[], heightAt: (x: number, z: number) => number) {
+    for (const r of roads)
+    {
+        if (!r.spans.some(s => s.kind === "tunnel")) continue;
+        const need = (TUNNEL_HEIGHT[r.class] ?? 6) + 2, P = r.points, out: Span[] = [];
+        const covered = (i: number) => heightAt(P[i][0], P[i][2]) >= P[i][1] + need;
+        for (const s of r.spans)
+        {
+            if (s.kind !== "tunnel") { out.push(s); continue; }
+            let a = s.from, b = s.to;
+            while (a < b && !covered(a)) a++;
+            while (b > a && !covered(b)) b--;
+            if (b - a < 2)
+            {
+                let above = 0;
+                for (let i = s.from; i <= s.to; i++) if (P[i][1] > heightAt(P[i][0], P[i][2]) + 3) above++;
+                out.push({ kind: above > (s.to - s.from + 1) / 2 ? "bridge" : "ground", from: s.from, to: s.to, auto: true });
+                continue;
+            }
+            // the mouth a point outside the covered part, so the portal face has the hill right above it
+            a = Math.max(s.from, a - 1); b = Math.min(s.to, b + 1);
+            if (a > s.from) out.push({ kind: "ground", from: s.from, to: a });
+            out.push({ ...s, from: a, to: b });
+            if (b < s.to) out.push({ kind: "ground", from: b, to: s.to });
+        }
+        r.spans = out.filter(s => s.to > s.from).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
     }
 }
