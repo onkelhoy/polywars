@@ -35,7 +35,7 @@ export function hydrologyHooks(options: Partial<HydrologyOptions> = {}): Hydrolo
             return { hard };
         },
         fix: data => {
-            fillLakes(h.network.lakes, data);
+            h.network.lakes = fillLakes(h.network.lakes, data);
             h.network.streams = carveBeds(h.paths, data, o);
             for (const s of h.network.streams) data.rivers.push({ points: s.points });
         },

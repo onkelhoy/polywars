@@ -16,7 +16,8 @@ function beds(p: Path, g: Grid, o: HydrologyOptions, stop?: (k: number) => boole
     {
         const ground = sample(g.height, g.n, g.size, p.x[i], p.z[i]), depth = o.depth * Math.min(3, Math.sqrt(p.w[i] / o.width));
         const k = node(g.n, g.size, p.x[i], p.z[i]), end = stop?.(k) ?? false;
-        const want = ground - depth;
+        // never below the sea floor near the coast: no pits
+        const want = Math.max(ground - depth, g.seaLevel - depth * 2);
         if (!cur || want - bed > o.cut)
         {
             if (cur && cur.i.length > 1) pieces.push(cur);
@@ -72,7 +73,7 @@ type Wet = Grid & { water: Uint8Array; surface: Float32Array };
  */
 export function carveBeds(paths: Path[], g: Wet, o: HydrologyOptions): Stream[] {
     const { n, size, height, water, surface } = g, cell = size / (n - 1), half = size / 2, total = n * n;
-    const level = new Float32Array(total).fill(-Infinity), target = height.slice(), out: Stream[] = [];
+    const level = new Float32Array(total).fill(-Infinity), target = height.slice(), chan = new Float32Array(total).fill(Infinity), out: Stream[] = [];
     const still = (k: number) => water[k] === 1 || water[k] === 2;
     for (const p of paths) for (const piece of beds(p, g, o, still))
     {
@@ -90,12 +91,29 @@ export function carveBeds(paths: Path[], g: Wet, o: HydrologyOptions): Stream[] 
                 if (d > reach || still(k)) continue;
                 const v = d < w2 ? bed + depth * (d / w2) ** 2 : bed + depth + (d - w2);
                 if (v < target[k]) target[k] = v;
+                // the channel itself gets exactly the bed shape (erosion pits filled)
+                if (d < w2 && v < chan[k]) chan[k] = v;
                 if (d <= w2 + cell * .5) level[k] = Math.max(level[k], top);
             }
         });
         out.push({ points, order: p.order, falls: piece.falls });
     }
+    for (let k = 0; k < total; k++) if (chan[k] < Infinity) target[k] = chan[k];
     height.set(target);
+    despike(g);
     for (let k = 0; k < total; k++) if (level[k] > -Infinity && !water[k]) { water[k] = 3; surface[k] = level[k]; }
     return out;
+}
+
+/** single node pits and needles on land (more than 3 m past all four neighbours) go to the nearest neighbour height */
+export function despike(g: Wet) {
+    const { n, height: h, water } = g;
+    for (let j = 1; j < n - 1; j++) for (let i = 1; i < n - 1; i++)
+    {
+        const k = j * n + i;
+        if (water[k] === 1 || water[k] === 2) continue;
+        const a = h[k - 1], b = h[k + 1], c = h[k - n], d = h[k + n], lo = Math.min(a, b, c, d), hi = Math.max(a, b, c, d);
+        if (h[k] < lo - 3) h[k] = lo;
+        else if (h[k] > hi + 3) h[k] = hi;
+    }
 }

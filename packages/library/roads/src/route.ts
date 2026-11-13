@@ -79,11 +79,12 @@ export class Router {
     }
 
     route(from: number, to: number, c: ClassOptions, rank: number, isRail = false): GridResult | null {
-        return this.search.find(this.options(from, to, c, rank, isRail));
+        const r = this.search.find(this.options(from, to, c, rank, isRail));
+        return r && unloop(r);
     }
 
     alternatives(from: number, to: number, c: ClassOptions, rank: number, k: number, penalty: number, overlap: number, isRail = false): GridResult[] {
-        return alternatives(this.options(from, to, c, rank, isRail), { k, penalty, overlap, spread: 2 }, this.search);
+        return alternatives(this.options(from, to, c, rank, isRail), { k, penalty, overlap, spread: 2 }, this.search).map(unloop);
     }
 
     /** mark a found route as built */
@@ -91,4 +92,21 @@ export class Router {
         const used = isRail ? this.rail : this.used;
         for (const k of nodes) if (used[k] < rank) used[k] = rank;
     }
+}
+
+/** (node, heading) search may pass a node twice (a loop to turn cheaply): cut the loop out */
+function unloop(r: GridResult): GridResult {
+    const seen = new Map<number, number>(), nodes: number[] = [], headings: number[] = [], tags: number[] = [];
+    r.nodes.forEach((k, i) => {
+        const at = seen.get(k);
+        if (at !== undefined)
+        {
+            for (let q = at + 1; q < nodes.length; q++) seen.delete(nodes[q]);
+            nodes.length = headings.length = tags.length = at + 1;
+            return;
+        }
+        seen.set(k, nodes.length);
+        nodes.push(k); headings.push(r.headings[i]); tags.push(r.tags[i]);
+    });
+    return { ...r, nodes, headings, tags };
 }

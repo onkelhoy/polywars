@@ -14,7 +14,7 @@ export function digLakes(g: Ground, o: HydrologyOptions, rng: Random, hard: Floa
     const at = (x: number, z: number) => sample(h, n, size, x, z);
     type Spot = { x: number; z: number; r: number; level: number; score: number; angle: number };
     const spots: Spot[] = [];
-    for (let t = 0; t < 900; t++)
+    for (let t = 0; t < 3000; t++)
     {
         const r = rng.float(L.radius[0], L.radius[1]), x = rng.float(-half + r * 3, half - r * 3), z = rng.float(-half + r * 3, half - r * 3), c = at(x, z);
         if (c < L.height * top || c < seaLevel + L.depth * 2) continue;
@@ -23,7 +23,9 @@ export function digLakes(g: Ground, o: HydrologyOptions, rng: Random, hard: Floa
         for (let a = 0; a < RING; a++)
         {
             const ang = a / RING * Math.PI * 2, cx = Math.cos(ang), cz = Math.sin(ang);
-            rough = Math.max(rough, Math.abs(at(x + cx * r * .6, z + cz * r * .6) - c), Math.abs(at(x + cx * r, z + cz * r) - c));
+            // calm out past the rim too: a drop inside it would leave the lake open (a dam in the air)
+            for (const f of [.6, 1]) rough = Math.max(rough, Math.abs(at(x + cx * r * f, z + cz * r * f) - c));
+            for (const f of [1.2, 1.45]) rough = Math.max(rough, c - at(x + cx * r * f, z + cz * r * f) - 2);
             const far = at(x + cx * r * 2.5, z + cz * r * 2.5);
             if (far < low) { low = far; angle = ang; }
         }
@@ -59,7 +61,8 @@ export function digLakes(g: Ground, o: HydrologyOptions, rng: Random, hard: Floa
 }
 
 /** After erosion: fill each highland lake up to just under its notch (water 2). */
-export function fillLakes(lakes: Lake[], g: Wet) {
+export function fillLakes(lakes: Lake[], g: Wet): Lake[] {
+    const kept: Lake[] = [];
     const { n, size, height: h, water, surface } = g, cell = size / (n - 1), half = size / 2;
     for (const l of lakes)
     {
@@ -75,7 +78,8 @@ export function fillLakes(lakes: Lake[], g: Wet) {
         const level = spill - .3, max = l.radius * 1.3;
         l.level = level;
         const start = Math.round((l.z + half) / cell) * n + Math.round((l.x + half) / cell);
-        if (h[start] >= level) continue;
+        if (h[start] >= level || level < g.seaLevel) continue;
+        kept.push(l);
         const stack = [start], seen = new Set([start]);
         while (stack.length)
         {
@@ -90,4 +94,5 @@ export function fillLakes(lakes: Lake[], g: Wet) {
             }
         }
     }
+    return kept;
 }
