@@ -14,6 +14,7 @@ import type { TerrainHooks } from "@polywar/terrain";
 
 import { SLEEPER_MODEL } from "@polywar/rail";
 import { buildWays } from "@polywar/ways";
+import { fence } from "@polywar/bridges";
 import { Placements } from "@polywar/placements";
 import { furnish } from "@polywar/trails";
 import type { ScatterBatch } from "@polywar/scatter";
@@ -66,6 +67,7 @@ export class World {
     /** lakes, streams and rivers, carved inside the terrain pipeline (before roads) */
     readonly hydrology: HydrologyHooks;
     private roadMesh?: ReturnType<typeof upload>;
+    private fenceMesh?: ReturnType<typeof upload>;
     private riverMesh?: ReturnType<typeof upload>;
     private siteMesh?: ReturnType<typeof upload>;
     /** made on first use of `view.wire` */
@@ -140,6 +142,7 @@ export class World {
         if (!this.data) return;
         if (this.v.rivers && this.riverMesh) this.renderer.draw(this.riverMesh, IDENTITY);
         if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, IDENTITY);
+        if (this.v.roads && this.fenceMesh) this.renderer.draw(this.fenceMesh, IDENTITY);
         if (this.v.sites && this.siteMesh) this.renderer.draw(this.siteMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
         if (this.v.roads) this.built.draw(view, time);
@@ -267,13 +270,17 @@ export class World {
         for (const st of this.structures) P.add("structures", st.kind.startsWith("bridge-") ? `bridge:${st.kind.slice(7)}` : st.kind, st.x, st.y, st.z, Math.atan2(st.to[0] - st.x, st.to[2] - st.z), 1, { road: st.road, to: st.to });
         if (r)
         {
-            const items = furnish({
+            const { items, fences } = furnish({
                 ways: r.network.roads, spots: this.roads.sites, ground: (x, z) => this.terrain.groundAt(x, z),
                 mouths: this.structures.filter(s => s.kind === "portal").map(s => ({ x: s.x, y: s.y, z: s.z, dx: s.to[0] - s.x, dz: s.to[2] - s.z })),
             }, { seed: this.ecosystem.seed });
             for (const it of items) P.add("trails", it.kind, it.x, it.y, it.z, it.yaw, it.scale ?? 1);
+            for (const run of fences) P.add("trails", "fence:run", run[0][0], run[0][1], run[0][2], 0, 1, { points: run });
         }
         P.applyChanges();
+        // generated fences (posts on the ground, rails follow the slope)
+        const runs = P.all().filter(p => p.kind === "fence:run").map(p => fence(p.params!.points as Vec3[]));
+        this.fenceMesh = runs.length ? upload(this.layer.gl, merge(runs)) : undefined;
         this.builtBatches.push(...P.batches(k => k.includes(":") || k === "portal" ? undefined : k, k => k.startsWith("nature/") ? "rock" : "trail"));
     }
 

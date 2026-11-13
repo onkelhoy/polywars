@@ -10,7 +10,7 @@ export const DEFAULTS: TrailOptions = {
     trails: ["path", "lane"],
     restEvery: 180,
     view: 10,
-    fence: { drop: 2.5, reach: 5, length: 4.1 },
+    fence: { drop: 2.5, reach: 5, length: 2.5 },
     lampEvery: 28,
     rocks: 6,
 };
@@ -44,11 +44,11 @@ function walk(points: Vec3[], step: number, start = 0) {
  * signposts where trails leave bigger roads, fences along trail edges above drops, street lamps on roads inside villages and cities,
  * rocks around tunnel mouths. Pure: returns items; the caller records them (`@polywar/placements`).
  */
-export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}): Item[] {
+export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}): { items: Item[]; fences: Vec3[][] } {
     const o = { ...DEFAULTS, ...options, assets: { ...DEFAULTS.assets, ...options.assets }, fence: { ...DEFAULTS.fence, ...options.fence } };
     let s = (o.seed * 2654435761) >>> 0 || 1;
     const rnd = () => ((s = Math.imul(s ^ (s >>> 15), 2246822519) + 0x9e3779b9 >>> 0) / 4294967296);
-    const out: Item[] = [], g = world.ground;
+    const out: Item[] = [], fences: Vec3[][] = [], g = world.ground;
     const put = (kind: string, x: number, z: number, yaw: number, scale = 1) => out.push({ kind, x, y: g(x, z), z, yaw, scale });
     // how much a spot looks out: its height over the mean of a ring around it
     const view = (x: number, z: number) => { const h = g(x, z); let m = 0; for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; m += g(x + Math.cos(a) * 40, z + Math.sin(a) * 40); } return h - m / 8; };
@@ -90,16 +90,18 @@ export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}):
                 else if (r < .7) put(o.assets.woodpile, ax + ox, az + oz, rnd() * 6.28);
                 if (rnd() < .35) put(o.assets.signpost, best.p[0] - ox * (half + .8), best.p[2] - oz * (half + .8), yawAlong(ox, oz));
             }
-            // fences above drops: fence segments end to end along the edge
-            for (const c of walk(pts, o.fence.length, o.fence.length / 2))
+            // fences above drops: runs of edge points (each side), posts follow the ground
+            for (const f of [-1, 1])
             {
-                if (onBridge(w, index(c.p))) continue;
-                for (const f of [-1, 1])
+                let run: Vec3[] = [];
+                const flush = () => { if (run.length >= 2) fences.push(run); run = []; };
+                for (const c of walk(pts, o.fence.length, 0))
                 {
                     const ox = -c.d[1] * f, oz = c.d[0] * f, ex = c.p[0] + ox * (half + .7), ez = c.p[2] + oz * (half + .7);
                     const drop = c.p[1] - g(c.p[0] + ox * (half + o.fence.reach), c.p[2] + oz * (half + o.fence.reach));
-                    if (drop > o.fence.drop) put(o.assets.fence, ex, ez, yawAlong(c.d[0], c.d[1]));
+                    if (drop > o.fence.drop && !onBridge(w, index(c.p))) run.push([ex, g(ex, ez), ez]); else flush();
                 }
+                flush();
             }
         }
 
@@ -151,5 +153,5 @@ export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}):
             put(o.assets.rocks[(rnd() * o.assets.rocks.length) | 0], x, z, rnd() * 6.28, .8 + rnd() * 1.2);
         }
     }
-    return out;
+    return { items: out, fences };
 }

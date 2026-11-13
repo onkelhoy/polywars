@@ -65,7 +65,8 @@
     "@polywar/rail": "*",
     "@polywar/placements": "*",
     "@polywar/trails": "*",
-    "@polywar/ways": "*"
+    "@polywar/ways": "*",
+    "@polywar/bridges": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

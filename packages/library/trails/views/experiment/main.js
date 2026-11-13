@@ -16,7 +16,7 @@ function build() {
     for (let t = 0; t <= 1; t += .01) { const x = -400 + t * 300, z = 250 - t * 40; road.push([x, ground(x, z), z]); }
     const ways = [{ id: 1, class: 'path', points: trail, width: 1.5 }, { id: 2, class: 'road', points: road, width: 5.5 }];
     const spots = [{ kind: 'village', x: -250, z: 220, radius: 90 }, { kind: 'viewpoint', x: trail.at(-1)[0], z: trail.at(-1)[2], radius: 10 }];
-    const items = furnish({ ways, spots, ground, mouths: [{ x: 300, y: 0, z: -300, dx: 1, dz: 0 }] }, { seed, restEvery: Number($('#restEvery').value), view: Number($('#view').value), fence: { drop: Number($('#drop').value) } });
+    const { items, fences } = furnish({ ways, spots, ground, mouths: [{ x: 300, y: 0, z: -300, dx: 1, dz: 0 }] }, { seed, restEvery: Number($('#restEvery').value), view: Number($('#view').value), fence: { drop: Number($('#drop').value) } });
 
     canvas.width = innerWidth; canvas.height = innerHeight;
     const k = Math.min(innerWidth, innerHeight) / 1000, cx = innerWidth / 2, cy = innerHeight / 2, img = ctx.createImageData(canvas.width, canvas.height);
@@ -27,6 +27,7 @@ function build() {
     }
     ctx.putImageData(img, 0, 0);
     for (const w of ways) { ctx.strokeStyle = w.class === 'path' ? '#dcb' : '#fff'; ctx.lineWidth = w.width * k + 1; ctx.beginPath(); w.points.forEach(([x, , z], i) => i ? ctx.lineTo(cx + x * k, cy + z * k) : ctx.moveTo(cx + x * k, cy + z * k)); ctx.stroke(); }
+    for (const run of fences) { ctx.strokeStyle = '#c85'; ctx.lineWidth = 3; ctx.beginPath(); run.forEach(([x, , z], i) => i ? ctx.lineTo(cx + x * k, cy + z * k) : ctx.moveTo(cx + x * k, cy + z * k)); ctx.stroke(); }
     for (const it of items) { ctx.fillStyle = colour(it.kind); ctx.beginPath(); ctx.arc(cx + it.x * k, cy + it.z * k, 3, 0, 7); ctx.fill(); }
     const counts = {};
     for (const it of items) { const n = it.kind.split('/').pop(); counts[n] = (counts[n] ?? 0) + 1; }
