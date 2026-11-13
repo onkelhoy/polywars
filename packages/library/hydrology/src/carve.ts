@@ -36,11 +36,11 @@ function beds(p: Path, g: Grid, o: HydrologyOptions, stop?: (k: number) => boole
 
 /**
  * Before erosion: valleys. Banks rise at `valley` slope, deep cuts at `canyon` slope (cliffs), near the sea almost flat (deltas, flood plains).
- * Lowers `height`, marks `hard` in the channel and at waterfalls.
+ * Lowers `height`, marks `hard` in the channel and at waterfalls, `wet` 3 in the channel.
  */
-export function carveValleys(paths: Path[], g: Grid, o: HydrologyOptions, hard: Float32Array) {
+export function carveValleys(paths: Path[], g: Grid, o: HydrologyOptions, hard: Float32Array, wet?: Uint8Array) {
     const { n, size, height } = g, cell = size / (n - 1), half = size / 2, target = height.slice();
-    for (const p of paths) for (const piece of beds(p, g, o))
+    for (const p of paths) for (const piece of beds(p, g, o, wet && (k => wet[k] === 2)))
     {
         const falls = new Set(piece.falls);
         piece.i.forEach((i, q) => {
@@ -57,7 +57,7 @@ export function carveValleys(paths: Path[], g: Grid, o: HydrologyOptions, hard: 
                 if (d > reach) continue;
                 const v = d < w2 ? bed + depth * (d / w2) ** 2 : bed + depth + (d - w2) * bank;
                 if (v < target[k]) target[k] = v;
-                if (d < w2 + cell) hard[k] = Math.max(hard[k], .6);
+                if (d < w2 + cell) { hard[k] = Math.max(hard[k], .6); if (wet && !wet[k]) wet[k] = 3; }
                 if (fall && d < w2 * 2 + cell * 2) hard[k] = 1;
             }
         });

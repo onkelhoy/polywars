@@ -51,6 +51,8 @@ export function place(g: Ground, c: Cover, list: NatureList, o: EcosystemOptions
             const water = near(g, g.water, x, z);
             if (gr.floats ? (water !== 2 && water !== 3) : water !== 0) continue;
             if (gr.floats && (sample(g, g.surface, x, z) - sample(g, g.height, x, z) > 1.5 || sample(g, g.toLand, x, z) > 14)) continue;
+            // the drawn ground (coarser than the grid) may cover a narrow channel: nothing floats inside it
+            if (gr.floats && g.groundAt && g.groundAt(x, z) > sample(g, g.surface, x, z)) continue;
 
             const biome = g.biomes[near(g, g.biome, x, z)];
             const fits = families.filter(f => f.biomes.includes(biome));

@@ -27,10 +27,13 @@ export function hydrologyHooks(options: Partial<HydrologyOptions> = {}): Hydrolo
         network: { streams: [], lakes: [] },
         paths: [],
         features: raw => {
-            const rng = new Random(o.seed), hard = new Float32Array(raw.n * raw.n);
-            const lakes = digLakes(raw, o, rng, hard);
+            const rng = new Random(o.seed), hard = new Float32Array(raw.n * raw.n), wet = new Uint8Array(raw.n * raw.n);
+            const lakes = digLakes(raw, o, rng, hard, wet);
             h.paths = plan(raw, o, lakes, rng);
-            carveValleys(h.paths, raw, o, hard);
+            carveValleys(h.paths, raw, o, hard, wet);
+            // later hooks (roads) see the sea, lakes and river channels as water: they bridge them
+            for (let k = 0; k < wet.length; k++) if (!wet[k] && raw.height[k] < raw.seaLevel) wet[k] = 1;
+            raw.water = wet;
             h.network = { streams: [], lakes };
             return { hard };
         },

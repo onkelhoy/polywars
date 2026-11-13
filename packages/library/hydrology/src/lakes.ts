@@ -8,7 +8,7 @@ const RING = 24;
  * Highland lakes: basins dug on high, calm ground, best next to a big drop (so the outlet falls over it).
  * A low rim closes the bowl, with a notch toward the drop: the outlet. Changes `height`, marks `hard` (keep from erosion).
  */
-export function digLakes(g: Ground, o: HydrologyOptions, rng: Random, hard: Float32Array): Lake[] {
+export function digLakes(g: Ground, o: HydrologyOptions, rng: Random, hard: Float32Array, wet?: Uint8Array): Lake[] {
     const { n, size, height: h, top, seaLevel } = g, cell = size / (n - 1), half = size / 2, L = o.lakes;
     if (L.count <= 0) return [];
     const at = (x: number, z: number) => sample(h, n, size, x, z);
@@ -48,6 +48,8 @@ export function digLakes(g: Ground, o: HydrologyOptions, rng: Random, hard: Floa
         {
             const x = i * cell - half, z = j * cell - half, t = Math.hypot(x - s.x, z - s.z) / s.r, k = j * n + i;
             if (t > 1.4) continue;
+            // lake zone (bowl + rim): rivers start outside it, roads go round
+            if (t < 1.3 && wet) wet[k] = 2;
             if (t < 1) h[k] = Math.min(h[k], s.level - L.depth * (1 - t * t) * (.8 + .2 * Math.cos(t * 7 + i * .3)));
             // rim, lowered to a notch toward the drop
             let da = Math.abs(Math.atan2(z - s.z, x - s.x) - s.angle);
@@ -75,24 +77,29 @@ export function fillLakes(lakes: Lake[], g: Wet): Lake[] {
             for (const f of [.95, 1.05, 1.15, 1.25]) ridge = Math.max(ridge, sample(h, n, size, l.x + Math.cos(ang) * l.radius * f, l.z + Math.sin(ang) * l.radius * f));
             spill = Math.min(spill, ridge);
         }
-        const level = spill - .3, max = l.radius * 1.3;
+        const level = spill - .3, max = l.radius * 1.2;
         l.level = level;
         const start = Math.round((l.z + half) / cell) * n + Math.round((l.x + half) / cell);
         if (h[start] >= level || level < g.seaLevel) continue;
-        kept.push(l);
-        const stack = [start], seen = new Set([start]);
-        while (stack.length)
+        // flood the bowl; reaching past the rim or other water means it leaks: no lake
+        const stack = [start], seen = new Set([start]), inside: number[] = [];
+        let leak = false;
+        while (stack.length && !leak)
         {
             const k = stack.pop()!, i = k % n, j = (k / n) | 0;
-            water[k] = 2; surface[k] = level;
+            if (water[k] || Math.hypot(i * cell - half - l.x, j * cell - half - l.z) > max) { leak = true; break; }
+            inside.push(k);
             for (const m of [k - 1, k + 1, k - n, k + n])
             {
-                const x = m % n, z = (m / n) | 0;
+                const x = m % n;
                 if (m < 0 || m >= n * n || Math.abs(x - i) > 1 || seen.has(m)) continue;
                 seen.add(m);
-                if (h[m] < level && Math.hypot(x * cell - half - l.x, z * cell - half - l.z) < max) stack.push(m);
+                if (h[m] < level) stack.push(m);
             }
         }
+        if (leak) continue;
+        for (const k of inside) { water[k] = 2; surface[k] = level; }
+        kept.push(l);
     }
     return kept;
 }
