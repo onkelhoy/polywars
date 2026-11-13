@@ -7,6 +7,7 @@ import type { Ground, Network, RoadsOptions, Site, Span } from "./types";
  * Returns `hard` (n², 0..1): where erosion should leave the ground alone.
  */
 export function carve(roads: Roads, g: Ground): Float32Array {
+    const water = g.water;
     const { n, size, height } = g, cell = size / (n - 1), weight = new Float32Array(n * n), target = new Float32Array(n * n);
     for (const r of roads.network.roads)
     {
@@ -28,17 +29,18 @@ export function carve(roads: Roads, g: Ground): Float32Array {
             }
         }
     }
-    for (let k = 0; k < n * n; k++) if (weight[k] > 0) height[k] += (target[k] - height[k]) * weight[k];
+    // never into lakes / rivers / sea (their banks stay)
+    for (let k = 0; k < n * n; k++) if (weight[k] > 0 && !water?.[k]) height[k] += (target[k] - height[k]) * weight[k];
     return weight;
 }
 
-type Wet = { n: number; size: number; height: Float32Array; water: Uint8Array; surface: Float32Array };
+type Wet = { n: number; cell: number; size: number; height: Float32Array; water: Uint8Array; surface: Float32Array; seaLevel: number };
 
 /**
  * After lakes and rivers exist: ground stretches over water become bridges (a little past the banks), held at least
  * `clearance` m over the water surface.
  */
-export function bridgeWater(network: Network, g: Wet, clearance = 2) {
+export function bridgeWater(network: Network, g: Wet, clearance = 2, maxLength = 60) {
     const { n, size } = g, node = (x: number, z: number) => Math.round((z / size + .5) * (n - 1)) * n + Math.round((x / size + .5) * (n - 1));
     for (const r of network.roads)
     {
@@ -53,6 +55,9 @@ export function bridgeWater(network: Network, g: Wet, clearance = 2) {
             {
                 if (wet[i] < 0) { let e = i; while (e + 1 <= s.to && wet[e + 1] < 0) e++; spans.push({ kind: "ground", from: i, to: e }); i = e + 1; continue; }
                 let e = i; while (e + 1 <= s.to && wet[e + 1] >= 0) e++;
+                // only short straight crossings become bridges (routing on the final water leaves just narrow misses)
+                const len = Math.hypot(r.points[e][0] - r.points[i][0], r.points[e][2] - r.points[i][2]);
+                if (len > maxLength) { spans.push({ kind: "ground", from: i, to: e }); i = e + 1; continue; }
                 const a = Math.max(s.from, i - 2), b = Math.min(s.to, e + 2);
                 // fold into the ground stretch before
                 const last = spans[spans.length - 1];
@@ -75,7 +80,7 @@ export function bridgeWater(network: Network, g: Wet, clearance = 2) {
 
 export type RoadHooks = {
     key: string;
-    features: (raw: Ground & { cities: { x: number; z: number; y: number; radius: number; score: number }[] }) => { hard: Float32Array };
+    features: (raw: Ground & { cities: { x: number; z: number; y: number; radius: number; score: number }[] }) => void;
     fix: (data: Wet) => void;
     /** the latest built roads and the sites they connect */
     roads?: Roads;
@@ -83,20 +88,24 @@ export type RoadHooks = {
 };
 
 /**
- * Terrain hooks (`@polywar/terrain` `TerrainHooks`): on the raw map pick sites (`sitesOf`), build and carve the
- * network before erosion; after rivers turn water crossings into bridges. `key` = these options (+ `extraKey`).
+ * Terrain hooks (`@polywar/terrain` `TerrainHooks`): on the raw map pick sites (`sitesOf`); after erosion, lakes and
+ * rivers build the network on the final ground + water (so it never runs along a river or into a lake, crossings are
+ * straight bridges), carve it, bridge leftover narrow water. `key` = these options (+ `extraKey`).
  */
 export function roadHooks(sitesOf: (raw: Ground & { cities: any[] }) => Site[], options: Partial<RoadsOptions> = {}, extraKey = ""): RoadHooks {
     const h: RoadHooks = {
         key: JSON.stringify(options) + extraKey,
         sites: [],
-        features: raw => {
-            h.sites = sitesOf(raw);
-            h.roads = new Roads(raw, options);
+        features: raw => { h.sites = sitesOf(raw); },
+        fix: data => {
+            const g = { ...data, water: data.water.map(w => w === 2 || w === 3 || w === 1 ? w : 0) };
+            h.roads = new Roads(g, options);
             h.roads.build(h.sites);
-            return { hard: carve(h.roads, raw) };
+            carve(h.roads, g);
+            bridgeWater(h.roads.network, data);
+            tunnelHoles(h.roads.network, data);
+            h.roads.load(h.roads.network);
         },
-        fix: data => { if (h.roads) { bridgeWater(h.roads.network, data); tunnelHoles(h.roads.network, data); h.roads.load(h.roads.network); } },
     };
     return h;
 }

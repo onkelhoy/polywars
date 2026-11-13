@@ -10,8 +10,7 @@ const hydro = hydrologyHooks({}), roads = roadHooks(raw => generateSites(raw as 
 const hooks: TerrainHooks = {
     key: hydro.key + "|" + roads.key,
     features: async raw => {
-        const a = hydro.features(raw as any), b = roads.features(raw as any);
-        for (let i = 0; i < a.hard.length; i++) a.hard[i] = Math.max(a.hard[i], b.hard[i]);
+        const a = hydro.features(raw as any); roads.features(raw as any);
         return a;
     },
     fix: async data => { await hydro.fix(data as any); await roads.fix(data as any); },
