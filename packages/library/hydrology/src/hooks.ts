@@ -1,5 +1,5 @@
 import { Random } from "@papit/random";
-import { carveBeds, carveValleys, fillPits, limitErosion } from "./carve";
+import { carveBeds, carveValleys, fillPits, limitErosion, separateLevels } from "./carve";
 import { digLakes, fillLakes } from "./lakes";
 import { plan, type Path } from "./network";
 import { lakeKinds, swamps } from "./wetlands";
@@ -50,6 +50,7 @@ export function hydrologyHooks(options: Partial<HydrologyOptions> = {}): Hydrolo
                 swamps(h.network.streams, wet, o, new Random(o.seed + 7));
                 lakeKinds(wet, o);
             }
+            separateLevels(data, .1);
             for (const s of h.network.streams) data.rivers.push({ points: s.points });
         },
     };

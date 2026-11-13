@@ -186,4 +186,4 @@ if (process.env.AT)
     }
 }
 if (process.env.CHAIN) for (const r of net.roads.filter(r => r.chain === +process.env.CHAIN!)) console.log(`road ${r.id} ${r.from}→${r.to} ${JSON.stringify(r.spans)} ` + r.points.filter((_, i) => i % 3 === 0).map(p => `${p[0].toFixed(0)},${p[2].toFixed(0)}:${(p[1] - ground(p[0], p[2])).toFixed(0)}`).join(" "));
-if (process.env.WATER) { const [x, z] = process.env.WATER.split(",").map(Number); for (let b = -3; b <= 3; b++) console.log(Array.from({ length: 7 }, (_, a) => { const k = node(x + (a - 3) * 30, z + b * 30); return `${d.water[k]}:${d.height[k].toFixed(0)}/${d.surface[k].toFixed(0)}`; }).join("  ")); }
+if (process.env.WATER) { const [x, z] = process.env.WATER.split(",").map(Number); for (let b = -3; b <= 3; b++) console.log(Array.from({ length: 7 }, (_, a) => { const k = node(x + (a - 3) * 6, z + b * 6); return `${d.water[k]}:${d.height[k].toFixed(0)}/${d.surface[k].toFixed(0)}`; }).join("  ")); }

@@ -153,7 +153,8 @@ export function fillPits(g: Wet, keep = 1.5, lake = 3000, depth = 3) {
             deepest = Math.max(deepest, filled[k] - h[k]);
             for (const m of [k - 1, k + 1, k - n, k + n])
             {
-                if (m < 0 || m >= n * n || Math.abs((m % n) - i) > 1 || seen[m] || !pit(m)) continue;
+                // one lake = one spill level (neighbour pits that spill at other levels are other lakes)
+                if (m < 0 || m >= n * n || Math.abs((m % n) - i) > 1 || seen[m] || !pit(m) || Math.abs(filled[m] - filled[s]) > 1e-3) continue;
                 seen[m] = 1; part.push(m); stack.push(m);
             }
         }
@@ -161,4 +162,43 @@ export function fillPits(g: Wet, keep = 1.5, lake = 3000, depth = 3) {
         else for (const k of part) if (filled[k] - h[k] > keep) h[k] = filled[k] - keep;
     }
     return lakes;
+}
+
+/**
+ * Still water side by side at two levels (two lakes, a lake and the sea): the higher water's edge node becomes a low
+ * dam (land just over its surface), so each water keeps one flat level and the step shows as ground, not two planes.
+ */
+export function separateLevels(g: Wet, step = .5) {
+    const { n, height: h, water, surface } = g;
+    const near = (k: number) => { const i = k % n; return [k - 1, k + 1, k - n, k + n].filter(m => m >= 0 && m < n * n && Math.abs((m % n) - i) <= 1); };
+    // a lake at or under the level of the sea it touches is part of the sea
+    const seen = new Uint8Array(n * n);
+    for (let s0 = 0; s0 < n * n; s0++)
+    {
+        if (water[s0] !== 2 || seen[s0]) continue;
+        const part = [s0], stack = [s0];
+        seen[s0] = 1;
+        let sea = -Infinity;
+        while (stack.length)
+        {
+            const k = stack.pop()!;
+            for (const m of near(k))
+            {
+                if (water[m] === 1) sea = Math.max(sea, surface[m]);
+                if (water[m] !== 2 || seen[m]) continue;
+                seen[m] = 1; part.push(m); stack.push(m);
+            }
+        }
+        if (sea > -Infinity && part.every(k => surface[k] <= sea + step)) for (const k of part) { water[k] = 1; surface[k] = sea; }
+    }
+    // a lake higher than the water beside it: its edge node there becomes a dam
+    let dams = 0;
+    for (let k = 0; k < n * n; k++)
+    {
+        if (water[k] !== 2) continue;
+        if (!near(k).some(m => (water[m] === 1 || water[m] === 2) && surface[k] - surface[m] > step)) continue;
+        water[k] = 0; h[k] = Math.max(h[k], surface[k] + .4);
+        dams++;
+    }
+    return dams;
 }
