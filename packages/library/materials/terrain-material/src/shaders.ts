@@ -29,7 +29,7 @@ vec3 lit(vec3 albedo, vec3 n, vec3 world, float extra) {
 
 /**
  * Ground attributes: 0 position, 1 normal, 2 data (biome index, slope 0..1, moisture 0..1, temperature 0..1),
- * 3 flow 0..1 (< 0: far ground and chunk walls, smooth and plain), 4 water surface height (ground below it is under water).
+ * 3 flow 0..1 (< 0: far ground and chunk walls, smooth and plain; -2: a wall's bottom edge, lowered by `wallDrop`), 4 water surface height (ground below it is under water).
  */
 /** value noise + billowy fbm 0..1 (cloud like outlines, watercolour blotches) */
 const NOISE = `
@@ -62,6 +62,8 @@ layout(location = 2) in vec4 data;
 layout(location = 3) in float flow;
 layout(location = 4) in float surface;
 uniform mat4 view, projection;
+// chunk walls: bottom edge (flow -2) hangs this many metres below the top
+uniform float wallDrop;
 out vec3 vWorld, vNormal;
 out vec4 vData;
 out float vFlow, vSurface;
@@ -70,14 +72,16 @@ flat out float vShade;
 float hash2(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
     // one random shade per face: the provoking (last) vertex decides it for the whole triangle
-    vShade = hash2(floor(position.xz * 4.0) + .5);
-    vWorld = position;
+    vec3 p = position;
+    if (flow < -1.5) p.y -= wallDrop;
+    vShade = hash2(floor(p.xz * 4.0) + .5);
+    vWorld = p;
     vNormal = normal;
     vData = data;
-    vFlow = flow;
+    vFlow = max(flow, -1.0);
     vSurface = surface;
     vBiome = int(data.x + .5);
-    gl_Position = projection * view * vec4(position, 1.0);
+    gl_Position = projection * view * vec4(p, 1.0);
 }`;
 
 export const GROUND_FRAGMENT = `#version 300 es

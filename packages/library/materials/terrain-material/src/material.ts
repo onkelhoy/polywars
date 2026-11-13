@@ -100,6 +100,12 @@ export class TerrainMaterial {
         this.map = { texture, wet, n: map.n, size: map.size };
     }
 
+    /** How far chunk walls (flow -2 vertices) hang down, metres, for the next ground draws. Call after `useGround`. */
+    wallDrop(metres: number) {
+        const p = this.groundProgram;
+        if (p) this.gl.uniform1f(p.u("wallDrop"), metres);
+    }
+
     /** Bind the ground program. `water` adds the underwater tint and fog. */
     useGround(view: View, light: Light, water?: Underwater): boolean {
         const gl = this.gl, o = this.o, p = this.groundProgram;
@@ -107,6 +113,7 @@ export class TerrainMaterial {
         const u = p.u;
         gl.useProgram(p.program);
         this.common(p, view, light);
+        gl.uniform1f(u("wallDrop"), 0);
         gl.uniform3fv(u("palette"), BIOMES.flatMap(b => linear(o.colors[b])));
         gl.uniform3fv(u("rockColor"), linear(o.rock.color));
         gl.uniform2f(u("rock"), o.rock.slope, o.rock.softness);

@@ -133,8 +133,9 @@ export class Terrain {
             this.f32.view.set(view.viewMatrix);
             this.f32.projection.set(view.projectionMatrix);
             const planes = frustum(this.f32.projection, this.f32.view);
-            this.drawn = this.ground?.draw(eye, (x, y, z, r) => visible(planes, x, y, z, r), m => this.mesh(m)) ?? 0;
+            this.drawn = this.ground?.draw(eye, (x, y, z, r) => visible(planes, x, y, z, r), (m, drop) => { this.material.wallDrop(drop); this.mesh(m); }) ?? 0;
             this.triangles.used = this.ground?.triangles ?? 0;
+            this.material.wallDrop(0);
             if (this.skirtMesh) this.mesh(this.skirtMesh);
         }
         // the water reads the ground's depth: exact edge and rim where it meets the land
