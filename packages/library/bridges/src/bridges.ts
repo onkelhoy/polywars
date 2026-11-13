@@ -8,9 +8,10 @@ export const DEFAULTS: BridgeOptions = { width: 6, ground: () => 0, use: "road" 
 
 /** what bridge fits: class of the road / rail, span (m) and height over the ground (m) */
 export function pick(cls: string, span: number, height: number): BridgeType {
-    if (cls === "path") return span > 40 ? "trestle-wood" : "foot-wood";
+    // small ways: short and low (wood footbridges, stone slabs / arches), never tall timber trestles
+    if (cls === "path") return height > 6 ? "arch-stone" : "foot-wood";
     if (cls === "rail") return span > 160 || height > 35 ? "girder" : span < 70 && height > 4 ? "arch-stone" : "trestle-wood";
-    if (cls === "lane") return height < 4 ? "slab-stone" : span > 60 ? "trestle-wood" : "arch-stone";
+    if (cls === "lane") return height < 4 ? "slab-stone" : "arch-stone";
     if (span > 140 || height > 30) return "girder";
     return height < 4 ? "slab-stone" : "arch-stone";
 }

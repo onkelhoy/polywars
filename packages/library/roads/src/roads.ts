@@ -251,12 +251,15 @@ export class Roads {
                 }
             });
             gradeRoute(plan, c, o.step, pins);
-            structures(plan, this.heightAt);
+            structures(plan, this.heightAt, c.bridge.fill, 28, new Set(pins.keys()));
             idx.forEach((i, q) => { if (!spot.has(ids[q])) spot.set(ids[q], [P[i][0], P[i][1], P[i][2]]); });
             chain.forEach(([r, rev], q) => {
                 const a = idx[q], b = Math.max(idx[q + 1], a + 1), raw = raws[r];
                 const points = P.slice(a, Math.min(n, b + 1)).map(p => [p[0], p[1], p[2]] as [number, number, number]);
                 if (points.length < 2) points.push([...points[0]]);
+                // small ways hug the ground: a piece up a cliff (no room to climb, e.g. onto a junction set high by a
+                // bigger road) is left out instead of becoming a wall or a tall bridge
+                if (c.bridge.fill <= 0 && cliff(points, cls === "path" ? 1.2 : c.maxGrade * 3)) return;
                 const spans: Span[] = plan.spans.filter(s => s.to > a && s.from < b).map(s => ({ kind: s.kind, from: Math.max(s.from, a) - a, to: Math.min(s.to, b) - a })).filter(s => s.to > s.from);
                 roads.push({ id: roads.length, class: raw.cls, from: rev ? raw.to : raw.from, to: rev ? raw.from : raw.to, points, spans, width: c.width, surface: c.surface, chain: chainId });
             });
@@ -339,6 +342,17 @@ export class Roads {
 
     /** use a saved network (no routing) */
     load(network: Network) { this.network = network; this.index(); }
+}
+
+/** steepest rise over ~20 m along `points` above `max` (rise / run) */
+function cliff(points: [number, number, number][], max: number) {
+    for (let i = 0, k = 0; i < points.length; i++)
+    {
+        while (k < points.length - 1 && Math.hypot(points[k][0] - points[i][0], points[k][2] - points[i][2]) < 20) k++;
+        const l = Math.hypot(points[k][0] - points[i][0], points[k][2] - points[i][2]);
+        if (l > 8 && Math.abs(points[k][1] - points[i][1]) / l > max) return true;
+    }
+    return false;
 }
 
 /** one call: route and shape the network for `sites` */

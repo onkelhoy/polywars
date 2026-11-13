@@ -41,8 +41,12 @@ export type ClassOptions = {
     turn: number;
     /** smallest curve radius, metres */
     minRadius: number;
-    /** cost per metre (times plain ground), longest span metres */
-    bridge: { cost: number; max: number };
+    /**
+     * cost per metre (times plain ground), longest span metres; `valley`: metres deep a dry valley must be to bridge
+     * it (0: water only); `fill`: metres over the ground before graded ground becomes a viaduct (0: never, the way
+     * follows the ground instead)
+     */
+    bridge: { cost: number; max: number; valley: number; fill: number };
     tunnel: { cost: number; max: number; cover: number };
     /** cost times this on an existing road of this class or bigger */
     reuse: number;

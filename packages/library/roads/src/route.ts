@@ -117,7 +117,7 @@ export class Router {
             if (a1 < 0 || a2 < 0) return;
             const land = (s: number, y: number, cut = false) => straightGround(run + s, y, cut) ? at(s + run) : -1;
             // bridge: water ahead or a valley
-            if (leadFlat && c.bridge.max > 0 && (water[a1] || height[a2] < h0 - 10))
+            if (leadFlat && c.bridge.max > 0 && (water[a1] || (c.bridge.valley > 0 && height[a2] < h0 - 10)))
             {
                 let wet = false, low = Infinity, wetRun = 0, dryAfter = false;
                 // water across the line at a wet cell (both sides, cells): a crossing is short along, wide across
@@ -147,8 +147,8 @@ export class Router {
                     low = Math.min(low, height[k]);
                     if (s < 2) continue;
                     const len = s * unit, end = height[k];
-                    // over water, or a valley at least 20 m deep
-                    if ((wet || low < Math.min(h0, end) - 20) && Math.abs(end - h0) / len <= c.maxGrade)
+                    // over water, or a valley at least `valley` m deep
+                    if ((wet || (c.bridge.valley > 0 && low < Math.min(h0, end) - c.bridge.valley)) && Math.abs(end - h0) / len <= c.maxGrade)
                     {
                         // no straight landing here: try a little further
                         const l = land(s, end);

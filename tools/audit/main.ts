@@ -29,6 +29,16 @@ const add = (what: string, score: number, where: string) => issues.push({ what, 
 const counts: Record<string, number> = {};
 for (const r of net.roads) counts[r.class] = (counts[r.class] ?? 0) + 1;
 console.log(`roads ${net.roads.length} ${JSON.stringify(counts)}, junctions ${net.junctions.length}`);
+{
+    // bridges per class: count / metres
+    const b: Record<string, [number, number]> = {};
+    for (const r of net.roads) for (const s of r.spans) if (s.kind === "bridge")
+    {
+        let l = 0; for (let i = s.from + 1; i <= s.to; i++) l += Math.hypot(r.points[i][0] - r.points[i - 1][0], r.points[i][2] - r.points[i - 1][2]);
+        const e = b[r.class + (s.auto ? "*" : "")] ??= [0, 0]; e[0]++; e[1] += l;
+    }
+    console.log(`bridges ${Object.entries(b).map(([k, [n, l]]) => `${k} ${n} / ${l.toFixed(0)} m`).join(", ")}`);
+}
 
 const MINR: Record<string, number> = { highway: 150, road: 60, lane: 25, path: 8, rail: 300 };
 for (const r of net.roads)
@@ -206,6 +216,7 @@ if (process.env.AT)
         console.log("  " + r.points.slice(Math.max(0, i - 6), i + 7).map((p, k) => `${Math.max(0, i - 6) + k}:${p[0].toFixed(1)},${p[2].toFixed(1)},${p[1].toFixed(1)}`).join(" "));
     }
 }
+if (process.env.ROAD) { const r = net.roads[+process.env.ROAD]; console.log(r.points.map((p, i) => `${i} ${p[0].toFixed(0)},${p[2].toFixed(0)} y ${p[1].toFixed(1)} g ${ground(p[0], p[2]).toFixed(1)}`).join("\n")); }
 if (process.env.CHAIN) for (const r of net.roads.filter(r => r.chain === +process.env.CHAIN!)) console.log(`road ${r.id} ${r.from}→${r.to} ${JSON.stringify(r.spans)} ` + r.points.filter((_, i) => i % 3 === 0).map(p => `${p[0].toFixed(0)},${p[2].toFixed(0)}:${(p[1] - ground(p[0], p[2])).toFixed(0)}`).join(" "));
 if (process.env.WATER) { const [x, z] = process.env.WATER.split(",").map(Number); for (let b = -3; b <= 3; b++) console.log(Array.from({ length: 7 }, (_, a) => { const k = node(x + (a - 3) * 6, z + b * 6); return `${d.water[k]}:${d.height[k].toFixed(0)}/${d.surface[k].toFixed(0)}`; }).join("  ")); }
 if (process.env.TUNNELS) for (const r of net.roads) for (const s of r.spans) if (s.kind === "tunnel") { const a = r.points[s.from], b = r.points[s.to]; console.log(`tunnel ${r.class} ${at(a)}→${at(b)} y ${a[1].toFixed(0)}/${b[1].toFixed(0)} ground ${ground(a[0], a[2]).toFixed(0)}/${ground(b[0], b[2]).toFixed(0)}`); }

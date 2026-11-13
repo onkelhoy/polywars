@@ -220,8 +220,25 @@ const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
  * After grading: ground stretches far over the ground become bridges (viaducts), far under it tunnels, so no way
  * floats on a wall of fill or sits in a canyon of cut. Metres of `fill` / `cut` allowed on the ground.
  */
-export function structures(plan: Plan, heightAt: (x: number, z: number) => number, fill = 14, cut = 28) {
+export function structures(plan: Plan, heightAt: (x: number, z: number) => number, fill = 14, cut = 28, keep: Set<number> = new Set()) {
     const P = plan.points, out: Span[] = [];
+    // `fill` 0: small ways hug the ground (no viaducts, no deep cuts); `keep` points (junctions) stay where they are
+    if (fill <= 0)
+    {
+        const fixed = (i: number) => keep.has(i) || plan.spans.some(o => o.kind !== "ground" && i >= o.from && i <= o.to);
+        const graded = P.map(p => p[1]), W = 5;
+        for (let i = 0; i < P.length; i++)
+        {
+            if (fixed(i)) continue;
+            // eases from the fixed point next to it (a junction set by a bigger road, a bridge end) onto the ground
+            let near = W + 1;
+            for (let k = 1; k <= W && near > W; k++) if ((i - k >= 0 && fixed(i - k)) || (i + k < P.length && fixed(i + k))) near = k;
+            // graded line kept where the ground allows (smooth), never more than a low bank over / a shallow cut under it
+            const h = heightAt(P[i][0], P[i][2]), g = Math.min(h + 1.5, Math.max(h - 2, graded[i])), f = Math.min(1, near / (W + 1)), t = f * f * (3 - 2 * f);
+            P[i][1] = graded[i] + (g - graded[i]) * t;
+        }
+        return;
+    }
     for (const s of plan.spans)
     {
         if (s.kind !== "ground") { out.push(s); continue; }
