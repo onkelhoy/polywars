@@ -78,6 +78,8 @@ export class GrassMaterial {
     private noiseTex?: WebGLTexture;
     private sprites: WebGLTexture[] = [];
     private masks = [1, 1, 1, 1];
+    /** visible uv box per sprite slot (u0 v0 u1 v1), quads shrink to it */
+    private rects = new Float32Array([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]);
     private pushers = new Float32Array(0);
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     private id = ids++;
@@ -148,6 +150,7 @@ export class GrassMaterial {
         gl.uniform2f(u("accentScale"), a[0]?.scale ?? 1, a[1]?.scale ?? 1);
         gl.uniform3fv(u("accentColor"), [...linear(a[0]?.color ?? o.color), ...linear(a[1]?.color ?? o.color)]);
         gl.uniform4fv(u("spriteMask"), this.masks);
+        gl.uniform4fv(u("spriteRect"), this.rects);
         gl.uniform4f(u("spriteAnchor"), .5, 0, 0, 0);
         gl.uniform1f(u("bladeShare"), o.shape === "leaves" ? 0 : o.shape === "blades" ? 1 : o.bladeShare);
         gl.uniform1f(u("variation"), o.variation);
@@ -263,8 +266,9 @@ export class GrassMaterial {
             const img = sprite(kind, o.pixels, i + 1);
             this.upload(t, { width: img.width, height: img.height, data: img.data });
             this.masks[i] = 1;
+            this.rects.set(visibleRect(img), i * 4);
             if (!custom) return;
-            const apply = (source: TexImageSource) => { if (this.o.sprites?.[i] === custom) { this.upload(t, source); this.masks[i] = 0; } };
+            const apply = (source: TexImageSource) => { if (this.o.sprites?.[i] === custom) { this.upload(t, source); this.masks[i] = 0; this.rects.set([0, 0, 1, 1], i * 4); } };
             if (typeof custom === "string")
             {
                 const image = new Image();
@@ -296,4 +300,14 @@ export class GrassMaterial {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, pixel ? gl.NEAREST : gl.LINEAR);
         if (!pixel) gl.generateMipmap(gl.TEXTURE_2D);
     }
+}
+
+/** uv box (u0 v0 u1 v1) around a sprite's opaque pixels, one texel of margin (filtering) */
+function visibleRect(img: { width: number; height: number; data: Uint8Array }): [number, number, number, number] {
+    const { width: w, height: h, data } = img;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++)
+        if (data[(y * w + x) * 4 + 3]) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    if (x1 < 0) return [0, 0, 1, 1];
+    return [Math.max(0, x0 - 1) / w, Math.max(0, y0 - 1) / h, Math.min(w, x1 + 2) / w, Math.min(h, y1 + 2) / h];
 }
