@@ -1,7 +1,7 @@
 import type { Ground } from "./types";
 
 /** the routing grid: coarser than the ground (`cell` metres), heights + water sampled from it */
-export type Grid = { m: number; cell: number; size: number; height: Float32Array; water: Uint8Array };
+export type Grid = { m: number; cell: number; size: number; height: Float32Array; water: Uint8Array; /** 1 next to water (1 node) */ shore: Uint8Array };
 
 export function sampler(g: Ground) {
     const { n, size, height } = g;
@@ -21,12 +21,21 @@ export function routingGrid(g: Ground, cell: number): Grid {
         height[k] = at(x, z);
         if (g.water)
         {
-            const gi = Math.round((i / (m - 1)) * (g.n - 1)), gj = Math.round((j / (m - 1)) * (g.n - 1));
-            water[k] = g.water[gj * g.n + gi];
+            // any water in the cell's footprint (narrow channels fall between samples otherwise)
+            const gi = Math.round((i / (m - 1)) * (g.n - 1)), gj = Math.round((j / (m - 1)) * (g.n - 1)), r = Math.max(1, Math.ceil(step / g.cell / 2));
+            for (let b = -r; b <= r && !water[k]; b++) for (let a = -r; a <= r; a++)
+            {
+                const x = gi + a, z = gj + b;
+                if (x < 0 || z < 0 || x >= g.n || z >= g.n) continue;
+                const w = g.water[z * g.n + x];
+                if (w) { water[k] = w; break; }
+            }
         }
         else water[k] = height[k] < g.seaLevel ? 1 : 0;
     }
-    return { m, cell: step, size: g.size, height, water };
+    const shore = new Uint8Array(m * m);
+    for (let k = 0; k < m * m; k++) if (!water[k]) for (const o of [1, -1, m, -m]) if (water[k + o]) { shore[k] = 1; break; }
+    return { m, cell: step, size: g.size, height, water, shore };
 }
 
 export const toNode = (g: Grid, x: number, z: number) => {

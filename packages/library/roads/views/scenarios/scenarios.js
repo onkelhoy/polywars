@@ -17,6 +17,8 @@ export const SCENARIOS = [
     { name: 'rail switch', height: flat, sites: [site(0, -250, -150, 'city'), site(1, 250, 0, 'city'), site(2, -250, 150, 'city')], links: [['rail', 0, 1], ['rail', 2, 1]] },
     { name: 'bridge over river', height: flat, water: river, sites: [site(0, 0, -250), site(1, 30, 250), site(2, -250, -200)], links: [['road', 0, 1], ['path', 2, 1]] },
     { name: 'tunnel through hill', height: hill, sites: [site(0, -280, 0, 'city'), site(1, 280, 0, 'city')], links: [['rail', 0, 1]] },
+    { name: 'road + rail, same towns', height: flat, sites: [site(0, -250, 0, 'city'), site(1, 250, 0, 'city')], links: [['rail', 0, 1], ['road', 0, 1]] },
+    { name: 'two ways over one valley', height: valley, sites: [site(0, -260, -120, 'city'), site(1, 260, 120, 'city'), site(2, -260, 120), site(3, 260, -120)], links: [['rail', 0, 1], ['road', 2, 3]] },
 ];
 
 /** a `Ground` for `@polywar/roads` from a scenario */

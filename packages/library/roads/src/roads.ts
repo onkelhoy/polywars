@@ -38,7 +38,7 @@ export class Roads {
     /** `links`: which sites to join and how (default: `topology(sites)`); scenario views pass their own */
     build(sites: Site[], links: Link[] = topology(sites, this.o)): Network {
         const { grid, router, o } = this, m = grid.m;
-        router.used.fill(0); router.rail.fill(0);
+        router.reset();
         const raws: Raw[] = [], junctions: RawJunction[] = [];
         const owner = { road: new Int32Array(m * m).fill(-1), rail: new Int32Array(m * m).fill(-1) };
         const at = new Map<string, number>(), siteJunction = new Map<number, number>();
@@ -104,7 +104,7 @@ export class Roads {
                 }
                 s = e;
             }
-            router.mark(r.nodes, rank, isRail);
+            router.mark(r.nodes, rank, isRail, r.tags);
         }
         if (cls) this.timings[cls] = performance.now() - t0;
 

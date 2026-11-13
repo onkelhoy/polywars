@@ -35,7 +35,7 @@ tops.id = 'tops';
 document.body.append(tops);
 /** top-down drawing of a mesh: triangles by colour, lit by their normal */
 function top(name, mesh, zoom = 1) {
-    const c = document.createElement('canvas'), W = 420, ctx = c.getContext('2d');
+    const c = document.createElement("canvas"), W = 330, ctx = c.getContext('2d');
     c.width = c.height = W; c.title = name;
     const k = W / SIZE * zoom, P = mesh.positions, C = mesh.colors, Nn = mesh.normals;
     const order = [];
