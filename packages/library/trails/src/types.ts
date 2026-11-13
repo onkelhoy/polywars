@@ -15,6 +15,8 @@ export type TrailWorld = {
     ground: (x: number, z: number) => number;
     /** 0..1 how open (no trees) a spot is; optional: rest spots prefer open ground */
     open?: (x: number, z: number) => number;
+    /** metres from (x, z) to the nearest way's edge (<= 0 on a way); optional: nothing is placed on any way */
+    clear?: (x: number, z: number) => number;
     /** tunnel mouths / bridge ends: x y z + direction into the tunnel / along the bridge */
     mouths?: { x: number; y: number; z: number; dx: number; dz: number }[];
 };

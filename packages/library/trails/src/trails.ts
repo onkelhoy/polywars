@@ -49,7 +49,9 @@ export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}):
     let s = (o.seed * 2654435761) >>> 0 || 1;
     const rnd = () => ((s = Math.imul(s ^ (s >>> 15), 2246822519) + 0x9e3779b9 >>> 0) / 4294967296);
     const out: Item[] = [], fences: Vec3[][] = [], g = world.ground;
-    const put = (kind: string, x: number, z: number, yaw: number, scale = 1) => out.push({ kind, x, y: g(x, z), z, yaw, scale });
+    // never on a way (its own or any other): a prop needs `free` m to the nearest edge
+    const free = (x: number, z: number, m = .8) => !world.clear || world.clear(x, z) >= m;
+    const put = (kind: string, x: number, z: number, yaw: number, scale = 1) => { if (free(x, z, kind === o.assets.bench ? 1.2 : .8)) out.push({ kind, x, y: g(x, z), z, yaw, scale }); };
     // how much a spot looks out: its height over the mean of a ring around it
     const view = (x: number, z: number) => { const h = g(x, z); let m = 0; for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; m += g(x + Math.cos(a) * 40, z + Math.sin(a) * 40); } return h - m / 8; };
     const onBridge = (w: TrailWorld["ways"][0], i: number) => w.spans?.some(sp => sp.kind !== "ground" && i >= sp.from && i <= sp.to);
@@ -102,6 +104,7 @@ export function furnish(world: TrailWorld, options: Partial<TrailOptions> = {}):
                     if (!side || (runSide && side !== runSide)) { flush(); if (!side) continue; }
                     runSide = side;
                     const ex = c.p[0] - c.d[1] * side * (half + .7), ez = c.p[2] + c.d[0] * side * (half + .7);
+                    if (!free(ex, ez, .3)) { flush(); continue; }
                     run.push([ex, g(ex, ez), ez]);
                 }
                 flush();

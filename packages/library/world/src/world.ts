@@ -271,7 +271,7 @@ export class World {
         if (r)
         {
             const { items, fences } = furnish({
-                ways: r.network.roads, spots: this.roads.sites, ground: (x, z) => this.terrain.groundAt(x, z),
+                ways: r.network.roads, spots: this.roads.sites, ground: (x, z) => this.terrain.groundAt(x, z), clear: roadEdge(r, 10),
                 mouths: this.structures.filter(s => s.kind === "portal").map(s => ({ x: s.x, y: s.y, z: s.z, dx: s.to[0] - s.x, dz: s.to[2] - s.z })),
             }, { seed: this.ecosystem.seed });
             for (const it of items) P.add("trails", it.kind, it.x, it.y, it.z, it.yaw, it.scale ?? 1);
