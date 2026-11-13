@@ -1,4 +1,4 @@
-import { Model, INSTANCE_STRIDE, CARD_STRIDE, type Renderer } from "@polywar/renderer";
+import { Model, INSTANCE_STRIDE, CARD_STRIDE, type Instances, type Renderer, type WireMesh } from "@polywar/renderer";
 import { frustum, visible } from "./frustum";
 import type { Quality, ScatterBatch, ScatterOptions, View } from "./types";
 
@@ -82,7 +82,11 @@ export class Scatter {
         }))));
     }
 
-    draw(view: View, time: number) {
+    /**
+     * `fill` false skips the shaded draws; `part` sees every instanced part drawn (e.g. a `Wire`); far cards are left out of it.
+     */
+    draw(view: View, time: number, hooks: { fill?: boolean; part?: (mesh: WireMesh, model: ArrayLike<number>, instances: Instances) => void } = {}) {
+        const fill = hooks.fill ?? true;
         const r = this.renderer, planes = frustum(view.projectionMatrix, view.viewMatrix);
         const eye = view.worldPosition ?? { x: 0, y: 0, z: 0 };
         const w = this.o.wind, l = Math.hypot(...w.direction) || 1, wind: [number, number, number] = [w.direction[0] / l, w.direction[1] / l, w.strength];
@@ -175,13 +179,15 @@ export class Scatter {
             const surface = { ...this.o.surface, gloss: this.o.gloss[g.kind] ?? 0 };
             for (const p of g.models[lod]!.parts)
             {
-                r.drawInstanced(p.mesh, p.matrix, { buffer: this.buffer, first, count, time, wind, swayHeight: g.height, fade, surface }, { maps: p.maps });
+                const instances: Instances = { buffer: this.buffer, first, count, time, wind, swayHeight: g.height, fade, surface };
+                if (fill) r.drawInstanced(p.mesh, p.matrix, instances, { maps: p.maps });
+                hooks.part?.({ vao: p.mesh.vao, count: p.mesh.count, indices: p.data.indices }, p.matrix, instances);
                 this.calls++;
                 this.triangles += p.mesh.count / 3 * count;
             }
             first += count;
         }
-        if (this.cardCount)
+        if (this.cardCount && fill)
         {
             r.drawCards({ buffer: this.cardBuffer, count: this.cardCount, time, wind, fadePart: this.o.fade, surface: { ...this.o.surface, gloss: 0 } });
             this.calls++;

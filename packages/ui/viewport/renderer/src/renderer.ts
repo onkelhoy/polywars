@@ -235,6 +235,9 @@ export class Renderer {
         return { vao, vertex, index };
     }
 
+    /** Forget the bound program (after something else used its own), so the next draw binds it again. */
+    reset() { this.current = undefined; }
+
     private use(p: Program) {
         if (this.current === p) return p;
         const gl = this.gl, l = this.light, v = this.view!;

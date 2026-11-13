@@ -2,7 +2,7 @@ import type { Layer3D } from "@papit/game-engine";
 import { Ecosystem, DEFAULTS as ECOSYSTEM, decode as decodeEco, isCode as isEcoCode, type EcosystemSettings } from "@polywar/ecosystem";
 import { DEFAULTS as GRASS_DEFAULTS, Grass, type GrassOptions } from "@polywar/grass";
 import { modelUrl, type NatureList } from "@polywar/nature";
-import type { Light, Renderer, View } from "@polywar/renderer";
+import { Wire, type Instances, type Light, type Renderer, type View, type WireMesh } from "@polywar/renderer";
 import { Scatter } from "@polywar/scatter";
 import { DEFAULTS as TERRAIN, Terrain, decode, isCode, type TerrainData, type TerrainSettings } from "@polywar/terrain";
 import { BIOMES } from "@polywar/terrain-material";
@@ -45,11 +45,13 @@ export class World {
     /** sites + roads, built inside the terrain pipeline (before erosion) */
     readonly roads: RoadHooks;
     private roadMesh?: ReturnType<typeof upload>;
+    /** made on first use of `view.wire` */
+    private wire?: Wire;
     /** after the nature is grown (terrain or ecosystem change) */
     onchange?: (world: World) => void;
 
     constructor(readonly layer: Layer3D, readonly renderer: Renderer, readonly nature: NatureList, settings: Partial<WorldSettings> | string = {}, view: Partial<WorldView> = {}) {
-        this.v = { quality: "medium", grass: true, props: true, roads: true, style: "pixel", ...view };
+        this.v = { quality: "medium", grass: true, props: true, roads: true, style: "pixel", wire: "off", ...view };
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
@@ -101,17 +103,21 @@ export class World {
     heightAt(x: number, z: number) { return this.terrain.groundAt(x, z); }
 
     draw(view: View, light: Light, time: number) {
-        const p = this.profiler;
+        const p = this.profiler, wire = this.v.wire !== "off" ? this.wire ??= new Wire(this.layer) : undefined, fill = this.v.wire !== "only";
+        // wire: collect what gets drawn, lines after each system (they use their own programs)
+        const ground: [WireMesh, number][] = [], parts: [WireMesh, ArrayLike<number>, Instances][] = [];
         p?.begin("terrain");
-        this.terrain.draw(view, light, time);
+        this.terrain.draw(view, light, time, wire ? { fill, mesh: (m, drop) => ground.push([m, drop]) } : {});
         p?.end();
+        if (wire) { for (const [m, wallDrop] of ground) wire.draw(view, m, { wallDrop }); this.renderer.reset(); }
         if (!this.data) return;
         if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
-        if (this.v.props) this.scatter.draw(view, time);
+        if (this.v.props) this.scatter.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
         p?.end();
+        if (wire) { for (const [m, model, instances] of parts) wire.draw(view, m, { model, instances }); this.renderer.reset(); }
         p?.begin("grass");
-        if (this.v.grass)
+        if (this.v.grass && fill)
         {
             const e = view.worldPosition;
             if (e) this.grass.follow(e.x, e.z);
@@ -129,6 +135,7 @@ export class World {
         this.terrain.destroy();
         this.scatter.destroy();
         this.grass.destroy();
+        this.wire?.destroy();
     }
 
     // ---- internals ----
