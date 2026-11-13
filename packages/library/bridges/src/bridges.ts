@@ -15,10 +15,45 @@ export function pick(cls: string, span: number, height: number): BridgeType {
     return height < 4 ? "slab-stone" : "arch-stone";
 }
 
-/** deck with parapets (`rail` m high), closed underneath, `thick` m deep; y in metres, x in half widths */
-function deckProfile(thick: number, rail: number, side: RGB, top: RGB, edge = 1.12): Profile {
-    const pts: [number, number][] = [[-edge, -thick], [-edge, rail], [-1, rail], [-1, 0], [1, 0], [1, rail], [edge, rail], [edge, -thick], [-edge, -thick]];
+/** deck with parapets (`rail` m high, `railR` on the right when different), closed underneath, `thick` m deep; y in metres, x in half widths */
+function deckProfile(thick: number, rail: number, side: RGB, top: RGB, edge = 1.12, railR = rail): Profile {
+    const pts: [number, number][] = [[-edge, -thick], [-edge, rail], [-1, rail], [-1, 0], [1, 0], [1, railR], [edge, railR], [edge, -thick], [-edge, -thick]];
     return { points: pts, colors: [side, side, side, top, side, side, side, STONE_DARK] };
+}
+
+/** `path` from `a` to `b` m along it (horizontal), cut points interpolated */
+function cut(path: Vec3[], a: number, b: number): Vec3[] {
+    const out: Vec3[] = [];
+    let total = 0;
+    for (let i = 0; i < path.length - 1; i++)
+    {
+        const p = path[i], q = path[i + 1], l = Math.hypot(q[0] - p[0], q[2] - p[2]), lerp = (t: number): Vec3 => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t];
+        if (l > 1e-6)
+        {
+            if (!out.length && total + l >= a) out.push(lerp((a - total) / l));
+            if (out.length && total + l >= b) { out.push(lerp((b - total) / l)); return out; }
+            if (out.length && total + l > a) out.push(q);
+        }
+        total += l;
+    }
+    return out;
+}
+
+/** deck sweep with the parapet open in `o.gaps` (rail .05 there, per side) */
+function deck(path: Vec3[], o: BridgeOptions, thick: number, rail: number, side: RGB, top: RGB, edge: number, opts: { step: number; bands?: { every: number; shade: number } }) {
+    const sw = (pts: Vec3[], l: number, r: number) => sweep(pts, { width: o.width, profile: deckProfile(thick, l, side, top, edge, r), bank: "flat", ...opts });
+    const gaps = rail > .05 ? (o.gaps ?? []) : [];
+    if (!gaps.length) return sw(path, rail, rail);
+    const L = length(path), cuts = [...new Set([0, L, ...gaps.flatMap(g => [Math.max(0, g.from), Math.min(L, g.to)])])].sort((a, b) => a - b), parts = [];
+    for (let i = 0; i < cuts.length - 1; i++)
+    {
+        const a = cuts[i], b = cuts[i + 1], m = (a + b) / 2;
+        if (b - a < .05) continue;
+        const open = (k: number) => gaps.some(g => g.side === k && m > g.from && m < g.to);
+        const pts = cut(path, a, b);
+        if (pts.length >= 2) parts.push(sw(pts, open(-1) ? .05 : rail, open(1) ? .05 : rail));
+    }
+    return merge(parts);
 }
 
 /** height of the deck over the ground: highest point */
@@ -59,8 +94,7 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
     "slab-stone": (path, o) => {
         const s = new Soup(), L = length(path), n = Math.max(1, Math.round(L / 7));
         for (const a of along(path, L / n).slice(1, -1)) pier(s, a, o, o.width * 1.15, 1.2, STONE_DARK);
-        const deck = sweep(path, { width: o.width, profile: deckProfile(.6, .5, STONE, STONE_DARK), bank: "flat", step: 2, bands: { every: 2.5, shade: .08 } });
-        return merge([deck, s.mesh()]);
+        return merge([deck(path, o, .6, .5, STONE, STONE_DARK, 1.12, { step: 2, bands: { every: 2.5, shade: .08 } }), s.mesh()]);
     },
     "arch-stone": (path, o) => {
         const s = new Soup(), L = length(path), h = clearance(path, o.ground);
@@ -97,8 +131,7 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
                 void k0;
             }
         }
-        const deck = sweep(path, { width: o.width, profile: deckProfile(thick, o.use === "rail" ? .6 : .9, STONE, STONE_DARK), bank: "flat", step: 2 });
-        return merge([deck, s.mesh()]);
+        return merge([deck(path, o, thick, o.use === "rail" ? .6 : .9, STONE, STONE_DARK, 1.12, { step: 2 }), s.mesh()]);
     },
     "trestle-wood": (path, o) => {
         const s = new Soup(), w = o.width / 2, deckY = .5;
@@ -121,33 +154,40 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
                 s.beam(post(1, y0), post(-1, y1), .12, .12, WOOD);
             }
         }
-        const deck = sweep(path, { width: o.width, profile: deckProfile(deckY, o.use === "rail" ? .2 : .9, WOOD_DARK, WOOD, 1.08), bank: "flat", step: 2, bands: { every: .6, shade: .12 } });
-        return merge([deck, s.mesh()]);
+        return merge([deck(path, o, deckY, o.use === "rail" ? .2 : .9, WOOD_DARK, WOOD, 1.08, { step: 2, bands: { every: .6, shade: .12 } }), s.mesh()]);
     },
     girder: (path, o) => {
-        const s = new Soup(), L = length(path), H = Math.max(4, Math.min(9, L / 12)), w = o.width / 2 * 1.08;
+        const s = new Soup(), L = length(path), H = Math.max(4, Math.min(9, L / 12)), w = o.width / 2 * 1.04;
         const piers = Math.max(1, Math.round(L / 55));
         for (const a of along(path, L / piers).slice(1, -1)) pier(s, a, o, o.width * 1.3, 3, CONCRETE);
-        // two trusses: chords + verticals + diagonals every panel
-        const panels = along(path, L / Math.max(2, Math.round(L / 6)));
+        // two trusses: chords + verticals + diagonals every panel; shorter panels on a bend, sides mitred so the
+        // chords follow the deck edge
+        let turn = 0;
+        for (let i = 1; i < path.length - 1; i++) { const a = Math.atan2(path[i][2] - path[i - 1][2], path[i][0] - path[i - 1][0]), b = Math.atan2(path[i + 1][2] - path[i][2], path[i + 1][0] - path[i][0]); let d = Math.abs(b - a); d = Math.min(d, Math.PI * 2 - d); turn += d; }
+        const raw = along(path, L / Math.max(2, Math.round(L / (turn / L * 6 > .05 ? 3 : 6))));
+        const panels = raw.map((a, i) => {
+            const p = raw[Math.max(0, i - 1)].p, q = raw[Math.min(raw.length - 1, i + 1)].p, l = Math.hypot(q[0] - p[0], q[2] - p[2]) || 1;
+            return { ...a, side: [-(q[2] - p[2]) / l, (q[0] - p[0]) / l] as [number, number] };
+        });
+        const gap = (k: number, d0: number, d1: number) => (o.gaps ?? []).some(g => g.side === k && d1 > g.from && d0 < g.to);
         for (const k of [-1, 1])
         {
             const at = (a: typeof panels[0], y: number): Vec3 => [a.p[0] + a.side[0] * w * k, a.p[1] + y, a.p[2] + a.side[1] * w * k];
             for (let i = 0; i < panels.length; i++)
             {
                 const a = panels[i];
-                s.beam(at(a, 0), at(a, H), .3, .3, STEEL);
+                if (!gap(k, a.d - .5, a.d + .5)) s.beam(at(a, 0), at(a, H), .3, .3, STEEL);
                 if (i === panels.length - 1) break;
                 const b = panels[i + 1];
-                s.beam(at(a, 0), at(b, 0), .4, .5, STEEL);
+                if (gap(k, a.d, b.d)) continue;
+                s.beam(at(a, 0), at(b, 0), .5, .5, STEEL);
                 s.beam(at(a, H), at(b, H), .4, .4, STEEL);
                 if (i % 2) s.beam(at(a, 0), at(b, H), .2, .2, STEEL); else s.beam(at(a, H), at(b, 0), .2, .2, STEEL);
             }
         }
         // top ties across
         for (const a of panels) s.beam([a.p[0] - a.side[0] * w, a.p[1] + H, a.p[2] - a.side[1] * w], [a.p[0] + a.side[0] * w, a.p[1] + H, a.p[2] + a.side[1] * w], .2, .2, STEEL);
-        const deck = sweep(path, { width: o.width, profile: deckProfile(.8, 0, CONCRETE, STONE, 1.05), bank: "flat", step: 3 });
-        return merge([deck, s.mesh()]);
+        return merge([deck(path, o, .8, 0, CONCRETE, STONE, 1.05, { step: 3 }), s.mesh()]);
     },
 };
 

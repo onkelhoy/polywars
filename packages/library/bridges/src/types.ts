@@ -11,6 +11,8 @@ export type BridgeOptions = {
     ground: (x: number, z: number) => number;
     /** what crosses: rail decks get no parapet gaps, paths get light railings */
     use: "rail" | "road" | "path";
+    /** openings in the parapet / truss where another way joins: `from`..`to` m along the path, `side` +1 = right (sweep +x) */
+    gaps?: { from: number; to: number; side: -1 | 1 }[];
 };
 
 export type PortalOptions = {

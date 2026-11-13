@@ -73,6 +73,45 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
         }
     };
     let road!: WaysInput["roads"][0];
+    // junctions out on bridge decks: ways joining from the side open the parapet / truss there
+    const wayById = new Map(input.roads.map(r => [r.id, r]));
+    const bridged = (r: WaysInput["roads"][0], j: { x: number; z: number }) => {
+        const P = r.points, start = Math.hypot(P[0][0] - j.x, P[0][2] - j.z) < .5, end = Math.hypot(P[P.length - 1][0] - j.x, P[P.length - 1][2] - j.z) < .5;
+        return (start && r.spans.some(s => s.kind === "bridge" && s.from === 0)) || (end && r.spans.some(s => s.kind === "bridge" && s.to === P.length - 1));
+    };
+    const deckJunctions = (input.junctions ?? []).map(j => ({ j, decks: j.roads.map(a => wayById.get(a.road)!).filter(r => r && bridged(r, j)) })).filter(x => x.decks.length);
+    /** another chain's deck through a junction at (x, z): its half width (+ parapet), else 0 */
+    const deckAt = (x: number, z: number, chain?: number) => {
+        for (const { j, decks } of deckJunctions) if (Math.hypot(j.x - x, j.z - z) < .5)
+        {
+            const through = decks.filter(r => chain === undefined || r.chain !== chain);
+            if (through.length >= 2) return Math.max(...through.map(r => r.width)) / 2 + .6;
+        }
+        return 0;
+    };
+    const joins = (deck: Vec3[], chain?: number) => {
+        const gaps: { from: number; to: number; side: -1 | 1 }[] = [];
+        let d = 0;
+        for (let i = 1; i < deck.length - 1; i++)
+        {
+            d += Math.hypot(deck[i][0] - deck[i - 1][0], deck[i][2] - deck[i - 1][2]);
+            for (const j of input.junctions ?? [])
+            {
+                if (Math.hypot(j.x - deck[i][0], j.z - deck[i][2]) > .5) continue;
+                const l = Math.hypot(deck[i + 1][0] - deck[i - 1][0], deck[i + 1][2] - deck[i - 1][2]) || 1, fx = (deck[i + 1][0] - deck[i - 1][0]) / l, fz = (deck[i + 1][2] - deck[i - 1][2]) / l;
+                for (const a of j.roads)
+                {
+                    const r = wayById.get(a.road);
+                    if (!r || (chain !== undefined && r.chain === chain)) continue;
+                    const ux = Math.cos(a.angle), uz = Math.sin(a.angle), along = ux * fx + uz * fz, across = -ux * fz + uz * fx;
+                    if (Math.abs(along) > .9) continue;
+                    const half = (r.width / 2 + 1.5) / Math.max(.4, Math.abs(across));
+                    gaps.push({ from: d - half, to: d + half, side: across > 0 ? 1 : -1 });
+                }
+            }
+        }
+        return gaps;
+    };
     const lay = (pts: Vec3[]) => { const t = track(pts); meshes.push(t.lods[0]); sleepers.push(t.sleepers); };
     for (road of chains(input.junctions ? trimAtPads(input.junctions, input.roads, styles) : input.roads))
     {
@@ -85,8 +124,19 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
             if (span.kind === "bridge")
             {
                 // deck top = the road surface it continues (same lift), so road and deck meet flush
-                const deck = raw.map(([x, y, z], i) => [x, (i === 0 || i === raw.length - 1 ? Math.max(y, ground(x, z)) : y) + style.lift, z] as Vec3);
-                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road" });
+                let deck = raw.map(([x, y, z], i) => [x, (i === 0 || i === raw.length - 1 ? Math.max(y, ground(x, z)) : y) + style.lift, z] as Vec3);
+                // a deck starting on another bridge's deck (junction out on a bridge): starts at that deck's edge
+                for (const end of [0, 1])
+                {
+                    const p = end ? deck[deck.length - 1] : deck[0], other = deckAt(p[0], p[2], road.chain);
+                    if (!other || deck.length < 3) continue;
+                    const list = end ? deck.slice().reverse() : deck;
+                    let i = 1;
+                    while (i < list.length - 1 && Math.hypot(list[i][0] - p[0], list[i][2] - p[2]) < other) i++;
+                    const kept = list.slice(i - 1);
+                    deck = end ? kept.reverse() : kept;
+                }
+                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road", gaps: joins(deck, road.chain) });
                 meshes.push(b.mesh);
                 structures.push({ kind: `bridge-${b.type}`, road: road.id, x: raw[0][0], y: raw[0][1], z: raw[0][2], to: raw[raw.length - 1] });
                 if (rail) lay(raw);
