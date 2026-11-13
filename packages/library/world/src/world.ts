@@ -120,7 +120,8 @@ export class World {
         if (this.v.grass && fill)
         {
             const e = view.worldPosition;
-            if (e) this.grass.follow(e.x, e.z);
+            // high up nothing is in grass range: don't plant under the camera
+            if (e && e.y - this.terrain.groundAt(e.x, e.z) < DISTANCE[this.v.quality]) this.grass.follow(e.x, e.z);
             this.grass.draw(view, light, time);
         }
         p?.end();
