@@ -656,24 +656,31 @@ export function trimTunnels(roads: Road[], heightAt: (x: number, z: number) => n
         if (!r.spans.some(s => s.kind === "tunnel")) continue;
         const need = (TUNNEL_HEIGHT[r.class] ?? 6) + 2, P = r.points, out: Span[] = [];
         const covered = (i: number) => heightAt(P[i][0], P[i][2]) >= P[i][1] + need;
+        // an uncovered stretch: ground (a cutting / low bank) where the way is near the ground, a bridge where it
+        // hangs high over it (runs of 2+ points; a bridge reaches one point onto the ground each side)
+        const open = (from: number, to: number) => {
+            const high = (i: number) => P[i][1] > heightAt(P[i][0], P[i][2]) + 4;
+            for (let i = from; i < to;)
+            {
+                let e = i;
+                while (e + 1 <= to && high(e + 1) === high(i)) e++;
+                if (high(i) && e - i >= 1) out.push({ kind: "bridge", from: Math.max(from, i - 1), to: Math.min(to, e + 1), auto: true });
+                else out.push({ kind: "ground", from: i, to: Math.min(to, e + 1) });
+                i = e + 1;
+            }
+        };
         for (const s of r.spans)
         {
             if (s.kind !== "tunnel") { out.push(s); continue; }
             let a = s.from, b = s.to;
             while (a < b && !covered(a)) a++;
             while (b > a && !covered(b)) b--;
-            if (b - a < 2)
-            {
-                let above = 0;
-                for (let i = s.from; i <= s.to; i++) if (P[i][1] > heightAt(P[i][0], P[i][2]) + 3) above++;
-                out.push({ kind: above > (s.to - s.from + 1) / 2 ? "bridge" : "ground", from: s.from, to: s.to, auto: true });
-                continue;
-            }
+            if (b - a < 2) { open(s.from, s.to); continue; }
             // the mouth a point outside the covered part, so the portal face has the hill right above it
             a = Math.max(s.from, a - 1); b = Math.min(s.to, b + 1);
-            if (a > s.from) out.push({ kind: "ground", from: s.from, to: a });
+            if (a > s.from) open(s.from, a);
             out.push({ ...s, from: a, to: b });
-            if (b < s.to) out.push({ kind: "ground", from: b, to: s.to });
+            if (b < s.to) open(b, s.to);
         }
         r.spans = out.filter(s => s.to > s.from).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
     }

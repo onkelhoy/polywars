@@ -1,5 +1,6 @@
 import { merge, sweep, type Profile } from "@polywar/sweep";
-import { track } from "@polywar/rail";
+import { inlaid, track } from "@polywar/rail";
+import { resample } from "@polywar/sweep";
 import { PORTAL, bridge, bridgeFor, fence, logSteps, portal, tunnel } from "@polywar/bridges";
 import { junctionPads, trimAtPads } from "./junctions";
 import type { ClassStyle, Mesh, Structure, Vec3, WaysInput, WaysResult } from "./types";
@@ -153,7 +154,47 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
         const p = r.points[i];
         if (!input.roads.some(o => o !== r && o.spans.some(t => t.kind === "tunnel" && [t.from, t.to].some(k => Math.hypot(o.points[k][0] - p[0], o.points[k][2] - p[2]) < .5)))) mouths.push([p[0], p[2]]);
     }
-    const lay = (pts: Vec3[]) => { const t = track(pts); meshes.push(t.lods[0]); sleepers.push(t.sleepers); };
+    // level crossings: road ways on the ground near the rail's height; there the rail is set into the road surface
+    const roadPieces: { a: Vec3; b: Vec3; half: number; lift: number }[] = [];
+    for (const r of input.roads) if (r.class !== "rail" && styles[r.class]?.profile)
+    {
+        const kind = (i: number) => r.spans.find(s => i >= s.from && i < s.to)?.kind ?? "ground";
+        for (let i = 0; i < r.points.length - 1; i++) if (kind(i) === "ground") roadPieces.push({ a: r.points[i], b: r.points[i + 1], half: r.width / 2, lift: styles[r.class].lift });
+    }
+    /** road surface height where the rail at (x, y, z) crosses a road at its level, else NaN */
+    const roadTop = (x: number, y: number, z: number) => {
+        for (const p of roadPieces)
+        {
+            if (Math.abs(p.a[0] - x) > 30 || Math.abs(p.a[2] - z) > 30) continue;
+            const dx = p.b[0] - p.a[0], dz = p.b[2] - p.a[2], t = Math.max(0, Math.min(1, ((x - p.a[0]) * dx + (z - p.a[2]) * dz) / (dx * dx + dz * dz || 1)));
+            const ry = p.a[1] + (p.b[1] - p.a[1]) * t;
+            if (Math.hypot(x - p.a[0] - dx * t, z - p.a[2] - dz * t) < p.half + 1.2 && Math.abs(ry - y) < 2) return ry + p.lift;
+        }
+        return NaN;
+    };
+    const lay = (pts: Vec3[]) => {
+        const fine = resample(pts, 1).points, top = fine.map(p => roadTop(p[0], p[1], p[2]));
+        if (top.every(t => Number.isNaN(t))) { const t = track(pts); meshes.push(t.lods[0]); sleepers.push(t.sleepers); return; }
+        for (let a = 0; a < fine.length - 1;)
+        {
+            const level = !Number.isNaN(top[a]);
+            let b = a;
+            while (b + 1 < fine.length && !Number.isNaN(top[b + 1]) === level) b++;
+            if (level)
+            {
+                // one point past each end (meets the track's rails), at the crossing's surface height
+                const i0 = Math.max(0, a - 1), i1 = Math.min(fine.length - 1, b + 1);
+                const part = fine.slice(i0, i1 + 1).map((p, i) => [p[0], top[Math.min(b, Math.max(a, i0 + i))] + .02, p[2]] as Vec3);
+                if (part.length >= 2) meshes.push(inlaid(part));
+            }
+            else
+            {
+                const part = fine.slice(a, b + 1);
+                if (part.length >= 2) { const t = track(part); meshes.push(t.lods[0]); sleepers.push(t.sleepers); }
+            }
+            a = b + 1;
+        }
+    };
     for (road of chains(input.junctions ? trimAtPads(input.junctions, input.roads, styles) : input.roads))
     {
         const style = styles[road.class] ?? styles.road, rail = road.class === "rail", trail = road.class === "path" || road.class === "lane";

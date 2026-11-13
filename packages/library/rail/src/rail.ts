@@ -55,6 +55,15 @@ export function track(path: Vec3[], options: Partial<RailOptions> = {}): Track {
     };
 }
 
+/** height of the rail tops over the bed `path` y (ballast + sleeper + rail) */
+export function railTop(options: Partial<RailOptions> = {}) { const o = { ...DEFAULTS, ...options }; return o.ballast.height + o.sleeperTop + o.rail.height; }
+
+/** rails only, set into a road surface (level crossings): `path` y = the rail tops; no ballast, no sleepers */
+export function inlaid(path: Vec3[], options: Partial<RailOptions> = {}) {
+    const o = { ...DEFAULTS, ...options }, down = railTop(o);
+    return sweep(path.map(([x, y, z]) => [x, y - down, z] as Vec3), { width: o.gauge, profile: railProfile(o), bank: { max: .03, gain: 3 }, step: o.step });
+}
+
 /** instances baked into one mesh (views, short tracks): `mesh` turned by yaw, scaled, moved (8 float instances) */
 export function bake(mesh: { positions: Float32Array; normals: Float32Array; colors?: Float32Array; indices?: ArrayLike<number> }, instances: Sleepers) {
     const idx = mesh.indices ?? Array.from({ length: mesh.positions.length / 3 }, (_, i) => i), n = idx.length;
