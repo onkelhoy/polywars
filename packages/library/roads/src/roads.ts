@@ -2,7 +2,7 @@ import type { GridResult } from "@polywar/pathfinding";
 import { dry, routingGrid, sampler, toNode, toXZ, type Grid } from "./grid";
 import { CLASSES, RANK, resolve } from "./presets";
 import { Router } from "./route";
-import { shapeRoute } from "./shape";
+import { gradeRoute, planRoute, shapeRoute } from "./shape";
 import { topology, type Link } from "./topology";
 import type { Ground, Junction, Network, Road, RoadClass, RoadsOptions, Site, Span } from "./types";
 
@@ -41,14 +41,14 @@ export class Roads {
         router.reset();
         const raws: Raw[] = [], junctions: RawJunction[] = [];
         const owner = { road: new Int32Array(m * m).fill(-1), rail: new Int32Array(m * m).fill(-1) };
-        const at = new Map<string, number>(), siteJunction = new Map<number, number>();
+        const at = new Map<string, number>(), siteJunction = new Map<string, number>(), stations = new Map<number, number>();
         const junction = (net: string, node: number, site?: number) => {
-            if (site !== undefined && siteJunction.has(site)) return siteJunction.get(site)!;
+            if (site !== undefined && siteJunction.has(net + site)) return siteJunction.get(net + site)!;
             const key = net + ":" + node;
             if (site === undefined && at.has(key)) return at.get(key)!;
             const j = { id: junctions.length, node, site };
             junctions.push(j);
-            if (site !== undefined) siteJunction.set(site, j.id); else at.set(key, j.id);
+            if (site !== undefined) siteJunction.set(net + site, j.id); else at.set(key, j.id);
             return j.id;
         };
         const own = (r: Raw, net: "road" | "rail") => { for (let s = 1; s < r.nodes.length - 1; s++) if (owner[net][r.nodes[s]] < 0 || RANK[raws[owner[net][r.nodes[s]]].cls] < RANK[r.cls]) owner[net][r.nodes[s]] = r.id; };
@@ -71,16 +71,32 @@ export class Roads {
         {
             if (link.cls !== cls) { if (cls) this.timings[cls] = performance.now() - t0; cls = link.cls; t0 = performance.now(); }
             const c = o.classes[link.cls], rank = RANK[link.cls], isRail = link.cls === "rail", net = isRail ? "rail" : "road";
-            const a = dry(grid, toNode(grid, link.a.x, link.a.z)), b = dry(grid, toNode(grid, link.b.x, link.b.z));
+            // rail: a station node off the roads near the site (rail never shares the road out of town)
+            const station = (site: Site) => {
+                const k0 = dry(grid, toNode(grid, site.x, site.z));
+                if (!isRail) return k0;
+                if (stations.has(site.id)) return stations.get(site.id)!;
+                const r = Math.max(2, Math.round(Math.min(site.radius, 80) / grid.cell)), i0 = k0 % m, j0 = (k0 / m) | 0;
+                let best = k0, bd = Infinity;
+                for (let b = -r; b <= r; b++) for (let a = -r; a <= r; a++)
+                {
+                    const x = i0 + a, z = j0 + b, k = z * m + x, d = a * a + b * b;
+                    if (x < 2 || z < 2 || x >= m - 2 || z >= m - 2 || d > r * r || grid.water[k] || router.nearRoad[k]) continue;
+                    if (d < bd) { bd = d; best = k; }
+                }
+                stations.set(site.id, best);
+                return best;
+            };
+            const a = station(link.a), b = station(link.b);
             if (a === b) continue;
             const r = router.route(a, b, c, rank, isRail);
             if (!r) continue;
             const own2 = owner[net], last = r.nodes.length - 1;
             // a site on an existing road: that road gets a junction there, the site's
             const siteAt = (node: number, site: number) => {
-                if (siteJunction.has(site) || own2[node] < 0) return junction(net, node, site);
+                if (siteJunction.has(net + site) || own2[node] < 0) return junction(net, node, site);
                 const j = split(own2[node], node, net);
-                if (junctions[j].site === undefined) { junctions[j].site = site; siteJunction.set(site, j); return j; }
+                if (junctions[j].site === undefined) { junctions[j].site = site; siteJunction.set(net + site, j); return j; }
                 return junction(net, node, site);
             };
             const ja = siteAt(a, link.a.id), jb = siteAt(b, link.b.id);
@@ -109,11 +125,7 @@ export class Roads {
         if (cls) this.timings[cls] = performance.now() - t0;
 
         t0 = performance.now();
-        const roads: Road[] = raws.filter(r => r.nodes.length > 1).map((r, id) => {
-            const c = o.classes[r.cls], s = shapeRoute(grid, r.nodes, r.tags, c, o.step, this.heightAt);
-            return { id, class: r.cls, from: r.from, to: r.to, points: s.points, spans: s.spans, width: c.width, surface: c.surface };
-        });
-        const out: Junction[] = junctions.map(j => { const [x, z] = toXZ(grid, j.node); return { id: j.id, x, z, y: this.heightAt(x, z), site: j.site, roads: [] }; });
+        const { roads, out } = this.shape(raws.filter(r => r.nodes.length > 1), junctions);
         for (const r of roads)
         {
             const p = r.points, k = Math.min(3, p.length - 1);
@@ -125,6 +137,130 @@ export class Roads {
         this.network = { roads, junctions: out.filter(j => j.roads.length || j.site !== undefined) };
         this.index();
         return this.network;
+    }
+
+    /**
+     * Raw routes → shaped roads. Roads that go on through a junction (same class, the straightest pair) are shaped as
+     * one curve (a chain) and cut at the junctions after; bigger chains first: they set each junction's spot and
+     * height, later ones bend onto it and are graded to it (every end at a junction meets at one point, one height).
+     */
+    private shape(raws: Raw[], junctions: RawJunction[]): { roads: Road[]; out: Junction[] } {
+        const { grid, o } = this;
+        const arms = new Map<number, { raw: number; end: 0 | 1; angle: number }[]>();
+        const dir = (r: Raw, end: 0 | 1) => {
+            const n = r.nodes, a = end ? n[n.length - 1] : n[0], b = end ? n[Math.max(0, n.length - 4)] : n[Math.min(3, n.length - 1)];
+            const [ax, az] = toXZ(grid, a), [bx, bz] = toXZ(grid, b);
+            return Math.atan2(bz - az, bx - ax);
+        };
+        raws.forEach((r, i) => {
+            if (r.from === r.to) return;
+            for (const end of [0, 1] as const) { const j = end ? r.to : r.from; (arms.get(j) ?? arms.set(j, []).get(j)!).push({ raw: i, end, angle: dir(r, end) }); }
+        });
+        // pair the straightest arms of one class at each junction
+        const partner = new Map<string, { raw: number; end: 0 | 1 }>();
+        for (const list of arms.values())
+        {
+            const pairs: [number, number, number][] = [];
+            for (let a = 0; a < list.length; a++) for (let b = a + 1; b < list.length; b++)
+            {
+                if (raws[list[a].raw].cls !== raws[list[b].raw].cls || list[a].raw === list[b].raw) continue;
+                let d = Math.abs(list[a].angle - list[b].angle); d = Math.min(d, Math.PI * 2 - d);
+                if (d > Math.PI * .6) pairs.push([d, a, b]);
+            }
+            pairs.sort((x, y) => y[0] - x[0]);
+            const used = new Set<number>();
+            for (const [, a, b] of pairs)
+            {
+                if (used.has(a) || used.has(b)) continue;
+                used.add(a); used.add(b);
+                partner.set(list[a].raw + ":" + list[a].end, list[b]);
+                partner.set(list[b].raw + ":" + list[b].end, list[a]);
+            }
+        }
+        // chains: [raw, reversed][]
+        const seen = new Uint8Array(raws.length), chains: [number, boolean][][] = [];
+        for (let r0 = 0; r0 < raws.length; r0++)
+        {
+            if (seen[r0]) continue;
+            let raw = r0, rev = false;
+            const walked = new Set([r0]);
+            for (; ;)
+            {
+                const p = partner.get(raw + ":" + (rev ? 1 : 0));
+                if (!p || seen[p.raw] || walked.has(p.raw)) break;
+                raw = p.raw; rev = p.end === 0; walked.add(raw);
+            }
+            const chain: [number, boolean][] = [[raw, rev]];
+            seen[raw] = 1;
+            for (; ;)
+            {
+                const p = partner.get(raw + ":" + (rev ? 0 : 1));
+                if (!p || seen[p.raw]) break;
+                raw = p.raw; rev = p.end === 1; seen[raw] = 1;
+                chain.push([raw, rev]);
+            }
+            chains.push(chain);
+        }
+        chains.sort((a, b) => Math.max(...b.map(([r]) => RANK[raws[r].cls])) - Math.max(...a.map(([r]) => RANK[raws[r].cls])) || b.length - a.length);
+
+        const spot = new Map<number, [number, number, number]>(), roads: Road[] = [];
+        chains.forEach((chain, chainId) => {
+            const cls = raws[chain[0][0]].cls, c = o.classes[cls];
+            const nodes: number[] = [], tags: number[] = [], joints: number[] = [], ids: number[] = [];
+            for (const [r, rev] of chain)
+            {
+                const raw = raws[r], n = rev ? raw.nodes.slice().reverse() : raw.nodes, t = rev ? raw.nodes.map((_, s) => s ? raw.tags[raw.nodes.length - s] : 0) : raw.tags;
+                const start = nodes.length ? 1 : 0;
+                if (nodes.length) joints.push(nodes.length - 1);
+                for (let s = start; s < n.length; s++) { nodes.push(n[s]); tags.push(s ? t[s] : 0); }
+                ids.push(rev ? raw.to : raw.from);
+            }
+            const last = chain[chain.length - 1], end = last[1] ? raws[last[0]].from : raws[last[0]].to;
+            ids.push(end);
+            const head = spot.get(ids[0]), tail = spot.get(end);
+            const plan = planRoute(grid, nodes, tags, c, o.step, this.heightAt, [head ? [head[0], head[2]] : null, tail ? [tail[0], tail[2]] : null]);
+            const P = plan.points, n = P.length;
+            // where each inner junction falls on the curve
+            const idx = [0];
+            for (const jn of joints)
+            {
+                const [jx, jz] = toXZ(grid, nodes[jn]);
+                let best = -1, bd = Infinity;
+                for (let i = idx[idx.length - 1] + 1; i < n - 1; i++) { const d = Math.hypot(P[i][0] - jx, P[i][2] - jz); if (d < bd) { bd = d; best = i; } }
+                idx.push(best < 0 ? Math.min(n - 1, idx[idx.length - 1] + 1) : best);
+            }
+            idx.push(n - 1);
+            const rigid = (i: number) => plan.spans.some(s => s.kind !== "ground" && i > s.from && i < s.to);
+            const pins = new Map<number, number>();
+            idx.forEach((i, q) => {
+                const at = spot.get(ids[q]);
+                if (!at) return;
+                pins.set(i, at[1]);
+                if (q === 0 || q === idx.length - 1) return;
+                // bend onto a junction set by a bigger road: shift the points around it, fading out over ~30 m
+                const dx = at[0] - P[i][0], dz = at[2] - P[i][2], W = Math.max(3, Math.round(30 / o.step));
+                for (let k = Math.max(1, i - W); k <= Math.min(n - 2, i + W); k++)
+                {
+                    if (rigid(k)) continue;
+                    const f = 1 - Math.abs(k - i) / (W + 1), w = f * f * (3 - 2 * f);
+                    P[k][0] += dx * w; P[k][2] += dz * w; P[k][1] = this.heightAt(P[k][0], P[k][2]);
+                }
+            });
+            gradeRoute(plan, c, o.step, pins);
+            idx.forEach((i, q) => { if (!spot.has(ids[q])) spot.set(ids[q], [P[i][0], P[i][1], P[i][2]]); });
+            chain.forEach(([r, rev], q) => {
+                const a = idx[q], b = Math.max(idx[q + 1], a + 1), raw = raws[r];
+                const points = P.slice(a, Math.min(n, b + 1)).map(p => [p[0], p[1], p[2]] as [number, number, number]);
+                if (points.length < 2) points.push([...points[0]]);
+                const spans: Span[] = plan.spans.filter(s => s.to > a && s.from < b).map(s => ({ kind: s.kind, from: Math.max(s.from, a) - a, to: Math.min(s.to, b) - a })).filter(s => s.to > s.from);
+                roads.push({ id: roads.length, class: raw.cls, from: rev ? raw.to : raw.from, to: rev ? raw.from : raw.to, points, spans, width: c.width, surface: c.surface, chain: chainId });
+            });
+        });
+        const out: Junction[] = junctions.map(j => {
+            const s = spot.get(j.id), [x, z] = s ? [s[0], s[2]] : toXZ(grid, j.node);
+            return { id: j.id, x, z, y: s ? s[1] : this.heightAt(x, z), site: j.site, roads: [] };
+        });
+        return { roads, out };
     }
 
     /** the junction at a site: every road coming in, with its angle */

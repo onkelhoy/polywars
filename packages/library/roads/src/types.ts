@@ -23,6 +23,8 @@ export type Road = {
     /** x y z every `step` m, y = graded bed height */
     points: [number, number, number][];
     width: number; spans: Span[]; surface: string;
+    /** roads of one chain go on through their junctions as one curve (ids in order, points run along it) */
+    chain?: number;
 };
 
 /** where roads meet; `angle` (radians, atan2(dz, dx)) the way each road leaves */

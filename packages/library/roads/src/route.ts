@@ -1,6 +1,7 @@
 import { GridSearch, alternatives, headings, type GridOptions, type GridResult } from "@polywar/pathfinding";
 import type { Grid } from "./grid";
 import type { ClassOptions } from "./types";
+import { runout } from "./shape";
 
 export const HEADINGS = 16;
 export const BRIDGE = 1, TUNNEL = 2;
@@ -42,12 +43,35 @@ export class Router {
         const { m, cell, height, water } = this.grid, used = isRail ? this.rail : this.used, edge = 2;
         const turnCost = c.turn * 16 / HEADINGS;
         const other = isRail ? this.nearRoad : this.nearRail, own = isRail ? this.nearRail : this.nearRoad, deck = this.deck, shore = this.grid.shore;
-        const cost = (f: number, t: number, _h: number, _p: number, turn: number) => {
+        // states (node * HEADINGS + heading) reached by a jump: the way goes on straight-ish from there
+        const landed = new Set<number>();
+        // sharpest turn on one node (heading steps of 22.5°): big roads never turn on the spot, the fillets need room
+        const maxTurn = c.minRadius >= 100 ? 1 : c.minRadius >= 40 ? 2 : c.minRadius >= 20 ? 4 : 6;
+        const cost = (f: number, t: number, _h: number, previous: number, turn: number) => {
+            if (turn > maxTurn) return Infinity;
+            if (turn > 1 && previous >= 0 && landed.has(f * HEADINGS + previous)) return Infinity;
             const ti = t % m, tj = (t / m) | 0;
             if (water[t] || ti < edge || tj < edge || ti >= m - edge || tj >= m - edge) return Infinity;
             // under a bridge only with clearance
             if (deck[t] - height[t] < CLEAR) return Infinity;
-            const dx = ti - f % m, dz = tj - ((f / m) | 0), len = Math.hypot(dx, dz) * cell, grade = Math.abs(height[t] - height[f]) / len, r = grade / c.maxGrade;
+            const dx = ti - f % m, dz = tj - ((f / m) | 0);
+            // a long (knight) move passes two cells on its way: they count too (no slipping between blocked nodes)
+            let mid = -1, mid2 = -1;
+            if (Math.abs(dx) === 2 || Math.abs(dz) === 2)
+            {
+                const fi = f % m, fj = (f / m) | 0;
+                mid = (fj + Math.trunc(dz / 2)) * m + fi + Math.trunc(dx / 2);
+                mid2 = (fj + Math.sign(dz)) * m + fi + Math.sign(dx);
+                for (const q of [mid, mid2]) if (water[q] || deck[q] - height[q] < CLEAR) return Infinity;
+            }
+            else if (dx && dz)
+            {
+                // a diagonal move between two cells of a way crosses it without a node: not allowed (cross on its node,
+                // that is a junction / a level crossing)
+                mid = f + dx; mid2 = f + dz * m;
+            }
+            if (mid >= 0 && !used[f] && !used[t] && used[mid] && used[mid2]) return Infinity;
+            const len = Math.hypot(dx, dz) * cell, grade = Math.abs(height[t] - height[f]) / len, r = grade / c.maxGrade;
             let k = 1 + c.climb * r * r;
             if (r > 1) k += 40 * (r - 1);
             if (used[t] >= rank) k *= c.reuse;
@@ -55,34 +79,75 @@ export class Router {
             if (shore[t]) k *= 3;
             // the other network: cross it (a fixed price, so crossings are short and square), never run along it
             let extraCost = 0;
-            if (other[t] === 2) extraCost += CROSS;
-            else if (other[t] === 1) k *= 3;
+            const o = Math.max(other[t], mid >= 0 ? Math.max(other[mid], other[mid2]) : 0);
+            if (o === 2) extraCost += CROSS;
+            else if (o === 1) k *= 3;
             // own network nodes beside a road we don't ride: no parallel twins
             if (own[t] === 1 && used[t] < rank && !isRail) k *= 1.5;
-            return len * k + turn * turnCost + extraCost;
+            // sharp turns cost more than gentle ones (a 90° bend is far dearer than four 22.5° ones)
+            return len * k + (turn + turn * turn * .5) * turnCost + extraCost;
         };
-        const extra = (node: number, heading: number, push: (to: number, heading: number, cost: number, tag: number) => void) => {
+        type Push = (to: number, heading: number, cost: number, tag: number) => void;
+        // jumps may start up to one heading step off the way the route came in (so it never loops round to line up)
+        const extra = (node: number, heading: number, push: Push) => {
             if (heading < 0) return;
-            const [dx, dz] = DIRS[heading], i = node % m, j = (node / m) | 0, unit = Math.hypot(dx, dz) * cell, h0 = height[node];
-            const at = (s: number) => { const x = i + dx * s, z = j + dz * s; return x < 2 || z < 2 || x >= m - 2 || z >= m - 2 ? -1 : z * m + x; };
+            for (const turn of [0, 1, -1]) jumps(node, (heading + turn + HEADINGS) % HEADINGS, (to, h, cost, tag) => { landed.add(to * HEADINGS + h); push(to, h, cost + Math.abs(turn) * 1.5 * turnCost, tag); });
+        };
+        const jumps = (from: number, heading: number, push: Push) => {
+            const [dx, dz] = DIRS[heading], fi = from % m, fj = (from / m) | 0, unit = Math.hypot(dx, dz) * cell;
+            const cellAt = (s: number) => { const x = fi + dx * s, z = fj + dz * s; return x < 2 || z < 2 || x >= m - 2 || z >= m - 2 ? -1 : z * m + x; };
+            // a jump starts and ends on `run` cells of straight dry ground (roads meet bridges / tunnels straight)
+            const run = runout(c, cell), lead = run * unit;
+            const straightGround = (s0: number, y: number) => {
+                for (let q = 1; q <= run; q++)
+                {
+                    const k = cellAt(s0 + q);
+                    if (k < 0 || water[k] || this.tunnel[k] || !Number.isNaN(this.deck[k]) || Math.abs(height[k] - y) > c.maxGrade * unit * q + 2) return false;
+                }
+                return true;
+            };
+            if (!straightGround(0, height[from])) return;
+            const node = cellAt(run), i = node % m, j = (node / m) | 0, h0 = height[node];
+            const at = (s: number) => cellAt(run + s);
             const a1 = at(1), a2 = at(2);
             if (a1 < 0 || a2 < 0) return;
+            const land = (s: number, y: number) => straightGround(run + s, y) ? at(s + run) : -1;
             // bridge: water ahead or a valley
             if (c.bridge.max > 0 && (water[a1] || height[a2] < h0 - 10))
             {
-                let wet = false, low = Infinity;
+                let wet = false, low = Infinity, wetRun = 0, dryAfter = false;
+                // water across the line at a wet cell (both sides, cells): a crossing is short along, wide across
+                const across = (s: number) => {
+                    let n = 0;
+                    for (const side of [1, -1]) for (let q = 1; q <= 12; q++)
+                    {
+                        const x = i + dx * s - dz * q * side, z = j + dz * s + dx * q * side;
+                        if (x < 0 || z < 0 || x >= m || z >= m || !water[z * m + x]) break;
+                        n++;
+                    }
+                    return n;
+                };
                 for (let s = 1; s * unit <= c.bridge.max; s++)
                 {
                     const k = at(s);
                     if (k < 0 || !Number.isNaN(this.deck[k])) break;
-                    if (water[k]) { wet = true; continue; }
+                    if (water[k])
+                    {
+                        // one crossing only, and not along the water (a river running beside the line)
+                        if (dryAfter) break;
+                        wet = true; wetRun++;
+                        if (wetRun > 2 && across(s - (wetRun >> 1)) < wetRun - 1) break;
+                        continue;
+                    }
+                    if (wet) dryAfter = true;
                     low = Math.min(low, height[k]);
                     if (s < 2) continue;
                     const len = s * unit, end = height[k];
                     // over water, or a valley at least 20 m deep
                     if ((wet || low < Math.min(h0, end) - 20) && Math.abs(end - h0) / len <= c.maxGrade)
                     {
-                        push(k, heading, len * c.bridge.cost, BRIDGE);
+                        const l = land(s, end);
+                        if (l >= 0) push(l, heading, len * c.bridge.cost + 2 * lead, BRIDGE);
                         break;
                     }
                 }
@@ -99,7 +164,7 @@ export class Router {
                     // covered along the middle
                     let covered = true;
                     for (let q = 1; q < s && covered; q++) { const t = q / s; if (height[at(q)] < h0 + (end - h0) * t + (t > .15 && t < .85 ? c.tunnel.cover : 0)) covered = false; }
-                    if (covered) { push(k, heading, len * c.tunnel.cost, TUNNEL); break; }
+                    if (covered) { const l = land(s, end); if (l >= 0) push(l, heading, len * c.tunnel.cost + 2 * lead, TUNNEL); break; }
                 }
             }
         };

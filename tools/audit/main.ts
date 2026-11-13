@@ -148,3 +148,16 @@ for (const [what, list] of [...groups].sort((a, b) => a[0].localeCompare(b[0])))
     list.sort((a, b) => b.score - a.score);
     console.log(`${String(list.length).padStart(5)}  ${what}: ${list.slice(0, 3).map(i => i.where).join(" | ")}`);
 }
+
+// AT="x,z": the ways near a spot (points, spans) to debug one issue
+if (process.env.AT)
+{
+    const [x, z] = process.env.AT.split(",").map(Number);
+    for (const r of net.roads)
+    {
+        const i = r.points.findIndex(p => Math.hypot(p[0] - x, p[2] - z) < 12);
+        if (i < 0) continue;
+        console.log(`road ${r.id} ${r.class} chain ${r.chain} ${r.from}→${r.to} spans ${JSON.stringify(r.spans)} n ${r.points.length}`);
+        console.log("  " + r.points.slice(Math.max(0, i - 6), i + 7).map((p, k) => `${Math.max(0, i - 6) + k}:${p[0].toFixed(1)},${p[2].toFixed(1)},${p[1].toFixed(1)}`).join(" "));
+    }
+}
