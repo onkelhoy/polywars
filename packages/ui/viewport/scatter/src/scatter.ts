@@ -1,4 +1,4 @@
-import { Model, INSTANCE_STRIDE, type Renderer } from "@polywar/renderer";
+import { Model, INSTANCE_STRIDE, CARD_STRIDE, type Renderer } from "@polywar/renderer";
 import { frustum, visible } from "./frustum";
 import type { Quality, ScatterBatch, ScatterOptions, View } from "./types";
 
@@ -19,12 +19,14 @@ const CELL = 64, HALF = CELL * Math.SQRT1_2;
 type Cell = { index: number; x: number; y: number; z: number; n: number; reach: number };
 type Chunk = { cell: number; first: number; count: number };
 /** `models[lod]`: lod 0 the full model; a missing level draws the next better one; `cards[lod]`: that level is a flat camera facing card */
-type Group = { name: string; kind: string; models: (Model | undefined)[]; cards: boolean[]; data: Float32Array; chunks: Chunk[]; count: number; height: number };
+/** a flat card's shape and colour: `halfWidth bottom top topWidth` (1 quad, 0 triangle), `r g b` */
+type Card = { shape: [number, number, number, number]; rgb: [number, number, number] };
+type Group = { name: string; kind: string; models: (Model | undefined)[]; cards: (Card | undefined)[]; data: Float32Array; chunks: Chunk[]; count: number; height: number };
 
 /**
  * Many static glTF props, instanced. Each model's props are sorted into square chunks (row order) on the GPU;
  * a frame picks the chunks in the view and in range (lod by distance), packs their props into one stream buffer
- * (only when the pick changes) and draws each model's lod in one call per part.
+ * (only when the pick changes) and draws each model's lod in one call per part. Flat card lods of every model draw together in one call.
  */
 export class Scatter {
     private o: ScatterOptions;
@@ -33,6 +35,10 @@ export class Scatter {
     /** this frame's props, packed per group and lod (CPU copy + GPU stream buffer) */
     private stream = new Float32Array(0);
     private buffer: WebGLBuffer;
+    /** this frame's cards (`CARD_STRIDE` floats each) */
+    private cardStream = new Float32Array(0);
+    private cardBuffer: WebGLBuffer;
+    private cardCount = 0;
     private sign = 0;
     private cells: Cell[] = [];
     private cellOf = new Map<number, Cell>();
@@ -49,6 +55,7 @@ export class Scatter {
     constructor(readonly renderer: Renderer, readonly url: (model: string, lod: number) => string | undefined, options: Partial<ScatterOptions> = {}) {
         this.o = { ...DEFAULTS, ...options, distance: { ...DEFAULTS.distance, ...options.distance }, surface: { ...DEFAULTS.surface, ...options.surface } };
         this.buffer = renderer.gl.createBuffer()!;
+        this.cardBuffer = renderer.gl.createBuffer()!;
     }
 
     get options(): Readonly<ScatterOptions> { return this.o; }
@@ -70,7 +77,7 @@ export class Scatter {
             const model = await this.load(g.name, lod);
             g.models[lod] = model;
             // a flat model (no depth) is a card: drawn turned to the camera
-            g.cards[lod] = !!model && model.bounds.max[2] - model.bounds.min[2] < 1e-4;
+            g.cards[lod] = model && card(model);
             if (lod === 0 && model) g.height = model.bounds.max[1] || 1;
         }))));
     }
@@ -116,42 +123,75 @@ export class Scatter {
                 total += counts[lod];
             }
         }
-        // 2. pack the picked props into one stream buffer (only when the pick changed)
+        // 2. pack the picked props into one stream buffer, cards into their own (only when the pick changed)
         const gl = r.gl;
         if (sign !== this.sign || total !== this.packed)
         {
-            if (this.stream.length < total * S) this.stream = new Float32Array(Math.ceil(total * 1.25) * S);
-            let at = 0;
-            for (const p of picks) for (const c of p.chunks)
+            const C = CARD_STRIDE;
+            let at = 0, cards = 0;
+            for (const p of picks) if (p.g.cards[p.lod]) cards += p.count;
+            if (this.stream.length < (total - cards) * S) this.stream = new Float32Array(Math.ceil((total - cards) * 1.25) * S);
+            if (this.cardStream.length < cards * C) this.cardStream = new Float32Array(Math.ceil(cards * 1.25) * C);
+            const cs = this.cardStream;
+            let ci = 0;
+            for (const p of picks)
             {
-                this.stream.set(p.g.data.subarray(c.first * S, (c.first + c.count) * S), at * S);
-                at += c.count;
+                const card = p.g.cards[p.lod], far = this.distance(p.g.kind);
+                for (const c of p.chunks)
+                {
+                    if (!card)
+                    {
+                        this.stream.set(p.g.data.subarray(c.first * S, (c.first + c.count) * S), at * S);
+                        at += c.count;
+                        continue;
+                    }
+                    for (let i = c.first; i < c.first + c.count; i++, ci++)
+                    {
+                        const o = ci * C;
+                        cs.set(p.g.data.subarray(i * S, i * S + 7), o);
+                        cs[o + 7] = far;
+                        cs.set(card.shape, o + 8);
+                        cs.set(card.rgb, o + 12);
+                        cs[o + 15] = p.g.height;
+                    }
+                }
             }
             gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, this.stream.subarray(0, total * S), gl.STREAM_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, this.stream.subarray(0, at * S), gl.STREAM_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.cardBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, cs.subarray(0, cards * C), gl.STREAM_DRAW);
+            this.cardCount = cards;
             this.sign = sign;
             this.packed = total;
         }
-        // 3. one call per group, lod and part
+        // 3. one call per group, lod and part; then every card in one call
         let first = 0;
         for (const { g, lod, count } of picks)
         {
+            this.drawn += count;
+            this.perLod[lod] += count;
+            if (g.cards[lod]) continue;
             const far = this.distance(g.kind), fade: [number, number] = [far * (1 - this.o.fade), far];
             const surface = { ...this.o.surface, gloss: this.o.gloss[g.kind] ?? 0 };
             for (const p of g.models[lod]!.parts)
             {
-                r.drawInstanced(p.mesh, p.matrix, { buffer: this.buffer, first, count, time, wind, swayHeight: g.height, fade, surface, billboard: g.cards[lod] }, { maps: p.maps });
+                r.drawInstanced(p.mesh, p.matrix, { buffer: this.buffer, first, count, time, wind, swayHeight: g.height, fade, surface }, { maps: p.maps });
                 this.calls++;
                 this.triangles += p.mesh.count / 3 * count;
             }
             first += count;
-            this.drawn += count;
-            this.perLod[lod] += count;
+        }
+        if (this.cardCount)
+        {
+            r.drawCards({ buffer: this.cardBuffer, count: this.cardCount, time, wind, fadePart: this.o.fade, surface: { ...this.o.surface, gloss: 0 } });
+            this.calls++;
+            this.triangles += this.cardCount * 2;
         }
     }
 
     destroy() {
         this.renderer.gl.deleteBuffer(this.buffer);
+        this.renderer.gl.deleteBuffer(this.cardBuffer);
         this.groups = [];
         this.models.forEach(m => m.then(model => model?.destroy()));
         this.models.clear();
@@ -203,4 +243,16 @@ export class Scatter {
         c.reach = Math.max(c.reach, reach);
         return c.index;
     }
+}
+
+/** a flat model (no depth, one part) as a card: width and height from its bounds, colour from its first vertex; undefined = not flat */
+function card(model: Model): Card | undefined {
+    const { min, max } = model.bounds;
+    if (max[2] - min[2] >= 1e-4) return undefined;
+    const p = model.gltf.meshes[0]?.primitives[0];
+    if (!p) return undefined;
+    const c = p.colors ?? [1, 1, 1];
+    // 3 corners: a triangle (point on top), else a quad
+    const top = p.positions.length / 3 === 3 ? 0 : 1;
+    return { shape: [Math.max(-min[0], max[0]), min[1], max[1], top], rgb: [c[0], c[1], c[2]] };
 }

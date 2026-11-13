@@ -63,6 +63,43 @@ void main() {
     gl_Position = projection * view * world;
 }`;
 
+/**
+ * Far cards of many models in one call: a unit quad (x -1..1, y 0..1) shaped per instance, always facing the eye.
+ * Per instance 6 `x y z scale`, 7 `yaw tint sway far`, 8 `halfWidth bottom top topWidth` (topWidth 1 quad, 0 triangle),
+ * 9 `r g b swayHeight`; past `far * (1 - fadePart)` metres instances shrink away until `far`.
+ */
+const cards = `#version 300 es
+layout(location = 0) in vec3 position;
+layout(location = 6) in vec4 instance;
+layout(location = 7) in vec4 extra;
+layout(location = 8) in vec4 shape;
+layout(location = 9) in vec4 colour;
+${TEXTURED_VERTEX_GLSL}
+uniform mat4 view, projection;
+uniform vec3 wind, eye;
+uniform float time, fadePart;
+out vec3 vNormal;
+out vec4 vColor;
+out vec3 vWorld;
+void main() {
+    vec2 toEye = eye.xz - instance.xz;
+    float yaw = atan(toEye.x, toEye.y), c = cos(yaw), s = sin(yaw);
+    vec3 local = vec3(position.x * shape.x * mix(1.0, shape.w, position.y), mix(shape.y, shape.z, position.y), 0.0);
+    float far = extra.w;
+    float shrink = 1.0 - smoothstep(far * (1.0 - fadePart), far, length(instance.xyz - eye));
+    vec3 p = local * instance.w * shrink;
+    vec3 r = vec3(p.x * c + p.z * s, p.y, -p.x * s + p.z * c);
+    float h = clamp(local.y / max(colour.w, 1e-3), 0.0, 1.0);
+    float phase = dot(instance.xz, vec2(.37, .21));
+    r.xz += wind.xy * extra.z * wind.z * h * h * (.6 + .4 * sin(time * 1.7 + phase)) * instance.w;
+    vec4 world = vec4(r + instance.xyz, 1.0);
+    vWorld = world.xyz;
+    vNormal = normalize(vec3(s, 0.0, c) + vec3(0.0, 1.2, 0.0)); // light them like a round crown
+    vColor = vec4(colour.rgb * extra.y, 1.0);
+    texturedVertex();
+    gl_Position = projection * view * world;
+}`;
+
 const fragment = `#version 300 es
 precision highp float;
 in vec3 vNormal;
@@ -118,4 +155,5 @@ export const SHADERS = {
     mesh: { vertex: vertex(false), fragment },
     skin: { vertex: vertex(true), fragment },
     instanced: { vertex: instanced, fragment },
+    cards: { vertex: cards, fragment },
 };

@@ -74,10 +74,18 @@ export type Instances = { buffer: WebGLBuffer; first: number; count: number; tim
 export type Surface = { bands: number; soft: number; grit: number; gloss: number };
 export const INSTANCE_STRIDE = 8;
 
+/**
+ * Far cards for `drawCards`: `CARD_STRIDE` floats each in `buffer` (see the cards shader):
+ * `x y z scale`, `yaw tint sway far`, `halfWidth bottom top topWidth` (1 quad, 0 triangle), `r g b swayHeight`.
+ * `fadePart`: last part of each card's `far` where it shrinks away.
+ */
+export type Cards = { buffer: WebGLBuffer; first?: number; count: number; time?: number; wind?: Vec3; fadePart?: number; surface?: Partial<Surface> };
+export const CARD_STRIDE = 16;
+
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
-    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", "billboard", ...TEXTURED_UNIFORMS];
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", "billboard", "fadePart", ...TEXTURED_UNIFORMS];
 
 let renderers = 0;
 
@@ -87,7 +95,9 @@ export class Renderer {
     readonly gl: WebGL2RenderingContext;
     /** resolves once the shader programs are linked; draws before that are skipped */
     readonly ready: Promise<void>;
-    private programs?: { mesh: Program; skin: Program; instanced: Program };
+    private programs?: { mesh: Program; skin: Program; instanced: Program; cards: Program };
+    /** unit quad for `drawCards` (made on first use) */
+    private quad?: { vao: WebGLVertexArrayObject; index: WebGLBuffer; vertex: WebGLBuffer };
     private current?: Program;
     private view?: View;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16), model: new Float32Array(16) };
@@ -95,8 +105,8 @@ export class Renderer {
     constructor(readonly layer: Layer3D) {
         this.gl = layer.gl;
         const id = `pw-renderer-${renderers++}`;
-        this.ready = Promise.all([this.compile(id + "-mesh", SHADERS.mesh), this.compile(id + "-skin", SHADERS.skin), this.compile(id + "-instanced", SHADERS.instanced)])
-            .then(([mesh, skin, instanced]) => { this.programs = { mesh, skin, instanced }; });
+        this.ready = Promise.all([this.compile(id + "-mesh", SHADERS.mesh), this.compile(id + "-skin", SHADERS.skin), this.compile(id + "-instanced", SHADERS.instanced), this.compile(id + "-cards", SHADERS.cards)])
+            .then(([mesh, skin, instanced, cards]) => { this.programs = { mesh, skin, instanced, cards }; });
     }
 
     /** Clear (optional colour) and set the camera for the next draws. */
@@ -170,6 +180,59 @@ export class Renderer {
         gl.disableVertexAttribArray(6);
         gl.disableVertexAttribArray(7);
         gl.bindVertexArray(null);
+    }
+
+    /** Far cards of any number of models in one call (all camera facing, shaped and coloured per instance). */
+    drawCards(cards: Cards) {
+        if (!this.programs || cards.count <= 0) return;
+        const p = this.use(this.programs.cards), gl = this.gl, c = cards;
+        gl.uniform4fv(p.uniforms.tint, [1, 1, 1, 1]);
+        gl.uniform1i(p.uniforms.unlit, 0);
+        gl.uniform1i(p.uniforms.mirrored, 0);
+        gl.uniform3fv(p.uniforms.wind, c.wind ?? [1, 0, 0]);
+        gl.uniform1f(p.uniforms.fadePart, c.fadePart ?? 0);
+        gl.uniform1f(p.uniforms.time, c.time ?? 0);
+        const f = c.surface ?? {};
+        gl.uniform1f(p.uniforms.bands, f.bands ?? 0);
+        gl.uniform1f(p.uniforms.soft, f.soft ?? 0);
+        gl.uniform1f(p.uniforms.grit, f.grit ?? 0);
+        gl.uniform1f(p.uniforms.gloss, f.gloss ?? 0);
+        gl.uniform1i(p.uniforms.surfaced, c.surface ? 1 : 0);
+        bindMaps(gl, p.uniforms, undefined);
+        const q = this.quad ??= this.makeQuad();
+        gl.bindVertexArray(q.vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, c.buffer);
+        const bytes = CARD_STRIDE * 4, at = (c.first ?? 0) * bytes;
+        for (let k = 0; k < 4; k++)
+        {
+            gl.enableVertexAttribArray(6 + k);
+            gl.vertexAttribPointer(6 + k, 4, gl.FLOAT, false, bytes, at + k * 16);
+            gl.vertexAttribDivisor(6 + k, 1);
+        }
+        gl.drawElementsInstanced(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0, c.count);
+        gl.bindVertexArray(null);
+    }
+
+    destroy() {
+        if (!this.quad) return;
+        const gl = this.gl;
+        gl.deleteVertexArray(this.quad.vao);
+        gl.deleteBuffer(this.quad.vertex);
+        gl.deleteBuffer(this.quad.index);
+        this.quad = undefined;
+    }
+
+    private makeQuad() {
+        const gl = this.gl, vao = gl.createVertexArray()!, vertex = gl.createBuffer()!, index = gl.createBuffer()!;
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertex);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 0, 0, 1, 0, 0, 1, 1, 0, -1, 1, 0]), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
+        gl.bindVertexArray(null);
+        return { vao, vertex, index };
     }
 
     private use(p: Program) {
