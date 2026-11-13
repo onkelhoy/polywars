@@ -69,3 +69,6 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 - `node tools/audit-ways.mjs [low|medium] [seed]`: lists way faults (bridges, tight curves, steps, junction gaps, overlaps, lake steps). Env `AT=x,z`, `CHAIN=id`, `WATER=x,z`, `TUNNELS=1`. World view runs at medium.
 - `node tools/world-shot.mjs <prefix> "x,z,dist,yaw,pitch" ...`: world view screenshots (dev server on :4000, run `npm run build` in changed packages first).
 - Roads are routed on final ground + water (`fix` hook), one chain per through road (shared junction spots), `structures` auto bridges/tunnels, `levelCrossings`, `trimTunnels`.
+- Tunnels: `tunnelHoles` (roads/terrain.ts, fix hook) raises ground over the tube (cover 2 m), cuts a forecourt, holes right behind each face and sets the ground there to the portal hood top. Terrain drops every triangle touching a hole node. Ways draws `tunnel()` tube + road floor + `portal(depth 0, hood 8, apron 4)`. Change the cover → change the portal `top` in ways too.
+- Junctions: `unzip` (roads.ts) splits the bigger way where a smaller one really parts; ways `trimAtPads` cuts non-through arms back to the pad edge. Bridge `gaps` open parapets / trusses where ways join a deck.
+- `tools/world-shot.mjs` takes an optional 6th value: target y (e.g. inside a tunnel).
