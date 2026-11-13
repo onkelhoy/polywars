@@ -1,7 +1,7 @@
 import { merge, sweep, type Profile } from "@polywar/sweep";
 import { track } from "@polywar/rail";
 import { PORTAL, bridge, bridgeFor, fence, logSteps, portal, tunnel } from "@polywar/bridges";
-import { junctionPads } from "./junctions";
+import { junctionPads, trimAtPads } from "./junctions";
 import type { ClassStyle, Mesh, Structure, Vec3, WaysInput, WaysResult } from "./types";
 
 /** paths steeper than this (rise / run, over a few metres) get log steps; only such hot spots, never near roads */
@@ -74,7 +74,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
     };
     let road!: WaysInput["roads"][0];
     const lay = (pts: Vec3[]) => { const t = track(pts); meshes.push(t.lods[0]); sleepers.push(t.sleepers); };
-    for (road of chains(input.roads))
+    for (road of chains(input.junctions ? trimAtPads(input.junctions, input.roads, styles) : input.roads))
     {
         const style = styles[road.class] ?? styles.road, rail = road.class === "rail", trail = road.class === "path" || road.class === "lane";
         const spans = road.spans.length ? road.spans : [{ kind: "ground", from: 0, to: road.points.length - 1 }];

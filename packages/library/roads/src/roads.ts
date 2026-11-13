@@ -126,6 +126,7 @@ export class Roads {
 
         t0 = performance.now();
         const { roads, out } = this.shape(raws.filter(r => r.nodes.length > 1), junctions);
+        unzip(roads, out);
         levelCrossings(roads, o.step);
         trimTunnels(roads, this.heightAt);
         for (const r of roads)
@@ -399,6 +400,87 @@ export function levelCrossings(roads: Road[], step: number) {
         const [hi, lo] = weight(A) >= weight(Bw) ? [[A, ia, s, ya], [Bw, ib, t, yb]] as const : [[Bw, ib, t, yb], [A, ia, s, ya]] as const;
         ramp(lo[0], lo[1], lo[2], hi[3]);
     }
+}
+
+/**
+ * Two ways leaving a junction the same way (one runs along the other before it parts): the smaller one starts where
+ * it really leaves the bigger one's surface, the bigger one gets a junction there (split, same chain so it still
+ * draws as one sweep). One running along all the way is dropped. In place; road ids are renumbered.
+ */
+export function unzip(roads: Road[], out: Junction[], maxAngle = .45) {
+    const seg = (p: number[], a: number[], b: number[]) => {
+        const dx = b[0] - a[0], dz = b[2] - a[2], t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[2] - a[2]) * dz) / (dx * dx + dz * dz || 1)));
+        return { d: Math.hypot(p[0] - a[0] - dx * t, p[2] - a[2] - dz * t), t };
+    };
+    for (let guard = 0; guard < 200; guard++)
+    {
+        let changed = false;
+        const ends = new Map<number, { r: Road; start: boolean }[]>();
+        for (const r of roads) if (r.class !== "rail") for (const [j, start] of [[r.from, true], [r.to, false]] as const) (ends.get(j) ?? ends.set(j, []).get(j)!).push({ r, start });
+        const outward = (e: { r: Road; start: boolean }) => e.start ? e.r.points : e.r.points.slice().reverse();
+        const heading = (pts: number[][]) => { const k = Math.min(3, pts.length - 1); return Math.atan2(pts[k][2] - pts[0][2], pts[k][0] - pts[0][0]); };
+        for (const [, list] of ends)
+        {
+            for (let x = 0; x < list.length && !changed; x++) for (let y = x + 1; y < list.length && !changed; y++)
+            {
+                if (list[x].r === list[y].r) continue;
+                let d = Math.abs(heading(outward(list[x])) - heading(outward(list[y]))); d = Math.min(d, Math.PI * 2 - d);
+                if (d > maxAngle) continue;
+                // B: the smaller (then shorter) one leaves A's chain
+                const [A, B] = RANK[list[x].r.class] > RANK[list[y].r.class] || (RANK[list[x].r.class] === RANK[list[y].r.class] && list[x].r.points.length >= list[y].r.points.length) ? [list[x], list[y]] : [list[y], list[x]];
+                if (B.r.spans.some(sp => sp.kind !== "ground")) continue;
+                const along = roads.filter(r => r !== B.r && (r === A.r || (A.r.chain !== undefined && r.chain === A.r.chain)));
+                const near = (p: number[]) => {
+                    let best = { d: Infinity, r: A.r, i: 0, t: 0 };
+                    for (const r of along) for (let i = 0; i < r.points.length - 1; i++) { const q = seg(p, r.points[i], r.points[i + 1]); if (q.d < best.d) best = { d: q.d, r, i, t: q.t }; }
+                    return best;
+                };
+                const P = outward(B), on = A.r.width / 2, clear = (A.r.width + B.r.width) / 2 + .5;
+                let k = 0;
+                while (k + 1 < P.length && near(P[k + 1]).d < on) k++;
+                let free = k + 1;
+                while (free < P.length && near(P[free]).d < clear) free++;
+                if (free >= P.length)
+                {
+                    // along the bigger way all the way: drop it
+                    roads.splice(roads.indexOf(B.r), 1);
+                    changed = true; continue;
+                }
+                if (k < 2) continue;
+                // split A's chain at the point nearest P[k]
+                const q = near(P[k]), R = q.r, m = q.t < .5 ? q.i : q.i + 1;
+                let jid: number;
+                if (m <= 0) jid = R.from;
+                else if (m >= R.points.length - 1) jid = R.to;
+                else
+                {
+                    const pt = R.points[m];
+                    jid = out.length;
+                    out.push({ id: jid, x: pt[0], z: pt[2], y: pt[1], roads: [] });
+                    const tail: Road = {
+                        ...R, from: jid, points: R.points.slice(m),
+                        spans: R.spans.filter(sp => sp.to > m).map(sp => ({ ...sp, from: Math.max(0, sp.from - m), to: sp.to - m })),
+                    };
+                    R.points = R.points.slice(0, m + 1);
+                    R.spans = R.spans.filter(sp => sp.from < m).map(sp => ({ ...sp, to: Math.min(sp.to, m) }));
+                    R.to = jid;
+                    roads.splice(roads.indexOf(R) + 1, 0, tail);
+                }
+                const J = out[jid], head: [number, number, number] = [J.x, J.y, J.z];
+                const rest = P.slice(k + 1).map(p => [p[0], p[1], p[2]] as [number, number, number]);
+                // ease B's height onto the junction over the first few points
+                for (let i = 0; i < Math.min(3, rest.length - 1); i++) { const w = 1 - (i + 1) / 4; rest[i][1] += (head[1] - rest[i][1]) * w; }
+                const pts = [head, ...rest], n = pts.length - 1;
+                B.r.points = B.start ? pts : pts.reverse();
+                if (B.start) B.r.from = jid; else B.r.to = jid;
+                B.r.spans = [{ kind: "ground", from: 0, to: n }];
+                changed = true;
+            }
+            if (changed) break;
+        }
+        if (!changed) break;
+    }
+    roads.forEach((r, i) => r.id = i);
 }
 
 /** opening height per class at a tunnel mouth, metres (portals in `@polywar/bridges` match) */

@@ -119,6 +119,13 @@ for (const j of net.junctions)
     for (const e of ends) for (const f of ends) dy = Math.max(dy, Math.abs(e[1] - f[1]));
     if (gap > .5) add("junction gap", gap, `${at([j.x, 0, j.z])} ${gap.toFixed(1)} m`);
     if (dy > .3) add("junction height step", dy, `${at([j.x, 0, j.z])} ${dy.toFixed(2)} m, ${j.roads.length} arms`);
+    // narrow junction: two non-rail arms less than 35° apart (pads / overlapping strips)
+    for (let a = 0; a < j.roads.length; a++) for (let b = a + 1; b < j.roads.length; b++)
+    {
+        if (j.roads[a].class === "rail" || j.roads[b].class === "rail") continue;
+        let dd = Math.abs(j.roads[a].angle - j.roads[b].angle); dd = Math.min(dd, Math.PI * 2 - dd);
+        if (dd < .61) add(`junction narrow (${j.roads[a].class}/${j.roads[b].class})`, 35 - dd * 57.3, `${at([j.x, 0, j.z])} ${(dd * 57.3).toFixed(0)}°`);
+    }
     // through roads: 2 same class arms ~opposite = should be one curve (kink check)
     for (let a = 0; a < j.roads.length; a++) for (let b = a + 1; b < j.roads.length; b++)
     {
