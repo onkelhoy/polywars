@@ -31,6 +31,8 @@ export class Terrain {
     private lakes: Mesh | null = null;
     private riverWater: Mesh | null = null;
     private meshKey = "";
+    /** draw river water ribbons (off while rivers are debug lines) */
+    ribbons = false;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     /** the current map, undefined until the first generation is done */
     data?: TerrainData;
@@ -219,7 +221,7 @@ export class Terrain {
             this.skirtMesh = skirt(gl, d, edge === "ocean" ? -.12 * o.height : o.edge.level * o.height, o.mesh.skirt, BIOME(edge === "ocean" ? "ocean" : "grassland"));
         this.ocean = waterMesh(gl, d, 1, step, edge === "ocean" ? o.mesh.skirt : 0);
         this.lakes = waterMesh(gl, d, 2, step);
-        this.riverWater = riverMesh(gl, d.rivers);
+        this.riverWater = this.ribbons ? riverMesh(gl, d.rivers) : null;
         // signed metres to the shore of the sea and the lakes, smooth, for the wave lines
         const signed = new Float32Array(d.n * d.n);
         for (let k = 0; k < signed.length; k++) signed[k] = d.water[k] === 1 || d.water[k] === 2 ? d.toLand[k] : -d.toWater[k];

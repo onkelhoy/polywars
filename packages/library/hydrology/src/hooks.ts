@@ -1,0 +1,44 @@
+import { Random } from "@papit/random";
+import { carveBeds, carveValleys } from "./carve";
+import { digLakes, fillLakes } from "./lakes";
+import { plan, type Path } from "./network";
+import { resolve } from "./presets";
+import type { Ground, HydrologyOptions, Network, Wet } from "./types";
+
+export type HydrologyHooks = {
+    key: string;
+    features: (raw: Ground) => { hard: Float32Array };
+    fix: (data: Wet & { rivers: { points: [number, number, number, number][] }[] }) => void;
+    /** the latest network (after `fix`) */
+    network: Network;
+    /** the planned paths (before carving) */
+    paths: Path[];
+};
+
+/**
+ * Terrain hooks (`@polywar/terrain` `TerrainHooks`): before erosion dig highland lakes, plan the streams on the raw map
+ * and carve their valleys; after erosion fill the highland lakes, carve the exact beds and add river water.
+ * River lines go into the terrain's `rivers` list too.
+ */
+export function hydrologyHooks(options: Partial<HydrologyOptions> = {}): HydrologyHooks {
+    const o = resolve(options);
+    const h: HydrologyHooks = {
+        key: JSON.stringify(o),
+        network: { streams: [], lakes: [] },
+        paths: [],
+        features: raw => {
+            const rng = new Random(o.seed), hard = new Float32Array(raw.n * raw.n);
+            const lakes = digLakes(raw, o, rng, hard);
+            h.paths = plan(raw, o, lakes, rng);
+            carveValleys(h.paths, raw, o, hard);
+            h.network = { streams: [], lakes };
+            return { hard };
+        },
+        fix: data => {
+            fillLakes(h.network.lakes, data);
+            h.network.streams = carveBeds(h.paths, data, o);
+            for (const s of h.network.streams) data.rivers.push({ points: s.points });
+        },
+    };
+    return h;
+}

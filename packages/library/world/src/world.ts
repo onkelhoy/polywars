@@ -9,6 +9,8 @@ import { BIOMES } from "@polywar/terrain-material";
 import { upload } from "@papit/game-mesh";
 import { roadEdge, roadHooks, type RoadHooks } from "@polywar/roads";
 import { generateSites } from "@polywar/sites";
+import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
+import type { TerrainHooks } from "@polywar/terrain";
 
 /** debug road lines per class (unlit, bright) */
 const ROAD_COLOUR: Record<string, [number, number, number]> = { highway: [1, .75, 0], road: [1, 1, 1], lane: [1, .45, .1], path: [1, .2, .8], rail: [0, .9, 1] };
@@ -44,21 +46,25 @@ export class World {
     private data?: TerrainData;
     /** sites + roads, built inside the terrain pipeline (before erosion) */
     readonly roads: RoadHooks;
+    /** lakes, streams and rivers, carved inside the terrain pipeline (before roads) */
+    readonly hydrology: HydrologyHooks;
     private roadMesh?: ReturnType<typeof upload>;
+    private riverMesh?: ReturnType<typeof upload>;
     /** made on first use of `view.wire` */
     private wire?: Wire;
     /** after the nature is grown (terrain or ecosystem change) */
     onchange?: (world: World) => void;
 
     constructor(readonly layer: Layer3D, readonly renderer: Renderer, readonly nature: NatureList, settings: Partial<WorldSettings> | string = {}, view: Partial<WorldView> = {}) {
-        this.v = { quality: "medium", grass: true, props: true, roads: true, style: "pixel", wire: "off", ...view };
+        this.v = { quality: "medium", grass: true, props: true, roads: true, rivers: true, style: "pixel", wire: "off", ...view };
         const s = typeof settings === "string" ? World.parse(settings) : settings;
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
         this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
         this.roads = roadHooks(raw => generateSites(raw, raw.cities, s.sites ?? {}), s.roads ?? {}, JSON.stringify(s.sites ?? {}));
-        this.terrain = new Terrain(layer, s.terrain ?? {}, this.roads);
+        this.hydrology = hydrologyHooks(s.hydrology ?? {});
+        this.terrain = new Terrain(layer, s.terrain ?? {}, combine(this.hydrology, this.roads));
         this.terrain.onchange = data => this.grow(data);
     }
 
@@ -111,6 +117,7 @@ export class World {
         p?.end();
         if (wire) { for (const [m, wallDrop] of ground) wire.draw(view, m, { wallDrop }); this.renderer.reset(); }
         if (!this.data) return;
+        if (this.v.rivers && this.riverMesh) this.renderer.draw(this.riverMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         if (this.v.roads && this.roadMesh) this.renderer.draw(this.roadMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
         if (this.v.props) this.scatter.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
@@ -149,6 +156,7 @@ export class World {
         this.data = data;
         const look = this.terrain.material.look;
         this.buildRoads();
+        this.buildRivers();
         const road = this.roads.roads ? roadEdge(this.roads.roads) : undefined;
         this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
     }
@@ -169,6 +177,38 @@ export class World {
         for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
         const h = this.terrain.data?.size ?? 1;
         this.roadMesh = upload(this.layer.gl, { positions, normals, colors: new Float32Array(col), bounds: { min: { x: -h, y: -h, z: -h }, max: { x: h, y: h, z: h }, radius: h * 2 } });
+    }
+
+    /** debug: river lines (no water mesh yet): light blue streams to deep blue rivers, banks for wide ones, white falls, lake rims */
+    private buildRivers() {
+        this.riverMesh = undefined;
+        const pos: number[] = [], col: number[] = [], line = (a: number[], b: number[], c: number[]) => { pos.push(...a, ...b); col.push(...c, 1, ...c, 1); };
+        const at = (x: number, y: number, z: number) => [x, Math.max(y, this.terrain.groundAt(x, z)) + .5, z];
+        for (const s of this.hydrology.network.streams)
+        {
+            const t = Math.min(1, (s.order - 1) / 3), c = [.45 - .4 * t, .8 - .4 * t, 1];
+            const p = s.points;
+            for (let i = 0; i < p.length - 1; i++)
+            {
+                const [ax, ay, az, w] = p[i], [bx, by, bz] = p[i + 1];
+                line(at(ax, ay, az), at(bx, by, bz), c);
+                if (w < 8) continue;
+                // banks
+                const l = Math.hypot(bx - ax, bz - az) || 1, nx = -(bz - az) / l * w / 2, nz = (bx - ax) / l * w / 2;
+                for (const f of [-1, 1]) line(at(ax + nx * f, ay, az + nz * f), at(bx + nx * f, by, bz + nz * f), c);
+            }
+            for (const f of s.falls) if (p[f - 1]) { const [x, y, z] = p[f], top = p[f - 1][1]; line([x, y, z], [x, top + 10, z], [1, 1, 1]); }
+        }
+        for (const l of this.hydrology.network.lakes) for (let a = 0; a < 48; a++)
+        {
+            const r = l.radius, a0 = a / 48 * Math.PI * 2, a1 = (a + 1) / 48 * Math.PI * 2;
+            line(at(l.x + Math.cos(a0) * r, l.level, l.z + Math.sin(a0) * r), at(l.x + Math.cos(a1) * r, l.level, l.z + Math.sin(a1) * r), [0, .3, 1]);
+        }
+        if (!pos.length) return;
+        const positions = new Float32Array(pos), normals = new Float32Array(pos.length);
+        for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
+        const h = this.terrain.data?.size ?? 1;
+        this.riverMesh = upload(this.layer.gl, { positions, normals, colors: new Float32Array(col), bounds: { min: { x: -h, y: -h, z: -h }, max: { x: h, y: h, z: h }, radius: h * 2 } });
     }
 
     /** ecosystem grown: hand props to the scatter and replant the grass */
@@ -252,4 +292,21 @@ class Profiler {
             this.queries.shift();
         }
     }
+}
+
+/** several terrain hooks as one, run in order (keys joined) */
+function combine(...hooks: TerrainHooks[]): TerrainHooks {
+    return {
+        get key() { return hooks.map(h => h.key ?? "").join("|"); },
+        features: async raw => {
+            let hard: Float32Array | undefined;
+            for (const h of hooks)
+            {
+                const f = await h.features?.(raw);
+                if (f && f.hard) { if (!hard) hard = f.hard; else for (let i = 0; i < hard.length; i++) hard[i] = Math.max(hard[i], f.hard[i]); }
+            }
+            return hard ? { hard } : undefined;
+        },
+        fix: async data => { for (const h of hooks) await h.fix?.(data); },
+    };
 }

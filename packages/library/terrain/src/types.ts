@@ -95,8 +95,6 @@ export type TerrainOptions = {
         /** moisture above which land is forest */
         forest: number;
     };
-    /** rivers where the catchment passes `catchment` m²; `width` / `depth` metres at that size, growing downstream; shorter than `length` metres are dropped; `cut` metres a river may cut through a rim to reach the next lake / the sea */
-    rivers: { enabled: boolean; cut: number; catchment: number; width: number; maxWidth: number; depth: number; length: number };
     /** flat dry spots for towns, best first */
     cities: { count: number; radius: number; spacing: number; maxSlope: number; flatten: number; water: number };
     /**

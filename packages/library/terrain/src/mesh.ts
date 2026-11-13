@@ -74,7 +74,8 @@ export function skirt(gl: WebGL2RenderingContext, d: TerrainData, level: number,
 }
 
 /**
- * Water surfaces as quads: every cell (of `step` nodes) touching water of `kind` (1 ocean, 2 lake) at its surface level.
+ * Water surfaces as quads: every cell (of `step` nodes) touching water of `kind` (1 ocean, 2 lake) at its surface level;
+ * open water away from shores merged into big quads (quadtree, flat so no cracks).
  * Water material attributes: 1 (depth, shore distance), 2 (world x z, no flow, swell), 3 (toward land). Swell fades out near the map
  * border so the ocean ring (out to `skirt` metres, flat) meets it without gaps.
  */
@@ -87,12 +88,11 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
         for (const [x, y, z, depth, shore, waves, gx = 0, gz = 0] of corners) { pos.push(x, y, z); info.push(depth, shore); flow.push(x, z, 0, waves); dir.push(gx, gz); }
         idx.push(b, b + 3, b + 1, b + 1, b + 3, b + 2);
     };
-    for (let j = 0; j < n - 1; j += step) for (let i = 0; i < n - 1; i += step)
-    {
-        const i1 = Math.min(n - 1, i + step), j1 = Math.min(n - 1, j + step), ks = [j * n + i, j * n + i1, j1 * n + i1, j1 * n + i];
+    const emit = (i: number, j: number, i1: number, j1: number) => {
+        const ks = [j * n + i, j * n + i1, j1 * n + i1, j1 * n + i];
         let level = -Infinity;
         for (const k of ks) if (d.water[k] === kind) level = Math.max(level, d.surface[k]);
-        if (level === -Infinity) continue;
+        if (level === -Infinity) return;
         const xy = [[i, j], [i1, j], [i1, j1], [i, j1]];
         quad(ks.map((k, c) => {
             const [a, b] = xy[c], edge = Math.min(a, b, n - 1 - a, n - 1 - b);
@@ -100,7 +100,30 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
             const r = 3 * step, gx = land(a - r, b) - land(a + r, b), gz = land(a, b - r) - land(a, b + r);
             return [a * d.cell - half, level, b * d.cell - half, level - d.height[k], d.toLand[k], d.waves[k] * Math.min(1, edge / fade), gx, gz];
         }));
-    }
+    };
+    // open water far from shore and border: one quad per block (quadtree), split down to `step` cells near shores
+    const open = (i: number, j: number, s: number) => {
+        if (i + s > n - 1 || j + s > n - 1 || Math.min(i, j, n - 1 - i - s, n - 1 - j - s) < fade) return false;
+        const level = d.surface[j * n + i];
+        let lo = Infinity, hi = -Infinity;
+        for (let b = j; b <= j + s; b += step) for (let a = i; a <= i + s; a += step)
+        {
+            const k = b * n + a;
+            if (d.water[k] !== kind || d.surface[k] !== level || d.toLand[k] < 40) return false;
+            const depth = level - d.height[k];
+            lo = Math.min(lo, depth); hi = Math.max(hi, depth);
+        }
+        return hi - lo < Math.max(3, lo * .3);
+    };
+    const block = (i: number, j: number, s: number) => {
+        if (i >= n - 1 || j >= n - 1) return;
+        if (s <= step) { emit(i, j, Math.min(n - 1, i + step), Math.min(n - 1, j + step)); return; }
+        if (open(i, j, s)) { emit(i, j, i + s, j + s); return; }
+        const h = s / 2;
+        block(i, j, h); block(i + h, j, h); block(i, j + h, h); block(i + h, j + h, h);
+    };
+    const big = step * 32;
+    for (let j = 0; j < n - 1; j += big) for (let i = 0; i < n - 1; i += big) block(i, j, big);
     if (kind === 1 && skirtSize > 0)
     {
         const o = half + skirtSize, y = d.seaLevel, deep = d.seaLevel + d.size, far = 1e4;

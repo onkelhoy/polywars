@@ -1,7 +1,6 @@
 import { cities } from "./cities";
 import { biomes, climate } from "./climate";
 import { erode } from "./erosion";
-import { rivers } from "./rivers";
 import { Pace } from "./pace";
 import { resolve, type Resolved } from "./presets";
 import { shape } from "./shape";
@@ -15,7 +14,7 @@ const STAGES = {
     features: (_o: Resolved) => [],
     erosion: (o: Resolved) => [o.erosion, o.q.droplets],
     water: (o: Resolved) => [o.lakes, o.climate.moisture],
-    rivers: (o: Resolved) => [o.rivers],
+    rivers: (_: Resolved) => [],
     climate: (o: Resolved) => [o.climate],
     biomes: (o: Resolved) => [o.biomes],
 } as const;
@@ -124,10 +123,11 @@ export class Generator {
         if ((key = stale("rivers")))
         {
             const w = c.water!, r = { height: w.height.slice(), water: w.water.slice(), surface: w.surface.slice() };
-            const list = rivers(o.rivers, { n, cell, size: o.size, ...r, down: w.down, acc: w.acc });
-            const toWater = distance(n, cell, k => r.water[k] > 0);
+            // rivers come from hooks (`fix` pushes into the list)
+            const list: TerrainData["rivers"] = [];
             const city = c.cities!.cities.map(x => ({ ...x }));
-            await this.hooks.fix?.({ n, cell, size: o.size, ...r, rivers: list, cities: city, seaLevel, toWater });
+            await this.hooks.fix?.({ n, cell, size: o.size, ...r, rivers: list, cities: city, seaLevel, toWater: distance(n, cell, k => r.water[k] > 0) });
+            const toWater = distance(n, cell, k => r.water[k] > 0);
             const toLand = distance(n, cell, k => r.water[k] === 0 || r.water[k] === 3);
             c.rivers = { ...r, slope: slopes(r.height, n, cell), rivers: list, toWater, toLand, waves: waveScale(r.water, toLand, n) };
             this.keys.rivers = key;

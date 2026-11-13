@@ -58,6 +58,7 @@
     "@polywar/scatter": "*",
     "@polywar/renderer": "*",
     "@polywar/roads": "*",
+    "@polywar/hydrology": "*",
     "@polywar/sites": "*",
     "@papit/game-mesh": "*"
   },
