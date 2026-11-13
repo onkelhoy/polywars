@@ -95,8 +95,9 @@ export class Grass {
     /**
      * Window planting: keep the chunks within `window` metres of x / z planted (call it each frame with the camera;
      * it only works when the chunk set changes). Chunks come out the same every time (seeded per chunk).
+     * At most `budget` new chunks are planted per call; the old set stays drawn until the window is complete, then one upload.
      */
-    follow(x: number, z: number) {
+    follow(x: number, z: number, budget = 3) {
         this.center = [x, z];
         const pl = this.planting;
         if (!pl?.window) return;
@@ -116,14 +117,18 @@ export class Grass {
         // density so a full window (the chunks really kept) stays under the cap
         const density = Math.min(this.o.q.density, this.o.q.maxTufts / Math.max(1, inside.length * chunk * chunk));
         const keep: ChunkTufts[] = [], wanted = new Set<string>();
+        let missing = false;
         for (const [i, j] of inside)
         {
             const k = `${i}:${j}`;
             wanted.add(k);
             let c = this.cache.get(k);
-            if (!c) this.cache.set(k, c = plantChunk(pl, density, chunk, i, j, this.o.sizeJitter));
-            keep.push(c);
+            if (!c && budget > 0) { this.cache.set(k, c = plantChunk(pl, density, chunk, i, j, this.o.sizeJitter)); budget--; }
+            if (c) keep.push(c);
+            else missing = true;
         }
+        // not done: try again next call (the old window stays drawn)
+        if (missing) { this.shown = ""; return; }
         // forget chunks well outside
         for (const [k, c] of this.cache) if (!wanted.has(k) && Math.hypot(pl.area.x + (c.i + .5) * chunk - x, pl.area.z + (c.j + .5) * chunk - z) > r * 1.5 + chunk) this.cache.delete(k);
         this.upload(pack(pl, chunk, keep, density, density < this.o.q.density));

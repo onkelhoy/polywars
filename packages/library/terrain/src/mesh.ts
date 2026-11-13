@@ -1,7 +1,8 @@
 import { BIOMES } from "@polywar/terrain-material";
 import type { River, TerrainData } from "./types";
 
-export type Mesh = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; x: number; y: number; z: number; radius: number };
+/** `indices`: CPU copy of the triangles (kept for debug views, e.g. a wireframe) */
+export type Mesh = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; indices?: Uint32Array; x: number; y: number; z: number; radius: number };
 type Attribute = [Float32Array, number];
 
 export function upload(gl: WebGL2RenderingContext, attributes: Attribute[], indices: Uint32Array, shared?: WebGLBuffer): Omit<Mesh, "x" | "y" | "z" | "radius"> {
@@ -20,7 +21,7 @@ export function upload(gl: WebGL2RenderingContext, attributes: Attribute[], indi
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
     if (!shared) gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     gl.bindVertexArray(null);
-    return { vao, buffers, count: indices.length };
+    return { vao, buffers, count: indices.length, indices };
 }
 
 export function free(gl: WebGL2RenderingContext, meshes: { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[] }[]) {

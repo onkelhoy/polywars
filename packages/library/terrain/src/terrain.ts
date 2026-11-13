@@ -120,7 +120,12 @@ export class Terrain {
         return s !== null && eye.y < s;
     }
 
-    draw(view: View, light: Light, time = 0) {
+    /**
+     * `fill` false skips the shaded ground and water; `mesh` sees every ground chunk drawn with its wall drop and the far ground
+     * (e.g. to collect them for a wireframe: draw that after, the hook runs between ground draws).
+     */
+    draw(view: View, light: Light, time = 0, hooks: { fill?: boolean; mesh?: (mesh: { vao: WebGLVertexArrayObject; count: number; indices?: Uint32Array }, wallDrop: number) => void } = {}) {
+        const fill = hooks.fill ?? true;
         const gl = this.gl, m = this.material;
         if (!this.data) return;
         const cull = gl.isEnabled(gl.CULL_FACE);
@@ -128,15 +133,24 @@ export class Terrain {
         gl.enable(gl.DEPTH_TEST);
         this.drawn = 0;
         const eye = view.worldPosition ?? { x: 0, y: 0, z: 0 }, surface = this.surfaceAt(eye.x, eye.z), eyeSurface = surface !== null && eye.y < surface ? surface : null;
-        if (m.useGround(view, light, { time, under: this.water.look.under, eyeSurface }))
+        if (!fill || m.useGround(view, light, { time, under: this.water.look.under, eyeSurface }))
         {
             this.f32.view.set(view.viewMatrix);
             this.f32.projection.set(view.projectionMatrix);
             const planes = frustum(this.f32.projection, this.f32.view);
-            this.drawn = this.ground?.draw(eye, (x, y, z, r) => visible(planes, x, y, z, r), m => this.mesh(m)) ?? 0;
+            this.drawn = this.ground?.draw(eye, (x, y, z, r) => visible(planes, x, y, z, r), (m, drop) => {
+                if (fill) { this.material.wallDrop(drop); this.mesh(m); }
+                hooks.mesh?.(m, drop);
+            }) ?? 0;
             this.triangles.used = this.ground?.triangles ?? 0;
-            if (this.skirtMesh) this.mesh(this.skirtMesh);
+            if (fill) this.material.wallDrop(0);
+            if (this.skirtMesh)
+            {
+                if (fill) this.mesh(this.skirtMesh);
+                hooks.mesh?.(this.skirtMesh, 0);
+            }
         }
+        if (!fill) { if (cull) gl.enable(gl.CULL_FACE); return; }
         // the water reads the ground's depth: exact edge and rim where it meets the land
         this.water.capture();
         for (const [w, fresh] of [[this.riverWater, true], [this.lakes, true], [this.ocean, false]] as const)

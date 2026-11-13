@@ -21,11 +21,16 @@ type Chunk = {
 /**
  * The ground in square chunks (`chunk` + 1 nodes, power of two). Each chunk has its own RTIN and builds a mesh
  * per detail level when first needed: near chunks fine, far chunks coarse. A skirt (wall down along the chunk border)
- * hides the cracks between chunks of different levels.
+ * hides the cracks between chunks; its depth is set per frame (`draw`'s `drop`) from the levels drawn next to it,
+ * so walls stay short where the neighbours match.
  */
 export class Ground {
     private chunks: Chunk[] = [];
     private size: number;
+    /** chunks per row */
+    private per: number;
+    /** level drawn per chunk this frame, -1 = not drawn */
+    private drawnLevel = new Int8Array(0);
     /** triangles drawn last frame, and what the full grid would have */
     triangles = 0;
     readonly full: number;
@@ -40,7 +45,7 @@ export class Ground {
         const n = d.n, cells = n - 1;
         this.size = Math.min(cells, 2 ** Math.round(Math.log2(Math.max(16, chunk))));
         this.full = cells * cells * 2;
-        const c = this.size, per = cells / c, half = d.size / 2;
+        const c = this.size, per = this.per = cells / c, half = d.size / 2;
         for (let cj = 0; cj < per; cj++) for (let ci = 0; ci < per; ci++)
         {
             const i0 = ci * c, j0 = cj * c;
@@ -50,6 +55,7 @@ export class Ground {
             this.chunks.push({ i0, j0, x: (i0 + c / 2) * d.cell - half, y: (lo + hi) / 2, z: (j0 + c / 2) * d.cell - half, radius: Math.hypot(w * .71, (hi - lo) / 2), levels: [] });
         }
         if (detail < 1) this.error = this.threshold(detail);
+        this.drawnLevel = new Int8Array(this.chunks.length);
     }
 
     /** the split priority that spends about `detail` of the full grid: each split node is ~2 triangles, so take the (detail/2)th quantile from the top */
@@ -93,12 +99,15 @@ export class Ground {
     /**
      * Draw what `visible` lets through, each at the level its distance from `eye` asks for.
      * At most `budget` missing meshes get built per call; until then a coarser (or any) built level stands in.
+     * `drop`: metres the chunk's walls must hang down to cover the cracks to its drawn neighbours.
      */
-    draw(eye: { x: number; y: number; z: number }, visible: (x: number, y: number, z: number, r: number) => boolean, draw: (m: Mesh) => void, budget = 6) {
+    draw(eye: { x: number; y: number; z: number }, visible: (x: number, y: number, z: number, r: number) => boolean, draw: (m: Mesh, drop: number) => void, budget = 6) {
         this.triangles = 0;
         let drawn = 0;
-        for (const c of this.chunks)
+        const levels = this.drawnLevel.fill(-1), meshes: Mesh[] = [];
+        for (let ci = 0; ci < this.chunks.length; ci++)
         {
+            const c = this.chunks[ci];
             if (!visible(c.x, c.y, c.z, c.radius)) continue;
             const dist = Math.max(0, Math.hypot(c.x - eye.x, c.y - eye.y, c.z - eye.z) - c.radius);
             // geometric: the error grows with distance like the view shrinks it, so it looks the same on screen
@@ -108,8 +117,26 @@ export class Ground {
             if (!m && budget > 0) { m = c.levels[want] = this.build(c, want); budget--; }
             m ??= c.levels.find(x => x);
             if (!m) { m = c.levels[want] = this.build(c, want); }
-            draw(m);
-            this.triangles += m.count / 3;
+            levels[ci] = c.levels.indexOf(m);
+            meshes[ci] = m;
+        }
+        // walls: a crack is at most both sides' error; a hidden neighbour shows no crack, the map edge keeps the deepest
+        const per = this.per, err = (l: number) => Math.max(0, this.levelError(l)), deep = err(this.lod.levels - 1) * 2 + 2;
+        for (let ci = 0; ci < this.chunks.length; ci++)
+        {
+            const l = levels[ci];
+            if (l < 0) continue;
+            const i = ci % per, j = (ci / per) | 0;
+            let drop = 0;
+            for (const [di, dj] of [[-1, 0], [1, 0], [0, -1], [0, 1]])
+            {
+                const a = i + di, b = j + dj;
+                if (a < 0 || b < 0 || a >= per || b >= per) { drop = Math.max(drop, deep); continue; }
+                const nl = levels[b * per + a];
+                if (nl >= 0) drop = Math.max(drop, err(l) + err(nl));
+            }
+            draw(meshes[ci], drop + .5);
+            this.triangles += meshes[ci].count / 3;
             drawn++;
         }
         return drawn;
@@ -135,23 +162,24 @@ export class Ground {
         const count = nodes.length, total = count + walls.length * 4;
         const pos = new Float32Array(total * 3), nor = new Float32Array(total * 3), data = new Float32Array(total * 4), flow = new Float32Array(total), surface = new Float32Array(total);
         const hh = (i: number, j: number) => d.height[Math.min(n - 1, Math.max(0, j)) * n + Math.min(n - 1, Math.max(0, i))];
-        const put = (q: number, k: number, drop: number, wall = false) => {
+        /** `wall` 1 a wall's top, 2 its bottom (lowered in the shader by the frame's drop) */
+        const put = (q: number, k: number, wall = 0) => {
             const i = c.i0 + k % s, j = c.j0 + ((k / s) | 0), gk = j * n + i;
-            pos.set([i * d.cell - half, d.height[gk] - drop, j * d.cell - half], q * 3);
+            pos.set([i * d.cell - half, d.height[gk], j * d.cell - half], q * 3);
             const nx = (hh(i - 1, j) - hh(i + 1, j)) / (2 * d.cell), nz = (hh(i, j - 1) - hh(i, j + 1)) / (2 * d.cell), len = Math.hypot(nx, 1, nz);
             nor.set([nx / len, 1 / len, nz / len], q * 3);
             data.set([d.biome[gk], d.slope[gk], d.moisture[gk], d.temperature[gk]], q * 4);
             // walls: flow -1 so the material lights them like the ground above (no dark seams)
-            flow[q] = wall ? -1 : d.flow[gk];
+            flow[q] = wall ? -wall : d.flow[gk];
             surface[q] = d.surface[gk];
         };
-        for (let v = 0; v < count; v++) put(v, nodes[v], 0);
-        const drop = this.levelError(this.lod.levels - 1) * 2 + 2, idx = new Uint32Array(triangles.length + walls.length * 6);
+        for (let v = 0; v < count; v++) put(v, nodes[v]);
+        const idx = new Uint32Array(triangles.length + walls.length * 6);
         idx.set(triangles);
         walls.forEach(([a, b], w) => {
             // own copies of the top edge, so the walls can be marked without touching the ground
             const q = count + w * 4;
-            put(q, nodes[a], 0, true); put(q + 1, nodes[b], 0, true); put(q + 2, nodes[a], drop, true); put(q + 3, nodes[b], drop, true);
+            put(q, nodes[a], 1); put(q + 1, nodes[b], 1); put(q + 2, nodes[a], 2); put(q + 3, nodes[b], 2);
             idx.set([q, q + 2, q + 1, q + 1, q + 2, q + 3], triangles.length + w * 6);
         });
         return { ...upload(this.gl, [[pos, 3], [nor, 3], [data, 4], [flow, 1], [surface, 1]], idx), x: c.x, y: c.y, z: c.z, radius: c.radius };

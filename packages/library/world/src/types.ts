@@ -1,3 +1,4 @@
+import type { WireMode } from "@polywar/renderer";
 import type { EcosystemSettings } from "@polywar/ecosystem";
 import type { TerrainSettings } from "@polywar/terrain";
 import type { RoadsOptions } from "@polywar/roads";
@@ -18,4 +19,6 @@ export type WorldView = {
     roads: boolean;
     /** grass look style */
     style: "pixel" | "smooth";
+    /** debug: triangle edges and vertices of terrain and props, over the fill or alone (grass and far cards left out) */
+    wire: WireMode;
 };

@@ -151,11 +151,11 @@ export class Model {
         this.rig.update();
     }
 
-    /** static mesh parts with their model space matrix and maps (skinned parts left out), e.g. for `Renderer.drawInstanced` */
-    get parts(): { mesh: GPUMesh; matrix: Matrix4; maps?: Maps }[] {
+    /** static mesh parts with their model space matrix, maps and CPU data (skinned parts left out), e.g. for `Renderer.drawInstanced` */
+    get parts(): { mesh: GPUMesh; matrix: Matrix4; maps?: Maps; data: Mesh }[] {
         return this.items.filter(item => !item.skinned).flatMap(item => {
             const meshIndex = this.gltf.nodes[item.node].mesh!;
-            return this.gpu[meshIndex].map((mesh, i) => ({ mesh, matrix: item.world, maps: this.textures[meshIndex]?.[i] }));
+            return this.gpu[meshIndex].map((mesh, i) => ({ mesh, matrix: item.world, maps: this.textures[meshIndex]?.[i], data: this.gltf.meshes[meshIndex].primitives[i] }));
         });
     }
 

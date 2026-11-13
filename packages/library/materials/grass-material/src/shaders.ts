@@ -89,6 +89,8 @@ uniform vec2 accentChance;
 uniform float flowerChance;
 uniform vec2 accentHeight, accentScale;
 uniform vec4 spriteAnchor; // part of the sprite below the root, per slot (leaves, accent 1, accent 2, blades)
+uniform vec4 spriteRect[4]; // visible part of each slot's sprite (u0 v0 u1 v1): quads shrink to it, fewer wasted pixels
+uniform float perspective;
 uniform float bladeShare;
 uniform sampler2D noiseTex;
 out vec2 vUv;
@@ -125,6 +127,14 @@ void main() {
     vec3 p = position;
     // centred sprites pivot around their middle, lifted so the lower half stays mostly above ground
     int slot = accent > 0 ? accent : hash(origin.xz + 9.13) < bladeShare ? 3 : 0;
+    vec2 uvs = uv;
+    if (mode != 2) {
+        // shrink the quad to the sprite's visible part (quad x = uv.x - .5, y = uv.y)
+        vec4 rect = spriteRect[slot];
+        uvs = mix(rect.xy, rect.zw, uv);
+        float sx = (uvs.x - .5) / (uv.x - .5);
+        p = vec3(p.x * sx, uvs.y, p.z * sx);
+    }
     float anchor = mode == 2 ? 0.0 : spriteAnchor[slot];
     p.y -= anchor;
     if (mode != 2) p.xy *= size;
@@ -132,7 +142,7 @@ void main() {
     p.y *= cover.x;
     if (accent > 0) {
         p *= accentScale[accent - 1];
-        p.y += accentHeight[accent - 1] * uv.y;
+        p.y += accentHeight[accent - 1] * uvs.y;
     }
     float fade = 1.0 - smoothstep(maxDistance * .8, maxDistance, length(origin - eye));
     p *= tuft.w * fade;
@@ -146,8 +156,27 @@ void main() {
     // own sway, random start
     float sway = sin((t + seed * 10.0) * swaySpeed * 2.0 * PI) * radians(swayAngle);
 
+    // push away from characters
+    vec2 push = vec2(0);
+    for (int i = 0; i < PUSHERS; i++) {
+        if (i >= pusherCount) break;
+        vec3 away = origin - pushers[i].xyz;
+        float strength = pow(clamp(1.0 - length(away) / pushers[i].w, 0.0, 1.0), pushExponent);
+        if (strength > 0.0 && dot(away.xz, away.xz) > 1e-6) push += normalize(away.xz) * strength;
+    }
+    if (length(push) > 1.0) push = normalize(push);
+
+    // fake perspective: how much the lean points at / away from the camera
+    vec3 forward = -vec3(view[0][2], view[1][2], view[2][2]);
+    vec2 f = length(forward.xz) > 1e-4 ? normalize(forward.xz) : vec2(0);
+    vWind = wind * dot(f, d);
+    vPush = dot(f, push);
+
     vec3 offset, n = normal;
     if (mode == 0) {
+        // the lean widens (towards the camera) or narrows the top, on the geometry so the quad stays tight
+        float k = -(vWind + vPush) * perspective;
+        p.x *= mix(1.0, 1.0 / max(.2, 1.0 + k), uvs.y);
         // camera facing, sway around the view axis
         vec3 right = vec3(view[0][0], view[1][0], view[2][0]);
         vec3 up = vec3(view[0][1], view[1][1], view[2][1]);
@@ -161,16 +190,6 @@ void main() {
         n = rotate(rotate(n, vec3(0, 1, 0), spin), axis, sway);
     }
 
-    // push away from characters
-    vec2 push = vec2(0);
-    for (int i = 0; i < PUSHERS; i++) {
-        if (i >= pusherCount) break;
-        vec3 away = origin - pushers[i].xyz;
-        float strength = pow(clamp(1.0 - length(away) / pushers[i].w, 0.0, 1.0), pushExponent);
-        if (strength > 0.0 && dot(away.xz, away.xz) > 1e-6) push += normalize(away.xz) * strength;
-    }
-    if (length(push) > 1.0) push = normalize(push);
-
     vec3 windAxis = normalize(vec3(d.y, 0, -d.x));
     offset = rotate(offset, windAxis, wind * radians(windAngle));
     n = rotate(n, windAxis, wind * radians(windAngle));
@@ -180,16 +199,10 @@ void main() {
         n = rotate(n, pushAxis, length(push) * radians(pushAngle));
     }
 
-    // fake perspective: how much the lean points at / away from the camera
-    vec3 forward = -vec3(view[0][2], view[1][2], view[2][2]);
-    vec2 f = length(forward.xz) > 1e-4 ? normalize(forward.xz) : vec2(0);
-    vWind = wind * dot(f, d);
-    vPush = dot(f, push);
-
     vec3 world = origin + offset + vec3(0, anchor * size.y * cover.x * tuft.w * fade * .6, 0);
     vDry = cover.y;
     vVary = hash(origin.xz + 3.7);
-    vUv = uv;
+    vUv = uvs;
     vNormal = n;
     vWorld = world;
     vOrigin = origin;
@@ -211,7 +224,6 @@ in vec3 vDebug;
 uniform int mode, debug;
 uniform vec3 dryColor;
 uniform float variation;
-uniform float perspective;
 uniform sampler2D sprite0, sprite1, sprite2, sprite3;
 uniform vec4 spriteMask; // per slot, 1 = generated sprite (r shade, g accent mask)
 uniform vec3 accentColor[2];
@@ -220,19 +232,18 @@ out vec4 outColor;
 
 void main() {
     // per tuft: a little brighter or darker and a touch warmer or cooler, so tufts read apart from the ground
+    // sprite first: most of a quad is see-through, drop those pixels before any other work
+    vec4 tex = vec4(1);
+    if (mode != 2) {
+        tex = vSlot == 1 ? texture(sprite1, vUv) : vSlot == 2 ? texture(sprite2, vUv) : vSlot == 3 ? texture(sprite3, vUv) : texture(sprite0, vUv);
+        if (tex.a < .5) discard;
+    }
     float warm = fract(vVary * 7.31) - .5;
     vec3 tone = (1.0 + (vVary - .5) * 2.0 * variation) * (1.0 + vec3(warm, 0, -warm) * variation);
     vec3 base = mix(patchedColor(vOrigin.xz), dryColor, vDry) * tone;
     vec3 albedo;
     if (mode == 2) albedo = base * (.6 + .4 * clamp(vUv.y, 0.0, 1.0));
     else {
-        vec2 uv = vUv;
-        if (mode == 0) {
-            float k = -(vWind * perspective + vPush * perspective);
-            uv.x = clamp((uv.x - .5) * (uv.y * k + 1.0) + .5, 0.0, 1.0);
-        }
-        vec4 tex = vSlot == 1 ? texture(sprite1, uv) : vSlot == 2 ? texture(sprite2, uv) : vSlot == 3 ? texture(sprite3, uv) : texture(sprite0, uv);
-        if (tex.a < .5) discard;
         float mask = spriteMask[vSlot];
         vec3 tint = vAccent > 0 ? accentColor[vAccent - 1] : base;
         albedo = mask > .5 ? mix(base, tint, tex.g) * tex.r : tex.rgb * tint;
