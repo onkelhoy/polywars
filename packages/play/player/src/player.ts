@@ -8,14 +8,18 @@ import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
 import { direction, mat4, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS } from "@polywar/weapons";
+import { Armory, type WeaponFile } from "@polywar/armory";
 import { Arms } from "./arms";
-import { holdOf, scopeMountOf } from "./holds";
+import { holdOf, scopeMountFor, scopeMountOf } from "./holds";
 import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
 
-type Carried = { gun: Gun; model: Model; hold: Hold; scope?: Scope; scopeMesh?: GPUMesh };
+/** `scopeModel` (a scope from the armory) is drawn `scopeAt` off the gun; `scopeMesh` is the stand-in without one */
+type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh };
 
 const LIMIT = Math.PI / 2 - .02;
+/** lean: metres the eye goes out, radians the view rolls */
+const LEAN = .32, LEAN_ROLL = .2;
 
 /**
  * A playable character in first person: walks on the host's ground (`@polywar/mover`), looks with the mouse,
@@ -23,8 +27,9 @@ const LIMIT = Math.PI / 2 - .02;
  * that leave tracers, bits and marks (`@polywar/impacts`), a scope with its own picture for scoped guns.
  * Its body (a `character.json`) is drawn under the view, head and arms left out.
  *
- * Keys: WASD walk, shift run, space jump, left mouse fire, right mouse aim, R reload, 1..9 / wheel switch guns
- * (wheel zooms a scope while aimed), Esc lets go of the mouse.
+ * Keys: WASD walk, shift run, space jump, left mouse fire, right mouse aim (held) or Option / Alt (toggle),
+ * Q / E lean, R reload, 1..9 / wheel switch guns (wheel zooms a scope while aimed), Esc lets go of the mouse.
+ * Guns are `GUNS` ids, `<id>@<scope>` puts a scope from `assets/models/weapons/attachments/` on (e.g. `kar98k@scope-2`).
  */
 export class Player {
     readonly mover: Mover;
@@ -56,6 +61,11 @@ export class Player {
     private near = mat4();
     private hidden: number[] = [];
     private tracerCount = 0;
+    /** aim toggled on (Option / Alt) */
+    private toggled = false;
+    /** -1 left .. 1 right, eased */
+    lean = 0;
+    readonly armory: Armory;
 
     constructor(readonly layer: Layer3D, readonly renderer: Renderer, readonly setting: PlayerSetting, readonly events: PlayerEvents = {}, at: Vec3 = [0, 0, 0]) {
         this.gl = layer.gl;
@@ -70,25 +80,47 @@ export class Player {
         };
         this.vm = new ViewModel({ grip: [0, 0, 0], muzzle: [0, 0, -1], sight: [0, 0, 0], hip: [.15, -.2, -.3], eye: .2 });
         this.arms = new Arms(this.gl);
+        this.armory = new Armory(setting.assets ?? "/assets");
         this.ready = this.load();
     }
 
     private async load() {
-        const url = this.setting.gunsUrl ?? "/assets/models/weapons/guns/";
+        const url = this.setting.gunsUrl ?? this.armory.guns;
         const ids = this.setting.guns ?? Object.keys(GUNS);
-        const models = await Promise.all(ids.map(id => Model.load(this.gl, `${url}${GUNS[id].model}/model.glb`)));
-        ids.forEach((id, i) => {
-            const gun = new Gun(id), model = models[i];
-            let hold = holdOf(model, gun.spec), scope: Scope | undefined, scopeMesh: GPUMesh | undefined;
-            if (gun.spec.scope)
+        const loaded = await Promise.all(ids.map(async entry => {
+            const [id, scopeId] = entry.split("@"), spec = GUNS[id];
+            const weapon = await this.armory.weapon(spec.model).catch(() => undefined);
+            // a scoped spec without a named scope takes the first that fits
+            const sid = scopeId ?? (spec.scope ? weapon?.scopes[0] : undefined);
+            const scope = sid ? await this.armory.scope(sid).catch(() => undefined) : undefined;
+            const [model, scopeModel] = await Promise.all([Model.load(this.gl, `${url}${spec.model}/model.glb`), scope ? Model.load(this.gl, scope.url + scope.model) : undefined]);
+            return { id, weapon, scope, model, scopeModel };
+        }));
+        for (const { id, weapon, scope: data, model, scopeModel } of loaded)
+        {
+            const gun = new Gun(id);
+            let hold = holdOf(model, gun.spec, weapon), scope: Scope | undefined, scopeMesh: GPUMesh | undefined, scopeAt: Matrix4 | undefined;
+            let zoom: [number, number] | undefined;
+            if (weapon && data)
+            {
+                const mount = scopeMountFor(weapon, data);
+                scope = new Scope(this.layer, mount);
+                zoom = data.zoom;
+                scopeAt = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...mount.offset, 1]);
+            }
+            else if (gun.spec.scope)
             {
                 scope = new Scope(this.layer, scopeMountOf(model));
-                scope.zoom = Math.sqrt(gun.spec.scope.min * gun.spec.scope.max);
+                zoom = [gun.spec.scope.min, gun.spec.scope.max];
                 scopeMesh = upload(this.gl, scope.mesh());
+            }
+            if (scope && zoom)
+            {
+                scope.zoom = Math.sqrt(zoom[0] * zoom[1]);
                 hold = scope.hold(hold, Math.PI / 3);
             }
-            this.carried.push({ gun, model, hold, scope, scopeMesh });
-        });
+            this.carried.push({ gun, model, hold, weapon, scope, zoom, scopeModel, scopeAt, scopeMesh });
+        }
         this.select(0);
         if (this.setting.character)
         {
@@ -133,7 +165,8 @@ export class Player {
         const { dx, dy, wheel, pressed } = input?.consume() ?? { dx: 0, dy: 0, wheel: 0, pressed: new Set<string>() };
         const k = (...n: string[]) => input?.key(...n) ? 1 : 0;
         const gun = carried?.gun;
-        const aiming = !!input?.buttons.has(2);
+        if (pressed.has("alt")) this.toggled = !this.toggled;
+        const aiming = this.toggled || !!input?.buttons.has(2);
         const scoped = !!carried?.scope && (gun?.aimed ?? 0) > .5;
         // aimed down a scope, the mouse turns slower (by the zoom)
         const sense = (this.setting.sensitivity ?? .0022) / (scoped ? carried!.scope!.zoom * .8 : 1 + (gun?.aimed ?? 0) * .3);
@@ -147,7 +180,7 @@ export class Player {
         for (let i = 1; i <= 9; i++) if (pressed.has(String(i))) this.select(i - 1);
         if (wheel)
         {
-            if (scoped) { const s = gun!.spec.scope!; carried!.scope!.zoom = Math.max(s.min, Math.min(s.max, carried!.scope!.zoom * (wheel < 0 ? 1.15 : 1 / 1.15))); }
+            if (scoped) { const [lo, hi] = carried!.zoom!; carried!.scope!.zoom = Math.max(lo, Math.min(hi, carried!.scope!.zoom * (wheel < 0 ? 1.15 : 1 / 1.15))); }
             else this.select((this.current + (wheel > 0 ? 1 : -1) + this.carried.length) % this.carried.length);
         }
         if (pressed.has("r")) gun?.reload();
@@ -155,6 +188,10 @@ export class Player {
         // walking
         const ahead = k("w", "arrowup") - k("s", "arrowdown"), side = k("d", "arrowright") - k("a", "arrowleft");
         const sprint = !!k("shift") && ahead > 0 && !aiming;
+        if (sprint) this.toggled = false;
+        // lean: the eye out to the side and the view rolled (not while running)
+        const leanTo = sprint ? 0 : k("e") - k("q");
+        this.lean += (leanTo - this.lean) * (1 - Math.exp(-dt * 9));
         const l = Math.max(1, Math.hypot(ahead, side));
         const v = (this.setting.speed ?? 4.2) * (sprint ? this.setting.run ?? 2 : 1) * (1 - (gun?.aimed ?? 0) * .45);
         const y = this.yaw, fx = -Math.sin(y), fz = -Math.cos(y), rx = Math.cos(y), rz = -Math.sin(y);
@@ -178,8 +215,9 @@ export class Player {
         this.vm.update(dt, { yaw: turnYaw, pitch: turnPitch, speed: m.speed, strafe, grounded: m.grounded, landed: m.landed, aimed: gun?.aimed ?? 0, reload: gun && gun.reloading > 0 ? gun.progress : -1, sprint });
 
         camera.zoom = 1 + (scoped ? 0 : (gun?.aimed ?? 0) * .25);
-        camera.position.set([m.feet[0], m.feet[1] + this.eye, m.feet[2]]);
-        camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], 0]);
+        const out = this.lean * LEAN;
+        camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06, m.feet[2] + rz * out]);
+        camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], -this.lean * LEAN_ROLL]);
 
         this.bullets.update(dt);
         this.impacts.update(dt);
@@ -254,14 +292,17 @@ export class Player {
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);
-        const showScope = scope && carried.gun.aimed > scope.threshold && this.setting.scene;
+        // the glass is there from the start of the raise, black; the picture comes in as the eye gets behind it
+        const aimed = carried.gun.aimed, light = smoothstep(.55, .95, aimed);
+        const showGlass = !!scope && aimed > .02;
+        const showScope = showGlass && light > 0 && !!this.setting.scene;
         if (showScope)
         {
-            const view = scope.begin(camera.worldMatrix, this.vm.matrix, this.near, .1, camera.far);
+            const view = scope!.begin(camera.worldMatrix, this.vm.matrix, this.near, .1, camera.far);
             r.begin(view, [.6, .7, .8, 1]);
             this.setting.scene!(view);
             this.impacts.draw(view);
-            scope.end();
+            scope!.end();
             r.reset();
         }
         gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -269,17 +310,23 @@ export class Player {
         r.begin({ viewMatrix: camera.viewMatrix, projectionMatrix: this.near, worldPosition: camera.worldPosition }, null);
         const world = Matrix4.create(Array.from(this.vm.world(cam)));
         carried.model.draw(r, world);
+        if (carried.scopeModel && carried.scopeAt) carried.scopeModel.draw(r, world.clone.multiply(carried.scopeAt));
         if (carried.scopeMesh) r.draw(carried.scopeMesh, world);
         this.arms.draw(r, cam, this.vm.hands);
         r.reset();
-        if (showScope) scope.overlay(this.vm.matrix, this.near, aspect);
+        if (showGlass) scope!.overlay(this.vm.matrix, this.near, aspect, showScope ? light : 0);
     }
 
     destroy() {
         this.input?.destroy();
         this.impacts.destroy();
         this.arms.destroy();
-        for (const c of this.carried) { c.model.destroy(); c.scope?.destroy(); c.scopeMesh?.destroy(); }
+        for (const c of this.carried) { c.model.destroy(); c.scope?.destroy(); c.scopeMesh?.destroy(); c.scopeModel?.destroy(); }
         this.body?.destroy();
     }
+}
+
+function smoothstep(a: number, b: number, x: number) {
+    const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
 }

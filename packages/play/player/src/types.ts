@@ -11,9 +11,11 @@ export type PlayerSetting = {
     cast: Cast;
     /** character.json url (body in first person, attachments) */
     character?: string;
-    /** gun ids from `GUNS` the player carries (1..9 keys) */
+    /** gun ids from `GUNS` the player carries (1..9 keys); `<id>@<scope id>` with a scope on */
     guns?: string[];
-    /** url of `assets/models/weapons/guns/` */
+    /** the assets root (weapon.json / scope.json via `@polywar/armory`), default `/assets` */
+    assets?: string;
+    /** url of `assets/models/weapons/guns/` (default under `assets`) */
     gunsUrl?: string;
     /** eye over the feet, m (default 1.65) */
     eye?: number;

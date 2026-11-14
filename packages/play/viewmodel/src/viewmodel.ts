@@ -83,9 +83,11 @@ export class ViewModel {
         const aimAt: Vec3 = [0, 0, -h.eye];
         const P: Vec3 = [mix(h.hip[0], aimAt[0], a), mix(h.hip[1], aimAt[1], a), mix(h.hip[2], aimAt[2], a)];
         const pivot: Vec3 = [mix(h.grip[0], h.sight[0], a), mix(h.grip[1], h.sight[1], a), mix(h.grip[2], h.sight[2], a)];
+        // aimed: the sight line (not the bore) down the middle of the view, rear and front sight both on it
+        const [lineYaw, linePitch] = h.front ? sightLine(h.sight, h.front) : [0, 0];
         const R = compose(mat4(), 0, 0, 0,
-            hipYaw * (1 - a) + this.turn.value[0] + yaw,
-            hipPitch * (1 - a) + this.turn.value[1] + pitch,
+            hipYaw * (1 - a) - lineYaw * a + this.turn.value[0] + yaw,
+            hipPitch * (1 - a) - linePitch * a + this.turn.value[1] + pitch,
             this.turn.value[2] + roll);
         const T = compose(mat4(), P[0] + this.shift.value[0] + ox, P[1] + this.shift.value[1] + oy, P[2] + this.shift.value[2] + oz);
         const back = compose(mat4(), -pivot[0], -pivot[1], -pivot[2]);
@@ -109,4 +111,10 @@ export class ViewModel {
     world(camera: ArrayLike<number>, out: Mat4 = mat4()) {
         return multiply(out, camera, this.matrix);
     }
+}
+
+/** yaw (left +) and pitch (up +) of the line from `a` to `b` in item space (-z ahead) */
+export function sightLine(a: Vec3, b: Vec3): [number, number] {
+    const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], ahead = Math.max(1e-6, -dz);
+    return [Math.atan2(-dx, ahead), Math.atan2(dy, Math.hypot(ahead, dx))];
 }

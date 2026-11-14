@@ -11,6 +11,8 @@ export type ScopeMount = {
     length: number;
     /** eyepiece glass radius, m */
     lens: number;
+    /** objective centre (the far end of the tube axis), item space; default `length` straight ahead */
+    objective?: Vec3;
 };
 
 const VERTEX = `#version 300 es
@@ -28,7 +30,7 @@ precision highp float;
 in vec2 vScreen;
 uniform sampler2D picture;
 uniform vec2 centre, offset;
-uniform float radius, aspect, pupil;
+uniform float radius, aspect, pupil, light;
 out vec4 outColor;
 void main() {
     vec2 p = vec2((vScreen.x - centre.x) * aspect, vScreen.y - centre.y) / radius;
@@ -44,7 +46,7 @@ void main() {
     float e = length(p - offset);
     float seen = 1.0 - smoothstep(pupil - 0.12, pupil, e);
     // darker towards the glass's own edge
-    seen *= 1.0 - smoothstep(0.82, 1.0, d) * 0.7;
+    seen *= (1.0 - smoothstep(0.82, 1.0, d) * 0.7) * light;
     outColor = vec4(colour * seen, 1.0);
 }`;
 
@@ -77,7 +79,7 @@ export class Scope {
         this.size = size;
         layer.createProgram(`pw-scope-${count++}`, VERTEX, FRAGMENT).then(program => {
             this.program = program;
-            for (const n of ["picture", "centre", "offset", "radius", "aspect", "pupil"]) this.uniforms[n] = gl.getUniformLocation(program, n);
+            for (const n of ["picture", "centre", "offset", "radius", "aspect", "pupil", "light"]) this.uniforms[n] = gl.getUniformLocation(program, n);
         });
         this.texture = gl.createTexture()!;
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -110,7 +112,8 @@ export class Scope {
      */
     hold(hold: Hold, fov: number, fill = .8): Hold {
         const eye = this.mount.lens / (fill * Math.tan(fov / 2));
-        return { ...hold, sight: [...this.mount.eyepiece], eye };
+        const e = this.mount.eyepiece;
+        return { ...hold, sight: [...e], front: this.mount.objective ? [...this.mount.objective] : [e[0], e[1], e[2] - this.mount.length], eye };
     }
 
     /** the eyepiece's apparent circle for an item -> camera matrix: centre (camera space), radius ndc y */
@@ -155,9 +158,10 @@ export class Scope {
     /**
      * The eyepiece over the screen (after the gun is drawn). `item`: the gun's item -> camera matrix,
      * `projection` the camera's, `aspect` width / height. The pupil shifts with the angle between the
-     * bore and the line from the eye to the eyepiece: hold still to see through.
+     * bore and the line from the eye to the eyepiece: hold still to see through. `light` 0..1: how much of the
+     * picture comes through (0 = black glass, e.g. still raising it: the picture never pops in).
      */
-    overlay(item: ArrayLike<number>, projection: ArrayLike<number>, aspect: number) {
+    overlay(item: ArrayLike<number>, projection: ArrayLike<number>, aspect: number, light = 1) {
         const gl = this.gl;
         if (!this.program) return;
         const { c, radius, depth } = this.circle(item, projection);
@@ -178,6 +182,7 @@ export class Scope {
         gl.uniform1f(this.uniforms.radius, radius);
         gl.uniform1f(this.uniforms.aspect, aspect);
         gl.uniform1f(this.uniforms.pupil, .95);
+        gl.uniform1f(this.uniforms.light, light);
         gl.bindVertexArray(this.quad.vao);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         gl.bindVertexArray(null);

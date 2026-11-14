@@ -80,7 +80,8 @@ const cast = nearest(
 const player = new Player(layer, renderer, {
     ground, colliders: () => colliders, cast, scene,
     character: '/assets/models/characters/knight/character.json',
-    guns: ['m1911', 'tt-pistol', 'mauser-c96', 'ppsh-41', 'thompson-m1', 'stg-44', 'm1-garand', 'm1-garand-scoped'],
+    // ?guns=kar98k,svt-40@scope-3 for any other loadout (`<id>@<scope>` puts a scope on)
+    guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? ['m1911', 'thompson-m1', 'm1-garand', 'm1-garand-scoped', 'kar98k', 'kar98k@scope-2', 'smle-mk3', 'svt-40@scope-3', 'winchester-1895'],
 }, {
     hit: (bullet, hit) => {
         if (!hit.target || hit.target.name === 'crate') return;

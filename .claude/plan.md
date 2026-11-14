@@ -1,13 +1,8 @@
-# Plan: playable character (branch `feature/playable-character`)
+# Plan: weapons (branch `feature/weapon-assets`)
 
 ## Where we are
-All 8 tasks done, waiting for owner feedback in the browser (`packages/play/player` view `range`). Next: owner's tuning notes, then pick from backlog (third person, loadout, ragdoll, world save).
+Phase A + B done, waiting for owner feedback (`packages/play/player` view `range`, `?guns=kar98k,svt-40@scope-3`; `packages/play/armory` view `armory`). Next: phase C (sounds, shells), see backlog "Playable character".
 
-## Done (folder `packages/play/`)
-1. `@polywar/mover`: capsule controller (slopes slide, steps, colliders). `walk()` in viewport-camera runs on it.
-2. `@polywar/weapons`: specs for all 7 guns + `m1-garand-scoped`, calibers, `Gun` state.
-3. `@polywar/ballistics`: `Bullets`, casts, drop / zero.
-4. `@polywar/impacts`: tracers, bits / dust per surface (culled > 150 m), marks, muzzle flash.
-5. `@polywar/viewmodel`: held gun with springs; 6. `Scope` (own picture, scope shadow, reticle, zoom).
-7. Knight `character.json` + `Attachments` in `@polywar/characters` (helmets, pads; first person hides head + arms).
-8. `@polywar/player` + view `range`.
+## Done
+A. Weapons assets: 24 rifles + 3 scopes from `~/Developer/3d/store` (`tools/blender/packs/rifles.py`), `weapon.json` / `scope.json` points (`weapon-points.py`, check with `grid-shot.py`), meta (`tools/weapons/meta.mjs`), specs + calibers, `@polywar/armory` (loader, scope fit, `ArmedGun`, weapons-only view), gallery `focus` (header "show only"), catalog weapons under `models/weapons/armory`.
+B. Aim: sight line rear `notch` -> `front` down the view middle (`Hold.front`), eye 12 cm behind the trigger, armory scopes (`<gun>@<scope>`), scope glass black from the start of the raise and the picture fading in (no pop in), Option / Alt toggles aim, Q / E lean.

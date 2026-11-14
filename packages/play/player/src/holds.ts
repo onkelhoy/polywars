@@ -1,5 +1,6 @@
 import type { Model } from "@polywar/renderer";
 import type { GunSpec } from "@polywar/weapons";
+import { onGun, scopeOffset, type ScopeData, type WeaponFile } from "@polywar/armory";
 import type { Hold, ScopeMount, Vec3 } from "@polywar/viewmodel";
 
 /** a bone's head in model space (rest pose) */
@@ -35,7 +36,8 @@ const KIND = {
  * the hand under and behind the trigger, the other on the fore end (long guns) or under the grip (pistols),
  * the sight line along the top of the gun.
  */
-export function holdOf(model: Model, spec: GunSpec): Hold {
+export function holdOf(model: Model, spec: GunSpec, weapon?: WeaponFile): Hold {
+    if (weapon && spec.kind !== "pistol") { const h = holdFromPoints(weapon, spec); if (h) return h; }
     const trigger = bonePoint(model, "trigger") ?? [0, 0, 0], muzzle = bonePoint(model, "muzzle") ?? [0, 0, -.5];
     const action = bonePoint(model, "action") ?? trigger, top = model.bounds.max[1], k = KIND[spec.kind];
     const grip: Vec3 = [trigger[0], trigger[1] - .035, trigger[2] + .03];
@@ -48,6 +50,41 @@ export function holdOf(model: Model, spec: GunSpec): Hold {
         sight: [0, front, muzzle[2] + .03],
         hip: k.hip, eye: k.eye + rearZ - (muzzle[2] + .03), weight: k.weight,
     };
+}
+
+/** the rear sight's aiming point is a little under its top: the notch bottom / the aperture's middle */
+const DROP = .004;
+/** the eye behind the trigger along the stock (cheek on the comb), m */
+const CHEEK = .12;
+
+/**
+ * A long gun held by its weapon.json points: the hands on `grip` / `fore`, aimed with the eye on the line from the
+ * rear sight (`notch`, else `rear` less a few mm) over the `front` sight tip, `CHEEK` behind the trigger.
+ * Undefined when the points are missing (the bones then).
+ */
+export function holdFromPoints(weapon: WeaponFile, spec: GunSpec): Hold | undefined {
+    const p = weapon.points as WeaponFile["points"] & { notch?: Vec3 };
+    if (!p.rear || !p.front || !p.muzzle) return undefined;
+    const k = KIND[spec.kind];
+    const trigger = p.trigger ?? p.grip ?? [0, 0, 0];
+    const sight: Vec3 = p.notch ?? [p.rear[0], p.rear[1] - DROP, p.rear[2]];
+    const eye = Math.max(.07, trigger[2] + CHEEK - sight[2]);
+    return {
+        grip: p.grip ?? [trigger[0], trigger[1] - .035, trigger[2] + .03],
+        fore: p.fore ?? [p.muzzle[0], p.muzzle[1] - .035, trigger[2] + (p.muzzle[2] - trigger[2]) * .45],
+        muzzle: p.muzzle, sight, front: p.front,
+        hip: k.hip, eye, weight: k.weight,
+    };
+}
+
+/**
+ * A scope from `@polywar/armory` on a gun: eyepiece / objective in gun space (the rings on the gun's mount),
+ * the glass radius a guess from the tube (`lens`).
+ */
+export function scopeMountFor(weapon: WeaponFile, scope: ScopeData, lens = .018): ScopeMount & { offset: Vec3 } {
+    const offset = scopeOffset(weapon, scope);
+    const eyepiece = onGun(scope.points.eyepiece, offset), objective = onGun(scope.points.objective, offset);
+    return { eyepiece, objective, length: Math.hypot(objective[0] - eyepiece[0], objective[1] - eyepiece[1], objective[2] - eyepiece[2]), lens, offset };
 }
 
 /** where a scope goes on a scoped gun: over the action, a little behind it */

@@ -10,8 +10,11 @@ export type Hold = {
     fore?: Vec3;
     /** where the bullet leaves */
     muzzle: Vec3;
-    /** a point on the sight line (rear sight / scope eyepiece): aimed, the eye looks down it along -z */
+    /** a point on the sight line (rear sight notch / scope eyepiece): aimed, the eye looks down it along -z */
     sight: Vec3;
+    /** the far end of the sight line (front sight tip / scope objective): aimed, the gun turns so that
+     * `sight` -> `front` runs straight down the view (none = the bore is the sight line) */
+    front?: Vec3;
     /** camera space: where the grip sits at the hip */
     hip: Vec3;
     /** aimed: how far ahead of the eye the `sight` point is, m */
