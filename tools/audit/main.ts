@@ -253,7 +253,9 @@ for (const j of net.junctions)
     {
         const e = i === 1 ? 0 : r.points.length - 1;
         if (!inTube(r, i) && !inTube(r, e)) continue;
-        const p = r.points[e];
+        const p = r.points[e], arms = net.roads.filter(o => o.from === j || o.to === j);
+        // a chain going on through (2 arms) is no fork
+        if (arms.length < 3 && arms.every(o => o.chain !== undefined && o.chain === r.chain)) continue;
         if (ground(p[0], p[2]) - p[1] > 4) add("tunnel fork underground", ground(p[0], p[2]) - p[1], `${at(p)} ${r.class} junction ${j}`);
     }
     const seen = new Set<string>();
