@@ -131,6 +131,10 @@ export class Roads {
         hillBridges(roads, this.heightAt);
         // tunnels trimmed first: their open approaches are ground the merges / crossings below must see
         trimTunnels(roads, this.heightAt);
+        mouthBridges(roads, this.heightAt, (x, z) => {
+            const G = this.grid, i = Math.round((x / G.size + .5) * (G.m - 1)), j = Math.round((z / G.size + .5) * (G.m - 1));
+            return i >= 0 && j >= 0 && i < G.m && j < G.m && G.water[j * G.m + i] > 0;
+        });
         mergeAlong(roads, out);
         // merged pieces may now leave a junction along another way to its end: unzip drops / parts them
         unzip(roads, out);
@@ -917,8 +921,8 @@ export function trimTunnels(roads: Road[], heightAt: (x: number, z: number) => n
 }
 
 /**
- * Nothing meets or crosses inside a tunnel: tube points near another way (plan strips touch, under 10 m apart in
- * height, not the way's own chain) open up into a cutting (ground span). A tube left shorter than 3 points goes too.
+ * Nothing meets or crosses inside a tunnel: tube points near another way (plan strips touch, under 3 m apart in
+ * height, or another tube under 10 m apart; not the way's own chain) open up into a cutting (ground span). A tube left shorter than 3 points goes too.
  * Ways ending in a tube (a fork under the hill) open the tube up to that end the same way.
  */
 export function clearTunnels(roads: Road[]) {
@@ -927,31 +931,58 @@ export function clearTunnels(roads: Road[]) {
     for (const r of roads)
     {
         if (!r.spans.some(s => s.kind === "tunnel")) continue;
+        // 1: open (a fork / way beside / tube through tube), 2: kept closed (a way crosses over it)
         const P = r.points, open = new Uint8Array(P.length);
         P.forEach((p, i) => {
-            for (let a = -1; a <= 1 && !open[i]; a++) for (let b = -1; b <= 1 && !open[i]; b++) for (const [o, j] of grid.get(key(p[0] + a * B, p[2] + b * B)) ?? [])
+            for (let a = -1; a <= 1 && open[i] < 2; a++) for (let b = -1; b <= 1 && open[i] < 2; b++) for (const [o, j] of grid.get(key(p[0] + a * B, p[2] + b * B)) ?? [])
             {
                 if (o === r || (o.chain !== undefined && o.chain === r.chain)) continue;
                 const q = o.points[j];
                 // margin: the tube walls + a little
                 const reach = (r.width + o.width) / 2 + 3;
-                if (Math.hypot(q[0] - p[0], q[2] - p[2]) < reach && Math.abs(q[1] - p[1]) < 10) { open[i] = 1; break; }
+                // near level (a fork / a way beside) or another tube (tube through tube); a way over the hill stays
+                const dy = Math.abs(q[1] - p[1]), tube = o.spans.some(s => s.kind === "tunnel" && j >= s.from && j <= s.to);
+                if (Math.hypot(q[0] - p[0], q[2] - p[2]) >= reach) continue;
+                // a way crossing over the tube (on the hill) keeps it closed there: no cutting through that way
+                if (q[1] > p[1] + 3 && !tube) { open[i] = 2; break; }
+                if (dy < 3 || (tube && dy < 10)) open[i] = 1;
             }
         });
         const out: Span[] = [];
         for (const s of r.spans)
         {
-            if (s.kind !== "tunnel" || !open.subarray(s.from, s.to + 1).some(v => v)) { out.push(s); continue; }
-            // runs of covered points stay tunnel (3+ points), the rest is ground
+            if (s.kind !== "tunnel" || !open.subarray(s.from, s.to + 1).some(v => v === 1)) { out.push(s); continue; }
+            // runs of covered points stay tunnel (3+ points, or any under a way crossing over), the rest is ground
+            const shut = (i: number) => open[i] !== 1 && open[i + 1] !== 1;
             for (let i = s.from; i < s.to;)
             {
-                const t = !open[i] && !open[i + 1];
+                const t = shut(i);
                 let e = i + 1;
-                while (e < s.to && (!open[e] && !open[e + 1]) === t) e++;
-                out.push({ ...s, kind: t && e - i >= 2 ? "tunnel" : "ground", from: i, to: e });
+                while (e < s.to && shut(e) === t) e++;
+                out.push({ ...s, kind: t && (e - i >= 2 || open.subarray(i, e + 1).includes(2)) ? "tunnel" : "ground", from: i, to: e });
                 i = e;
             }
         }
         r.spans = out.reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
+    }
+}
+
+/**
+ * No little bridge in front of a tunnel mouth: a short bridge (≤ 6 points) starting within 6 points of a mouth, its
+ * nowhere over water / 14 m above the ground (the viaduct limit) and no other way under it, is ground (an embankment).
+ */
+export function mouthBridges(roads: Road[], heightAt: (x: number, z: number) => number, wet: (x: number, z: number) => boolean) {
+    for (const r of roads)
+    {
+        const S = r.spans, P = r.points;
+        if (!S.some(s => s.kind === "tunnel")) continue;
+        const mouths = S.filter(s => s.kind === "tunnel").flatMap(s => [s.from, s.to]);
+        r.spans = S.map(s => {
+            if (s.kind !== "bridge" || s.to - s.from > 6 || !mouths.some(m => Math.min(Math.abs(s.from - m), Math.abs(s.to - m)) <= 6)) return s;
+            const deck = P.slice(s.from, s.to + 1);
+            if (deck.some(p => p[1] - heightAt(p[0], p[2]) > 14 || wet(p[0], p[2]))) return s;
+            const under = roads.some(o => o !== r && o.points.some(q => deck.some(p => Math.hypot(p[0] - q[0], p[2] - q[2]) < (r.width + o.width) / 2 + 1 && q[1] < p[1] - 2)));
+            return under ? s : { kind: "ground" as const, from: s.from, to: s.to };
+        }).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
     }
 }

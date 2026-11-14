@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Round 7 (11.31–11.44 screenshots on Desktop: rivers, lakes, ways): confirmed, running task by task on `feature/infrastructure`, commit per task. Tasks 1–8 done; next: task 9 (portals). Task 12 dropped (owner: roads stay real meshes). Water audit: `node tools/audit-ways.mjs medium` line `water:` (all 0 except 1 pond end, 3 mouth nodes .24 m).
+Round 7 (11.31–11.44 screenshots on Desktop: rivers, lakes, ways): confirmed, running task by task on `feature/infrastructure`, commit per task. Tasks 1–9 done; next: task 10 (cliff dead ends). Open: rail beside highway mouth (348,-976) level step 0.9 m. Task 12 dropped (owner: roads stay real meshes). Water audit: `node tools/audit-ways.mjs medium` line `water:` (all 0 except 1 pond end, 3 mouth nodes .24 m).
 Task 7 leftovers (audit `ways stacked` 15 → 8): slab stub by a junction (777,-238); two highways overlapping at a shallow angle, ~1 m apart (405,720); highway junction 7 m right over the rail (476,-728), should bridge; highway fork off a bridge at 16% (-168,66); seed 2 station spur runs back along its own track (-283,-666).
 Round 6 done (19.43 screenshots + owner notes), waiting for owner review. Open: rail at (268,-437) 20 m under ground in an uncarved cut; rail all-bridge into a station at highway-bridge height (-104,-704); gravel roads still meshes; built props no lods.
 Round 3 (owner review 2026-11-13 evening, 14 screenshots on Desktop): "it looks buggy, fix it all". Owner away, runs on its own: "next task" through all, commit per task on `feature/infrastructure`, no merge.
@@ -29,7 +29,7 @@ Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 d
 - [x] 6. Piers never on another way.
 - [x] 7. Ways at different levels: no deck through deck, no stray truss bars, no forks hanging under a road.
 - [x] 8. Tunnels: no forks / crossings underground.
-- [ ] 9. Portals: no ground slab in the arch; no short bridge over the forecourt dip.
+- [x] 9. Portals: no ground slab in the arch; no short bridge over the forecourt dip.
 - [ ] 10. No dead ends at cliffs with stub railings.
 - [ ] 11. Round 6 leftovers: rail 20 m under ground (268,-437); rail all-bridge into high station (-104,-704).
 - [-] 12. (dropped) Gravel roads painted too.
