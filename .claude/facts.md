@@ -79,3 +79,10 @@ Goal: buildings like the store screenshots (gables, jetties, timber frame), flat
 - World: `tiles(mesh, 192)` per lod, frustum culled; far tiles (`WAYS_FAR` per quality) lod 1, fences only < 300 m, tunnel insides < 140 m (any distance when the eye is under the ground).
 - Roads: lanes / paths hug the ground (`bridge.fill` 0), bridge `valley` depth per class (0: water only), small way pieces up cliffs are left out; `mergeAlong` after `trimTunnels` (overlapping ways → junctions on the bigger one); level crossings: `inlaid` rails flush in the road.
 - Tools: `WIRE=overlay|only` for world-shot; audit env `WAYS=1` (vertex counts), `ROAD=id` (points + ground), prints bridges per class (`*` = auto) and bridges to nowhere.
+
+## Water (round 7)
+- Rivers: `riverSheet` (terrain mesh.ts) = one water sheet over `water` 3 nodes (lake material, still), skips cells inside sea / lake quads (`step` cells). Land corners: lowest river beside, capped under the ground (spill).
+- Hydrology `seal` runs last (world `combine(hydrology, roads, {fix: seal})`, audit too): channel ≥ .5 m under surface, banks / shores +.2 m (river raise ≤ 2 m, eased), mouths' beds ease to the bay depth.
+- Ground lod: river / lake waterline cells always finest (all levels), sea coast near levels (`COAST`). Cost medium: L0 +7%, far L3 5k → 73k tris (`TRIS=1` audit).
+- Roads `carve` never lowers nodes next to a lake (rim stays). Water material attr 4 `salt` (sea colours).
+- Audit envs: `WGRID=x,z` (node grid water:height/surface, pre seal with `SEALDBG=1`), `NEARS=x,z` (stream points), `FALLS=1`.
