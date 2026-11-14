@@ -130,6 +130,9 @@ export class Roads {
         // tunnels trimmed first: their open approaches are ground the merges / crossings below must see
         trimTunnels(roads, this.heightAt);
         mergeAlong(roads, out);
+        // merged pieces may now leave a junction along another way to its end: unzip drops / parts them
+        unzip(roads, out);
+        railCrossings(roads, out);
         levelCrossings(roads, o.step);
         for (const r of roads)
         {
@@ -472,14 +475,15 @@ export function unzip(roads: Road[], out: Junction[], maxAngle = .6) {
     {
         let changed = false;
         const ends = new Map<number, { r: Road; start: boolean }[]>();
-        for (const r of roads) if (r.class !== "rail") for (const [j, start] of [[r.from, true], [r.to, false]] as const) (ends.get(j) ?? ends.set(j, []).get(j)!).push({ r, start });
+        for (const r of roads) for (const [j, start] of [[r.from, true], [r.to, false]] as const) (ends.get(j) ?? ends.set(j, []).get(j)!).push({ r, start });
         const outward = (e: { r: Road; start: boolean }) => e.start ? e.r.points : e.r.points.slice().reverse();
         const heading = (pts: number[][]) => { const k = Math.min(3, pts.length - 1); return Math.atan2(pts[k][2] - pts[0][2], pts[k][0] - pts[0][0]); };
         for (const [, list] of ends)
         {
             for (let x = 0; x < list.length && !changed; x++) for (let y = x + 1; y < list.length && !changed; y++)
             {
-                if (list[x].r === list[y].r) continue;
+                // rail pairs with rail, roads with roads
+                if (list[x].r === list[y].r || (list[x].r.class === "rail") !== (list[y].r.class === "rail")) continue;
                 let d = Math.abs(heading(outward(list[x])) - heading(outward(list[y]))); d = Math.min(d, Math.PI * 2 - d);
                 if (d > maxAngle) continue;
                 // B: the smaller (then shorter) one leaves A's chain
@@ -556,6 +560,113 @@ export function unzip(roads: Road[], out: Junction[], maxAngle = .6) {
     roads.forEach((r, i) => r.id = i);
 }
 
+/** junction on `R` at point `m` (an end's junction, or a new one splitting `R`; the tail goes right after it) */
+function splitAt(roads: Road[], out: Junction[], R: Road, m: number) {
+    if (m <= 0) return R.from;
+    if (m >= R.points.length - 1) return R.to;
+    const pt = R.points[m], jid = out.length;
+    out.push({ id: jid, x: pt[0], z: pt[2], y: pt[1], roads: [] });
+    const tail: Road = { ...R, from: jid, points: R.points.slice(m), spans: sliceSpans(R, m, R.points.length - 1) };
+    R.spans = sliceSpans(R, 0, m);
+    R.points = R.points.slice(0, m + 1);
+    R.to = jid;
+    roads.splice(roads.indexOf(R) + 1, 0, tail);
+    return jid;
+}
+
+/**
+ * Rail crossing rail at its level (on the ground, away from the ends): a real junction (a diamond), both tracks split
+ * at the one crossing point, at one height. Crossings far apart in height are left to `levelCrossings` (overpass).
+ */
+export function railCrossings(roads: Road[], out: Junction[]) {
+    const kindAt = (r: Road, i: number) => r.spans.find(sp => i >= sp.from && i < sp.to)?.kind ?? "ground";
+    /** insert `p` after point `i` (spans shifted), returns its index */
+    const insert = (r: Road, i: number, p: [number, number, number]) => {
+        r.points.splice(i + 1, 0, p);
+        for (const sp of r.spans) { if (sp.from > i) sp.from++; if (sp.to > i) sp.to++; }
+        return i + 1;
+    };
+    // twins: a track whose both ends sit on another rail chain and that runs beside it all along (an eye, two tracks
+    // between the same junctions) is dropped: one track; two pieces joining the same two junctions always. Only when the other runs on between both ends (stays connected).
+    for (let guard = 0; guard < 50; guard++)
+    {
+        const chains = new Map<number, Road[]>();
+        for (const r of roads) if (r.class === "rail" && r.chain !== undefined) (chains.get(r.chain) ?? chains.set(r.chain, []).get(r.chain)!).push(r);
+        // a continuous run of chain `c`'s roads from junction `x` to `y` (either way), or null
+        const between = (c: number, x: number, y: number) => {
+            const list = chains.get(c)!;
+            for (const [u, v] of [[x, y], [y, x]])
+            {
+                const i = list.findIndex(r => r.from === u);
+                if (i < 0) continue;
+                for (let k = i; k < list.length && (k === i || list[k - 1].to === list[k].from); k++) if (list[k].to === v) return list.slice(i, k + 1);
+            }
+            return null;
+        };
+        // ends where B's own chain goes on (the twin dropped is the one its chain doesn't need: no kinks)
+        const goesOn = (B: Road) => chains.get(B.chain!)!.filter(r => r !== B && (r.to === B.from || r.from === B.to)).length;
+        const twin = roads.filter(B => {
+            if (B.class !== "rail" || B.chain === undefined || B.from === B.to) return false;
+            for (const c of chains.keys())
+            {
+                if (c === B.chain) continue;
+                const path = between(c, B.from, B.to);
+                if (!path) continue;
+                // the same two junctions by one road each: one is enough, however far apart they run
+                if (path.length === 1) return true;
+                const pts = path.flatMap(r => r.points);
+                if (B.points.every(p => pts.some(q => Math.hypot(p[0] - q[0], p[2] - q[2]) < 25))) return true;
+            }
+            return false;
+        }).sort((a, b) => goesOn(a) - goesOn(b))[0];
+        if (!twin) break;
+        roads.splice(roads.indexOf(twin), 1);
+    }
+    for (let guard = 0; guard < 100; guard++)
+    {
+        let hit: [Road, number, number, Road, number, number] | null = null;
+        const rails = roads.filter(r => r.class === "rail");
+        search: for (let p = 0; p < rails.length; p++) for (let q = p + 1; q < rails.length; q++)
+        {
+            const A = rails[p], B = rails[q];
+            if (A.from === B.from || A.from === B.to || A.to === B.from || A.to === B.to) continue;
+            for (let ia = 2; ia < A.points.length - 3; ia++) for (let ib = 2; ib < B.points.length - 3; ib++)
+            {
+                const a0 = A.points[ia], a1 = A.points[ia + 1], b0 = B.points[ib], b1 = B.points[ib + 1];
+                const d1x = a1[0] - a0[0], d1z = a1[2] - a0[2], d2x = b1[0] - b0[0], d2z = b1[2] - b0[2], den = d1x * d2z - d1z * d2x;
+                if (Math.abs(den) < 1e-9) continue;
+                const s = ((b0[0] - a0[0]) * d2z - (b0[2] - a0[2]) * d2x) / den, t = ((b0[0] - a0[0]) * d1z - (b0[2] - a0[2]) * d1x) / den;
+                if (s < 0 || s > 1 || t < 0 || t > 1) continue;
+                if (kindAt(A, ia) !== "ground" || kindAt(B, ib) !== "ground") continue;
+                const ya = a0[1] + (a1[1] - a0[1]) * s, yb = b0[1] + (b1[1] - b0[1]) * t;
+                if (Math.abs(ya - yb) > 2.5) continue;
+                hit = [A, ia, s, B, ib, t]; break search;
+            }
+        }
+        if (!hit) break;
+        const [A, ia, s, B, ib, t] = hit, a0 = A.points[ia], a1 = A.points[ia + 1], b0 = B.points[ib], b1 = B.points[ib + 1];
+        const y = (a0[1] + (a1[1] - a0[1]) * s + b0[1] + (b1[1] - b0[1]) * t) / 2;
+        const X: [number, number, number] = [a0[0] + (a1[0] - a0[0]) * s, y, a0[2] + (a1[2] - a0[2]) * s];
+        // both tracks eased onto the crossing height over a few points each side
+        const ease = (r: Road, m: number) => {
+            for (let k = 1; k <= 4; k++) for (const i of [m - k, m + k])
+                if (i > 0 && i < r.points.length - 1 && kindAt(r, i) === "ground") r.points[i][1] += (y - r.points[i][1]) * (1 - k / 5);
+        };
+        // a crossing right at a point: use it (no sliver segment)
+        const near = (r: Road, i: number, f: number) => f < .15 ? i : f > .85 ? i + 1 : -1;
+        let ma = near(A, ia, s), mb = near(B, ib, t);
+        if (ma < 0) ma = insert(A, ia, [...X]); else A.points[ma] = [...X];
+        if (mb < 0) mb = insert(B, ib, [...X]); else B.points[mb] = [...X];
+        ease(A, ma); ease(B, mb);
+        const j = splitAt(roads, out, A, ma);
+        // B's split joins A's junction (one point, four arms)
+        const tail: Road = { ...B, from: j, points: B.points.slice(mb), spans: sliceSpans(B, mb, B.points.length - 1) };
+        B.spans = sliceSpans(B, 0, mb); B.points = B.points.slice(0, mb + 1); B.to = j;
+        roads.splice(roads.indexOf(B) + 1, 0, tail);
+    }
+    roads.forEach((r, i) => r.id = i);
+}
+
 /** spans of `r` cut to points `a..b`, renumbered from 0 */
 const sliceSpans = (r: Road, a: number, b: number): Span[] => r.spans.filter(sp => sp.to > a && sp.from < b).map(sp => ({ ...sp, from: Math.max(sp.from, a) - a, to: Math.min(sp.to, b) - a })).filter(sp => sp.to > sp.from);
 
@@ -571,32 +682,23 @@ export function mergeAlong(roads: Road[], out: Junction[]) {
     };
     const kindAt = (r: Road, i: number) => r.spans.find(sp => i >= sp.from && i <= sp.to)?.kind ?? "ground";
     const box = (r: Road) => { const b = [Infinity, Infinity, -Infinity, -Infinity]; for (const p of r.points) { b[0] = Math.min(b[0], p[0]); b[1] = Math.min(b[1], p[2]); b[2] = Math.max(b[2], p[0]); b[3] = Math.max(b[3], p[2]); } return b; };
-    /** junction on `R` at point `m` (an end's junction, or a new one splitting `R`) */
-    const split = (R: Road, m: number) => {
-        if (m <= 0) return R.from;
-        if (m >= R.points.length - 1) return R.to;
-        const pt = R.points[m], jid = out.length;
-        out.push({ id: jid, x: pt[0], z: pt[2], y: pt[1], roads: [] });
-        const tail: Road = { ...R, from: jid, points: R.points.slice(m), spans: sliceSpans(R, m, R.points.length - 1) };
-        R.spans = sliceSpans(R, 0, m);
-        R.points = R.points.slice(0, m + 1);
-        R.to = jid;
-        roads.splice(roads.indexOf(R) + 1, 0, tail);
-        return jid;
-    };
+    const split = (R: Road, m: number) => splitAt(roads, out, R, m);
     for (let guard = 0; guard < 400; guard++)
     {
         let done = true;
         search: for (const B of roads)
         {
-            if (B.class === "rail" || B.points.length < 4) continue;
+            if (B.points.length < 4) continue;
             for (const A of roads)
             {
-                if (A === B || A.class === "rail" || (A.chain !== undefined && A.chain === B.chain)) continue;
+                // rail merges with rail only (one track), roads with roads
+                // (rail: pieces of one chain too, a line looping back along itself)
+                if (A === B || (A.class === "rail") !== (B.class === "rail") || (B.class !== "rail" && A.chain !== undefined && A.chain === B.chain)) continue;
                 // A: the bigger one (same class: the longer)
                 if (RANK[A.class] < RANK[B.class] || (RANK[A.class] === RANK[B.class] && A.points.length < B.points.length)) continue;
                 // strips overlapping (not just touching at a crossing)
-                const on = (A.width + B.width) / 2 * .85, P = B.points, n = P.length;
+                // rail: tracks closer than a ballast width side by side are one track
+                const rail = A.class === "rail", on = rail ? (A.width + B.width) * .9 : (A.width + B.width) / 2 * .85, P = B.points, n = P.length;
                 const ba = box(A), bb = box(B);
                 if (ba[0] > bb[2] + on || bb[0] > ba[2] + on || ba[1] > bb[3] + on || bb[1] > ba[3] + on) continue;
                 const near = (p: number[]) => {
@@ -617,7 +719,13 @@ export function mergeAlong(roads: Road[], out: Junction[]) {
                     i = e + 1;
                 }
                 if (a < 0) continue;
-                for (let i = a; i <= b; i++) if (kindAt(B, i) !== "ground") continue search;
+                // rail: one track on a shared deck / bore too (both on a bridge / in a tunnel there)
+                for (let i = a; i <= b; i++)
+                {
+                    const k = kindAt(B, i);
+                    if (k === "ground" || (rail && k !== "ground" && kindAt(A, near(P[i]).i) === k)) continue;
+                    continue search;
+                }
                 const qa = near(P[a]), qb = near(P[b]);
                 const ma = qa.t < .5 ? qa.i : qa.i + 1, mb = qb.t < .5 ? qb.i : qb.i + 1;
                 // crossing at a shallow angle (both ends nearest one point of A): one four way junction there
@@ -628,6 +736,15 @@ export function mergeAlong(roads: Road[], out: Junction[]) {
                 const head = out[ja], tail = out[jb];
                 const first: Road = { ...B, to: ja, points: [...P.slice(0, a).map(p => [p[0], p[1], p[2]] as [number, number, number]), [head.x, head.y, head.z]], spans: sliceSpans(B, 0, a) };
                 const second: Road = { ...B, from: jb, points: [[tail.x, tail.y, tail.z], ...P.slice(b + 1).map(p => [p[0], p[1], p[2]] as [number, number, number])], spans: sliceSpans(B, b, n - 1) };
+                // rail: the last points slide sideways onto the track (no jog where it joins)
+                if (rail) for (const [pts, end] of [[first.points, true], [second.points, false]] as const)
+                    for (let k = 1; k <= Math.min(8, pts.length - 2); k++)
+                    {
+                        const p = pts[end ? pts.length - 1 - k : k], q = near(p), a = A.points[q.i], b = A.points[q.i + 1];
+                        if (q.d > on * 1.5) break;
+                        const f = 1 - k / 9, w = f * f * (3 - 2 * f);
+                        p[0] += (a[0] + (b[0] - a[0]) * q.t - p[0]) * w; p[2] += (a[2] + (b[2] - a[2]) * q.t - p[2]) * w;
+                    }
                 // ease both onto the junction heights over a few points
                 for (let k = 1; k <= Math.min(3, first.points.length - 1); k++) { const w = 1 - k / 4, q = first.points[first.points.length - 1 - k]; q[1] += (head.y - q[1]) * w; }
                 for (let k = 1; k <= Math.min(3, second.points.length - 1); k++) { const w = 1 - k / 4, q = second.points[k]; q[1] += (tail.y - q[1]) * w; }

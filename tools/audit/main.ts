@@ -32,6 +32,15 @@ const node = (x: number, z: number) => Math.round((z / size + .5) * (n - 1)) * n
 const wet = (x: number, z: number) => { const k = node(x, z); return k >= 0 && k < n * n ? d.water[k] : 0; };
 const at = (p: number[]) => `(${p[0].toFixed(0)} ${p[2].toFixed(0)})`;
 
+// rail junctions by arms (2 = a split / join of one track, 3 = a fork, 4 = a diamond crossing)
+{
+    const arms = new Map<number, number>();
+    for (const r of net.roads) if (r.class === "rail") for (const j of [r.from, r.to]) arms.set(j, (arms.get(j) ?? 0) + 1);
+    const by: Record<number, number> = {};
+    for (const a of arms.values()) by[a] = (by[a] ?? 0) + 1;
+    console.log("rail junctions by arms", JSON.stringify(by));
+}
+
 type Issue = { what: string; score: number; where: string };
 const issues: Issue[] = [];
 const add = (what: string, score: number, where: string) => issues.push({ what, score, where });

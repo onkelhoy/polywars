@@ -82,8 +82,8 @@ export class Router {
             const o = Math.max(other[t], mid >= 0 ? Math.max(other[mid], other[mid2]) : 0);
             if (o === 2) extraCost += CROSS;
             else if (o === 1) k *= 3;
-            // own network nodes beside a road we don't ride: no parallel twins
-            if (own[t] === 1 && used[t] < rank && !isRail) k *= 4;
+            // own network nodes beside a way we don't ride: no parallel twins (rail too: one track, not two side by side)
+            if (own[t] === 1 && used[t] < rank) k *= 4;
             // sharp turns cost more than gentle ones (a 90° bend is far dearer than four 22.5° ones)
             return len * k + (turn + turn * turn * .5) * turnCost + extraCost;
         };
