@@ -1,6 +1,7 @@
 # Plan
 
 ## Where we are
+Round 8 (owner 14:08–14:41 screenshots: desert road pile-up, desert river channels, arch bridge + highway refs): confirmed, on `feature/infrastructure`, commit per task, few screenshots. Task 1 done (views, owner reviews; `node tools/scenario-shot.mjs`); next: task 2. Round 7 tasks 10–11 on hold.
 Round 7 (11.31–11.44 screenshots on Desktop: rivers, lakes, ways): confirmed, running task by task on `feature/infrastructure`, commit per task. Tasks 1–9 done; next: task 10 (cliff dead ends). Open: rail beside highway mouth (348,-976) level step 0.9 m. Task 12 dropped (owner: roads stay real meshes). Water audit: `node tools/audit-ways.mjs medium` line `water:` (all 0 except 1 pond end, 3 mouth nodes .24 m).
 Task 7 leftovers (audit `ways stacked` 15 → 8): slab stub by a junction (777,-238); two highways overlapping at a shallow angle, ~1 m apart (405,720); highway junction 7 m right over the rail (476,-728), should bridge; highway fork off a bridge at 16% (-168,66); seed 2 station spur runs back along its own track (-283,-666).
 Round 6 done (19.43 screenshots + owner notes), waiting for owner review. Open: rail at (268,-437) 20 m under ground in an uncarved cut; rail all-bridge into a station at highway-bridge height (-104,-704); gravel roads still meshes; built props no lods.
@@ -19,6 +20,16 @@ Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 d
 - Arches / tunnels: `buildings/modular-village/Stone_Arch`, `Stone_Arch_Outer`, `Stucco_Arch_*`; `buildings/castle/Tunnel`, `Bridge`, `WallEntrance`.
 - Railings / posts: `modular-village/Wood_Railing_*`, `Wood_Post_Large`, `Stone_Stairs_Railing`; `buildings/farm/Fence`, `Fence2`.
 - Props: `assets/models/props/village/` (copied from arrow-warfare: bench, street-lamp, double-lamp, signpost, fence, lantern, stone-lantern, log, woodpile, barrel, crate, ...). `modular-village/Prop_Lamp_Street`, `Wall_Prop_Sign_1` (notice board). Rocks in `nature/`.
+
+## Tasks (round 8)
+Rule: within ~30 m of each other at most 2 roads (+ 1 rail, + 1–2 paths), unless they cross or merge.
+- [x] 1. Isolated road views (roads `scenarios`): merge (slip lane), level T / X, overpass, highway two carriageways + grass median, rail alongside road, interchange ramp. Owner reviews.
+- [ ] 2. Fewer, wider ways: side-by-side roads share one route (density rule above); highway = one wide way (two carriageways), never two bridges side by side; rail may run alongside on the same bench.
+- [ ] 3. No junctions on high bridges: join only on ground / low bridges (rail may), no forks above ~8 m.
+- [ ] 4. Low bridges first (embankment / low bridge in routing); tall crossings get an arch bridge (concrete deck on a curved arch, ref 14.40.39), new type shown in bridges view first.
+- [ ] 5. Fewer routes in deserts / sparse areas; cap of big ways into one spot.
+- [ ] 6. Desert rivers: no parallel straight channels, one channel following low ground.
+- [ ] 7. (later) Tunnels without the tunnel prop.
 
 ## Tasks (round 7)
 - [x] 1. Rivers: lake water material, still (no flow / streaks), shore rim; ribbon wider than channel, edges dive into ground; cut exactly at lakes / sea.
