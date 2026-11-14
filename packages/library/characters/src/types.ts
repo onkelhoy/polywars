@@ -13,6 +13,26 @@ export type CharacterJSON = {
     parts?: Record<string, string[]>;
     /** skin name: glb (or material) relative to the json, swapped onto the same rig */
     skins?: Record<string, string>;
+    /** model units per metre is 1 / scale: the model times `scale` is in metres (default 1) */
+    scale?: number;
+    /** things worn on a bone (helmets, pads, packs), by name */
+    attachments?: Record<string, AttachmentJSON>;
+    /** first person: the bone the eye sits on and bones shrunk away (head, hair) so they don't fill the view */
+    firstPerson?: { eye: string; offset?: [number, number, number]; hide?: string[] };
+};
+
+/** A model worn on a bone, placed in the bone's space (model units of the character). */
+export type AttachmentJSON = {
+    /** glb, relative to the json */
+    model: string;
+    bone: string;
+    /** offset in the bone's space */
+    at?: [number, number, number];
+    /** degrees: yaw (y), pitch (x), roll (z) in the bone's space */
+    turn?: [number, number, number];
+    scale?: number;
+    /** one per slot (`head`, `shoulders`): picking one drops the other */
+    slot?: string;
 };
 
 /** Bones every character on a base rig has (names as in Blender), its parts and sockets. */

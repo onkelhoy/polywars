@@ -3644,6 +3644,11 @@
          "name": "Sword.glb",
          "file": "/assets/models/characters/knight/Sword.glb",
          "size": 38380
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/knight/character.json",
+         "size": 1095
         }
        ]
       }

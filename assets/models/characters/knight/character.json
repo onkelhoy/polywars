@@ -1,0 +1,23 @@
+{
+    "name": "Knight",
+    "model": "KnightCharacter.glb",
+    "rig": "KnightCharacter.rig.json",
+    "base": "own",
+    "scale": 0.33,
+    "sockets": { "hand.R": "Palm.R", "hand.L": "Palm.L", "head": "Head" },
+    "parts": {
+        "head": ["Head", "Neck"],
+        "torso": ["Hips", "Abdomen", "Torso"],
+        "arm.L": ["Shoulder.L", "UpperArm.L", "LowerArm.L", "Palm.L"],
+        "arm.R": ["Shoulder.R", "UpperArm.R", "LowerArm.R", "Palm.R"],
+        "leg.L": ["UpperLeg.L", "LowerLeg.L", "Foot.L"],
+        "leg.R": ["UpperLeg.R", "LowerLeg.R", "Foot.R"]
+    },
+    "attachments": {
+        "helmet 1": { "model": "Helmet1.glb", "bone": "Head", "at": [0, 0.6, -0.05], "slot": "head" },
+        "helmet 2": { "model": "Helmet2.glb", "bone": "Head", "at": [0, 0.6, -0.05], "slot": "head" },
+        "helmet 3": { "model": "Helmet3.glb", "bone": "Head", "at": [0, 0.6, -0.05], "slot": "head" },
+        "shoulder pads": { "model": "ShoulderPads.glb", "bone": "Torso", "at": [0, 0.6, 0], "slot": "shoulders" }
+    },
+    "firstPerson": { "eye": "Head", "offset": [0, 0.35, 0.3], "hide": ["Head"] }
+}
