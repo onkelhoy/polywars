@@ -12,9 +12,15 @@ const STEEP_RUN = 8;
 /** surface + a skirt down each side (reads as a bank on fills, hidden in the ground on cuts) */
 const strip = (top: [number, number, number], side: [number, number, number], edge = 1.35): Profile => ({ points: [[-edge, -1.2], [-1, 0], [1, 0], [edge, -1.2]], colors: [side, top, side] });
 
+/** two carriageways with a sunk grass median (x in half widths: median 2.4 m of 16 m) */
+const dual = (top: [number, number, number], side: [number, number, number], grass: [number, number, number]): Profile => ({
+    points: [[-1.18, -1.2], [-1, 0], [-.16, 0], [-.13, -.12], [.13, -.12], [.16, 0], [1, 0], [1.18, -1.2]],
+    colors: [side, top, side, grass, side, top, side],
+});
+
 /** surface per class (1940s): concrete slabs on highways, gravel roads, dirt lanes; paths have no surface (ground only) */
 export const STYLES: Record<string, ClassStyle> = {
-    highway: { profile: strip([.62, .61, .58], [.42, .4, .36]), step: 4, lift: .15, bands: { every: 6, shade: .08 } },
+    highway: { profile: dual([.62, .61, .58], [.42, .4, .36], [.36, .5, .28]), step: 4, lift: .15, bands: { every: 6, shade: .08 } },
     road: { profile: strip([.55, .5, .43], [.4, .36, .3]), step: 4, lift: .12 },
     // small ways are painted on the ground (no mesh): they follow it exactly and cost nothing to draw
     lane: { profile: null, step: 3, lift: 0, paint: .7 },

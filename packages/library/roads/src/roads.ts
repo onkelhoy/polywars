@@ -139,6 +139,7 @@ export class Roads {
         // merged pieces may now leave a junction along another way to its end: unzip drops / parts them
         unzip(roads, out);
         dropClimbs(roads);
+        dropHighForks(roads, out, this.heightAt);
         railCrossings(roads, out);
         levelCrossings(roads, o.step);
         // last: nothing may fork / cross inside a tube (opens it into a cutting there)
@@ -640,6 +641,13 @@ export function dropClimbs(roads: Road[]) {
             && (RANK[A.class] > RANK[B.class] || (RANK[A.class] === RANK[B.class] && A.points.length >= B.points.length)));
         if (A && B.points.every(p => A.points.some(q => Math.hypot(p[0] - q[0], p[2] - q[2]) < 15))) roads.splice(k, 1);
     }
+    // at most 2 roads side by side (highway / road, ≤ 30 m apart along most of a way; rail and small ways not
+    // counted): the smallest / shortest extra one goes
+    const big = (r: Road) => r.class === "highway" || r.class === "road";
+    const beside = (B: Road, A: Road) => A !== B && big(A) && (A.chain === undefined || A.chain !== B.chain)
+        && B.points.filter(p => A.points.some(q => Math.hypot(p[0] - q[0], p[2] - q[2]) < 30)).length > B.points.length * .6;
+    const order = roads.filter(big).sort((a, b) => RANK[a.class] - RANK[b.class] || a.points.length - b.points.length);
+    for (const B of order) if (roads.filter(A => roads.includes(A) && beside(B, A)).length >= 2) roads.splice(roads.indexOf(B), 1);
     roads.forEach((r, i) => r.id = i);
 }
 
@@ -985,4 +993,25 @@ export function mouthBridges(roads: Road[], heightAt: (x: number, z: number) => 
             return under ? s : { kind: "ground" as const, from: s.from, to: s.to };
         }).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
     }
+}
+
+/**
+ * No forks up in the air: at a junction more than `high` m over the ground (a deck), only the two biggest arms of
+ * roads stay (rail may fork); the other roads ending there are dropped. In place; road ids renumbered.
+ */
+export function dropHighForks(roads: Road[], out: Junction[], heightAt: (x: number, z: number) => number, high = 8) {
+    const arms = new Map<number, Road[]>();
+    for (const r of roads) if (r.class !== "rail") for (const j of [r.from, r.to]) (arms.get(j) ?? arms.set(j, []).get(j)!).push(r);
+    for (const [j, list] of arms)
+    {
+        const J = out[j];
+        if (!J || list.length < 3 || J.y - heightAt(J.x, J.z) < high) continue;
+        list.sort((a, b) => RANK[b.class] - RANK[a.class] || b.points.length - a.points.length);
+        // a chain going on through keeps both its arms
+        const keep = new Set(list.slice(0, 1));
+        const go = list.find(r => r !== list[0] && r.chain !== undefined && r.chain === list[0].chain) ?? list[1];
+        keep.add(go);
+        for (const r of list) if (!keep.has(r) && roads.includes(r)) roads.splice(roads.indexOf(r), 1);
+    }
+    roads.forEach((r, i) => r.id = i);
 }
