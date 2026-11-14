@@ -47,12 +47,23 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/game-engine": "*",
+    "@papit/game-mesh": "*",
+    "@papit/matrix": "*",
+    "@polywar/mover": "*",
+    "@polywar/weapons": "*",
+    "@polywar/ballistics": "*",
+    "@polywar/impacts": "*",
+    "@polywar/viewmodel": "*",
+    "@polywar/renderer": "*",
+    "@polywar/characters": "*"
+  },
   "devDependencies": {
     "typescript": "5.9.3",
     "@papit/theme": "*",
-    "@papit/translator": "*",
-    "@papit/codeblock": "*"
+    "@polywar/viewport": "*",
+    "@papit/game-engine": "*"
   },
   "browserslist": [
     "defaults",
