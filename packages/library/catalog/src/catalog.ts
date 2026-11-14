@@ -4,11 +4,14 @@ import { SHADINGS, ShadingBall } from "@polywar/shading";
 import { DEFAULTS, MAPS, Terrain } from "@polywar/terrain";
 import { TERRAIN_LOOKS, TerrainSample } from "@polywar/terrain-material";
 import { Skeleton } from "@polywar/skeleton";
+import { Armory } from "@polywar/armory";
 
 /**
  * Fills a `pw-gallery` with the whole library: every file of the root `assets/` folder (its manifest),
  * plus the shader materials (shading styles, grass and terrain looks), the generated terrains (map presets, low quality)
  * and the baked surfaces (`model.glb` + maps).
+ * Weapons: every gun, and every gun with each scope it takes (`@polywar/armory`), under `models/weapons/armory`
+ * (pick "models/weapons" in the header for weapons only).
  * Rigged models get a `Skeleton` (bones in the preview; IK when a `rig.json` sits next to the glb).
  */
 export async function catalog(gallery: Gallery, location = "/assets") {
@@ -46,6 +49,8 @@ export async function catalog(gallery: Gallery, location = "/assets") {
         const parts = file.split("/");
         return { name: parts.at(-2)!, group: `materials/textured/${parts.at(-4)}`, kind: "material", src: file, note: "@polywar/textured" };
     });
+    const armory = await new Armory(location).items().catch(e => (console.warn("catalog: armory", e), []));
+    const weapons: GalleryItem[] = armory.map(i => ({ ...i, group: `models/weapons/armory/${i.group}` }));
     gallery.location = location;
-    gallery.items = [...shadings, ...grass, ...terrainLooks, ...textured, ...terrains];
+    gallery.items = [...shadings, ...grass, ...terrainLooks, ...textured, ...terrains, ...weapons];
 }

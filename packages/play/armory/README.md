@@ -12,6 +12,25 @@ Weapon asset data: weapon.json / scope.json (sight, hand, muzzle, eject, mount p
 
 ---
 
+## Files
+
+- `assets/models/weapons/guns/<id>/weapon.json`: `action`, `sounds` (folder under `assets/audio/effects/weapons/`), `scopes` (ids that fit), `points` (glTF model space, metres: `muzzle`, `front` / `rear` sight, `trigger`, `grip`, `fore`, `eject`, `mount`).
+- `assets/models/weapons/attachments/<id>/scope.json`: `zoom` [min, max], `points` (`eyepiece`, `objective`, `mount` = under the rings).
+
+Made by `tools/blender/packs/rifles.py` (import), `weapon-points.py` (points guess, hand edits win), `tools/weapons/meta.mjs` (action / scopes / sounds). Check points with `tools/blender/packs/grid-shot.py`.
+
+## Use
+
+```ts
+const armory = new Armory("/assets");
+const kar = await armory.weapon("kar98k"), scope = await armory.scope("scope-2");
+const offset = scopeOffset(kar, scope);          // scope model space -> gun model space
+const eye = onGun(scope.points.eyepiece, offset);
+gallery.items = await armory.items();             // every gun, every gun + scope (ArmedGun drawables)
+```
+
+View `armory`: the weapons only gallery.
+
 ## installation
 
 ```bash

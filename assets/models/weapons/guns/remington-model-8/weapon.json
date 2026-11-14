@@ -1,0 +1,20 @@
+{
+    "model": "model.glb",
+    "action": "semi",
+    "sounds": "remington-model-8",
+    "scopes": [
+        "scope-1",
+        "scope-2",
+        "scope-3"
+    ],
+    "points": {
+        "muzzle": [0, 0.0706, -0.52],
+        "front": [0, 0.0883, -0.4928],
+        "rear": [0, 0.0914, -0.0174],
+        "trigger": [0, 0.0189, 0.19],
+        "grip": [0, 0.0204, 0.25],
+        "fore": [0, 0.0349, -0.08],
+        "eject": [0.012, 0.085, 0.12],
+        "mount": [0, 0.085, 0.12]
+    }
+}

@@ -1,0 +1,8 @@
+@import "@papit/theme";
+
+body {
+    margin: 0;
+    background-color: var(--background, light-dark(oklch(96% 0 0), oklch(17% 0 0)));
+    color: var(--text, #080808);
+    font-family: system-ui, sans-serif;
+}

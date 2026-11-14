@@ -3648,7 +3648,7 @@
         {
          "name": "character.json",
          "file": "/assets/models/characters/knight/character.json",
-         "size": 1095
+         "size": 1104
         }
        ]
       }
@@ -10858,6 +10858,101 @@
        ]
       },
       {
+       "name": "attachments",
+       "assets": [
+        {
+         "name": "scope-1",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/attachments/scope-1/about/license.txt",
+             "size": 364
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/attachments/scope-1/model.blend",
+           "size": 786116
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/attachments/scope-1/model.glb",
+           "size": 23080
+          },
+          {
+           "name": "scope.json",
+           "file": "/assets/models/weapons/attachments/scope-1/scope.json",
+           "size": 195
+          }
+         ]
+        },
+        {
+         "name": "scope-2",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/attachments/scope-2/about/license.txt",
+             "size": 364
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/attachments/scope-2/model.blend",
+           "size": 787932
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/attachments/scope-2/model.glb",
+           "size": 27348
+          },
+          {
+           "name": "scope.json",
+           "file": "/assets/models/weapons/attachments/scope-2/scope.json",
+           "size": 189
+          }
+         ]
+        },
+        {
+         "name": "scope-3",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/attachments/scope-3/about/license.txt",
+             "size": 364
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/attachments/scope-3/model.blend",
+           "size": 786700
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/attachments/scope-3/model.glb",
+           "size": 23936
+          },
+          {
+           "name": "scope.json",
+           "file": "/assets/models/weapons/attachments/scope-3/scope.json",
+           "size": 191
+          }
+         ]
+        }
+       ]
+      },
+      {
        "name": "grenades",
        "assets": [
         {
@@ -10911,6 +11006,266 @@
        "name": "guns",
        "assets": [
         {
+         "name": "arisaka-type-99",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/model.blend",
+           "size": 1088068
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/model.glb",
+           "size": 164552
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/weapon.json",
+           "size": 490
+          }
+         ]
+        },
+        {
+         "name": "beretta-model-57",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/beretta-model-57/about/license.txt",
+             "size": 724
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/beretta-model-57/model.blend",
+           "size": 259447
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/beretta-model-57/model.glb",
+           "size": 419632
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/beretta-model-57/weapon.json",
+           "size": 420
+          }
+         ]
+        },
+        {
+         "name": "carcano-m1891",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/carcano-m1891/model.blend",
+           "size": 158147
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/carcano-m1891/model.glb",
+           "size": 127564
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/carcano-m1891/weapon.json",
+           "size": 494
+          }
+         ]
+        },
+        {
+         "name": "double-deuce",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/double-deuce/about/license.txt",
+             "size": 760
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/double-deuce/model.blend",
+           "size": 249835
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/double-deuce/model.glb",
+           "size": 391188
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/double-deuce/weapon.json",
+           "size": 425
+          }
+         ]
+        },
+        {
+         "name": "general-liu",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/general-liu/about/license.txt",
+             "size": 728
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/general-liu/model.blend",
+           "size": 214266
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/general-liu/model.glb",
+           "size": 219912
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/general-liu/weapon.json",
+           "size": 418
+          }
+         ]
+        },
+        {
+         "name": "gewehr-43",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/gewehr-43/model.blend",
+           "size": 896882
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/gewehr-43/model.glb",
+           "size": 134668
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/gewehr-43/weapon.json",
+           "size": 483
+          }
+         ]
+        },
+        {
+         "name": "gewehr-88",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/gewehr-88/about/license.txt",
+             "size": 696
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/gewehr-88/model.blend",
+           "size": 163847
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/gewehr-88/model.glb",
+           "size": 185168
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/gewehr-88/weapon.json",
+           "size": 427
+          }
+         ]
+        },
+        {
+         "name": "k31",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/k31/model.blend",
+           "size": 170838
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/k31/model.glb",
+           "size": 146704
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/k31/weapon.json",
+           "size": 494
+          }
+         ]
+        },
+        {
+         "name": "kar98k",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/kar98k/model.blend",
+           "size": 894286
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/kar98k/model.glb",
+           "size": 157968
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/kar98k/weapon.json",
+           "size": 480
+          }
+         ]
+        },
+        {
+         "name": "kropatschek",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/kropatschek/model.blend",
+           "size": 849173
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/kropatschek/model.glb",
+           "size": 112176
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/kropatschek/weapon.json",
+           "size": 417
+          }
+         ]
+        },
+        {
+         "name": "lebel-m1886",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/lebel-m1886/model.blend",
+           "size": 157610
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/lebel-m1886/model.glb",
+           "size": 126240
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/lebel-m1886/weapon.json",
+           "size": 477
+          }
+         ]
+        },
+        {
          "name": "m1-garand",
          "assets": [
           {
@@ -10947,6 +11302,31 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/m1-garand/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/m1-garand/weapon.json",
+           "size": 489
+          }
+         ]
+        },
+        {
+         "name": "m1903a1-springfield",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/model.blend",
+           "size": 841699
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/model.glb",
+           "size": 105148
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/weapon.json",
+           "size": 499
           }
          ]
         },
@@ -10987,6 +11367,41 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/m1911/model.rig.json",
            "size": 548
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/m1911/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
+         "name": "mas-36",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/mas-36/about/license.txt",
+             "size": 684
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/mas-36/model.blend",
+           "size": 177614
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/mas-36/model.glb",
+           "size": 244576
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/mas-36/weapon.json",
+           "size": 414
           }
          ]
         },
@@ -11027,6 +11442,31 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/mauser-c96/model.rig.json",
            "size": 548
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/mauser-c96/weapon.json",
+           "size": 99
+          }
+         ]
+        },
+        {
+         "name": "p14-enfield",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/p14-enfield/model.blend",
+           "size": 933426
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/p14-enfield/model.glb",
+           "size": 160084
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/p14-enfield/weapon.json",
+           "size": 492
           }
          ]
         },
@@ -11067,6 +11507,101 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/ppsh-41/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/ppsh-41/weapon.json",
+           "size": 426
+          }
+         ]
+        },
+        {
+         "name": "remington-model-8",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/remington-model-8/model.blend",
+           "size": 823163
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/remington-model-8/model.glb",
+           "size": 90608
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/remington-model-8/weapon.json",
+           "size": 485
+          }
+         ]
+        },
+        {
+         "name": "ross-mk3",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/ross-mk3/model.blend",
+           "size": 163432
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/ross-mk3/model.glb",
+           "size": 130388
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/ross-mk3/weapon.json",
+           "size": 494
+          }
+         ]
+        },
+        {
+         "name": "ruger-10-22",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/ruger-10-22/model.blend",
+           "size": 860611
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/ruger-10-22/model.glb",
+           "size": 87956
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/ruger-10-22/weapon.json",
+           "size": 476
+          }
+         ]
+        },
+        {
+         "name": "smle-mk3",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/smle-mk3/about/license.txt",
+             "size": 704
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/smle-mk3/model.blend",
+           "size": 286164
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/smle-mk3/model.glb",
+           "size": 409088
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/smle-mk3/weapon.json",
+           "size": 484
           }
          ]
         },
@@ -11107,6 +11642,41 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/stg-44/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/stg-44/weapon.json",
+           "size": 348
+          }
+         ]
+        },
+        {
+         "name": "svt-40",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/svt-40/about/license.txt",
+             "size": 684
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/svt-40/model.blend",
+           "size": 299745
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/svt-40/model.glb",
+           "size": 379668
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/svt-40/weapon.json",
+           "size": 481
           }
          ]
         },
@@ -11147,6 +11717,11 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/thompson-m1/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/thompson-m1/weapon.json",
+           "size": 354
           }
          ]
         },
@@ -11187,6 +11762,121 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/tt-pistol/model.rig.json",
            "size": 548
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/tt-pistol/weapon.json",
+           "size": 98
+          }
+         ]
+        },
+        {
+         "name": "vetterli-m78",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/vetterli-m78/model.blend",
+           "size": 157499
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/vetterli-m78/model.glb",
+           "size": 123872
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/vetterli-m78/weapon.json",
+           "size": 418
+          }
+         ]
+        },
+        {
+         "name": "vz-52",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/vz-52/about/license.txt",
+             "size": 678
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/vz-52/model.blend",
+           "size": 273744
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/vz-52/model.glb",
+           "size": 403716
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/vz-52/weapon.json",
+           "size": 423
+          }
+         ]
+        },
+        {
+         "name": "winchester-1866",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/winchester-1866/model.blend",
+           "size": 828960
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/winchester-1866/model.glb",
+           "size": 96600
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/winchester-1866/weapon.json",
+           "size": 430
+          }
+         ]
+        },
+        {
+         "name": "winchester-1895",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/winchester-1895/model.blend",
+           "size": 921253
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/winchester-1895/model.glb",
+           "size": 144332
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/winchester-1895/weapon.json",
+           "size": 432
+          }
+         ]
+        },
+        {
+         "name": "winchester-1910",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/winchester-1910/model.blend",
+           "size": 1056229
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/winchester-1910/model.glb",
+           "size": 149036
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/winchester-1910/weapon.json",
+           "size": 418
           }
          ]
         }
