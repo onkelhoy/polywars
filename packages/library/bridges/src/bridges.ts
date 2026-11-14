@@ -16,6 +16,29 @@ export function pick(cls: string, span: number, height: number): BridgeType {
     return height < 4 ? "slab-stone" : "arch-stone";
 }
 
+type Station = ReturnType<typeof along>[0];
+/** a support `r` m round may stand at station `a` */
+const free = (o: BridgeOptions, a: Station, r: number) => !o.free || o.free(a.p[0], a.p[2], r, a.p[1]);
+
+/**
+ * support stations every ~`every` m (not the ends); one that would stand on something (`o.free`) slides along the
+ * deck to the nearest free spot (up to half a spacing) or is left out
+ */
+function supports(path: Vec3[], every: number, o: BridgeOptions, r: number): Station[] {
+    const L = length(path), n = Math.max(1, Math.round(L / every)), st = along(path, L / n).slice(1, -1);
+    if (!o.free) return st;
+    return st.flatMap(a => {
+        for (let k = 0; k <= L / n / 2; k++) for (const s of k ? [1, -1] : [1])
+        {
+            const d = a.d + k * s;
+            if (d <= 1 || d >= L - 1) continue;
+            const b = along(path, L, d)[0];
+            if (b && free(o, b, r)) return [b];
+        }
+        return [];
+    });
+}
+
 /** deck with parapets (`rail` m high, `railR` on the right when different), closed underneath, `thick` m deep; y in metres, x in half widths */
 function deckProfile(thick: number, rail: number, side: RGB, top: RGB, edge = 1.12, railR = rail): Profile {
     const pts: [number, number][] = [[-edge, -thick], [-edge, rail], [-1, rail], [-1, 0], [1, 0], [1, railR], [edge, railR], [edge, -thick], [-edge, -thick]];
@@ -81,7 +104,7 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
             {
                 const x = a.p[0] + a.side[0] * w * k, z = a.p[2] + a.side[1] * w * k;
                 s.beam([x, a.p[1] - .1, z], [x, a.p[1] + 1, z], .1, .1, WOOD_DARK);
-                if (a.d % 4 < 1e-6) s.beam([x, o.ground(x, z) - .5, z], [x, a.p[1] - .1, z], .16, .16, WOOD_DARK);
+                if (a.d % 4 < 1e-6 && (!o.free || o.free(x, z, .3, a.p[1]))) s.beam([x, o.ground(x, z) - .5, z], [x, a.p[1] - .1, z], .16, .16, WOOD_DARK);
             }
         }
         for (const k of [-1, 1]) for (let i = 0; i < path.length - 1; i++)
@@ -93,13 +116,18 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
         return merge([deck, s.mesh()]);
     },
     "slab-stone": (path, o) => {
-        const s = new Soup(), L = length(path), n = Math.max(1, Math.round(L / 7));
-        for (const a of along(path, L / n).slice(1, -1)) pier(s, a, o, o.width * 1.15, 1.2, STONE_DARK);
+        const s = new Soup();
+        for (const a of supports(path, 7, o, o.width * .6)) pier(s, a, o, o.width * 1.15, 1.2, STONE_DARK);
         return merge([deck(path, o, .6, .5, STONE, STONE_DARK, 1.12, { step: 2, bands: { every: 2.5, shade: .08 } }), s.mesh()]);
     },
     "arch-stone": (path, o) => {
         const s = new Soup(), L = length(path), h = clearance(path, o.ground);
-        const bays = Math.max(1, Math.round(L / Math.max(8, Math.min(24, h * 1.1)))), bay = L / bays, pierW = Math.max(1.2, bay * .14);
+        // bays: the count nearest the ideal whose piers all stand free (none on another way), else one arch
+        const ideal = Math.max(1, Math.round(L / Math.max(8, Math.min(24, h * 1.1))));
+        const fits = (n: number) => along(path, L / n).slice(1, -1).every(a => free(o, a, o.width * .6 + Math.max(1.2, L / n * .14) / 2));
+        let bays = 1;
+        for (const d of [0, 1, -1, 2, -2, 3, -3]) if (ideal + d >= 1 && fits(ideal + d)) { bays = ideal + d; break; }
+        const bay = L / bays, pierW = Math.max(1.2, bay * .14);
         const stations = along(path, bay);
         const w = o.width / 2 * 1.12, thick = .6;
         // piers (not at the ends: abutments sit in the bank)
@@ -138,6 +166,7 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
         const s = new Soup(), w = o.width / 2, deckY = .5;
         for (const a of along(path, 5))
         {
+            if (!free(o, a, w * 1.3)) continue;
             const top = a.p[1] - deckY, ground = Math.min(...[-1, 1].map(k => o.ground(a.p[0] + a.side[0] * w * k, a.p[2] + a.side[1] * w * k))) - .5;
             const h = Math.max(0, top - ground);
             if (h < .3) continue;
@@ -159,8 +188,7 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
     },
     girder: (path, o) => {
         const s = new Soup(), L = length(path), H = Math.max(4, Math.min(9, L / 12)), w = o.width / 2 * 1.04;
-        const piers = Math.max(1, Math.round(L / 55));
-        for (const a of along(path, L / piers).slice(1, -1)) pier(s, a, o, o.width * 1.3, 3, CONCRETE);
+        for (const a of supports(path, 55, o, o.width * .7)) pier(s, a, o, o.width * 1.3, 3, CONCRETE);
         // two trusses: chords + verticals + diagonals every panel; shorter panels on a bend, sides mitred so the
         // chords follow the deck edge
         let turn = 0;
@@ -198,8 +226,8 @@ function far(type: BridgeType, path: Vec3[], o: BridgeOptions): Mesh {
         "foot-wood": [WOOD_DARK, WOOD, .15, 4], "slab-stone": [STONE_DARK, STONE, .6, 7], "arch-stone": [STONE_DARK, STONE, .6, 14],
         "trestle-wood": [WOOD_DARK, WOOD, .5, 5], girder: [STONE, CONCRETE, .8, 55],
     };
-    const [side, top, thick, every] = look[type], n = Math.max(1, Math.round(L / every));
-    for (const a of along(path, L / n).slice(1, -1)) pier(s, a, o, o.width * 1.1, type === "girder" ? 3 : type.endsWith("wood") ? .4 : 1.2, side);
+    const [side, top, thick, every] = look[type];
+    for (const a of supports(path, every, o, o.width * .6)) pier(s, a, o, o.width * 1.1, type === "girder" ? 3 : type.endsWith("wood") ? .4 : 1.2, side);
     if (type === "girder")
     {
         const H = Math.max(4, Math.min(9, L / 12)), w = o.width / 2 * 1.04, st = along(path, Math.max(8, L / 12));

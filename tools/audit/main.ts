@@ -32,6 +32,25 @@ const node = (x: number, z: number) => Math.round((z / size + .5) * (n - 1)) * n
 const wet = (x: number, z: number) => { const k = node(x, z); return k >= 0 && k < n * n ? d.water[k] : 0; };
 const at = (p: number[]) => `(${p[0].toFixed(0)} ${p[2].toFixed(0)})`;
 
+// UNDER=1: spots where a way passes under another way's deck (piers must keep off it)
+if (process.env.UNDER)
+{
+    const kindAt = (r: typeof net.roads[0], i: number) => r.spans.find(sp => i >= sp.from && i < sp.to)?.kind ?? "ground";
+    const out: string[] = [];
+    for (const r of net.roads) for (const sp of r.spans) if (sp.kind === "bridge") for (const o of net.roads)
+    {
+        if (o === r || (o.chain !== undefined && o.chain === r.chain)) continue;
+        for (let i = 0; i < o.points.length; i++)
+        {
+            const p = o.points[i];
+            if (kindAt(o, i) === "tunnel") continue;
+            const hit = r.points.slice(sp.from, sp.to + 1).some(q => Math.hypot(q[0] - p[0], q[2] - p[2]) < (r.width + o.width) / 2 && q[1] > p[1] + 1);
+            if (hit) { out.push(`${r.class} over ${o.class} ${at(p)}`); break; }
+        }
+    }
+    console.log("under decks:", [...new Set(out)].join(" | "));
+}
+
 // rail junctions by arms (2 = a split / join of one track, 3 = a fork, 4 = a diamond crossing)
 {
     const arms = new Map<number, number>();

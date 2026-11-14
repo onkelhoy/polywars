@@ -15,6 +15,11 @@ export type BridgeOptions = {
     gaps?: { from: number; to: number; side: -1 | 1 }[];
     /** 0 full detail; 1 far: deck + piers only (girders keep their chords), few points */
     lod?: number;
+    /**
+     * may a support `r` m round stand at (x, z), reaching up to `top` (e.g. no other way under the deck there)?
+     * Piers / bents slide along the deck to a free spot or are left out; default: everywhere
+     */
+    free?: (x: number, z: number, r: number, top: number) => boolean;
 };
 
 export type PortalOptions = {

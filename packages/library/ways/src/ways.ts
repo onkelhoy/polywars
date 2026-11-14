@@ -210,6 +210,35 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
         }
         return gaps;
     };
+    // every way's ground / deck pieces (painted ones too): bridge piers never stand on another way under the deck
+    const PB = 16, pieces = new Map<number, { a: Vec3; b: Vec3; half: number; chain: number }[]>();
+    const pkey = (i: number, j: number) => (i + 4096) * 8192 + j + 4096;
+    for (const r of input.roads)
+    {
+        const kind = (i: number) => r.spans.find(s => i >= s.from && i < s.to)?.kind ?? "ground";
+        for (let i = 0; i < r.points.length - 1; i++)
+        {
+            if (kind(i) === "tunnel") continue;
+            const a = r.points[i], b = r.points[i + 1], piece = { a, b, half: r.width / 2, chain: r.chain ?? -1 - r.id };
+            for (let j = Math.floor(Math.min(a[2], b[2]) / PB); j <= Math.floor(Math.max(a[2], b[2]) / PB); j++)
+                for (let q = Math.floor(Math.min(a[0], b[0]) / PB); q <= Math.floor(Math.max(a[0], b[0]) / PB); q++)
+                    (pieces.get(pkey(q, j)) ?? pieces.set(pkey(q, j), []).get(pkey(q, j))!).push(piece);
+        }
+    }
+    /** support test for a bridge of `chain`: no other way (below `top`) within the support's reach */
+    const freeFor = (chain: number) => (x: number, z: number, r: number, top: number) => {
+        const reach = r + 4 + 1;
+        for (let j = Math.floor((z - reach) / PB); j <= Math.floor((z + reach) / PB); j++)
+            for (let q = Math.floor((x - reach) / PB); q <= Math.floor((x + reach) / PB); q++)
+                for (const p of pieces.get(pkey(q, j)) ?? [])
+                {
+                    if (p.chain === chain) continue;
+                    const dx = p.b[0] - p.a[0], dz = p.b[2] - p.a[2], t = Math.max(0, Math.min(1, ((x - p.a[0]) * dx + (z - p.a[2]) * dz) / (dx * dx + dz * dz || 1)));
+                    if (p.a[1] + (p.b[1] - p.a[1]) * t > top - 1) continue;
+                    if (Math.hypot(x - p.a[0] - dx * t, z - p.a[2] - dz * t) < p.half + r + 1) return false;
+                }
+        return true;
+    };
     // tunnel mouths out in the open (x, z): a tunnel end where no other way's tunnel ends too
     const mouths: [number, number][] = [];
     for (const r of input.roads) for (const sp of r.spans) if (sp.kind === "tunnel") for (const i of [sp.from, sp.to])
@@ -282,7 +311,7 @@ export function buildWays(input: WaysInput, styles: Record<string, ClassStyle> =
                     const kept = list.slice(i - 1);
                     deck = end ? kept.reverse() : kept;
                 }
-                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road", gaps: joins(deck, road.chain, road.width), lod });
+                const b = bridgeFor(road.class, deck, { width: road.width, ground, use: rail ? "rail" : road.class === "path" ? "path" : "road", gaps: joins(deck, road.chain, road.width), lod, free: freeFor(road.chain ?? -1 - road.id) });
                 meshes.push(b.mesh);
                 structures.push({ kind: `bridge-${b.type}`, road: road.id, x: raw[0][0], y: raw[0][1], z: raw[0][2], to: raw[raw.length - 1] });
                 if (rail) lay(raw);
