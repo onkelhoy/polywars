@@ -1,3 +1,3 @@
-// exports
-export * from "./component";
+export * from "./bullets";
+export * from "./cast";
 export * from "./types";

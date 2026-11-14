@@ -1,36 +1,9 @@
 # @polywar/ballistics
 
-Stepped bullets with gravity and drag, raycast against the world, hit callbacks.
+Bullets in flight and what they hit. No drawing (tracers, particles, marks: `@polywar/impacts`), no guns (`@polywar/weapons`).
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
+- `Bullets(cast)`: `fire({ from, direction, speed, drag, life, tracer, data })`, `update(dt)` (fixed 1/240 s steps, gravity + quadratic drag, one `cast` per step), `onhit(bullet, hit)`, `ongone(bullet)`, `list` (position, previous, velocity, travelled, age).
+- Casts (`(from, to) => Hit | null`, `Hit = { t, point, normal, surface?, target? }`): `castGround(height, from, to)`, `castBox`, `castSphere`, `castCylinder`, `nearest(...casts)`.
+- `dropAt(speed, drag, distance)`, `timeAt(...)`, `zeroAngle(speed, drag, zero, sightHeight)`: how far up the bore points so the shot meets the sights at `zero`.
 
----
-
-![Type](https://img.shields.io/badge/Type-play-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/ballistics.svg?logo=npm)](https://www.npmjs.com/package/@polywar/ballistics)
-
----
-
-## installation
-
-```bash
-npm install @polywar/ballistics
-```
-
-## License
-
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
-
-**Key points:**
-
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
-
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+View `experiment`: every gun's trajectory zeroed, drop table.
