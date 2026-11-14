@@ -1,3 +1,2 @@
-// exports
-export * from "./component";
+export * from "./debris";
 export * from "./types";
