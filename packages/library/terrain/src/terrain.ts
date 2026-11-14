@@ -227,7 +227,7 @@ export class Terrain {
             this.skirtMesh = skirt(gl, d, edge === "ocean" ? -.12 * o.height : o.edge.level * o.height, o.mesh.skirt, BIOME(edge === "ocean" ? "ocean" : "grassland"));
         this.ocean = waterMesh(gl, d, 1, step, edge === "ocean" ? o.mesh.skirt : 0);
         this.lakes = [0, 1, 2].map(kind => waterMesh(gl, d, 2, step, 0, kind));
-        this.riverWater = riverSheet(gl, d);
+        this.riverWater = riverSheet(gl, d, step);
         // signed metres to the shore of the sea and the lakes, smooth, for the wave lines
         const signed = new Float32Array(d.n * d.n);
         for (let k = 0; k < signed.length; k++) signed[k] = d.water[k] === 1 || d.water[k] === 2 ? d.toLand[k] : -d.toWater[k];

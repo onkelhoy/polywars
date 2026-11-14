@@ -4,6 +4,7 @@ import { hydrologyHooks } from "@polywar/hydrology";
 import { roadHooks, sampler } from "@polywar/roads";
 import { generateSites } from "@polywar/sites";
 import { STEEP, buildWays } from "@polywar/ways";
+import { Ground, triangulate } from "@polywar/terrain";
 
 const [quality = "low", seed = "1"] = process.argv.slice(2);
 const hydro = hydrologyHooks({}), roads = roadHooks(raw => generateSites(raw as any, raw.cities, {}), {}, "{}");
@@ -13,7 +14,15 @@ const hooks: TerrainHooks = {
         const a = hydro.features(raw as any); roads.features(raw as any);
         return a;
     },
-    fix: async data => { await hydro.fix(data as any); await roads.fix(data as any); },
+    fix: async data => {
+        await hydro.fix(data as any);
+        if (process.env.SEALDBG) { const c = { ...data, height: data.height.slice(), surface: data.surface.slice(), water: data.water.slice() }; hydro.seal(c as any); console.log("seal before roads", JSON.stringify(hydro.sealed)); }
+        await roads.fix(data as any);
+        const pre = data.height.slice();
+        if (process.env.WGRID) { const [x, z] = process.env.WGRID.split(',').map(Number), N = data.n, c = data.size / (N - 1), nd = (x: number, z: number) => Math.round((z / data.size + .5) * (N - 1)) * N + Math.round((x / data.size + .5) * (N - 1)); console.log('pre seal:'); for (let b = -5; b <= 5; b++) console.log(Array.from({ length: 11 }, (_, a) => { const k = nd(x + (a - 5) * c, z + b * c); return `${data.water[k]}:${pre[k].toFixed(1)}/${data.water[k] ? data.surface[k].toFixed(1) : '    '}`.padEnd(15); }).join('')); }
+        hydro.seal(data as any);
+        if (process.env.SEALDBG) { const cells = new Map<string, [number, number]>(), N = data.n, c = data.size / (N - 1); for (let k = 0; k < pre.length; k++) { const r = data.height[k] - pre[k]; if (r > 2) { const key = `${Math.round(((k % N) * c - data.size / 2) / 60) * 60},${Math.round((((k / N) | 0) * c - data.size / 2) / 60) * 60}`; const e = cells.get(key) ?? [0, 0]; e[0]++; e[1] = Math.max(e[1], r); cells.set(key, e); } } console.log('raised > 2 m by 60 m cell:', [...cells].sort((a, b) => b[1][0] - a[1][0]).slice(0, 15).map(([k, [n, m]]) => `${k} ${n}x ${m.toFixed(0)}m`).join(' | ')); }
+    },
 };
 let t = performance.now();
 const d = await generate({ quality: quality as any, seed: +seed }, undefined, hooks);
@@ -196,6 +205,32 @@ for (const j of net.junctions)
     if (rl) add("river under lake level", rl, `${rl} edges`);
 }
 
+if (process.env.NEARS) { const [x, z] = process.env.NEARS.split(',').map(Number); hydro.network.streams.forEach((st, si) => st.points.forEach((p, q) => { if (Math.hypot(p[0] - x, p[2] - z) < 15) console.log(`stream ${si} pt ${q}/${st.points.length} (${p[0].toFixed(1)} ${p[2].toFixed(1)}) y ${p[1].toFixed(1)} w ${p[3].toFixed(1)} ground ${ground(p[0], p[2]).toFixed(1)}`); })); }
+if (process.env.RIM) { const G = (roads.roads as any).grid; let c = 0; for (const v of G.rim) c += v; console.log('rim nodes', c); const r = net.roads[+process.env.RIM]; console.log(r.points.map(p => { const i = Math.round((p[0] / size + .5) * (G.m - 1)), j = Math.round((p[2] / size + .5) * (G.m - 1)), q = j * G.m + i; return `${p[0].toFixed(0)},${p[2].toFixed(0)} rim ${G.rim[q]} h ${G.height[q].toFixed(1)} w ${G.water[q]}`; }).join('\n')); }
+if (process.env.FALLS) for (const st of hydro.network.streams) for (const f of st.falls) { const a = st.points[Math.max(0, f - 1)], b = st.points[Math.min(st.points.length - 1, f + 3)]; if (a[1] - b[1] > 6) console.log(`fall (${a[0].toFixed(0)} ${a[2].toFixed(0)}) drop ${(a[1] - b[1]).toFixed(1)} dir ${(Math.atan2(b[0] - a[0], b[2] - a[2]) * 180 / Math.PI).toFixed(0)} w ${a[3].toFixed(1)}`); }
+// water: ground must fit the water exactly (hydrology seal), rivers continuous and never rising
+{
+    const W = d.water, S = d.surface, H = d.height, holes = (d as any).holes as Uint8Array | undefined;
+    const xz = (k: number) => `(${((k % n) / (n - 1) * size - size / 2).toFixed(0)} ${(((k / n) | 0) / (n - 1) * size - size / 2).toFixed(0)})`;
+    const nb = (k: number) => { const i = k % n, j = (k / n) | 0, o: number[] = []; for (let b = j - 1; b <= j + 1; b++) for (let a = i - 1; a <= i + 1; a++) if ((a !== i || b !== j) && a >= 0 && b >= 0 && a < n && b < n) o.push(b * n + a); return o; };
+    const tally = (what: string, test: (k: number) => number) => { let c = 0, worst = 0, where = ""; for (let k = 0; k < n * n; k++) { const v = test(k); if (v > 0) { c++; if (v > worst) { worst = v; where = xz(k); } } } if (c) add(what, worst, `${where} ${c} nodes, worst ${worst.toFixed(2)} m`); return c; };
+    const a = tally("water: ground over river", k => W[k] === 3 && !holes?.[k] ? H[k] - (S[k] - .05) : 0);
+    const b = tally("water: lake / sea edge in the air", k => { if (W[k] || holes?.[k]) return 0; let l = -Infinity; for (const m of nb(k)) if (W[m] === 1 || W[m] === 2) l = Math.max(l, S[m]); return l - H[k]; });
+    let spill = 0; for (let k = 0; k < n * n; k++) if (!W[k] && !holes?.[k]) { let r = Infinity; for (const m of nb(k)) if (W[m] === 3) r = Math.min(r, S[m]); if (r < Infinity && H[k] - .1 < r) spill++; }
+    const c = tally("water: river next to still water at another level", k => W[k] === 3 ? Math.max(0, ...nb(k).map(m => W[m] === 1 || W[m] === 2 ? Math.abs(S[m] - S[k]) - .01 : 0)) : 0);
+    let rising = 0, broken = 0, ends = 0;
+    const net2 = hydro.network.streams;
+    for (const st of net2)
+    {
+        for (let q = 1; q < st.points.length; q++) if (st.points[q][1] > st.points[q - 1][1] + .01) rising++;
+        for (const p of st.points) { const k = node(p[0], p[2]); if (!W[k]) { broken++; if (broken < 4) add("water: stream point on dry ground", 1, at(p)); } }
+        const e = st.points[st.points.length - 1], ke = node(e[0], e[2]);
+        if (![ke, ...nb(ke)].flatMap(m => [m, ...nb(m)]).flatMap(m => [m, ...nb(m)]).some(m => W[m] === 1 || W[m] === 2) && !net2.some(o => o !== st && o.points.some(p => Math.hypot(p[0] - e[0], p[2] - e[2]) < Math.max(p[3] / 2, 4)))) { ends++; add("water: river ends nowhere", st.points.length, `${at(e)} y ${e[1].toFixed(1)} ground ${ground(e[0], e[2]).toFixed(1)} from ${at(st.points[0])}, ${st.points.length} pts`); }
+    }
+    if (rising) add("water: river rising downstream", rising, `${rising} steps`);
+    console.log(`water: ${net2.length} streams, ${net2.reduce((t, s) => t + s.points.length, 0)} points; ground over river ${a}, lake edge in air ${b}, river spill corners ${spill}, mouth level ${c}, rising ${rising}, dry points ${broken}, ends nowhere ${ends}; seal ${JSON.stringify(hydro.sealed)}`);
+}
+
 const groups = new Map<string, Issue[]>();
 for (const i of issues) (groups.get(i.what) ?? groups.set(i.what, []).get(i.what)!).push(i);
 for (const [what, list] of [...groups].sort((a, b) => a[0].localeCompare(b[0])))
@@ -218,6 +253,7 @@ if (process.env.AT)
 }
 if (process.env.ROAD) { const r = net.roads[+process.env.ROAD]; console.log(r.points.map((p, i) => `${i} ${p[0].toFixed(0)},${p[2].toFixed(0)} y ${p[1].toFixed(1)} g ${ground(p[0], p[2]).toFixed(1)}`).join("\n")); }
 if (process.env.CHAIN) for (const r of net.roads.filter(r => r.chain === +process.env.CHAIN!)) console.log(`road ${r.id} ${r.from}→${r.to} ${JSON.stringify(r.spans)} ` + r.points.filter((_, i) => i % 3 === 0).map(p => `${p[0].toFixed(0)},${p[2].toFixed(0)}:${(p[1] - ground(p[0], p[2])).toFixed(0)}`).join(" "));
+if (process.env.WGRID) { const [x, z] = process.env.WGRID.split(",").map(Number), c = size / (n - 1); for (let b = -5; b <= 5; b++) console.log(Array.from({ length: 11 }, (_, a) => { const k = node(x + (a - 5) * c, z + b * c); return `${d.water[k]}:${d.height[k].toFixed(1)}/${d.water[k] ? d.surface[k].toFixed(1) : "    "}`.padEnd(15); }).join("")); }
 if (process.env.WATER) { const [x, z] = process.env.WATER.split(",").map(Number); for (let b = -3; b <= 3; b++) console.log(Array.from({ length: 7 }, (_, a) => { const k = node(x + (a - 3) * 6, z + b * 6); return `${d.water[k]}:${d.height[k].toFixed(0)}/${d.surface[k].toFixed(0)}`; }).join("  ")); }
 if (process.env.TUNNELS) for (const r of net.roads) for (const s of r.spans) if (s.kind === "tunnel") { const a = r.points[s.from], b = r.points[s.to]; console.log(`tunnel ${r.class} ${at(a)}→${at(b)} y ${a[1].toFixed(0)}/${b[1].toFixed(0)} ground ${ground(a[0], a[2]).toFixed(0)}/${ground(b[0], b[2]).toFixed(0)}`); }
 // bridges at a dead end: the way ends (no other way at that end) on or right after a bridge
@@ -229,6 +265,20 @@ if (process.env.TUNNELS) for (const r of net.roads) for (const s of r.spans) if 
         const n = r.points.length - 1, deadStart = s.from <= 2 && ends.get(k(r.points[0]))! < 2, deadEnd = s.to >= n - 2 && ends.get(k(r.points[n]))! < 2;
         if (deadStart || deadEnd) console.log(`  bridge to nowhere (${r.class}) road ${r.id} ${at(r.points[s.from])}→${at(r.points[s.to])}`);
     }
+}
+
+// TRIS=1: ground triangles per lod level (all chunks), as the terrain draws them
+if (process.env.TRIS)
+{
+    const G = new Ground(null as any, d as any, .3, .8, 1.5, 64, { levels: 4, distance: 400, factor: 2.5 }) as any;
+    const per = (d.n - 1) / 64, out: string[] = [];
+    for (let l = 0; l < 4; l++)
+    {
+        let t = 0;
+        for (const c of G.chunks) t += triangulate(G.errorsOf(c), 65, G.levelError(l)).triangles.length / 3;
+        out.push(`L${l} ${(t / 1000).toFixed(0)}k (err ${G.levelError(l).toFixed(2)})`);
+    }
+    console.log(`ground triangles (${per * per} chunks): ${out.join(", ")}`);
 }
 
 // WAYS=1: vertex counts of the ways mesh by part

@@ -80,43 +80,190 @@ type Wet = Grid & { water: Uint8Array; surface: Float32Array };
 
 /**
  * After erosion: the exact channel (bed, steep banks), water 3 with its surface; pieces end in lakes and the sea.
- * Returns the streams (x, surface, z, width).
+ * The water surface never rises downstream, leaves a lake at its level, meets the lake / sea / bigger river it runs into
+ * at that one's level (eased in over `blend` m), and a piece that doesn't leave a lake starts as a trickle (springs, and
+ * where a river comes back after a rim); one that runs into nothing ends in a pond. Returns the streams (x, surface, z, width).
  */
-export function carveBeds(paths: Path[], g: Wet, o: HydrologyOptions): Stream[] {
+export function carveBeds(paths: Path[], g: Wet, o: HydrologyOptions, blend = 40): Stream[] {
     const { n, size, height, water, surface } = g, cell = size / (n - 1), half = size / 2, total = n * n;
-    const level = new Float32Array(total).fill(-Infinity), target = height.slice(), chan = new Float32Array(total).fill(Infinity), out: Stream[] = [];
+    const level = new Float32Array(total).fill(Infinity), target = height.slice(), chan = new Float32Array(total).fill(Infinity), out: Stream[] = [];
+    const ponds: [number, number, number, number, number][] = [];
     const still = (k: number) => water[k] === 1 || water[k] === 2;
+    /** the surface of a stream already placed within its width of x z (the river this one leaves or runs into), else NaN */
+    const near = (x: number, z: number) => {
+        let best = Infinity, y = NaN;
+        for (const s of out) for (const [px, py, pz, pw] of s.points)
+        {
+            const d = Math.hypot(px - x, pz - z);
+            if (d < Math.max(pw / 2, cell) && d < best) { best = d; y = py; }
+        }
+        return y;
+    };
     for (const p of paths) for (const piece of beds(p, g, o, still))
     {
+        const m = piece.i.length, i0 = piece.i[0], xs = piece.i.map(i => p.x[i]), zs = piece.i.map(i => p.z[i]);
+        const along = [0];
+        for (let q = 1; q < m; q++) along.push(along[q - 1] + Math.hypot(xs[q] - xs[q - 1], zs[q] - zs[q - 1]));
+        const L = along[m - 1];
+        // starts: out of a lake (its level), off a river (its level, deltas), else a spring: a trickle widening over 80 m
+        const kStart = i0 > 0 ? node(n, size, p.x[i0 - 1], p.z[i0 - 1]) : -1, outlet = kStart >= 0 && still(kStart);
+        const fromRiver = outlet ? NaN : near(xs[0], zs[0]);
+        const spring = !outlet && fromRiver !== fromRiver && i0 > 0;
+        const w = piece.i.map((i, q) => spring ? Math.max(1, p.w[i] * (.15 + .85 * smoothstep(0, 80, along[q]))) : p.w[i]);
+        const depth = w.map(v => o.depth * Math.min(3, Math.sqrt(v / o.width)));
+        const y = piece.bed.map((b, q) => b + piece.depth[q] * .8);
+        if (outlet) y[0] = surface[kStart];
+        else if (fromRiver === fromRiver) y[0] = Math.min(y[0], fromRiver);
+        for (let q = 1; q < m; q++) y[q] = Math.min(y[q], y[q - 1]);
+        // ends: in a lake / the sea (the last point is in it) or on a bigger river
+        const kEnd = node(n, size, xs[m - 1], zs[m - 1]);
+        const T = still(kEnd) ? surface[kEnd] : near(xs[m - 1], zs[m - 1]);
+        if (T === T)
+        {
+            for (let q = 0; q < m; q++) y[q] = T + (y[q] - T) * smoothstep(0, blend, L - along[q]);
+            y[m - 1] = T;
+            for (let q = m - 2; q >= 0; q--) y[q] = Math.max(y[q], y[q + 1]);
+        }
         const points: Stream["points"] = [];
-        piece.i.forEach((i, q) => {
-            const bed = piece.bed[q], depth = piece.depth[q], w2 = p.w[i] / 2, top = bed + depth * .8, x0 = p.x[i], z0 = p.z[i];
-            const k0 = node(n, size, x0, z0);
-            points.push([x0, still(k0) ? surface[k0] : top, z0, p.w[i]]);
+        for (let q = 0; q < m; q++)
+        {
+            const x0 = xs[q], z0 = zs[q], w2 = w[q] / 2, dq = depth[q], top = y[q], bed = top - dq * .8;
+            points.push([x0, top, z0, w[q]]);
             // banks: as high as the ground beside the channel, so a deep cut gets canyon walls, not a slot
             let rim = -Infinity;
             for (let a = 0; a < 8; a++) rim = Math.max(rim, sample(height, n, size, x0 + Math.cos(a * .785) * (w2 + cell * 2), z0 + Math.sin(a * .785) * (w2 + cell * 2)));
-            const cut = Math.max(0, rim - bed - depth), bank = cut > 6 ? o.canyon : 1, reach = Math.min(w2 + depth * 2 + cell * 2 + cut / bank, 300);
-            const i0 = Math.max(0, Math.floor((x0 - reach + half) / cell)), i1 = Math.min(n - 1, Math.ceil((x0 + reach + half) / cell));
-            const j0 = Math.max(0, Math.floor((z0 - reach + half) / cell)), j1 = Math.min(n - 1, Math.ceil((z0 + reach + half) / cell));
-            for (let j = j0; j <= j1; j++) for (let ii = i0; ii <= i1; ii++)
+            const cut = Math.max(0, rim - bed - dq), bank = cut > 6 ? o.canyon : 1, reach = Math.min(w2 + dq * 2 + cell * 2 + cut / bank, 300);
+            // nodes that carry the water: at least .8 cell out, so the river is one 4-connected run of nodes however narrow
+            const wet = Math.max(w2 + cell * .5, cell * .8);
+            const ia = Math.max(0, Math.floor((x0 - reach + half) / cell)), ib = Math.min(n - 1, Math.ceil((x0 + reach + half) / cell));
+            const ja = Math.max(0, Math.floor((z0 - reach + half) / cell)), jb = Math.min(n - 1, Math.ceil((z0 + reach + half) / cell));
+            for (let j = ja; j <= jb; j++) for (let ii = ia; ii <= ib; ii++)
             {
                 const k = j * n + ii, d = Math.hypot(ii * cell - half - x0, j * cell - half - z0);
                 if (d > reach || still(k)) continue;
-                const v = d < w2 ? bed + depth * (d / w2) ** 2 : bed + depth + (d - w2) * bank;
+                const v = d < w2 ? bed + dq * (d / w2) ** 2 : bed + dq + (d - w2) * bank;
                 if (v < target[k]) target[k] = v;
                 // the channel itself gets exactly the bed shape (erosion pits filled)
                 if (d < w2 && v < chan[k]) chan[k] = v;
-                if (d <= w2 + cell * .5) level[k] = Math.max(level[k], top);
+                // the lowest water near a node: beside a fall the node belongs to the pool below, not the lip above
+                if (d <= wet) level[k] = Math.min(level[k], top);
             }
-        });
+        }
+        // ends nowhere (no lake, sea or river to run into): a small pond at its end, so it never just stops in a field
+        if (T !== T) ponds.push([xs[m - 1], zs[m - 1], Math.max(8, w[m - 1] * 1.5), y[m - 1], depth[m - 1]]);
         out.push({ points, order: p.order, falls: piece.falls });
+    }
+    for (const [x0, z0, r, top, dq] of ponds)
+    {
+        const ia = Math.max(0, Math.floor((x0 - r * 2 + half) / cell)), ib = Math.min(n - 1, Math.ceil((x0 + r * 2 + half) / cell));
+        const ja = Math.max(0, Math.floor((z0 - r * 2 + half) / cell)), jb = Math.min(n - 1, Math.ceil((z0 + r * 2 + half) / cell));
+        for (let j = ja; j <= jb; j++) for (let ii = ia; ii <= ib; ii++)
+        {
+            const k = j * n + ii, d = Math.hypot(ii * cell - half - x0, j * cell - half - z0);
+            if (still(k) || d > r * 2) continue;
+            // a bowl under the water, its bank rising gently outside
+            const v = d < r ? top - dq * (1 - (d / r) ** 2) - .3 : top + (d - r) * .4;
+            if (v < target[k]) target[k] = v;
+            if (d < r && v < chan[k]) chan[k] = v;
+            if (d <= r) level[k] = Math.min(level[k], top);
+        }
     }
     for (let k = 0; k < total; k++) if (chan[k] < Infinity) target[k] = chan[k];
     height.set(target);
     despike(g);
-    for (let k = 0; k < total; k++) if (level[k] > -Infinity && !water[k]) { water[k] = 3; surface[k] = level[k]; }
+    for (let k = 0; k < total; k++) if (level[k] < Infinity && !water[k]) { water[k] = 3; surface[k] = level[k]; }
     return out;
+}
+
+/**
+ * Last step, after everything else that shapes the ground (roads, tunnels): the ground fits the water exactly, so water
+ * never sinks into the ground nor ends in the air. River nodes next to a lake / the sea take its level; river nodes lie
+ * `depth` m under their surface; land next to a lake / the sea (8 neighbours) stands `lip` m over its level (the lake quads
+ * run up to those nodes at that level); land next to a river `lip` m over the lowest river beside it if that takes at most
+ * `raise` m (deeper: the river sheet bends down to the ground there). Raised banks ease out at `slope`. Tunnel `holes` are left alone. Returns what it changed.
+ */
+export function seal(g: Wet & { holes?: Uint8Array }, depth = .5, lip = .2, slope = .5, raise = 2, mouth = 8) {
+    const { n, height: h, water: W, surface } = g, holes = g.holes;
+    const still = (k: number) => W[k] === 1 || W[k] === 2;
+    const each = (k: number, f: (m: number) => void) => {
+        const i = k % n, j = (k / n) | 0;
+        for (let b = Math.max(0, j - 1); b <= Math.min(n - 1, j + 1); b++) for (let a = Math.max(0, i - 1); a <= Math.min(n - 1, i + 1); a++) if (a !== i || b !== j) f(b * n + a);
+    };
+    let mouths = 0, cut = 0, raised = 0, most = 0, mostAt = -1, deep = 0, lakes = 0;
+    for (let k = 0; k < W.length; k++)
+    {
+        if (W[k] !== 3) continue;
+        let s = -Infinity;
+        each(k, m => { if (still(m)) s = Math.max(s, surface[m]); });
+        if (s > -Infinity && surface[k] !== s) { surface[k] = s; mouths++; }
+    }
+    for (let k = 0; k < W.length; k++)
+    {
+        if (W[k] !== 3 || holes?.[k]) continue;
+        if (h[k] > surface[k] - depth) { h[k] = surface[k] - depth; cut++; }
+    }
+    // at a mouth the bed comes up to the depth of the sea / lake around it over `mouth` nodes: no deep channel cut into a
+    // shallow bay (its steps show through the water)
+    const hops = new Int32Array(W.length).fill(-1), queue: number[] = [];
+    for (let k = 0; k < W.length; k++) if (still(k)) { hops[k] = 0; queue.push(k); }
+    for (let q = 0; q < queue.length; q++)
+    {
+        const k = queue[q];
+        if (hops[k] >= mouth) continue;
+        each(k, m => { if (hops[m] < 0 && W[m] === 3) { hops[m] = hops[k] + 1; queue.push(m); } });
+    }
+    for (let k = 0; k < W.length; k++)
+    {
+        if (W[k] !== 3 || hops[k] < 1 || holes?.[k]) continue;
+        let sum = 0, cnt = 0;
+        const i = k % n, j = (k / n) | 0, r = hops[k] + 1;
+        for (let b = Math.max(0, j - r); b <= Math.min(n - 1, j + r); b++) for (let a = Math.max(0, i - r); a <= Math.min(n - 1, i + r); a++)
+        { const m = b * n + a; if (still(m)) { sum += surface[m] - h[m]; cnt++; } }
+        if (!cnt) continue;
+        const bay = Math.max(depth, sum / cnt), t = 1 - (hops[k] - 1) / mouth, want = surface[k] - bay;
+        if (want > h[k]) h[k] += (want - h[k]) * t;
+    }
+    // banks: how much each land node must come up, eased outward (`slope` m per m: the raise, not the height, so it never fills a gorge)
+    // so a raised bank is an embankment, not a wall
+    const need = new Float32Array(W.length), land = (k: number) => !W[k] && !holes?.[k];
+    for (let k = 0; k < W.length; k++)
+    {
+        if (!land(k)) continue;
+        // the river sheet's land corners sit at the lowest river beside them (beside a fall: the pool, not the top); lakes' at their level
+        // a bank far under a river (a gully beside it) isn't dammed: the sheet runs down to the ground there (a short spill), see terrain riverSheet
+        let r = Infinity, l = -Infinity;
+        each(k, m => { if (W[m] === 3) r = Math.min(r, surface[m]); else if (W[m]) l = Math.max(l, surface[m]); });
+        if (r < Infinity && h[k] < r + lip && r + lip - h[k] <= raise) need[k] = r + lip - h[k];
+        if (l > -Infinity && h[k] < l + lip) { need[k] = Math.max(need[k], l + lip - h[k]); lakes = Math.max(lakes, l + lip - h[k]); }
+    }
+    const cell = g.size / (n - 1), a = slope * cell, b = slope * cell * Math.SQRT2;
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++)
+    {
+        const k = j * n + i;
+        if (!land(k)) continue;
+        let v = need[k];
+        if (i > 0) v = Math.max(v, need[k - 1] - a);
+        if (j > 0) { v = Math.max(v, need[k - n] - a); if (i > 0) v = Math.max(v, need[k - n - 1] - b); if (i < n - 1) v = Math.max(v, need[k - n + 1] - b); }
+        need[k] = v;
+    }
+    for (let j = n - 1; j >= 0; j--) for (let i = n - 1; i >= 0; i--)
+    {
+        const k = j * n + i;
+        if (!land(k)) continue;
+        let v = need[k];
+        if (i < n - 1) v = Math.max(v, need[k + 1] - a);
+        if (j < n - 1) { v = Math.max(v, need[k + n] - a); if (i < n - 1) v = Math.max(v, need[k + n + 1] - b); if (i > 0) v = Math.max(v, need[k + n - 1] - b); }
+        need[k] = v;
+    }
+    for (let k = 0; k < W.length; k++)
+    {
+        const up = need[k];
+        if (!land(k) || up <= 0) continue;
+        if (up > most) { most = up; mostAt = k; }
+        if (up > 2) deep++;
+        h[k] += up; raised++;
+    }
+    return { mouths, cut, raised, deep, most, mostAt, lakes };
 }
 
 /** single node pits and needles on land (more than 3 m past all four neighbours) go to the nearest neighbour height */
@@ -165,10 +312,11 @@ export function fillPits(g: Wet, keep = 1.5, lake = 3000, depth = 3) {
 }
 
 /**
- * Still water side by side at two levels (two lakes, a lake and the sea): the higher water's edge node becomes a low
- * dam (land just over its surface), so each water keeps one flat level and the step shows as ground, not two planes.
+ * Still water side by side at two levels (two lakes, a lake and the sea): lakes within `merge` m of each other become one
+ * at the lower level; otherwise the higher water's edge node becomes a low dam (land just over its surface), so each water
+ * keeps one flat level and the step shows as ground, not two planes.
  */
-export function separateLevels(g: Wet, step = .5) {
+export function separateLevels(g: Wet, step = .5, merge = 1) {
     const { n, height: h, water, surface } = g;
     const near = (k: number) => { const i = k % n; return [k - 1, k + 1, k - n, k + n].filter(m => m >= 0 && m < n * n && Math.abs((m % n) - i) <= 1); };
     // a lake at or under the level of the sea it touches is part of the sea
@@ -190,6 +338,27 @@ export function separateLevels(g: Wet, step = .5) {
             }
         }
         if (sea > -Infinity && part.every(k => surface[k] <= sea + step)) for (const k of part) { water[k] = 1; surface[k] = sea; }
+    }
+    // lakes touching at almost one level (a pit lake left in a bigger one): one lake at the lower level, the higher one's
+    // bed over it becomes land; no dam ring inside a lake
+    for (let changed = true, rounds = 0; changed && rounds < 20; rounds++)
+    {
+        changed = false;
+        for (let k = 0; k < n * n; k++)
+        {
+            if (water[k] !== 2) continue;
+            const low = near(k).find(m => water[m] === 2 && surface[m] < surface[k] - 1e-3 && surface[k] - surface[m] <= merge);
+            if (low === undefined) continue;
+            const from = surface[k], to = surface[low], stack = [k], seen = new Set([k]);
+            while (stack.length)
+            {
+                const c = stack.pop()!;
+                surface[c] = to;
+                if (h[c] >= to) water[c] = 0;
+                for (const m of near(c)) if (water[m] === 2 && !seen.has(m) && Math.abs(surface[m] - from) < 1e-3) { seen.add(m); stack.push(m); }
+            }
+            changed = true;
+        }
     }
     // a lake higher than the water beside it: its edge node there becomes a dam
     let dams = 0;

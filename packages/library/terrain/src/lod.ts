@@ -24,6 +24,9 @@ type Chunk = {
  * hides the cracks between chunks; its depth is set per frame (`draw`'s `drop`) from the levels drawn next to it,
  * so walls stay short where the neighbours match.
  */
+/** split priority of the sea's waterline: exact on the near levels, coarser far out (rivers and lakes: always exact) */
+const COAST = 3;
+
 export class Ground {
     private chunks: Chunk[] = [];
     private size: number;
@@ -76,10 +79,13 @@ export class Ground {
         const g = (i: number, j: number) => (c.j0 + j) * n + c.i0 + i;
         const h = new Float32Array(s * s), b = new Uint8Array(s * s);
         for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) { h[j * s + i] = d.height[g(i, j)]; b[j * s + i] = d.biome[g(i, j)]; }
-        const edges = this.edges, holes = d.holes, o = new Uint8Array(s * s);
+        const edges = this.edges, holes = d.holes, o = new Uint8Array(s * s), w = new Uint8Array(s * s);
         if (holes) for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) o[j * s + i] = holes[g(i, j)];
-        // biome borders keep some error; hole borders are always split to the finest triangles
-        return c.errors = errors(h, s, (m, a, q) => (holes && (o[m] !== o[a] || o[m] !== o[q] || o[m]) ? 1e6 : 0) + (edges > 0 && (b[m] !== b[a] || b[m] !== b[q]) ? edges : 0), this.adaptive);
+        for (let j = 0; j < s; j++) for (let i = 0; i < s; i++) w[j * s + i] = d.water[g(i, j)] === 1 ? 2 : d.water[g(i, j)] ? 1 : 0;
+        // biome borders keep some error; hole borders and the river / lake waterline (every cell with water and land corners:
+        // the water meshes' edges sit on those nodes) are always split to the finest triangles, at every level, so water never
+        // shows through the ground nor ends in the air; the sea's coast only on the near levels (`COAST`)
+        return c.errors = errors(h, s, (m, a, q) => (holes && (o[m] !== o[a] || o[m] !== o[q] || o[m]) ? 1e6 : 0) + (w[m] !== w[a] || w[m] !== w[q] ? (w[m] | w[a] | w[q]) & 1 ? 1e6 : COAST : 0) + (edges > 0 && (b[m] !== b[a] || b[m] !== b[q]) ? edges : 0), this.adaptive);
     }
 
     /** height of the finest drawn ground (level 0 triangles) at world x / z; grass and props stand on this */

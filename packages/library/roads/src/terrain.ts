@@ -29,8 +29,14 @@ export function carve(roads: Roads, g: Ground): Float32Array {
             }
         }
     }
-    // never into lakes / rivers / sea (their banks stay)
-    for (let k = 0; k < n * n; k++) if (weight[k] > 0 && !water?.[k]) height[k] += (target[k] - height[k]) * weight[k];
+    // never into lakes / rivers / sea, and never cuts a lake's rim: the nodes beside a lake (8 neighbours) stay (water keeps its bank)
+    const rim = (k: number) => {
+        if (!water) return false;
+        const i = k % n, j = (k / n) | 0;
+        for (let b = Math.max(0, j - 1); b <= Math.min(n - 1, j + 1); b++) for (let a = Math.max(0, i - 1); a <= Math.min(n - 1, i + 1); a++) if (water[b * n + a] === 2) return true;
+        return false;
+    };
+    for (let k = 0; k < n * n; k++) if (weight[k] > 0 && !water?.[k] && !(target[k] < height[k] && rim(k))) height[k] += (target[k] - height[k]) * weight[k];
     return weight;
 }
 

@@ -168,8 +168,10 @@ export class WaterMaterial {
         // still water (lakes): no wave streaks or wave lines, a faint sheen and the rim only
         const g = still ? { ...g0, dark: g0.dark * .15, strength: g0.strength * .15, specks: g0.specks * .2, glow: g0.glow * .2, speed: g0.speed * .3 } : g0;
         const f = still ? { ...f0, lines: 0, wobble: f0.wobble * .3 } : f0;
-        gl.uniform3fv(u("shallow"), linear(colors.shallow));
-        gl.uniform3fv(u("deep"), linear(colors.deep));
+        gl.uniform3fv(u("shallow0"), linear(colors.shallow));
+        gl.uniform3fv(u("deep0"), linear(colors.deep));
+        gl.uniform3fv(u("seaShallow"), linear(o.shallow));
+        gl.uniform3fv(u("seaDeep"), linear(o.deep));
         gl.uniform1f(u("opacity"), o.opacity);
         gl.uniform1f(u("clarity"), o.clarity);
         gl.uniform1f(u("skyTint"), o.sky);

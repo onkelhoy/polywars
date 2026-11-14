@@ -136,23 +136,31 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
     return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4], [new Float32Array(dir), 2]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
 }
 
+/** metres the river sheet's edge stays under the bank */
+const LIP = .1;
+
 /**
- * River water (`water` 3) as one sheet over the grid: every cell with a river node and no sea / lake node (those cells are the
- * lake / sea quads), each vertex at its node's surface; a land corner takes the highest river surface next to it, so the sheet
- * runs a little into the banks and the ground (kept above it, hydrology `seal`) hides its edge. Shared vertices: no cracks.
- * Water material attributes: 1 (depth, metres to the bank), 2 (world x z, still: no flow), 3 (toward land: none).
+ * River water (`water` 3) as one sheet over the grid: every cell with a river node outside the sea / lake quads (`step` cells
+ * with a still corner, see `waterMesh`), each vertex at its node's surface; a land corner takes the lowest river surface next to it but stays under
+ * that node's ground, so the sheet runs a little into the banks and the ground always hides its edge (hydrology `seal` keeps
+ * banks above the water where it can). Shared vertices: no cracks.
+ * Water material attributes: 1 (depth, metres to the bank), 2 (world x z, still: no flow), 3 (toward land: none), 4 (salt: sea
+ * colours near the sea).
  */
-export function riverSheet(gl: WebGL2RenderingContext, d: TerrainData) {
+export function riverSheet(gl: WebGL2RenderingContext, d: TerrainData, step = 1) {
     const n = d.n, half = d.size / 2, W = d.water, still = (k: number) => W[k] === 1 || W[k] === 2;
-    const vert = new Int32Array(n * n).fill(-1), pos: number[] = [], info: number[] = [], flow: number[] = [], dir: number[] = [], idx: number[] = [];
-    /** surface a node gets in the sheet: its own (river), else the highest river surface among its 8 neighbours */
+    const vert = new Int32Array(n * n).fill(-1), pos: number[] = [], info: number[] = [], flow: number[] = [], dir: number[] = [], salt: number[] = [], idx: number[] = [];
+    // near the sea the colours go over to the sea's (no blocky colour step at a mouth)
+    const SALT = d.cell * 8;
+    /** surface a node gets in the sheet: its own (river), else the lowest river surface among its 8 neighbours (beside a fall: the pool's) */
     const level = (k: number) => {
-        if (W[k] === 3) return d.surface[k];
+        if (W[k]) return d.surface[k];
         const i = k % n, j = (k / n) | 0;
-        let s = -Infinity;
+        let s = Infinity;
         for (let b = Math.max(0, j - 1); b <= Math.min(n - 1, j + 1); b++) for (let a = Math.max(0, i - 1); a <= Math.min(n - 1, i + 1); a++)
-        { const m = b * n + a; if (W[m] === 3 && d.surface[m] > s) s = d.surface[m]; }
-        return s;
+        { const m = b * n + a; if (W[m] === 3 && d.surface[m] < s) s = d.surface[m]; }
+        // always under the ground there: a low bank (a gully beside the river) gets a short spill down to it, never an edge in the air
+        return Math.min(s, d.height[k] - LIP);
     };
     const v = (k: number) => {
         if (vert[k] >= 0) return vert[k];
@@ -161,17 +169,22 @@ export function riverSheet(gl: WebGL2RenderingContext, d: TerrainData) {
         info.push(y - d.height[k], W[k] === 3 ? d.cell * .5 : -d.cell);
         flow.push(x, z, 0, 0);
         dir.push(0, 0);
+        const t = Math.min(1, Math.max(0, 1 - d.toOcean[k] / SALT));
+        salt.push(t * t * (3 - 2 * t));
         return vert[k] = pos.length / 3 - 1;
     };
     for (let j = 0; j < n - 1; j++) for (let i = 0; i < n - 1; i++)
     {
         const k = j * n + i, c = [k, k + 1, k + n + 1, k + n];
-        if (!c.some(m => W[m] === 3) || c.some(still)) continue;
+        if (!c.some(m => W[m] === 3)) continue;
+        // the sea / lake quads cover `step` cells with a still corner: those are theirs (no water drawn twice)
+        const i0 = i - i % step, j0 = j - j % step, i1 = Math.min(n - 1, i0 + step), j1 = Math.min(n - 1, j0 + step);
+        if (still(j0 * n + i0) || still(j0 * n + i1) || still(j1 * n + i0) || still(j1 * n + i1)) continue;
         const [a, b, e, f] = c.map(v);
         idx.push(a, f, b, b, f, e);
     }
     if (!idx.length) return null;
-    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4], [new Float32Array(dir), 2]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
+    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4], [new Float32Array(dir), 2], [new Float32Array(salt), 1]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
 }
 
 export const BIOME = (name: typeof BIOMES[number]) => BIOMES.indexOf(name);

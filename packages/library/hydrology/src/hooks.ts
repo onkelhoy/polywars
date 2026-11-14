@@ -1,5 +1,5 @@
 import { Random } from "@papit/random";
-import { carveBeds, carveValleys, fillPits, limitErosion, separateLevels } from "./carve";
+import { carveBeds, carveValleys, fillPits, limitErosion, seal, separateLevels } from "./carve";
 import { digLakes, fillLakes } from "./lakes";
 import { plan, type Path } from "./network";
 import { lakeKinds, swamps } from "./wetlands";
@@ -10,6 +10,13 @@ export type HydrologyHooks = {
     key: string;
     features: (raw: Ground) => { hard: Float32Array };
     fix: (data: Wet & { rivers: { points: [number, number, number, number][] }[] }) => void;
+    /**
+     * Run after every other `fix` that changes the ground (roads, tunnels): fits the ground to the water (see `seal`).
+     * As a terrain hook: `{ fix: hooks.seal }` last in the list.
+     */
+    seal: (data: Wet & { holes?: Uint8Array }) => void;
+    /** what the last `seal` changed (nodes) */
+    sealed?: ReturnType<typeof seal>;
     /** the latest network (after `fix`) */
     network: Network;
     /** the planned paths (before carving) */
@@ -53,6 +60,7 @@ export function hydrologyHooks(options: Partial<HydrologyOptions> = {}): Hydrolo
             separateLevels(data, .1);
             for (const s of h.network.streams) data.rivers.push({ points: s.points });
         },
+        seal: data => { h.sealed = seal(data); },
     };
     return h;
 }

@@ -39,7 +39,8 @@ vec3 underFog(vec3 c, vec3 world, vec3 eye) {
 /**
  * Attributes: 0 position (the surface, flat), 1 info (depth metres, distance to the shore metres, < 0 over land),
  * 2 flow (u v in metres, flow speed m/s along v, open water 0..1: how many shore lines it gets),
- * 3 shore direction (x z toward the nearest land, any length; 0 0 or missing: the wind direction).
+ * 3 shore direction (x z toward the nearest land, any length; 0 0 or missing: the wind direction),
+ * 4 salt (0..1, missing 0: how far the colours go from this draw's toward the sea's, e.g. a river near its mouth).
  * Still water passes world x z as u v and speed 0.
  */
 export const WATER_VERTEX = `#version 300 es
@@ -47,8 +48,10 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 info;
 layout(location = 2) in vec4 flow;
 layout(location = 3) in vec2 shoreDir;
+layout(location = 4) in float salt;
 uniform mat4 view, projection;
 out vec2 vDir;
+out float vSalt;
 out vec3 vWorld;
 out vec2 vInfo;
 out vec4 vFlow;
@@ -58,6 +61,7 @@ void main() {
     vInfo = info;
     vFlow = flow;
     vDir = shoreDir;
+    vSalt = salt;
     gl_Position = projection * view * vec4(position, 1.0);
 }`;
 
@@ -68,7 +72,8 @@ in vec3 vWorld;
 in vec2 vInfo;
 in vec4 vFlow;
 in vec2 vDir;
-uniform vec3 shallow, deep, foamColor;
+in float vSalt;
+uniform vec3 shallow0, deep0, seaShallow, seaDeep, foamColor;
 uniform float time, opacity, clarity, skyTint;
 uniform float glintDark, glintScale, glintLength, glintLane, glintStrength, glintSpecks, glintSpeed, glintFar, glintDensity, glintMelt, glintGlow, glintFade, glintWind;
 uniform float foamRim, foamWobble, foamWobbleScale, foamLines, foamWidth, foamSpacing, foamSpeed, foamPieces, foamAmount, foamFar;
@@ -122,6 +127,7 @@ float streaks(vec2 p, float heading, vec2 size, float drift) {
 }
 
 void main() {
+    vec3 shallow = mix(shallow0, seaShallow, vSalt), deep = mix(deep0, seaDeep, vSalt);
     vec3 up = vec3(0, 1, 0), toEye = eye - vWorld, v = normalize(toEye), l = normalize(sunDirection);
     float dist = length(toEye), speed = vFlow.z, river = step(.001, speed);
     vec2 uv = vFlow.xy - vec2(0, time * speed);
