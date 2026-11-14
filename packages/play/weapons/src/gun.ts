@@ -1,12 +1,19 @@
+import { actionOf, cycleCues, reloadCues } from "./actions";
 import { CALIBERS, GUNS } from "./specs";
-import type { GunEvent, GunSpec } from "./types";
+import type { Action, Cue, GunEvent, GunSpec } from "./types";
 
 /**
  * One gun in hand: rounds, the trigger (semi / auto), reloads, how far it's up at the eye and how wide a shot goes.
  * No drawing, no input: the host calls `trigger(held)`, `aim(held)`, `reload()` and `update(dt)`.
+ * `oncue` gets the moments of its work (shot, eject, bolt, magazine, ...) on time, by its `action`: sounds and shells hang on it.
  */
 export class Gun {
     readonly spec: GunSpec;
+    readonly action: Action;
+    /** called as each cue comes due (in `trigger` and `update`) */
+    oncue?: (cue: Cue, gun: Gun) => void;
+    /** due cues, seconds from now, sorted */
+    private pending: { at: number; cue: Cue; reload: boolean }[] = [];
     rounds: number;
     /** spare rounds, `Infinity` for unlimited */
     spare: number;
@@ -24,9 +31,11 @@ export class Gun {
     private wasHeld = false;
     private aiming = false;
 
-    constructor(spec: GunSpec | string, spare = Infinity) {
+    /** `action` from weapon.json wins over the spec's */
+    constructor(spec: GunSpec | string, spare = Infinity, action?: Action) {
         this.spec = typeof spec === "string" ? GUNS[spec] : spec;
         if (!this.spec) throw new Error(`no gun ${spec}`);
+        this.action = action ?? actionOf(this.spec);
         this.rounds = this.spec.magazine;
         this.spare = spare;
     }
@@ -50,11 +59,15 @@ export class Gun {
         if (this.rounds <= 0)
         {
             this.wait = .3;
-            return this.reload() ? "reload" : "empty";
+            if (this.reload()) return "reload";
+            this.oncue?.("dry", this);
+            return "empty";
         }
         this.rounds--;
         this.wait = this.spec.interval;
         this.sinceShot = 0;
+        this.oncue?.("shot", this);
+        this.schedule(cycleCues(this.spec, this.action), this.spec.interval, false);
         return "shot";
     }
 
@@ -88,13 +101,29 @@ export class Gun {
         if (this.reloading > 0 || this.rounds >= this.spec.magazine || this.spare <= 0) return false;
         this.emptyReload = this.rounds === 0;
         this.reloading = this.emptyReload ? this.spec.reloadEmpty : this.spec.reload;
+        const missing = Math.min(this.spec.magazine - this.rounds, this.spare);
+        this.schedule(reloadCues(this.spec, this.action, this.emptyReload, missing), this.reloading, true);
         return true;
     }
 
-    /** stop a reload (switching guns, dying): the rounds stay as they were */
-    cancel() { this.reloading = 0; }
+    /** stop a reload (switching guns, dying): the rounds stay as they were, its cues are dropped */
+    cancel() {
+        this.reloading = 0;
+        this.pending = this.pending.filter(p => !p.reload);
+    }
+
+    private schedule(timeline: [number, Cue][], length: number, reload: boolean) {
+        for (const [f, cue] of timeline)
+        {
+            if (f <= 0) this.oncue?.(cue, this);
+            else this.pending.push({ at: f * length, cue, reload });
+        }
+        this.pending.sort((a, b) => a.at - b.at);
+    }
 
     update(dt: number): GunEvent {
+        for (const p of this.pending) p.at -= dt;
+        while (this.pending.length && this.pending[0].at <= 0) this.oncue?.(this.pending.shift()!.cue, this);
         this.wait = Math.max(0, this.wait - dt);
         this.sinceShot += dt;
         this.bloom = Math.max(0, this.bloom - this.spec.settle * dt);

@@ -39,6 +39,22 @@ export type GunSpec = {
     kind: "pistol" | "smg" | "rifle";
     /** a scope instead of iron sights: magnification range (the wheel picks) */
     scope?: { min: number; max: number };
+    /** how a round gets chambered, default from `kind` / `auto` (weapon.json `action` can override) */
+    action?: Action;
+    /** this gun's own cue timelines instead of its action's (e.g. the garand's en-bloc clip) */
+    cues?: { cycle?: Timeline; reload?: Timeline; reloadEmpty?: Timeline };
 };
+
+/** How a round gets chambered (same as weapon.json `action`). */
+export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "break" | "pistol";
+
+/**
+ * A moment of the gun's work, for sounds, shells and later clips: `shot`, `dry` (pulled on empty), `eject`
+ * (a case leaves the port), and the parts (names match the sound sets of `@polywar/sfx-gen`).
+ */
+export type Cue = "shot" | "dry" | "eject" | "bolt-open" | "bolt-close" | "mag-out" | "mag-in" | "round-in" | "clip-in" | "slide";
+
+/** cues at 0..1 through a cycle (of `interval`) or a reload (of its length) */
+export type Timeline = [at: number, cue: Cue][];
 
 export type GunEvent = "shot" | "empty" | "reload" | "reloaded" | null;
