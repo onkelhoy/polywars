@@ -98,7 +98,7 @@ export class World {
         this.ecosystem.onchange = () => this.planted();
         this.roads = roadHooks(raw => generateSites(raw, raw.cities, s.sites ?? {}), s.roads ?? {}, JSON.stringify(s.sites ?? {}));
         this.hydrology = hydrologyHooks(s.hydrology ?? {});
-        this.terrain = new Terrain(layer, s.terrain ?? {}, combine(this.hydrology, this.roads));
+        this.terrain = new Terrain(layer, s.terrain ?? {}, combine(this.hydrology, this.roads, { key: "seal", fix: d => this.hydrology.seal(d as any) }));
         this.terrain.onchange = data => this.grow(data);
     }
 
