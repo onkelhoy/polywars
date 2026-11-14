@@ -244,6 +244,33 @@ for (const j of net.junctions)
         }
     });
 }
+// underground: a way meeting / crossing another inside a tunnel (fork in the tube, tube through a tube)
+{
+    const kindAt = (r: typeof net.roads[0], i: number) => r.spans.find(sp => i >= sp.from && i < sp.to)?.kind ?? "ground";
+    const inTube = (r: typeof net.roads[0], i: number) => kindAt(r, i) === "tunnel" || (i > 0 && kindAt(r, i - 1) === "tunnel");
+    // ends: a way ending at a junction with a tunnel at that end (the junction point is under the hill)
+    for (const r of net.roads) for (const [i, j] of [[1, r.from], [r.points.length - 2, r.to]] as const)
+    {
+        const e = i === 1 ? 0 : r.points.length - 1;
+        if (!inTube(r, i) && !inTube(r, e)) continue;
+        const p = r.points[e];
+        if (ground(p[0], p[2]) - p[1] > 4) add("tunnel fork underground", ground(p[0], p[2]) - p[1], `${at(p)} ${r.class} junction ${j}`);
+    }
+    const seen = new Set<string>();
+    for (const r of net.roads) r.points.forEach((p, ip) => {
+        if (!inTube(r, ip)) return;
+        for (const o of net.roads)
+        {
+            if (o === r || (o.chain !== undefined && o.chain === r.chain)) continue;
+            const k = [Math.min(r.id, o.id), Math.max(r.id, o.id)].join();
+            if (seen.has(k)) continue;
+            const i = o.points.findIndex(q => Math.hypot(q[0] - p[0], q[2] - p[2]) < (r.width + o.width) / 2 && Math.abs(q[1] - p[1]) < 10);
+            if (i < 0 || [r.from, r.to].some(j => j === o.from || j === o.to)) continue;
+            seen.add(k);
+            add("tunnel crossing underground", 10 - Math.abs(o.points[i][1] - p[1]), `${at(p)} ${r.class}/${o.class} ${kindAt(o, i)} dy ${(o.points[i][1] - p[1]).toFixed(1)}`);
+        }
+    });
+}
 // lakes: neighbouring lake nodes with different levels
 {
     let steps = 0, worst = 0, where = "";

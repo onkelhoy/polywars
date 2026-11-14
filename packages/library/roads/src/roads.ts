@@ -137,6 +137,8 @@ export class Roads {
         dropClimbs(roads);
         railCrossings(roads, out);
         levelCrossings(roads, o.step);
+        // last: nothing may fork / cross inside a tube (opens it into a cutting there)
+        clearTunnels(roads);
         for (const r of roads)
         {
             const p = r.points, k = Math.min(3, p.length - 1);
@@ -911,5 +913,45 @@ export function trimTunnels(roads: Road[], heightAt: (x: number, z: number) => n
             if (b < s.to) open(b, s.to);
         }
         r.spans = out.filter(s => s.to > s.from).reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
+    }
+}
+
+/**
+ * Nothing meets or crosses inside a tunnel: tube points near another way (plan strips touch, under 10 m apart in
+ * height, not the way's own chain) open up into a cutting (ground span). A tube left shorter than 3 points goes too.
+ * Ways ending in a tube (a fork under the hill) open the tube up to that end the same way.
+ */
+export function clearTunnels(roads: Road[]) {
+    const B = 24, grid = new Map<number, [Road, number][]>(), key = (x: number, z: number) => (Math.floor(x / B) + 4096) * 8192 + Math.floor(z / B) + 4096;
+    for (const r of roads) r.points.forEach((p, i) => { const k = key(p[0], p[2]); (grid.get(k) ?? grid.set(k, []).get(k)!).push([r, i]); });
+    for (const r of roads)
+    {
+        if (!r.spans.some(s => s.kind === "tunnel")) continue;
+        const P = r.points, open = new Uint8Array(P.length);
+        P.forEach((p, i) => {
+            for (let a = -1; a <= 1 && !open[i]; a++) for (let b = -1; b <= 1 && !open[i]; b++) for (const [o, j] of grid.get(key(p[0] + a * B, p[2] + b * B)) ?? [])
+            {
+                if (o === r || (o.chain !== undefined && o.chain === r.chain)) continue;
+                const q = o.points[j];
+                // margin: the tube walls + a little
+                const reach = (r.width + o.width) / 2 + 3;
+                if (Math.hypot(q[0] - p[0], q[2] - p[2]) < reach && Math.abs(q[1] - p[1]) < 10) { open[i] = 1; break; }
+            }
+        });
+        const out: Span[] = [];
+        for (const s of r.spans)
+        {
+            if (s.kind !== "tunnel" || !open.subarray(s.from, s.to + 1).some(v => v)) { out.push(s); continue; }
+            // runs of covered points stay tunnel (3+ points), the rest is ground
+            for (let i = s.from; i < s.to;)
+            {
+                const t = !open[i] && !open[i + 1];
+                let e = i + 1;
+                while (e < s.to && (!open[e] && !open[e + 1]) === t) e++;
+                out.push({ ...s, kind: t && e - i >= 2 ? "tunnel" : "ground", from: i, to: e });
+                i = e;
+            }
+        }
+        r.spans = out.reduce<Span[]>((o, s) => { const p = o[o.length - 1]; if (p && p.kind === s.kind && p.to >= s.from) p.to = Math.max(p.to, s.to); else o.push({ ...s }); return o; }, []);
     }
 }
