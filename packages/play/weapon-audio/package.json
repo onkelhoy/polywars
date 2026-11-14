@@ -57,7 +57,8 @@
     "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@papit/game-mesh": "*",
-    "@papit/matrix": "*"
+    "@papit/matrix": "*",
+    "@polywar/weapons": "*"
   },
   "browserslist": [
     "defaults",

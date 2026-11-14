@@ -1,3 +1,2 @@
-// exports
-export * from "./component";
+export * from "./weapon-audio";
 export * from "./types";
