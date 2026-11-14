@@ -1,5 +1,6 @@
 import type { Camera, CameraController } from "@papit/game-engine";
 import { Vector3 } from "@papit/vector";
+import { Mover, type MoverSetting } from "@polywar/mover";
 
 /** Where the camera looks: rotation x is pitch (up +), y is yaw, like the engine's `orbit` and `fps`. */
 export function forward(yaw: number, pitch: number) {
@@ -253,7 +254,7 @@ export function panZoom(setting: PanZoomSetting = {}): CameraController & { pivo
     return controller;
 }
 
-export type WalkSetting = {
+export type WalkSetting = Omit<MoverSetting, "ground"> & {
     /** ground height at x / z (the feet stand on it) */
     ground: (x: number, z: number) => number;
     /** eye above the feet, units */
@@ -261,9 +262,6 @@ export type WalkSetting = {
     /** walk speed, units per second; shift runs at `run` times it */
     speed?: number;
     run?: number;
-    /** take off speed, units per second */
-    jump?: number;
-    gravity?: number;
     /** radians per mouse pixel */
     sensitivity?: number;
     /** the player let go of the view (Esc): the host switches back */
@@ -278,17 +276,18 @@ export type WalkSetting = {
  * Touch: a finger on the canvas looks, `touch` walks / runs / jumps (the host gives a way out, no Esc).
  * `feet` is where the walker stands (for grass pushing, sounds, ...).
  */
-export function walk(setting: WalkSetting): CameraController & { feet: Vector3; grounded: boolean } {
+export function walk(setting: WalkSetting): CameraController & { feet: Vector3; grounded: boolean; mover: Mover } {
     const sensitivity = setting.sensitivity ?? .002, eye = setting.eye ?? 1.7, speed = setting.speed ?? 4.5, run = setting.run ?? 2.2;
-    const jump = setting.jump ?? 5, gravity = setting.gravity ?? 18;
-    let dx = 0, dy = 0, fall = 0, vx = 0, vz = 0, cleanup: (() => void) | undefined;
+    let dx = 0, dy = 0, cleanup: (() => void) | undefined;
     const controller = {
         feet: new Vector3(0, 0, 0),
         grounded: true,
+        mover: new Mover(setting),
         start(camera: Camera) {
             const canvas = camera.surface!.element as HTMLElement, element = stage(camera);
             const p = camera.position;
-            controller.feet.set([p.x, setting.ground(p.x, p.z), p.z]);
+            controller.mover.place(p.x, p.z);
+            controller.feet.set(controller.mover.feet);
             const root = () => canvas.getRootNode() as Document | ShadowRoot;
             const locked = () => root().pointerLockElement === canvas;
             let was = false;
@@ -328,20 +327,11 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
             // keys: full speed any way; the stick is analog (a light push walks slowly)
             const l = Math.max(Math.hypot(ahead, side), 1), v = speed * (k("shift") || held(t, "run") ? run : 1);
             const fx = -Math.sin(r.y), fz = -Math.cos(r.y), rx = Math.cos(r.y), rz = -Math.sin(r.y);
-            const tx = (fx * ahead + rx * side) / l * v, tz = (fz * ahead + rz * side) / l * v;
-            const ease = 1 - Math.exp(-dt * (controller.grounded ? 14 : 3));
-            vx += (tx - vx) * ease; vz += (tz - vz) * ease;
-            const f = controller.feet;
-            let x = f.x + vx * dt, z = f.z + vz * dt, y = f.y;
-            if (controller.grounded && (k(" ") || held(t, "jump"))) { fall = jump; controller.grounded = false; }
-            fall -= gravity * dt;
-            y += fall * dt;
-            const g = setting.ground(x, z);
-            // walking down a slope keeps the feet on it; only a jump or a ledge leaves the ground
-            if (y <= g || (controller.grounded && fall <= 0 && y - g < .6)) { y = g; fall = 0; controller.grounded = true; }
-            else controller.grounded = false;
-            f.set([x, y, z]);
-            camera.position.set([x, y + eye, z]);
+            const m = controller.mover;
+            m.update(dt, { x: (fx * ahead + rx * side) / l * v, z: (fz * ahead + rz * side) / l * v, jump: !!(k(" ") || held(t, "jump")) });
+            controller.grounded = m.grounded;
+            controller.feet.set(m.feet);
+            camera.position.set([m.feet[0], m.feet[1] + eye, m.feet[2]]);
         },
         destroy() { cleanup?.(); },
     };

@@ -51,7 +51,8 @@
   },
   "dependencies": {
     "@papit/game-engine": "*",
-    "@papit/vector": "*"
+    "@papit/vector": "*",
+    "@polywar/mover": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",
