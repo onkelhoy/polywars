@@ -41,6 +41,7 @@ export function plan(g: Ground, o: HydrologyOptions, lakes: Lake[], rng: Random)
         for (let k = up[s], l = 0; k >= 0 && acc[k] >= threshold * .08 && l < o.spring / cell; k = up[k], l++) head.push(k);
         return head.reverse();
     };
+    const R = Math.max(2, Math.round(40 / cell)), near = new Uint8Array(total);
     const owner = new Int32Array(total).fill(-1), raw: { nodes: number[]; parent: number; sea: boolean }[] = [];
     for (const s of sources)
     {
@@ -55,8 +56,13 @@ export function plan(g: Ground, o: HydrologyOptions, lakes: Lake[], rng: Random)
         }
         if (nodes.length * cell < o.length && parent < 0 && !toSea) continue;
         if (nodes.length * cell < o.length && parent >= 0) continue;
+        // no parallel twins (straight drainage lines side by side on a tilted flat): a stream running within ~40 m of
+        // one already kept along much of its own course (before it joins it) goes
+        const own = nodes.filter(k => owner[k] < 0);
+        if (own.length && own.filter(k => near[k]).length > own.length * .35) continue;
         const id = raw.length;
         for (const k of nodes) if (owner[k] < 0 && !sea[k]) owner[k] = id;
+        for (const k of own) { const i = k % n, j = (k / n) | 0; for (let b = Math.max(0, j - R); b <= Math.min(n - 1, j + R); b++) for (let a = Math.max(0, i - R); a <= Math.min(n - 1, i + R); a++) if ((a - i) ** 2 + (b - j) ** 2 <= R * R) near[b * n + a] = 1; }
         raw.push({ nodes, parent, sea: toSea });
     }
 
