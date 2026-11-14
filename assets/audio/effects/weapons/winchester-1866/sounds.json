@@ -1,0 +1,49 @@
+{
+    "rate": 32000,
+    "sounds": {
+        "shot-open": [
+            "shot-open-1.wav",
+            "shot-open-2.wav"
+        ],
+        "shot-walls": [
+            "shot-walls-1.wav",
+            "shot-walls-2.wav"
+        ],
+        "shot-indoor": [
+            "shot-indoor-1.wav",
+            "shot-indoor-2.wav"
+        ],
+        "dry": [
+            "dry-1.wav",
+            "dry-2.wav"
+        ],
+        "bolt-open": [
+            "bolt-open-1.wav",
+            "bolt-open-2.wav"
+        ],
+        "bolt-close": [
+            "bolt-close-1.wav",
+            "bolt-close-2.wav"
+        ],
+        "mag-out": [
+            "mag-out-1.wav",
+            "mag-out-2.wav"
+        ],
+        "mag-in": [
+            "mag-in-1.wav",
+            "mag-in-2.wav"
+        ],
+        "round-in": [
+            "round-in-1.wav",
+            "round-in-2.wav"
+        ],
+        "clip-in": [
+            "clip-in-1.wav",
+            "clip-in-2.wav"
+        ],
+        "slide": [
+            "slide-1.wav",
+            "slide-2.wav"
+        ]
+    }
+}

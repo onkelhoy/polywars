@@ -1,3 +1,4 @@
-// exports
-export * from "./component";
+export * from "./dsp";
+export * from "./recipes";
+export * from "./sets";
 export * from "./types";

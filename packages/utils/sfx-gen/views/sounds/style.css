@@ -1,0 +1,9 @@
+@import "@papit/theme";
+
+:root { color-scheme: dark; }
+body { margin: 16px; font: 13px system-ui, sans-serif; background: var(--background); color: var(--text); }
+h1 { margin: 0 0 4px; font-size: 18px; }
+h2 { margin: 12px 0 4px; font-size: 14px; }
+.set { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+button { font: inherit; padding: 3px 8px; }
+button.shot { font-weight: 600; }
