@@ -16,6 +16,7 @@
         "assets": "node bin/assets.mjs",
         "bake": "node packages/utils/mesh-bake/lib/bin.js",
         "sfx": "node packages/utils/sfx-gen/bin.mjs",
+        "aim": "node tools/weapons/aim.mjs",
         "signal": "npx papit-signal-server --port 3599"
     },
     "keywords": [

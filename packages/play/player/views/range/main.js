@@ -5,7 +5,7 @@ import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Matrix4 } from '@papit/matrix';
 import { nearest, castGround, castBox, castCylinder } from '@polywar/ballistics';
 import { GUNS } from '@polywar/weapons';
-import { Player } from '@polywar/player';
+import { Player, aimOf } from '@polywar/player';
 import { RigidBody, Box, Capsule } from '@papit/rigidbody';
 
 const $ = s => document.querySelector(s);
@@ -87,7 +87,7 @@ const player = new Player(layer, renderer, {
         return t ? (t.surface === 'flesh' ? 'dirt' : t.surface) : road(x, z) ? 'stone' : 'dirt';
     },
     // ?guns=kar98k,svt-40@scope-3 for any other loadout (`<id>@<scope>` puts a scope on)
-    guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? ['m1911', 'thompson-m1', 'm1-garand', 'm1-garand-scoped', 'kar98k', 'kar98k@scope-2', 'smle-mk3', 'svt-40@scope-3', 'winchester-1895'],
+    guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? Object.keys(GUNS),
 }, {
     hit: (bullet, hit) => {
         if (!hit.target || hit.target.name === 'crate') return;
@@ -95,7 +95,7 @@ const player = new Player(layer, renderer, {
         requestAnimationFrame(() => requestAnimationFrame(() => $('#marker').classList.remove('on')));
         lastHit = `${hit.target.name} · ${bullet.travelled.toFixed(0)} m`;
     },
-    exit: () => stop(),
+    exit: () => { if (!tuning) stop(); },
 }, [0, 0, 6]);
 window.player = player;
 // crates, the wall, boards, plates and dummies as static bodies: cases bounce off them (the player steps its own world)
@@ -112,7 +112,7 @@ await player.ready;
 const guns = player.carried.map(c => c.gun);
 guns.forEach((g, i) => {
     const button = document.createElement('button');
-    button.type = 'button'; button.textContent = `${i + 1} ${g.spec.name}`;
+    button.type = 'button'; button.textContent = i < 9 ? `${i + 1} ${g.spec.name}` : g.spec.name;
     button.onclick = () => { player.select(i); paint(); };
     $('#guns').append(button);
 });
@@ -128,15 +128,84 @@ function play() {
     layer.camera = new Camera({ near: .1, far: 3000, controllers: [player.controller] });
 }
 function stop() {
+    tune(false);
     document.body.classList.remove('playing');
     paint();
 }
 $('#play').onclick = play;
 demo.look([0, 3, 12], [0, 1, -30]);
 
+// ---- aim tuning (T): sliders on the held gun's aimed pose, kept in the browser, exported for `npm run aim` ----
+const STORE = 'polywar.aim';
+const stored = () => JSON.parse(localStorage.getItem(STORE) ?? '{}');
+const SLIDERS = [['x', 'left / right', 'cm', 10], ['y', 'down / up', 'cm', 10], ['z', 'nearer / further', 'cm', 15], ['pitch', 'pitch (up +)', '°', 15], ['yaw', 'yaw (left +)', '°', 15], ['roll', 'roll', '°', 20]];
+for (const [id, name, unit, range] of SLIDERS)
+{
+    const label = document.createElement('label');
+    label.innerHTML = `<span>${name}</span><input id="t-${id}" type="range" min="${-range}" max="${range}" step=".1" value="0" /><output id="t-${id}-v"></output>`;
+    $('#tune-sliders').append(label);
+    label.querySelector('input').oninput = () => applyTune(true);
+}
+const sliders = () => SLIDERS.map(([id]) => +$(`#t-${id}`).value);
+/** this gun's tune as weapon.json `aim` (metres, degrees) */
+function tuneOf(c) {
+    const v = sliders();
+    return { offset: [v[0] / 100, v[1] / 100, v[2] / 100].map(n => +n.toFixed(4)), angle: v.slice(3).map(n => +n.toFixed(2)) };
+}
+function applyTune(save) {
+    const c = player.held, t = tuneOf(c);
+    for (const [id, , unit] of SLIDERS) $(`#t-${id}-v`).value = `${(+$(`#t-${id}`).value).toFixed(1)} ${unit}`;
+    c.hold.aim = aimOf(t);
+    if (!save) return;
+    const all = stored();
+    (all[c.tune.model] ??= {})[c.tune.key] = t;
+    localStorage.setItem(STORE, JSON.stringify(all));
+}
+/** sliders from the held gun's tune (browser first, then weapon.json) */
+function showTune() {
+    const c = player.held, t = stored()[c.tune.model]?.[c.tune.key] ?? c.weapon?.[c.tune.key] ?? { offset: [0, 0, 0], angle: [0, 0, 0] };
+    const v = [...t.offset.map(n => n * 100), ...t.angle];
+    SLIDERS.forEach(([id], i) => { $(`#t-${id}`).value = v[i]; });
+    $('#tune-gun').textContent = `${c.gun.spec.name} · ${c.tune.model} "${c.tune.key}"`;
+    applyTune(false);
+}
+// tunes kept in the browser win over weapon.json until merged
+for (const c of player.carried) { const t = stored()[c.tune.model]?.[c.tune.key]; if (t) c.hold.aim = aimOf(t); }
+let tuning = false;
+function tune(on) {
+    tuning = on;
+    document.body.classList.toggle('tuning', on);
+    if (on) { player.toggled = true; showTune(); document.exitPointerLock(); }
+    else player.input?.lock();
+}
+addEventListener('keydown', e => {
+    if (e.key.toLowerCase() !== 't' || !document.body.classList.contains('playing')) return;
+    tune(!tuning);
+});
+$('#tune-close').onclick = () => tune(false);
+// a click on the view locks the mouse again: back to playing
+document.addEventListener('pointerlockchange', () => { if (document.pointerLockElement && tuning) { tuning = false; document.body.classList.remove('tuning'); } });
+$('#tune-reset').onclick = () => { SLIDERS.forEach(([id]) => { $(`#t-${id}`).value = 0; }); applyTune(true); };
+$('#tune-copy').onclick = async () => {
+    const c = player.held;
+    await navigator.clipboard.writeText(`"${c.tune.key}": ${JSON.stringify(tuneOf(c))}`);
+    $('#tune-info').value = 'copied';
+};
+$('#tune-export').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(stored(), null, 4)], { type: 'application/json' }));
+    a.download = 'aim.json';
+    a.click();
+    $('#tune-info').value = 'npm run aim -- ~/Downloads/aim.json';
+};
+$('#tune-forget').onclick = () => { if (confirm('forget every tune kept in this browser?')) { localStorage.removeItem(STORE); showTune(); } };
+let shownGun = -1;
+
 // ---- loop ----
 demo.tick = () => {
     if (!document.body.classList.contains('playing')) return;
+    if (tuning && shownGun !== player.current) showTune();
+    shownGun = player.current;
     const g = player.gun, m = player.mover, c = player.held;
     const camera = layer.camera, fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
     // crosshair: the spread cone on screen, gone when aimed

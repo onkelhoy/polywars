@@ -58,7 +58,7 @@ export class Feel {
         await Promise.all([this.audio.load(gun.spec.model), this.caseOf(gl, gun.caliber.model)]);
     }
 
-    private caseOf(gl: WebGL2RenderingContext, id: string) {
+    caseOf(gl: WebGL2RenderingContext, id: string) {
         let loading = this.cases.get(id);
         if (!loading)
         {

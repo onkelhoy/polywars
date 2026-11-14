@@ -80,15 +80,16 @@ export class ViewModel {
         // hip: grip at `hip`, the bore at the middle `converge` ahead; aimed: the sight on the eye line
         const converge = h.converge ?? 30;
         const hipYaw = Math.atan2(h.hip[0], converge), hipPitch = Math.atan2(-h.hip[1], converge);
-        const aimAt: Vec3 = [0, 0, -h.eye];
+        const tune = h.aim ?? { offset: [0, 0, 0] as Vec3, angle: [0, 0, 0] as Vec3 };
+        const aimAt: Vec3 = [tune.offset[0], tune.offset[1], -h.eye + tune.offset[2]];
         const P: Vec3 = [mix(h.hip[0], aimAt[0], a), mix(h.hip[1], aimAt[1], a), mix(h.hip[2], aimAt[2], a)];
         const pivot: Vec3 = [mix(h.grip[0], h.sight[0], a), mix(h.grip[1], h.sight[1], a), mix(h.grip[2], h.sight[2], a)];
         // aimed: the sight line (not the bore) down the middle of the view, rear and front sight both on it
         const [lineYaw, linePitch] = h.front ? sightLine(h.sight, h.front) : [0, 0];
         const R = compose(mat4(), 0, 0, 0,
-            hipYaw * (1 - a) - lineYaw * a + this.turn.value[0] + yaw,
-            hipPitch * (1 - a) - linePitch * a + this.turn.value[1] + pitch,
-            this.turn.value[2] + roll);
+            hipYaw * (1 - a) + (tune.angle[1] - lineYaw) * a + this.turn.value[0] + yaw,
+            hipPitch * (1 - a) + (tune.angle[0] - linePitch) * a + this.turn.value[1] + pitch,
+            this.turn.value[2] + roll + tune.angle[2] * a);
         const T = compose(mat4(), P[0] + this.shift.value[0] + ox, P[1] + this.shift.value[1] + oy, P[2] + this.shift.value[2] + oz);
         const back = compose(mat4(), -pivot[0], -pivot[1], -pivot[2]);
         multiply(this.matrix, T, multiply(mat4(), R, back));

@@ -8,7 +8,7 @@ import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
 import { direction, mat4, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS, type Cue } from "@polywar/weapons";
-import { Armory, type WeaponFile } from "@polywar/armory";
+import { Armory, type AimTune, type WeaponFile } from "@polywar/armory";
 import { Arms } from "./arms";
 import { Feel } from "./feel";
 import { holdOf, scopeMountFor, scopeMountOf } from "./holds";
@@ -16,7 +16,7 @@ import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
 
 /** `scopeModel` (a scope from the armory) is drawn `scopeAt` off the gun; `scopeMesh` is the stand-in without one */
-type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh };
+type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; tune: { model: string; key: string }; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh };
 
 const LIMIT = Math.PI / 2 - .02;
 /** lean: metres the eye goes out, radians the view rolls */
@@ -62,8 +62,8 @@ export class Player {
     private near = mat4();
     private hidden: number[] = [];
     private tracerCount = 0;
-    /** aim toggled on (Option / Alt) */
-    private toggled = false;
+    /** aim toggled on (Option / Alt; the range's tuning panel holds it) */
+    toggled = false;
     /** -1 left .. 1 right, eased */
     lean = 0;
     readonly armory: Armory;
@@ -99,13 +99,13 @@ export class Player {
             const sid = scopeId ?? (spec.scope ? weapon?.scopes[0] : undefined);
             const scope = sid ? await this.armory.scope(sid).catch(() => undefined) : undefined;
             const [model, scopeModel] = await Promise.all([Model.load(this.gl, `${url}${spec.model}/model.glb`), scope ? Model.load(this.gl, scope.url + scope.model) : undefined]);
-            return { id, weapon, scope, model, scopeModel };
+            return { id, weapon, scope, model, scopeModel, sid };
         }));
-        for (const { id, weapon, scope: data, model, scopeModel } of loaded)
+        for (const { id, weapon, scope: data, model, scopeModel, sid } of loaded)
         {
             const gun = new Gun(id, Infinity, weapon?.action);
             gun.oncue = (cue, g) => this.cue(cue, g);
-            void this.feel.load(this.gl, gun);
+            void this.feel.caseOf(this.gl, gun.caliber.model);
             let hold = holdOf(model, gun.spec, weapon), scope: Scope | undefined, scopeMesh: GPUMesh | undefined, scopeAt: Matrix4 | undefined;
             let zoom: [number, number] | undefined;
             if (weapon && data)
@@ -126,7 +126,10 @@ export class Player {
                 scope.zoom = Math.sqrt(zoom[0] * zoom[1]);
                 hold = scope.hold(hold, Math.PI / 3);
             }
-            this.carried.push({ gun, model, hold, weapon, scope, zoom, scopeModel, scopeAt, scopeMesh });
+            const tune = { model: gun.spec.model, key: sid ? `aim@${sid}` : "aim" } as const;
+            const saved = weapon?.[tune.key as "aim"];
+            if (saved) hold.aim = aimOf(saved);
+            this.carried.push({ gun, model, hold, weapon, tune, scope, zoom, scopeModel, scopeAt, scopeMesh });
         }
         this.select(0);
         if (this.setting.character)
@@ -151,6 +154,8 @@ export class Player {
         this.held?.gun.cancel();
         this.current = index;
         this.vm.set(this.carried[index].hold);
+        // sounds load when a gun is first taken up (all of them at once is ~20 MB)
+        void this.feel.audio.load(this.carried[index].gun.spec.model);
     }
 
     /** put on the engine camera: `new Camera({ controllers: [player.controller] })` */
@@ -189,6 +194,7 @@ export class Player {
 
         // switching and zoom
         for (let i = 1; i <= 9; i++) if (pressed.has(String(i))) this.select(i - 1);
+        if (pressed.has("[") || pressed.has("]")) this.select((this.current + (pressed.has("]") ? 1 : -1) + this.carried.length) % this.carried.length);
         if (wheel)
         {
             if (scoped) { const [lo, hi] = carried!.zoom!; carried!.scope!.zoom = Math.max(lo, Math.min(hi, carried!.scope!.zoom * (wheel < 0 ? 1.15 : 1 / 1.15))); }
@@ -347,6 +353,12 @@ export class Player {
         this.body?.destroy();
         this.feel.destroy();
     }
+}
+
+/** a weapon.json `aim` (degrees) as a `Hold.aim` (radians) */
+export function aimOf(t: AimTune): NonNullable<Hold["aim"]> {
+    const r = Math.PI / 180;
+    return { offset: [...t.offset], angle: [t.angle[0] * r, t.angle[1] * r, t.angle[2] * r] };
 }
 
 function smoothstep(a: number, b: number, x: number) {

@@ -23,6 +23,8 @@ export type Hold = {
     weight?: number;
     /** hip fire points the bore at the view's middle this far ahead, m (default 30) */
     converge?: number;
+    /** hand tuning of the aimed pose, on top of the sight line: camera space `offset` (m, x right, y up, z back) and `angle` [pitch up, yaw left, roll] (radians) */
+    aim?: { offset: Vec3; angle: Vec3 };
 };
 
 /** What the holder did this frame. */

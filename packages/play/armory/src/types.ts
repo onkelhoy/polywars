@@ -16,7 +16,13 @@ export type WeaponFile = {
     /** scope ids (folders under `assets/models/weapons/attachments/`) that fit */
     scopes: string[];
     points: Partial<Record<"muzzle" | "front" | "rear" | "trigger" | "grip" | "fore" | "eject" | "mount", Vec3>>;
+    /** hand tuned aimed pose (range view `T`): iron sights; `aim@<scope id>` with that scope on */
+    aim?: AimTune;
+    [scoped: `aim@${string}`]: AimTune | undefined;
 };
+
+/** on top of the computed aim: `offset` camera space metres (x right, y up, z back), `angle` [pitch up, yaw left, roll] degrees */
+export type AimTune = { offset: Vec3; angle: Vec3 };
 
 /** `assets/models/weapons/attachments/<id>/scope.json` */
 export type ScopeFile = {

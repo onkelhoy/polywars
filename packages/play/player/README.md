@@ -20,4 +20,6 @@ Parts: `holdOf(model, spec)` (a hold from the gun's bones: grip under the trigge
 
 Gun feel (`player.feel`, `feel.ts`): each gun's cues (`Gun.oncue`) become sounds (`@polywar/weapon-audio`, the shot by the scene round the shooter, parts at the gun) and cases thrown from weapon.json `eject` (`@polywar/debris`) into a `@papit/rigidbody` world: the setting's `world` (the host steps it) or the player's own. `mixer` (an `@papit/audio` `AudioMixer`) and `surface(at)` (what a case landed on: `dirt`, `stone`, `wood`, `metal`) are optional.
 
-View `range`: a shooting range: targets at 25 - 400 m (steel, wood, dummies), a cone too steep to climb, a ridge, a road, crates; gun picker, hit marker, ammo, spread crosshair.
+Aim tuning: `Hold.aim` (`@polywar/viewmodel`) moves / turns the aimed pose on top of the sight line; weapon.json `aim` (iron sights) or `aim@<scope>` (`{ offset: [x, y, z] m, angle: [pitch, yaw, roll] deg }`) is read on load (`aimOf`).
+
+View `range`: every gun (`?guns=` for a list), 1-9 / `[` `]` / wheel switch, `T` the aim tuning panel (sliders on the held gun, kept in the browser, "export all" -> `npm run aim -- ~/Downloads/aim.json` writes weapon.json).  a shooting range: targets at 25 - 400 m (steel, wood, dummies), a cone too steep to climb, a ridge, a road, crates; gun picker, hit marker, ammo, spread crosshair.

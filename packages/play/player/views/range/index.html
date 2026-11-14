@@ -19,13 +19,25 @@
     </div>
     <aside id="menu">
         <h1>range</h1>
-        <p><b>click to play</b> · WASD walk · shift run · space jump · left mouse fire · right mouse aim (hold) / Option toggle · Q E lean · R reload · 1-9 / wheel guns (wheel zooms a scope while aimed) · Esc menu</p>
+        <p><b>click to play</b> · WASD walk · shift run · space jump · left mouse fire · right mouse aim (hold) / Option toggle · Q E lean · R reload · 1-9 / [ ] / wheel guns · T aim tuning (wheel zooms a scope while aimed) · Esc menu</p>
         <p>Targets down the range at 25, 50, 100, 200, 300 and 400 m (steel plates, wood boards, dummies). The cone to the left is too steep to climb, the road runs along the right, crates by the start.</p>
         <div id="guns"></div>
         <label><input id="body" type="checkbox" checked /> show body</label>
         <button id="play" type="button">play</button>
         <button id="clear" type="button">clear marks</button>
         <output id="info"></output>
+    </aside>
+    <aside id="tune">
+        <h2>aim tuning <small>(T closes)</small></h2>
+        <p id="tune-gun"></p>
+        <div id="tune-sliders"></div>
+        <p>Kept in this browser per gun (and scope). Export, then <code>npm run aim -- ~/Downloads/aim.json</code> writes them into each <code>weapon.json</code>.</p>
+        <button id="tune-reset" type="button">reset gun</button>
+        <button id="tune-copy" type="button">copy snippet</button>
+        <button id="tune-export" type="button">export all</button>
+        <button id="tune-forget" type="button">forget all</button>
+        <button id="tune-close" type="button">back (T)</button>
+        <output id="tune-info"></output>
     </aside>
     </pw-viewport>
 </body>
