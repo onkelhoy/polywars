@@ -79,7 +79,7 @@ function scrape(out: Float32Array, t: number, length: number, f: number, gain: n
 
 /** The action's parts (bolt, magazine, slide, rounds): `cue` name -> one variant. */
 export function part(v: GunVoice, cue: string, seed: number) {
-    const rnd = random(seed), f = pitch(v) * (.94 + rnd() * .12), lever = v.action === "lever";
+    const rnd = random(seed), f = pitch(v) * (.94 + rnd() * .12), lever = v.action === "lever" || v.action === "pump";
     const c = (t: number, hz: number, g: number) => clack(out, t, hz * f, g, rnd);
     const s = (t: number, l: number, hz: number, g: number) => scrape(out, t, l, hz * f, g, rnd);
     let out: Float32Array;
@@ -125,7 +125,8 @@ export function brass(surface: Surface, seed: number) {
 
 /** the voice of a gun from its spec numbers: louder, lower, longer with more muzzle energy */
 export function voice(kind: GunVoice["kind"], action: Action, caliber: string, speed: number): GunVoice {
-    const special: Record<string, number> = { "22-lr": .04, "450-nitro": 1 };
+    const special: Record<string, number> = { "22-lr": .04, "450-nitro": 1, "12-gauge": .9, "20x138b": 1 };
     const energy = special[caliber] ?? Math.max(0, Math.min(1, (speed - 230) / 650 + (kind === "rifle" ? .1 : 0)));
-    return { kind, action, energy, supersonic: speed > 360 };
+    // shot balls are round and slow off the muzzle quickly: no crack worth hearing
+    return { kind, action, energy, supersonic: speed > 360 && caliber !== "12-gauge" };
 }

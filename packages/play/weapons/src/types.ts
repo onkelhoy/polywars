@@ -8,6 +8,9 @@ export type Caliber = {
     life: number;
     /** folder under `assets/models/weapons/ammo/` */
     model: string;
+    /** shot shells: balls per shot, and the cone they spread in (radians, on top of the gun's spread) */
+    pellets?: number;
+    pelletSpread?: number;
 };
 
 /**
@@ -46,7 +49,7 @@ export type GunSpec = {
 };
 
 /** How a round gets chambered (same as weapon.json `action`). */
-export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "break" | "pistol";
+export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "pump" | "break" | "pistol";
 
 /**
  * A moment of the gun's work, for sounds, shells and later clips: `shot`, `dry` (pulled on empty), `eject`

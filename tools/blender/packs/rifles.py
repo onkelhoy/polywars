@@ -1,11 +1,12 @@
 """Single-gun downloads (Sketchfab "low-poly-*" .blend / .fbx / .gltf) and the Ultimate Gun Pack scopes -> editable model.blend.
 
-  blender -b --disable-autoexec -P tools/blender/packs/rifles.py -- <store> [--force] [slug ...]
+  blender -b --disable-autoexec -P tools/blender/packs/rifles.py -- <store>/Weapons [--force] [slug ...]
 
 Each source is flattened (modifiers / skin applied, one mesh), turned into the gun frame (muzzle +Y, up +Z,
 right +X, bounding box centre at the origin) and scaled to the real length. Writes
 assets/models/weapons/{guns,attachments}/<slug>/model.blend + about/license.txt. Existing files are kept unless --force.
-`flip` turns the muzzle / up guess around when the auto guess is wrong (see tools/blender/packs/rifles-shot.py).
+`flip` turns the muzzle / up guess around when the auto guess is wrong (see tools/blender/packs/rifles-shot.py):
+`m` muzzle, `u` up, `r` rolls a quarter (side magazines make the gun wider than high).
 """
 import bpy, math, os, shutil, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
@@ -38,6 +39,11 @@ GUNS = {
     "double-deuce": ("low-poly_stolzer__son_double_deuce", "scene.gltf", 1.05, ""),
     "svt-40": ("low-poly_svt-40", "scene.gltf", 1.226, ""),
     "vz-52": ("low-poly_vz.52", "scene.gltf", 1.003, ""),
+    "mp40": ("low-poly-mp40", "source/MP40.fbx", .833, ""),
+    "mp28": ("low-poly-mp-28", "source/MP28.fbx", .812, "r"),
+    "sterling": ("low-poly-sterling-smg", "source/Sterling SMG.fbx", .69, "r"),
+    "ithaca-m37": ("low-poly-ithaca-m37", "source/Ithaca M37.blend", 1.0, ""),
+    "lahti-l39": ("low-poly-lahti-l39", "source/Lahti L39.fbx", 2.24, "u"),
 }
 UGP = "Ultimate Gun Pack - July 2019"
 SCOPES = {f"scope-{i}": (UGP, f"Blends/Accessories/Scope_{i}.blend", .30, "m") for i in (1, 2, 3)}
@@ -124,6 +130,8 @@ def frame(obj, length, flips):
     size = hi - lo
     order = sorted(range(3), key=lambda k: size[k])  # thin, mid, long
     t, u, l = order
+    if "r" in flips:  # side magazine: wider than high, the thin / up guess swapped
+        t, u = u, t
     R = Matrix(((0, 0, 0), (0, 0, 0), (0, 0, 0)))
     R[0][t], R[1][l], R[2][u] = 1, 1, 1
     if R.determinant() < 0:  # a turn, never a mirror (the bolt stays on its side)

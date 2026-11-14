@@ -41,6 +41,11 @@ const GUNS = {
     "m1911": { action: "pistol" },
     "tt-pistol": { action: "pistol" },
     "mauser-c96": { action: "pistol" },
+    "mp40": { action: "auto" },
+    "mp28": { action: "auto" },
+    "sterling": { action: "auto" },
+    "ithaca-m37": { action: "pump" },
+    "lahti-l39": { action: "semi" },
 };
 
 /** JSON with short number arrays on one line */

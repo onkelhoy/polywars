@@ -22,5 +22,8 @@
 - In-game zeroing: keys step the rear sight / scope turret (`Carried.zero`), like a real rifle; the range's `T` panel sets the default per gun.
 - Downloads to import later (in ~/Downloads, Nov 14): low-poly soldier, willys jeep, ww2 headwear, street lights, medieval houses, wooden bench, simple / picnic table, goose, gun targets, gorebox range props, shooting range target, Zeiss Terra scope, `assets-low-poly.zip` (242 MB, unchecked).
 
+- Case models for shot shells (12 gauge) and the 20 mm Lahti case: both use the .30-06 case now. Ithaca 37 ejects downward (it throws right now).
+- `tools/blender/packs/store.mjs` still defaults to the old flat store layout (the store is now sorted into `Weapons/`, `Vehicles/`, ...).
+
 ## World
 - Save / load a generated world (skip generation): bake to a file / model, later pass over the network.

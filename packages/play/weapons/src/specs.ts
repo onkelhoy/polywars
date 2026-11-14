@@ -25,6 +25,9 @@ export const CALIBERS: Record<string, Caliber> = {
     "401-wsl": { speed: 650, drag: .0016, life: 3, model: "792x33-kurz" },
     "22-lr": { speed: 370, drag: .0030, life: 2, model: "9x19-parabellum" },
     "450-nitro": { speed: 650, drag: .0018, life: 3, model: "30-06-springfield" },
+    // 00 buck: 9 balls, ~4 cm a metre spread out of a cylinder bore; no hull model yet
+    "12-gauge": { speed: 400, drag: .0060, life: 1.5, model: "30-06-springfield", pellets: 9, pelletSpread: .035 },
+    "20x138b": { speed: 800, drag: .0005, life: 6, model: "30-06-springfield" },
 };
 
 const pistol = { kind: "pistol", action: "pistol", auto: false, zero: 25, hip: .025, aimed: .005, moving: .04, bloom: .015, settle: .08, kick: .09, climb: .02, side: .02, raise: .18, reload: 1.6, reloadEmpty: 1.9 } as const;
@@ -80,5 +83,17 @@ export const GUNS: Record<string, GunSpec> = {
     "beretta-model-57": { ...semi, action: "auto", kind: "smg", name: "Beretta Model 57", model: "beretta-model-57", caliber: "7.62x51", magazine: 20, auto: true, interval: 60 / 750, hip: .045, aimed: .002, bloom: .012, kick: .04, climb: .012 },
     "winchester-1866": { ...lever, name: "Winchester 1866", model: "winchester-1866", caliber: "44-henry", magazine: 13, zero: 50, kick: .06, reload: 6, reloadEmpty: 7 },
     "winchester-1895": { ...lever, name: "Winchester 1895", model: "winchester-1895", caliber: "7.62x54r", magazine: 5, kick: .11 },
+    "mp40": { ...smg, name: "MP 40", model: "mp40", caliber: "9x19", magazine: 32, interval: 60 / 500, kick: .022, climb: .005 },
+    "mp28": { ...smg, name: "MP 28", model: "mp28", caliber: "9x19", magazine: 32, interval: 60 / 600, kick: .024 },
+    "sterling": { ...smg, name: "Sterling", model: "sterling", caliber: "9x19", magazine: 34, interval: 60 / 550, kick: .022 },
+    "ithaca-m37": {
+        ...rifle, action: "pump", name: "Ithaca 37", model: "ithaca-m37", caliber: "12-gauge", magazine: 5, interval: .75, zero: 25,
+        hip: .03, aimed: .004, moving: .05, kick: .17, climb: .04, side: .03, reload: 3.6, reloadEmpty: 4.2,
+    },
+    /** 20 mm anti-tank rifle: 50 kg, slow up, slow back down */
+    "lahti-l39": {
+        ...rifle, name: "Lahti L-39", model: "lahti-l39", caliber: "20x138b", magazine: 10, interval: .5, zero: 300,
+        hip: .09, aimed: .0012, moving: .15, bloom: .04, settle: .04, kick: .3, climb: .07, side: .04, raise: .8, reload: 4, reloadEmpty: 4.6,
+    },
     "double-deuce": { ...rifle, action: "break", name: "Double rifle", model: "double-deuce", caliber: "450-nitro", magazine: 2, interval: .15, aimed: .0015, kick: .2, climb: .05, reload: 2.6, reloadEmpty: 2.6 },
 };

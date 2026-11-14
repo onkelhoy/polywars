@@ -5,6 +5,7 @@ const CYCLE: Record<Action, Timeline> = {
     "bolt": [[.3, "bolt-open"], [.33, "eject"], [.7, "bolt-close"]],
     "straight-pull": [[.25, "bolt-open"], [.28, "eject"], [.6, "bolt-close"]],
     "lever": [[.25, "bolt-open"], [.28, "eject"], [.6, "bolt-close"]],
+    "pump": [[.2, "bolt-open"], [.23, "eject"], [.5, "bolt-close"]],
     "semi": [[0, "eject"]],
     "auto": [[0, "eject"]],
     "pistol": [[0, "eject"]],
@@ -32,7 +33,7 @@ export function reloadCues(spec: GunSpec, action: Action, empty: boolean, missin
             // the long reloads (tube magazines) go a round at a time
             if (spec.reload >= 4) return [[.06, "bolt-open"], ...rounds(missing, .15, .85), [.93, "bolt-close"]];
             return [[.1, "bolt-open"], [.4, "clip-in"], [.82, "bolt-close"]];
-        case "lever":
+        case "lever": case "pump":
             return empty ? [...rounds(missing, .08, .7), [.8, "bolt-open"], [.9, "bolt-close"]] : rounds(missing, .1, .9);
         case "break":
             return [[.1, "bolt-open"], ...Array.from({ length: Math.max(1, missing) }, (): [number, "eject"] => [.16, "eject"]), ...rounds(missing, .4, .6), [.85, "bolt-close"]];

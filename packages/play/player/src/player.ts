@@ -270,11 +270,17 @@ export class Player {
         let d = direction(cam, unit([hip[0] + (aimed[0] - hip[0]) * a, hip[1] + (aimed[1] - hip[1]) * a, hip[2] + (aimed[2] - hip[2]) * a]));
         const up = direction(cam, [0, 1, 0]), right = direction(cam, [1, 0, 0]);
         const [sx, sy] = gun.scatter(this.mover.speed / 4.2);
-        d = unit([d[0] + up[0] * sy + right[0] * sx, d[1] + up[1] * sy + right[1] * sx, d[2] + up[2] * sy + right[2] * sx]);
-        // a tracer every round for single shots, every third for automatics
         const tracer = !gun.spec.auto || this.tracerCount++ % 3 === 0;
-        this.bullets.fire({ from, direction: d, speed: c.speed, drag: c.drag, life: c.life, tracer, data: { gun: gun.spec.model } });
-        this.impacts.flash(from, d, gun.spec.kind === "pistol" ? .08 : .14);
+        // a shot shell throws `pellets` balls in their own cone round the shot's line (one tracer)
+        const balls = c.pellets ?? 1;
+        for (let i = 0; i < balls; i++)
+        {
+            const r = balls > 1 ? (c.pelletSpread ?? .03) * Math.sqrt(Math.random()) : 0, t = Math.random() * Math.PI * 2;
+            const px = sx + Math.cos(t) * r, py = sy + Math.sin(t) * r;
+            const ball = unit([d[0] + up[0] * py + right[0] * px, d[1] + up[1] * py + right[1] * px, d[2] + up[2] * py + right[2] * px]);
+            this.bullets.fire({ from, direction: ball, speed: c.speed * (balls > 1 ? .95 + Math.random() * .1 : 1), drag: c.drag, life: c.life, tracer: tracer && i === 0, data: { gun: gun.spec.model } });
+        }
+        this.impacts.flash(from, d, gun.spec.kind === "pistol" ? .08 : c.pellets || gun.spec.caliber === "20x138b" ? .3 : .14);
         const recoil = gun.recoil();
         this.vm.fire(recoil);
         this.climb += recoil.climb;

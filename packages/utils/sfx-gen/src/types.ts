@@ -1,5 +1,5 @@
 /** how a round gets chambered (same as weapon.json `action`) */
-export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "break" | "pistol";
+export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "pump" | "break" | "pistol";
 
 /** where a shot is heard: in the open, near walls (street, trench), in a room */
 export type Scene = "open" | "walls" | "indoor";
