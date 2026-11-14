@@ -105,7 +105,7 @@ export class Debris {
     }
 
     /** a piece's model matrix (column-major) into `out`: body x `local`, shrunk while fading */
-    matrix(p: Piece, out: Float32Array = new Float32Array(16)) {
+    matrix<T extends Float32Array | Float64Array>(p: Piece, out: T): T {
         p.body.matrix(out);
         if (p.local) multiply(out, p.local, out);
         const s = Math.max(0, p.scale);
@@ -133,7 +133,7 @@ export function cylinderAlongZ(length: number, radius: number) {
     return { shape, local };
 }
 
-function multiply(a: ArrayLike<number>, b: ArrayLike<number>, out: Float32Array) {
+function multiply(a: ArrayLike<number>, b: ArrayLike<number>, out: Float32Array | Float64Array) {
     const r = new Float32Array(16);
     for (let c = 0; c < 4; c++) for (let row = 0; row < 4; row++)
     {
