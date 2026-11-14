@@ -51,8 +51,7 @@
   "devDependencies": {
     "typescript": "5.9.3",
     "@papit/theme": "*",
-    "@papit/translator": "*",
-    "@papit/codeblock": "*"
+    "@polywar/3d-asset-preview": "*"
   },
   "browserslist": [
     "defaults",
@@ -62,7 +61,7 @@
   "papit": {
     "publish": true,
     "type": "browser",
-    "main": "weapons",
+    "main": "gun",
     "htmlprefix": ""
   }
 }

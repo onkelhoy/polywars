@@ -1,36 +1,16 @@
 # @polywar/weapons
 
-Gun specs and state: magazine, fire rate, reload, spread (hip, aimed, moving, bloom), recoil, zeroing.
+Guns as data + one gun's state. No drawing, no input, no bullets (those are `@polywar/ballistics`).
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
+- `GUNS`: every gun in `assets/models/weapons/guns/` by folder (+ `m1-garand-scoped`): magazine, semi / auto, interval, reload times, zero, spread (`hip`, `aimed`, `moving`, `bloom`, `settle`), recoil (`kick`, `climb`, `side`), `raise`, `scope`.
+- `CALIBERS`: muzzle speed, drag, life, ammo model folder.
+- `Gun`: `trigger(held)` -> `"shot" | "empty" | "reload"`, `aim(held)` (eases `aimed` 0..1 over `raise`), `reload()`, `update(dt)` -> `"reloaded"`, `spread(moving)`, `scatter(moving)` (a random [yaw, pitch] in the cone, blooms), `recoil()`, `progress`, `emptyReload` (pick the `reload-empty` clip), `sinceShot`.
 
----
-
-![Type](https://img.shields.io/badge/Type-play-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/weapons.svg?logo=npm)](https://www.npmjs.com/package/@polywar/weapons)
-
----
-
-## installation
-
-```bash
-npm install @polywar/weapons
+```ts
+const gun = new Gun("stg-44");
+gun.aim(rightMouse);
+if (gun.trigger(leftMouse) === "shot") { const [yaw, pitch] = gun.scatter(speed / 4.5); /* fire along the view turned by them */ }
+gun.update(dt);
 ```
 
-## License
-
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
-
-**Key points:**
-
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
-
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+View `experiment`: pick a gun, hold fire, aimed / moving, hits at 50 m.
