@@ -1,36 +1,18 @@
 # @polywar/viewmodel
 
-First person held gun: spring sway, walk bob, recoil kick, aim down sights, scope lens.
+What's held in first person, in camera space (eye at 0, -z ahead): hip (bore at the middle `converge` ahead) to aimed (sight on the eye line), springs for the lag behind turns and steps, stride bob, breathing, strafe lean, landing dip, shot kick (+ the view's own kick), reload dip, sprint carry. No model, no input: the host draws its model at `world(camera.worldMatrix)`.
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-play-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/viewmodel.svg?logo=npm)](https://www.npmjs.com/package/@polywar/viewmodel)
-
----
-
-## installation
-
-```bash
-npm install @polywar/viewmodel
+```ts
+const vm = new ViewModel(hold);          // Hold: grip, fore?, muzzle, sight, hip, eye, weight?, converge? (item space / camera space)
+vm.update(dt, { yaw, pitch, speed, strafe, grounded, landed, aimed, reload, sprint, shake });
+vm.fire(gun.recoil());                   // kick
+vm.matrix;                               // item -> camera
+vm.muzzle;                               // { from, direction } camera space: fire from here
+vm.hands;                                // { grip, fore } camera space: IK targets for arms
+vm.view;                                 // [pitch, yaw] the view's own recoil this frame
 ```
 
-## License
+`Scope(layer, { eyepiece, length, lens })`: `hold(hold, fov)` (the eye behind the eyepiece), `begin(cameraWorld, vm.matrix, projection)` -> a view to draw the scene with magnified (`zoom`), `end()`, `overlay(vm.matrix, projection, aspect)`: the glass with the scope shadow (the pupil shifts when the eye isn't on the axis: still = clear), duplex reticle. `mesh()`: a low poly scope.
+Helpers: `Spring`, `compose`, `multiply`, `point`, `perspective`, `invertRigid`.
 
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
-
-**Key points:**
-
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
-
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+View `experiment`: a gun held over a range: aimed, speed, turn, reload, sprint, fire, scope zoom.

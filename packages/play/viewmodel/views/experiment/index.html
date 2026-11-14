@@ -3,27 +3,27 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewmodel | experiment</title>
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-
-    <!-- Styles -->
+    <title>viewmodel | hold</title>
     <link rel="stylesheet" href="style.css" />
-
     <script defer type="module" src="main.js"></script>
 </head>
 
 <body>
-
-    <h1>Viewmodel | experiment</h1>
-    <section>
-        <h2>Example</h2>
-        <pap-codeblock>
-            <undefined-viewmodel></undefined-viewmodel>
-        </pap-codeblock>
-    </section>
+    <pw-viewport near=".1" far="2000" no-bar no-axes no-origin>
+    <aside>
+        <h1>viewmodel</h1>
+        <label>gun <select id="pick"></select></label>
+        <label>aimed <input id="aimed" type="range" min="0" max="1" step=".01" value="0" /></label>
+        <label>speed <input id="speed" type="range" min="0" max="8" step=".1" value="0" /></label>
+        <label>turn <input id="turn" type="range" min="-3" max="3" step=".1" value="0" /></label>
+        <label>reload <input id="reload" type="range" min="-1" max="1" step=".01" value="-1" /></label>
+        <label>zoom <input id="zoom" type="range" min="2" max="8" step=".5" value="4" /></label>
+        <label><input id="sprint" type="checkbox" /> sprint</label>
+        <button id="fire" type="button">fire</button>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
 </body>
 
 </html>
