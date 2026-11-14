@@ -1,5 +1,5 @@
 import { BIOMES } from "@polywar/terrain-material";
-import type { River, TerrainData } from "./types";
+import type { TerrainData } from "./types";
 
 /** `indices`: CPU copy of the triangles (kept for debug views, e.g. a wireframe) */
 export type Mesh = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; indices?: Uint32Array; x: number; y: number; z: number; radius: number };
@@ -137,47 +137,41 @@ export function waterMesh(gl: WebGL2RenderingContext, d: TerrainData, kind: 1 | 
 }
 
 /**
- * Rivers as ribbons: the point lists smoothed (Chaikin), `width` wide at the surface level.
- * Water material attributes: 1 (depth, metres to the bank), 2 (across and along in metres, flow speed from the slope, no swell).
+ * River water (`water` 3) as one sheet over the grid: every cell with a river node and no sea / lake node (those cells are the
+ * lake / sea quads), each vertex at its node's surface; a land corner takes the highest river surface next to it, so the sheet
+ * runs a little into the banks and the ground (kept above it, hydrology `seal`) hides its edge. Shared vertices: no cracks.
+ * Water material attributes: 1 (depth, metres to the bank), 2 (world x z, still: no flow), 3 (toward land: none).
  */
-export function riverMesh(gl: WebGL2RenderingContext, rivers: River[]) {
-    const pos: number[] = [], info: number[] = [], flow: number[] = [], idx: number[] = [];
-    for (const r of rivers)
+export function riverSheet(gl: WebGL2RenderingContext, d: TerrainData) {
+    const n = d.n, half = d.size / 2, W = d.water, still = (k: number) => W[k] === 1 || W[k] === 2;
+    const vert = new Int32Array(n * n).fill(-1), pos: number[] = [], info: number[] = [], flow: number[] = [], dir: number[] = [], idx: number[] = [];
+    /** surface a node gets in the sheet: its own (river), else the highest river surface among its 8 neighbours */
+    const level = (k: number) => {
+        if (W[k] === 3) return d.surface[k];
+        const i = k % n, j = (k / n) | 0;
+        let s = -Infinity;
+        for (let b = Math.max(0, j - 1); b <= Math.min(n - 1, j + 1); b++) for (let a = Math.max(0, i - 1); a <= Math.min(n - 1, i + 1); a++)
+        { const m = b * n + a; if (W[m] === 3 && d.surface[m] > s) s = d.surface[m]; }
+        return s;
+    };
+    const v = (k: number) => {
+        if (vert[k] >= 0) return vert[k];
+        const i = k % n, j = (k / n) | 0, x = i * d.cell - half, z = j * d.cell - half, y = level(k);
+        pos.push(x, y, z);
+        info.push(y - d.height[k], W[k] === 3 ? d.cell * .5 : -d.cell);
+        flow.push(x, z, 0, 0);
+        dir.push(0, 0);
+        return vert[k] = pos.length / 3 - 1;
+    };
+    for (let j = 0; j < n - 1; j++) for (let i = 0; i < n - 1; i++)
     {
-        let p = r.points;
-        for (let it = 0; it < 2 && p.length > 2; it++)
-        {
-            const next: typeof p = [p[0]];
-            for (let i = 0; i < p.length - 1; i++)
-            {
-                const a = p[i], b = p[i + 1];
-                next.push(a.map((v, k) => v * .75 + b[k] * .25) as any, a.map((v, k) => v * .25 + b[k] * .75) as any);
-            }
-            next.push(p[p.length - 1]);
-            p = next;
-        }
-        if (p.length < 2) continue;
-        let along = 0;
-        const base = pos.length / 3;
-        for (let i = 0; i < p.length; i++)
-        {
-            const a = p[Math.max(0, i - 1)], b = p[Math.min(p.length - 1, i + 1)];
-            let dx = b[0] - a[0], dz = b[2] - a[2];
-            const l = Math.hypot(dx, dz) || 1;
-            dx /= l; dz /= l;
-            if (i > 0) along += Math.hypot(p[i][0] - p[i - 1][0], p[i][2] - p[i - 1][2]);
-            const [x, y, z, w] = p[i], h = w / 2;
-            // steeper runs flow faster
-            const drop = Math.max(0, a[1] - b[1]) / l, speed = .6 + Math.min(3, drop * 60);
-            pos.push(x - dz * h, y, z + dx * h, x, y, z, x + dz * h, y, z - dx * h);
-            info.push(.2, 0, 1.2, h, .2, 0);
-            flow.push(0, along, speed, 0, h, along, speed, 0, w, along, speed, 0);
-            // three across (bank, middle, bank) so the bank foam and depth have something to blend
-            if (i > 0) { const q = base + (i - 1) * 3; idx.push(q, q + 3, q + 1, q + 1, q + 3, q + 4, q + 1, q + 4, q + 2, q + 2, q + 4, q + 5); }
-        }
+        const k = j * n + i, c = [k, k + 1, k + n + 1, k + n];
+        if (!c.some(m => W[m] === 3) || c.some(still)) continue;
+        const [a, b, e, f] = c.map(v);
+        idx.push(a, f, b, b, f, e);
     }
     if (!idx.length) return null;
-    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
+    return { ...upload(gl, [[new Float32Array(pos), 3], [new Float32Array(info), 2], [new Float32Array(flow), 4], [new Float32Array(dir), 2]], new Uint32Array(idx)), x: 0, y: 0, z: 0, radius: Infinity };
 }
 
 export const BIOME = (name: typeof BIOMES[number]) => BIOMES.indexOf(name);

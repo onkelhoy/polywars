@@ -6,7 +6,7 @@ import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
 import { Generator, type TerrainHooks } from "./generate";
 import { Ground } from "./lod";
-import { BIOME, free, riverMesh, skirt, waterMesh, type Mesh } from "./mesh";
+import { BIOME, free, riverSheet, skirt, waterMesh, type Mesh } from "./mesh";
 import { DEFAULTS, resolve, type Resolved } from "./presets";
 import { biomeAt, heightAt, nearest, slopeAt, waterAt } from "./query";
 import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./types";
@@ -35,8 +35,8 @@ export class Terrain {
     private lakes: (Mesh | null)[] = [];
     private riverWater: Mesh | null = null;
     private meshKey = "";
-    /** draw river water ribbons (off while rivers are debug lines) */
-    ribbons = false;
+    /** draw the river water */
+    showRivers = true;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     /** the current map, undefined until the first generation is done */
     data?: TerrainData;
@@ -156,10 +156,11 @@ export class Terrain {
                 hooks.mesh?.(this.skirtMesh, 0);
             }
         }
+        if (this.showRivers && this.riverWater) hooks.mesh?.(this.riverWater, 0);
         if (!fill) { if (cull) gl.enable(gl.CULL_FACE); return; }
         // the water reads the ground's depth: exact edge and rim where it meets the land
         this.water.capture();
-        const draws: [Mesh | null, boolean, boolean, Partial<WaterLook> | undefined][] = [[this.riverWater, true, false, undefined], ...this.lakes.map((m, i): [Mesh | null, boolean, boolean, Partial<WaterLook> | undefined] => [m, true, true, LAKE_LOOKS[i]]), [this.ocean, false, false, undefined]];
+        const draws: [Mesh | null, boolean, boolean, Partial<WaterLook> | undefined][] = [[this.showRivers ? this.riverWater : null, true, true, undefined], ...this.lakes.map((m, i): [Mesh | null, boolean, boolean, Partial<WaterLook> | undefined] => [m, true, true, LAKE_LOOKS[i]]), [this.ocean, false, false, undefined]];
         for (const [w, fresh, still, look] of draws)
         {
             if (!w || !this.water.use(view, light, time, { fresh, still, look, under: eyeSurface !== null, surface: eyeSurface ?? 0, shore: this.shore })) continue;
@@ -226,7 +227,7 @@ export class Terrain {
             this.skirtMesh = skirt(gl, d, edge === "ocean" ? -.12 * o.height : o.edge.level * o.height, o.mesh.skirt, BIOME(edge === "ocean" ? "ocean" : "grassland"));
         this.ocean = waterMesh(gl, d, 1, step, edge === "ocean" ? o.mesh.skirt : 0);
         this.lakes = [0, 1, 2].map(kind => waterMesh(gl, d, 2, step, 0, kind));
-        this.riverWater = this.ribbons ? riverMesh(gl, d.rivers) : null;
+        this.riverWater = riverSheet(gl, d);
         // signed metres to the shore of the sea and the lakes, smooth, for the wave lines
         const signed = new Float32Array(d.n * d.n);
         for (let k = 0; k < signed.length; k++) signed[k] = d.water[k] === 1 || d.water[k] === 2 ? d.toLand[k] : -d.toWater[k];

@@ -18,7 +18,7 @@ import { fence } from "@polywar/bridges";
 import { Placements } from "@polywar/placements";
 import { furnish } from "@polywar/trails";
 import type { ScatterBatch } from "@polywar/scatter";
-import { merge, sweep, type Profile, type Vec3 } from "@polywar/sweep";
+import { merge, type Vec3 } from "@polywar/sweep";
 import type { Mesh } from "@papit/game-mesh";
 
 /** ways / fences cut into tiles of this many metres (culled, lod picked per tile) */
@@ -81,7 +81,6 @@ export class World {
     private wayTiles: Tile[] = [];
     private fenceTiles: Tile[] = [];
     private tunnelTiles: Tile[] = [];
-    private riverMesh?: Uploaded;
     private siteMesh?: ReturnType<typeof upload>;
     /** made on first use of `view.wire` */
     private wire?: Wire;
@@ -149,12 +148,12 @@ export class World {
         // wire: collect what gets drawn, lines after each system (they use their own programs)
         const ground: [WireMesh, number][] = [], parts: [WireMesh, ArrayLike<number>, Instances][] = [];
         p?.begin("terrain");
+        this.terrain.showRivers = this.v.rivers;
         this.terrain.draw(view, light, time, wire ? { fill, mesh: (m, drop) => ground.push([m, drop]) } : {});
         p?.end();
         if (wire) { for (const [m, wallDrop] of ground) wire.draw(view, m, { wallDrop }); this.renderer.reset(); }
         if (!this.data) return;
         const solid: Uploaded[] = [];
-        if (this.v.rivers && this.riverMesh) solid.push(this.riverMesh);
         if (this.v.roads)
         {
             // tiles in view, far ones at their low lod; fences only near
@@ -205,7 +204,6 @@ export class World {
         this.grass.destroy();
         this.wire?.destroy();
         this.dropTiles(this.wayTiles); this.dropTiles(this.fenceTiles); this.dropTiles(this.tunnelTiles);
-        this.riverMesh?.destroy();
     }
 
     // ---- internals ----
@@ -219,7 +217,6 @@ export class World {
         const look = this.terrain.material.look;
         this.builtBatches = [];
         this.buildRoads();
-        this.buildRivers();
         this.buildSites();
         this.furnish();
         this.built.place(this.builtBatches);
@@ -289,37 +286,6 @@ export class World {
         let s = -Infinity;
         for (const o of [0, 1, -1, d.n, -d.n]) { const m = k + o; if (m >= 0 && m < d.water.length && d.water[m] >= 2) s = Math.max(s, d.surface[m]); }
         return Number.isFinite(s) ? s : this.terrain.groundAt(x, z);
-    }
-
-    /** water ribbons along streams and rivers: flat across (no bank), width per point, at the water surface */
-    private buildRivers() {
-        this.riverMesh = undefined;
-        const meshes: Mesh[] = [];
-        for (const s of this.hydrology.network.streams)
-        {
-            if (s.points.length < 2) continue;
-            const t = Math.min(1, (s.order - 1) / 3), c: [number, number, number] = [.25 - .1 * t, .5 - .12 * t, .62 - .05 * t];
-            // only the parts outside lakes / swamps / sea: a river reaches a shore and leaves at the outlet, never drawn over the lake
-            const open = s.points.map(([x, , z]) => { const d = this.terrain.data, k = this.node(x, z); return !d || k < 0 || (d.water[k] !== 1 && d.water[k] !== 2); });
-            let a = -1;
-            for (let i = 0; i <= open.length; i++)
-            {
-                if (i < open.length && open[i]) { if (a < 0) a = i; continue; }
-                if (a < 0) continue;
-                // one point into the water each side so the ribbon meets the shore
-                const part = s.points.slice(Math.max(0, a - 1), Math.min(s.points.length, i + 1));
-                a = -1;
-                if (part.length < 2) continue;
-                // the end points in the lake / sea sit on its surface: the ribbon slopes into it, never stands over it
-                const pts = part.map(([x, y, z]) => {
-                    const d = this.terrain.data, k = this.node(x, z);
-                    if (d && k >= 0 && (d.water[k] === 1 || d.water[k] === 2)) return [x, (d.water[k] === 1 ? d.seaLevel : d.surface[k]) - .05, z] as Vec3;
-                    return [x, Math.max(y, this.terrain.groundAt(x, z) - .3) + .08, z] as Vec3;
-                });
-                meshes.push(sweep(pts, { width: part.map(p => Math.max(1, p[3])), profile: { points: [[-1, 0], [1, 0]], color: c }, bank: "flat", step: 3 }));
-            }
-        }
-        if (meshes.length) this.riverMesh = put(this.layer.gl, merge(meshes));
     }
 
     /** structures + trail furniture into the placement record, then their instances into the built scatter */
