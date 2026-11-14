@@ -31,6 +31,8 @@
         <h2>aim tuning <small>(T closes)</small></h2>
         <p id="tune-gun"></p>
         <div id="tune-sliders"></div>
+        <label><span>zero (hits the sights at)</span><input id="t-zero" type="range" min="25" max="500" step="25" value="100" /><output id="t-zero-v"></output></label>
+        <p>The sliders only move the gun's picture: aimed shots go where the drawn sights look. Zero: the range where the bullet meets the sights.</p>
         <p>Kept in this browser per gun (and scope). Export, then <code>npm run aim -- ~/Downloads/aim.json</code> writes them into each <code>weapon.json</code>.</p>
         <button id="tune-reset" type="button">reset gun</button>
         <button id="tune-copy" type="button">copy snippet</button>

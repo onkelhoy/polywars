@@ -149,13 +149,17 @@ for (const [id, name, unit, range] of SLIDERS)
 const sliders = () => SLIDERS.map(([id]) => +$(`#t-${id}`).value);
 /** this gun's tune as weapon.json `aim` (metres, degrees) */
 function tuneOf(c) {
-    const v = sliders();
-    return { offset: [v[0] / 100, v[1] / 100, v[2] / 100].map(n => +n.toFixed(4)), angle: v.slice(3).map(n => +n.toFixed(2)) };
+    const v = sliders(), zero = +$('#t-zero').value;
+    const t = { offset: [v[0] / 100, v[1] / 100, v[2] / 100].map(n => +n.toFixed(4)), angle: v.slice(3).map(n => +n.toFixed(2)) };
+    if (zero !== c.gun.spec.zero) t.zero = zero;
+    return t;
 }
 function applyTune(save) {
     const c = player.held, t = tuneOf(c);
     for (const [id, , unit] of SLIDERS) $(`#t-${id}-v`).value = `${(+$(`#t-${id}`).value).toFixed(1)} ${unit}`;
     c.hold.aim = aimOf(t);
+    c.zero = t.zero;
+    $('#t-zero-v').value = `${$('#t-zero').value} m`;
     if (!save) return;
     const all = stored();
     (all[c.tune.model] ??= {})[c.tune.key] = t;
@@ -166,11 +170,13 @@ function showTune() {
     const c = player.held, t = stored()[c.tune.model]?.[c.tune.key] ?? c.weapon?.[c.tune.key] ?? { offset: [0, 0, 0], angle: [0, 0, 0] };
     const v = [...t.offset.map(n => n * 100), ...t.angle];
     SLIDERS.forEach(([id], i) => { $(`#t-${id}`).value = v[i]; });
+    $('#t-zero').value = t.zero ?? c.gun.spec.zero;
     $('#tune-gun').textContent = `${c.gun.spec.name} · ${c.tune.model} "${c.tune.key}"`;
     applyTune(false);
 }
 // tunes kept in the browser win over weapon.json until merged
-for (const c of player.carried) { const t = stored()[c.tune.model]?.[c.tune.key]; if (t) c.hold.aim = aimOf(t); }
+for (const c of player.carried) { const t = stored()[c.tune.model]?.[c.tune.key]; if (t) { c.hold.aim = aimOf(t); c.zero = t.zero; } }
+$('#t-zero').oninput = () => applyTune(true);
 let tuning = false;
 function tune(on) {
     tuning = on;
@@ -185,7 +191,7 @@ addEventListener('keydown', e => {
 $('#tune-close').onclick = () => tune(false);
 // a click on the view locks the mouse again: back to playing
 document.addEventListener('pointerlockchange', () => { if (document.pointerLockElement && tuning) { tuning = false; document.body.classList.remove('tuning'); } });
-$('#tune-reset').onclick = () => { SLIDERS.forEach(([id]) => { $(`#t-${id}`).value = 0; }); applyTune(true); };
+$('#tune-reset').onclick = () => { SLIDERS.forEach(([id]) => { $(`#t-${id}`).value = 0; }); $('#t-zero').value = player.held.gun.spec.zero; applyTune(true); };
 $('#tune-copy').onclick = async () => {
     const c = player.held;
     await navigator.clipboard.writeText(`"${c.tune.key}": ${JSON.stringify(tuneOf(c))}`);

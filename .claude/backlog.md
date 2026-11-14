@@ -19,5 +19,8 @@
 - Other players' guns: same `Feel.cue` with their gun place (far shots already come late and dull by distance).
 - Papit reports: `rigidbody` has no heightfield / triangle mesh shape (debris makes hull tiles under moving pieces); its sweep and prune broad phase could be its own package (a general spatial index, papit has none).
 
+- In-game zeroing: keys step the rear sight / scope turret (`Carried.zero`), like a real rifle; the range's `T` panel sets the default per gun.
+- Downloads to import later (in ~/Downloads, Nov 14): low-poly soldier, willys jeep, ww2 headwear, street lights, medieval houses, wooden bench, simple / picnic table, goose, gun targets, gorebox range props, shooting range target, Zeiss Terra scope, `assets-low-poly.zip` (242 MB, unchecked).
+
 ## World
 - Save / load a generated world (skip generation): bake to a file / model, later pass over the network.

@@ -19,7 +19,7 @@ for (const [model, keys] of Object.entries(tunes))
     const json = JSON.parse(fs.readFileSync(target, "utf8"));
     for (const [key, tune] of Object.entries(keys))
     {
-        const zero = [...tune.offset, ...tune.angle].every(v => v === 0);
+        const zero = [...tune.offset, ...tune.angle].every(v => v === 0) && tune.zero === undefined;
         if (zero) delete json[key];
         else json[key] = tune;
         console.log(`${zero ? "clear" : "set  "} ${model} ${key}`);
