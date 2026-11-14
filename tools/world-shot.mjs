@@ -1,4 +1,4 @@
-// World view screenshots headless: `node tools/world-shot.mjs out-prefix "x,z,dist,yawDeg,pitchDeg[,y]" ...`  (env WIRE=overlay/only)
+// World view screenshots headless: `node tools/world-shot.mjs out-prefix "x,z,dist,yawDeg,pitchDeg[,y]" ...`  (env WIRE=overlay/only, PROPS=0 hides trees / props)
 import { chromium } from "playwright";
 const [prefix, ...views] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
@@ -7,7 +7,7 @@ page.on("pageerror", e => console.log("pageerror:", e.message));
 page.on("console", m => { if (m.type() === "error") console.log("console:", m.text()); });
 await page.goto("http://localhost:4000/packages/library/world/views/world/");
 await page.waitForFunction(() => window.world?.data && window.world.roads?.roads, null, { timeout: 240000 });
-await page.evaluate(WIRE => { document.body.classList.add("folded"); window.world.setView({ grass: false, ...(WIRE ? { wire: WIRE } : {}) }); }, process.env.WIRE ?? "");
+await page.evaluate(([WIRE, PROPS]) => { document.body.classList.add("folded"); window.world.setView({ grass: false, ...(WIRE ? { wire: WIRE } : {}), ...(PROPS === "0" ? { props: false } : {}) }); }, [process.env.WIRE ?? "", process.env.PROPS ?? ""]);
 await page.waitForTimeout(3000);
 let i = 0;
 for (const v of views)

@@ -127,11 +127,14 @@ export class Roads {
         t0 = performance.now();
         const { roads, out } = this.shape(raws.filter(r => r.nodes.length > 1), junctions);
         unzip(roads, out);
+        // bridges running into a hill bore through it instead (trimTunnels then sets the mouths / cuttings)
+        hillBridges(roads, this.heightAt);
         // tunnels trimmed first: their open approaches are ground the merges / crossings below must see
         trimTunnels(roads, this.heightAt);
         mergeAlong(roads, out);
         // merged pieces may now leave a junction along another way to its end: unzip drops / parts them
         unzip(roads, out);
+        dropClimbs(roads);
         railCrossings(roads, out);
         levelCrossings(roads, o.step);
         for (const r of roads)
@@ -383,6 +386,8 @@ export function levelCrossings(roads: Road[], step: number) {
     const kindAt = (r: Road, i: number) => r.spans.find(s => i >= s.from && i < s.to)?.kind ?? "ground";
     const weight = (r: Road) => r.class === "rail" ? 10 : RANK[r.class];
     const done = new Set<string>();
+    /** surface to surface where ways cross at two levels (deck ~1 m + 6 m headroom) */
+    const CLEAR = 7;
     const GRADE: Record<string, number> = { highway: .06, road: .1, lane: .15, rail: .04, path: .3 };
     const ramp = (r: Road, i: number, t: number, target: number) => {
         const y = r.points[i][1] + (r.points[i + 1][1] - r.points[i][1]) * t, dy = target - y, n = r.points.length;
@@ -435,8 +440,23 @@ export function levelCrossings(roads: Road[], step: number) {
             for (const [r, i] of [[A, ia], [Bw, ib]] as const) { const sp = r.spans.find(s => i >= s.from && i < s.to); if (sp?.auto) { sp.kind = "ground"; delete sp.auto; break; } }
             continue;
         }
-        if (ka !== "ground" || kb !== "ground") continue;
         const ya = a0[1] + (a1[1] - a0[1]) * s, yb = b0[1] + (b1[1] - b0[1]) * t;
+        // a deck over a way on the ground with too little room under it: the ground way dips to the clearance
+        if ((ka === "bridge" && kb === "ground" && ya > yb && ya - yb < CLEAR) || (kb === "bridge" && ka === "ground" && yb > ya && yb - ya < CLEAR))
+        {
+            const [r, i, f, y] = ka === "ground" ? [A, ia, s, yb] : [Bw, ib, t, ya];
+            // only when it stays a road (no room to dip, e.g. a junction close by: left as it is)
+            const before = r.points.map(p => p[1]);
+            ramp(r, i, f, y - CLEAR);
+            const limit = (GRADE[r.class] ?? .1) * 2;
+            for (let k = 1; k < r.points.length; k++)
+            {
+                const p = r.points[k - 1], q = r.points[k], l = Math.hypot(q[0] - p[0], q[2] - p[2]) || 1;
+                if (Math.abs(q[1] - p[1]) / l > limit && Math.abs(before[k] - before[k - 1]) / l <= limit) { r.points.forEach((p, k) => p[1] = before[k]); break; }
+            }
+            continue;
+        }
+        if (ka !== "ground" || kb !== "ground") continue;
         // near a shared junction both are pinned already: leave them
         const nearEnd = (r: Road, i: number) => i < 3 || i > r.points.length - 5;
         if (nearEnd(A, ia) && nearEnd(Bw, ib)) continue;
@@ -445,7 +465,6 @@ export function levelCrossings(roads: Road[], step: number) {
         // close in height: one level crossing (the smaller way ramps gently)
         if (Math.abs(dy) <= 2.5) { ramp(lo[0], lo[1], lo[2], hi[3]); continue; }
         // far apart: grade separated, the smaller way eased to a clearance under / over the bigger one, the upper one bridges
-        const CLEAR = 6;
         if (Math.abs(dy) < CLEAR)
         {
             // the one held by a bridge / tunnel end close by moves the other instead
@@ -492,7 +511,12 @@ export function unzip(roads: Road[], out: Junction[], maxAngle = .6) {
                 const along = roads.filter(r => r !== B.r && (r === A.r || (A.r.chain !== undefined && r.chain === A.r.chain)));
                 const near = (p: number[]) => {
                     let best = { d: Infinity, r: A.r, i: 0, t: 0 };
-                    for (const r of along) for (let i = 0; i < r.points.length - 1; i++) { const q = seg(p, r.points[i], r.points[i + 1]); if (q.d < best.d) best = { d: q.d, r, i, t: q.t }; }
+                    // only at its level: a way passing over / under is not one to run along
+                    for (const r of along) for (let i = 0; i < r.points.length - 1; i++)
+                    {
+                        const a = r.points[i], b = r.points[i + 1], q = seg(p, a, b);
+                        if (q.d < best.d && Math.abs(a[1] + (b[1] - a[1]) * q.t - p[1]) < 3) best = { d: q.d, r, i, t: q.t };
+                    }
                     return best;
                 };
                 const P = outward(B), on = A.r.width / 2, clear = (A.r.width + B.r.width) / 2 + .5;
@@ -502,7 +526,25 @@ export function unzip(roads: Road[], out: Junction[], maxAngle = .6) {
                 while (free < P.length && near(P[free]).d < clear) free++;
                 if (free >= P.length)
                 {
-                    // along the bigger way all the way: drop it
+                    // along the bigger way all the way: drop it. Ways meeting it at its far end would hang there (beside
+                    // / under the bigger way): that junction moves onto the bigger way, they join it there
+                    const far = B.start ? B.r.to : B.r.from;
+                    const others = roads.filter(r => r !== B.r && (r.from === far || r.to === far));
+                    if (others.length && !along.some(r => r.from === far || r.to === far))
+                    {
+                        const J = out[far], q = near([J.x, J.y, J.z]), R = q.r, m = q.t < .5 ? q.i : q.i + 1;
+                        const jid = splitAt(roads, out, R, m), K = out[jid];
+                        for (const o of others)
+                        {
+                            const start = o.from === far, pts = o.points, n = pts.length;
+                            if (start) o.from = jid; else o.to = jid;
+                            const e = start ? 0 : n - 1, dy = K.y - pts[e][1];
+                            pts[e] = [K.x, K.y, K.z];
+                            // ease the next points onto the junction height (no step), long enough for the class grade
+                            const W = Math.min(n - 1, Math.max(6, Math.ceil(Math.abs(dy) / (({ highway: .05, road: .08 } as Record<string, number>)[o.class] ?? .12) / 4) + 2));
+                            for (let k = 1; k < W; k++) { const f = 1 - k / W, w = f * f * (3 - 2 * f); pts[start ? k : n - 1 - k][1] += dy * w; }
+                        }
+                    }
                     roads.splice(roads.indexOf(B.r), 1);
                     changed = true; continue;
                 }
@@ -556,6 +598,41 @@ export function unzip(roads: Road[], out: Junction[], maxAngle = .6) {
             if (changed) break;
         }
         if (!changed) break;
+    }
+    // re-attached ways squeezed to nothing (both ends on one junction, a few metres): gone
+    for (let k = roads.length - 1; k >= 0; k--)
+    {
+        const P = roads[k].points;
+        if (roads[k].from === roads[k].to && Math.hypot(P[P.length - 1][0] - P[0][0], P[P.length - 1][2] - P[0][2]) < 1 && P.length < 6) roads.splice(k, 1);
+    }
+    roads.forEach((r, i) => r.id = i);
+}
+
+/**
+ * Short pieces far steeper than their class can climb (a stub left by the merges, from under a deck up onto it) with
+ * other ways at both ends (nothing cut off), and twins (the same two junctions, side by side): dropped. In place; road
+ * ids renumbered.
+ */
+export function dropClimbs(roads: Road[]) {
+    const GRADE: Record<string, number> = { highway: .06, road: .1, lane: .15, rail: .025, path: .35 };
+    for (let k = roads.length - 1; k >= 0; k--)
+    {
+        const r = roads[k], P = r.points, n = P.length;
+        if (n > 16 || r.spans.some(s => s.kind !== "ground")) continue;
+        let run = 0;
+        for (let i = 1; i < n; i++) run += Math.hypot(P[i][0] - P[i - 1][0], P[i][2] - P[i - 1][2]);
+        if (Math.abs(P[n - 1][1] - P[0][1]) / (run || 1) < (GRADE[r.class] ?? .1) * 3) continue;
+        const linked = (j: number) => roads.some(o => o !== r && (o.from === j || o.to === j));
+        if (linked(r.from) && linked(r.to)) roads.splice(k, 1);
+    }
+    // twins: two ways (not rail) between the same two junctions running close (≤ 15 m): the smaller goes
+    for (let k = roads.length - 1; k >= 0; k--)
+    {
+        const B = roads[k];
+        if (B.class === "rail" || B.from === B.to) continue;
+        const A = roads.find(A => A !== B && A.class !== "rail" && ((A.from === B.from && A.to === B.to) || (A.from === B.to && A.to === B.from))
+            && (RANK[A.class] > RANK[B.class] || (RANK[A.class] === RANK[B.class] && A.points.length >= B.points.length)));
+        if (A && B.points.every(p => A.points.some(q => Math.hypot(p[0] - q[0], p[2] - q[2]) < 15))) roads.splice(k, 1);
     }
     roads.forEach((r, i) => r.id = i);
 }
@@ -723,7 +800,7 @@ export function mergeAlong(roads: Road[], out: Junction[]) {
                 for (let i = a; i <= b; i++)
                 {
                     const k = kindAt(B, i);
-                    if (k === "ground" || (rail && k !== "ground" && kindAt(A, near(P[i]).i) === k)) continue;
+                    if (k === "ground" || (rail && kindAt(A, near(P[i]).i) === k)) continue;
                     continue search;
                 }
                 const qa = near(P[a]), qb = near(P[b]);
@@ -757,6 +834,40 @@ export function mergeAlong(roads: Road[], out: Junction[]) {
         if (done) break;
     }
     roads.forEach((r, i) => r.id = i);
+}
+
+/** Bridge stretches deep inside the ground (a deck through a hill): tunnel there, the rest stays bridge. */
+export function hillBridges(roads: Road[], heightAt: (x: number, z: number) => number) {
+    for (const r of roads)
+    {
+        const P = r.points, inside = (i: number) => heightAt(P[i][0], P[i][2]) > P[i][1] + 1;
+        if (!r.spans.some(s => s.kind === "bridge" && P.slice(s.from, s.to + 1).some((_, k) => inside(s.from + k)))) continue;
+        const out: Span[] = [];
+        for (const s of r.spans)
+        {
+            if (s.kind !== "bridge") { out.push(s); continue; }
+            // per segment: in the hill when either end is; only runs reaching a tunnel's height under the ground (a real
+            // hill: a bump under the deck stays bridged)
+            const deep = new Uint8Array(s.to - s.from);
+            for (let i = s.from; i < s.to;)
+            {
+                if (!(inside(i) || inside(i + 1))) { i++; continue; }
+                let e = i;
+                while (e + 1 < s.to && (inside(e + 1) || inside(e + 2))) e++;
+                let most = 0;
+                for (let q = i; q <= e + 1; q++) most = Math.max(most, heightAt(P[q][0], P[q][2]) - P[q][1]);
+                if (most > (TUNNEL_HEIGHT[r.class] ?? 6)) deep.fill(1, i - s.from, e + 1 - s.from);
+                i = e + 1;
+            }
+            for (let i = s.from; i < s.to; i++)
+            {
+                const kind = deep[i - s.from] ? "tunnel" : "bridge", l = out[out.length - 1];
+                if (l && l.kind === kind && l.to === i) l.to = i + 1;
+                else out.push({ kind, from: i, to: i + 1, ...(s.auto ? { auto: true } : {}) });
+            }
+        }
+        r.spans = out;
+    }
 }
 
 /** opening height per class at a tunnel mouth, metres (portals in `@polywar/bridges` match) */

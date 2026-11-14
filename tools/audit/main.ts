@@ -219,6 +219,31 @@ for (const j of net.junctions)
         }
     }
 }
+// stacked: one way over another (plan strips overlap) with too little room between (1..7 m): a deck through a deck,
+// a way hanging under / in another; not within 15 m of a junction both share
+{
+    const B = 16, grid = new Map<number, [number, number][]>(), key = (x: number, z: number) => (Math.floor(x / B) + 4096) * 8192 + Math.floor(z / B) + 4096;
+    const kindAt = (r: typeof net.roads[0], i: number) => r.spans.find(sp => i >= sp.from && i < sp.to)?.kind ?? "ground";
+    for (const r of net.roads) r.points.forEach((p, i) => { const k = key(p[0], p[2]); (grid.get(k) ?? grid.set(k, []).get(k)!).push([r.id, i]); });
+    const jxz = new Map(net.junctions.map(j => [j.id, j]));
+    const seen = new Set<string>();
+    for (const r of net.roads) r.points.forEach((p, ip) => {
+        if (kindAt(r, ip) === "tunnel") return;
+        for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const [id, i] of grid.get(key(p[0] + a * B, p[2] + b * B)) ?? [])
+        {
+            const o = net.roads[id], q = o.points[i];
+            if (id === r.id || (o.chain !== undefined && o.chain === r.chain) || kindAt(o, i) === "tunnel") continue;
+            const dy = Math.abs(q[1] - p[1]);
+            if (dy < 1 || dy > 6.5 || Math.hypot(q[0] - p[0], q[2] - p[2]) > (r.width + o.width) / 2) continue;
+            const shared = [r.from, r.to].filter(j => j === o.from || j === o.to).map(j => jxz.get(j)!).filter(Boolean);
+            if (shared.some(j => Math.hypot(p[0] - j.x, p[2] - j.z) < 15)) continue;
+            const k = [Math.min(r.id, id), Math.max(r.id, id)].join();
+            if (seen.has(k)) continue;
+            seen.add(k);
+            add(`ways stacked (${r.class}/${o.class})`, dy, `${at(p)} ${dy.toFixed(1)} m ${kindAt(r, ip)}/${kindAt(o, i)}`);
+        }
+    });
+}
 // lakes: neighbouring lake nodes with different levels
 {
     let steps = 0, worst = 0, where = "";
@@ -279,7 +304,9 @@ if (process.env.AT)
         console.log("  " + r.points.slice(Math.max(0, i - 6), i + 7).map((p, k) => `${Math.max(0, i - 6) + k}:${p[0].toFixed(1)},${p[2].toFixed(1)},${p[1].toFixed(1)}`).join(" "));
     }
 }
-if (process.env.ROAD) { const r = net.roads[+process.env.ROAD]; console.log(r.points.map((p, i) => `${i} ${p[0].toFixed(0)},${p[2].toFixed(0)} y ${p[1].toFixed(1)} g ${ground(p[0], p[2]).toFixed(1)}`).join("\n")); }
+if (process.env.JUNCTION) { const j = net.junctions.find(j => j.id === +process.env.JUNCTION!); console.log("junction", JSON.stringify(j)); for (const r of net.roads) if (r.from === j?.id || r.to === j?.id) console.log(`  road ${r.id} ${r.class} chain ${r.chain} ${r.from}→${r.to} ends ${at(r.points[0])} ${at(r.points[r.points.length - 1])}`); }
+if (process.env.BRIDGES) { const [x, z] = process.env.BRIDGES.split(",").map(Number); for (const r of net.roads) for (const sp of r.spans) if (sp.kind === "bridge") { const P = r.points.slice(sp.from, sp.to + 1); if (!P.some(p => Math.hypot(p[0] - x, p[2] - z) < 200)) continue; let L = 0; for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][2] - P[i - 1][2]); const h = Math.max(...P.map(p => p[1] - ground(p[0], p[2]))); console.log(`bridge road ${r.id} ${r.class} ${at(P[0])}→${at(P[P.length - 1])} L ${L.toFixed(0)} h ${h.toFixed(0)}${sp.auto ? " auto" : ""}`); } }
+if (process.env.ROAD) { const r = net.roads[+process.env.ROAD], h0 = roads.roads!.heightAt; console.log(`spans ${JSON.stringify(r.spans)}`); console.log(r.points.map((p, i) => `${i} ${p[0].toFixed(0)},${p[2].toFixed(0)} y ${p[1].toFixed(1)} g ${ground(p[0], p[2]).toFixed(1)} routed on ${h0(p[0], p[2]).toFixed(1)}`).join("\n")); }
 if (process.env.CHAIN) for (const r of net.roads.filter(r => r.chain === +process.env.CHAIN!)) console.log(`road ${r.id} ${r.from}→${r.to} ${JSON.stringify(r.spans)} ` + r.points.filter((_, i) => i % 3 === 0).map(p => `${p[0].toFixed(0)},${p[2].toFixed(0)}:${(p[1] - ground(p[0], p[2])).toFixed(0)}`).join(" "));
 if (process.env.WGRID) { const [x, z] = process.env.WGRID.split(",").map(Number), c = size / (n - 1); for (let b = -5; b <= 5; b++) console.log(Array.from({ length: 11 }, (_, a) => { const k = node(x + (a - 5) * c, z + b * c); return `${d.water[k]}:${d.height[k].toFixed(1)}/${d.water[k] ? d.surface[k].toFixed(1) : "    "}`.padEnd(15); }).join("")); }
 if (process.env.WATER) { const [x, z] = process.env.WATER.split(",").map(Number); for (let b = -3; b <= 3; b++) console.log(Array.from({ length: 7 }, (_, a) => { const k = node(x + (a - 3) * 6, z + b * 6); return `${d.water[k]}:${d.height[k].toFixed(0)}/${d.surface[k].toFixed(0)}`; }).join("  ")); }

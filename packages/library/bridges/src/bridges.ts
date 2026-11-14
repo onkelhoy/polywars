@@ -10,9 +10,10 @@ export const DEFAULTS: BridgeOptions = { width: 6, ground: () => 0, use: "road" 
 export function pick(cls: string, span: number, height: number): BridgeType {
     // small ways: short and low (wood footbridges, stone slabs / arches), never tall timber trestles
     if (cls === "path") return height > 6 ? "arch-stone" : "foot-wood";
-    if (cls === "rail") return span > 160 || height > 35 ? "girder" : span < 70 && height > 4 ? "arch-stone" : "trestle-wood";
+    // a truss needs length: short spans (a few metres at a junction, high up) are stone, never a lone truss frame
+    if (cls === "rail") return span >= 30 && (span > 160 || height > 35) ? "girder" : span < 70 && height > 4 ? "arch-stone" : "trestle-wood";
     if (cls === "lane") return height < 4 ? "slab-stone" : "arch-stone";
-    if (span > 140 || height > 30) return "girder";
+    if (span >= 30 && (span > 140 || height > 30)) return "girder";
     return height < 4 ? "slab-stone" : "arch-stone";
 }
 
@@ -202,13 +203,16 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
         for (const k of [-1, 1])
         {
             const at = (a: typeof panels[0], y: number): Vec3 => [a.p[0] + a.side[0] * w * k, a.p[1] + y, a.p[2] + a.side[1] * w * k];
+            // panel i (to i + 1) drawn: not in a gap, and not a lone panel between two gaps (stray bars)
+            const open = (i: number) => i < 0 || i >= panels.length - 1 || gap(k, panels[i].d, panels[i + 1].d);
+            const drawn = (i: number) => !open(i) && !(open(i - 1) && open(i + 1) && (o.gaps ?? []).length > 0 && i > 0 && i < panels.length - 2);
             for (let i = 0; i < panels.length; i++)
             {
                 const a = panels[i];
-                if (!gap(k, a.d - .5, a.d + .5)) s.beam(at(a, 0), at(a, H), .3, .3, STEEL);
+                if ((drawn(i - 1) || drawn(i)) && !gap(k, a.d - .5, a.d + .5)) s.beam(at(a, 0), at(a, H), .3, .3, STEEL);
                 if (i === panels.length - 1) break;
                 const b = panels[i + 1];
-                if (gap(k, a.d, b.d)) continue;
+                if (!drawn(i)) continue;
                 s.beam(at(a, 0), at(b, 0), .5, .5, STEEL);
                 s.beam(at(a, H), at(b, H), .4, .4, STEEL);
                 if (i % 2) s.beam(at(a, 0), at(b, H), .2, .2, STEEL); else s.beam(at(a, H), at(b, 0), .2, .2, STEEL);
