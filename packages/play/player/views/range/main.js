@@ -6,6 +6,7 @@ import { Matrix4 } from '@papit/matrix';
 import { nearest, castGround, castBox, castCylinder } from '@polywar/ballistics';
 import { GUNS } from '@polywar/weapons';
 import { Player } from '@polywar/player';
+import { RigidBody, Box, Capsule } from '@papit/rigidbody';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -80,6 +81,11 @@ const cast = nearest(
 const player = new Player(layer, renderer, {
     ground, colliders: () => colliders, cast, scene,
     character: '/assets/models/characters/knight/character.json',
+    // what a case lands on: a target / crate under it, the road, else dirt
+    surface: ([x, y, z]) => {
+        const t = targets.find(t => t.kind === 'box' && x >= t.min[0] - .05 && x <= t.max[0] + .05 && z >= t.min[2] - .05 && z <= t.max[2] + .05 && y > t.min[1]);
+        return t ? (t.surface === 'flesh' ? 'dirt' : t.surface) : road(x, z) ? 'stone' : 'dirt';
+    },
     // ?guns=kar98k,svt-40@scope-3 for any other loadout (`<id>@<scope>` puts a scope on)
     guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? ['m1911', 'thompson-m1', 'm1-garand', 'm1-garand-scoped', 'kar98k', 'kar98k@scope-2', 'smle-mk3', 'svt-40@scope-3', 'winchester-1895'],
 }, {
@@ -92,6 +98,13 @@ const player = new Player(layer, renderer, {
     exit: () => stop(),
 }, [0, 0, 6]);
 window.player = player;
+// crates, the wall, boards, plates and dummies as static bodies: cases bounce off them (the player steps its own world)
+for (const t of colliders)
+{
+    const at = t.kind === 'box' ? t.min.map((v, k) => (v + t.max[k]) / 2) : [t.x, (t.bottom + t.top) / 2, t.z];
+    const shape = t.kind === 'box' ? new Box(...t.min.map((v, k) => t.max[k] - v)) : new Capsule(t.radius, t.top - t.bottom - t.radius * 2);
+    player.feel.world.add(new RigidBody({ shape, position: { x: at[0], y: at[1], z: at[2] } }));
+}
 let lastHit = '';
 await player.ready;
 
@@ -106,7 +119,7 @@ guns.forEach((g, i) => {
 const paint = () => [...$('#guns').children].forEach((b, i) => b.classList.toggle('on', i === player.current));
 paint();
 $('#body').onchange = e => { player.showBody = e.target.checked; };
-$('#clear').onclick = () => player.impacts.clear();
+$('#clear').onclick = () => { player.impacts.clear(); player.feel.debris.clear(); };
 
 let menuCamera;
 function play() {

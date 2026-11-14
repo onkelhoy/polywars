@@ -1,6 +1,8 @@
 import type { Cast, Hit, Bullet } from "@polywar/ballistics";
 import type { Collider } from "@polywar/mover";
 import type { View } from "@polywar/renderer";
+import type { AudioMixer } from "@papit/audio";
+import type { World } from "@papit/rigidbody";
 
 export type PlayerSetting = {
     /** ground height (terrain, roads, floors: highest wins) */
@@ -26,6 +28,12 @@ export type PlayerSetting = {
     sensitivity?: number;
     /** steepest walkable ground, degrees (default 40) */
     slope?: number;
+    /** the shared `@papit/rigidbody` world (cases go in it; the host steps it). Without: the player makes and steps its own */
+    world?: World;
+    /** sound mixer; without: one of its own */
+    mixer?: AudioMixer;
+    /** what's at a point a case landed on, for its sound: "dirt" (default), "stone", "wood", "metal" */
+    surface?: (at: [number, number, number]) => string;
     /** draws the scene again for the scope's picture */
     scene?: (view: View) => void;
 };

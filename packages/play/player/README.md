@@ -18,4 +18,6 @@ player.draw(camera);
 Keys: WASD walk, shift run, space jump, left mouse fire, right mouse aim, R reload, 1-9 / wheel guns (wheel zooms a scope while aimed), Esc lets go.
 Parts: `holdOf(model, spec)` (a hold from the gun's bones: grip under the trigger, fore end, front sight tip on the view's middle), `scopeMountOf`, `Arms` (first person arms, two bone IK to the hands), `Input` (pointer lock, keys, buttons, wheel).
 
+Gun feel (`player.feel`, `feel.ts`): each gun's cues (`Gun.oncue`) become sounds (`@polywar/weapon-audio`, the shot by the scene round the shooter, parts at the gun) and cases thrown from weapon.json `eject` (`@polywar/debris`) into a `@papit/rigidbody` world: the setting's `world` (the host steps it) or the player's own. `mixer` (an `@papit/audio` `AudioMixer`) and `surface(at)` (what a case landed on: `dirt`, `stone`, `wood`, `metal`) are optional.
+
 View `range`: a shooting range: targets at 25 - 400 m (steel, wood, dummies), a cone too steep to climb, a ridge, a road, crates; gun picker, hit marker, ammo, spread crosshair.

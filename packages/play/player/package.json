@@ -58,13 +58,18 @@
     "@polywar/viewmodel": "*",
     "@polywar/renderer": "*",
     "@polywar/characters": "*",
-    "@polywar/armory": "*"
+    "@polywar/armory": "*",
+    "@papit/audio": "*",
+    "@papit/rigidbody": "*",
+    "@polywar/weapon-audio": "*",
+    "@polywar/debris": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",
     "@papit/theme": "*",
     "@polywar/viewport": "*",
-    "@papit/game-engine": "*"
+    "@papit/game-engine": "*",
+    "@papit/rigidbody": "*"
   },
   "browserslist": [
     "defaults",

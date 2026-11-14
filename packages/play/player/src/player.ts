@@ -7,9 +7,10 @@ import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
 import { direction, mat4, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
-import { Gun, GUNS } from "@polywar/weapons";
+import { Gun, GUNS, type Cue } from "@polywar/weapons";
 import { Armory, type WeaponFile } from "@polywar/armory";
 import { Arms } from "./arms";
+import { Feel } from "./feel";
 import { holdOf, scopeMountFor, scopeMountOf } from "./holds";
 import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
@@ -66,6 +67,9 @@ export class Player {
     /** -1 left .. 1 right, eased */
     lean = 0;
     readonly armory: Armory;
+    /** sounds and thrown cases (`@polywar/weapon-audio`, `@polywar/debris` in a `@papit/rigidbody` world) */
+    readonly feel: Feel;
+    private cam = mat4();
 
     constructor(readonly layer: Layer3D, readonly renderer: Renderer, readonly setting: PlayerSetting, readonly events: PlayerEvents = {}, at: Vec3 = [0, 0, 0]) {
         this.gl = layer.gl;
@@ -81,6 +85,7 @@ export class Player {
         this.vm = new ViewModel({ grip: [0, 0, 0], muzzle: [0, 0, -1], sight: [0, 0, 0], hip: [.15, -.2, -.3], eye: .2 });
         this.arms = new Arms(this.gl);
         this.armory = new Armory(setting.assets ?? "/assets");
+        this.feel = new Feel({ world: setting.world, mixer: setting.mixer, ground: setting.ground, cast: setting.cast, surface: setting.surface, assets: setting.assets ?? "/assets" });
         this.ready = this.load();
     }
 
@@ -98,7 +103,9 @@ export class Player {
         }));
         for (const { id, weapon, scope: data, model, scopeModel } of loaded)
         {
-            const gun = new Gun(id);
+            const gun = new Gun(id, Infinity, weapon?.action);
+            gun.oncue = (cue, g) => this.cue(cue, g);
+            void this.feel.load(this.gl, gun);
             let hold = holdOf(model, gun.spec, weapon), scope: Scope | undefined, scopeMesh: GPUMesh | undefined, scopeAt: Matrix4 | undefined;
             let zoom: [number, number] | undefined;
             if (weapon && data)
@@ -160,7 +167,11 @@ export class Player {
         destroy: () => { this.input?.destroy(); this.input = undefined; },
     };
 
+    /** the camera of the last update (cues need it) */
+    private camera?: Camera;
+
     update(camera: Camera, dt: number) {
+        this.camera = camera;
         const input = this.input, carried = this.held;
         const { dx, dy, wheel, pressed } = input?.consume() ?? { dx: 0, dy: 0, wheel: 0, pressed: new Set<string>() };
         const k = (...n: string[]) => input?.key(...n) ? 1 : 0;
@@ -219,10 +230,20 @@ export class Player {
         camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06, m.feet[2] + rz * out]);
         camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], -this.lean * LEAN_ROLL]);
 
+        const p = this.pitch, ya = this.yaw;
+        this.feel.update(dt, [camera.position[0], camera.position[1], camera.position[2]], [-Math.sin(ya) * Math.cos(p), Math.sin(p), -Math.cos(ya) * Math.cos(p)]);
         this.bullets.update(dt);
         this.impacts.update(dt);
         this.impacts.tracers(this.bullets.list.filter(b => b.tracer));
         this.animateBody(dt);
+    }
+
+    /** a cue of a gun: only the held one is heard / throws cases (a switched away gun's cues were dropped) */
+    private cue(cue: Cue, gun: Gun) {
+        const carried = this.held;
+        if (!carried || carried.gun !== gun || !this.camera) return;
+        const cam = this.camera.worldMatrix, world = this.vm.world(cam, this.cam), m = this.mover;
+        this.feel.cue(cue, gun, { world, muzzle: point(cam, this.vm.muzzle.from), velocity: [m.velocity[0], m.velocity[1], m.velocity[2]], eject: carried.weapon?.points.eject });
     }
 
     private fire(camera: Camera, gun: Gun) {
@@ -286,6 +307,7 @@ export class Player {
             }
             this.body.draw(r, this.bodyMatrix());
         }
+        this.feel.draw(r);
         this.impacts.draw(camera);
         r.reset();
         if (!carried) return;
@@ -323,6 +345,7 @@ export class Player {
         this.arms.destroy();
         for (const c of this.carried) { c.model.destroy(); c.scope?.destroy(); c.scopeMesh?.destroy(); c.scopeModel?.destroy(); }
         this.body?.destroy();
+        this.feel.destroy();
     }
 }
 
