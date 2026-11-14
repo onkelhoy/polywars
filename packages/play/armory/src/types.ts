@@ -21,8 +21,11 @@ export type WeaponFile = {
     [scoped: `aim@${string}`]: AimTune | undefined;
 };
 
-/** on top of the computed aim: `offset` camera space metres (x right, y up, z back), `angle` [pitch up, yaw left, roll] degrees */
-export type AimTune = { offset: Vec3; angle: Vec3 };
+/**
+ * On top of the computed aim: `offset` camera space metres (x right, y up, z back), `angle` [pitch up, yaw left, roll]
+ * degrees (looks only: aimed shots follow the drawn sights). `zero`: metres where the bullet meets the sights (default the spec's).
+ */
+export type AimTune = { offset: Vec3; angle: Vec3; zero?: number };
 
 /** `assets/models/weapons/attachments/<id>/scope.json` */
 export type ScopeFile = {

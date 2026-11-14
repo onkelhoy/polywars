@@ -16,7 +16,7 @@ import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
 
 /** `scopeModel` (a scope from the armory) is drawn `scopeAt` off the gun; `scopeMesh` is the stand-in without one */
-type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; tune: { model: string; key: string }; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh };
+type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; tune: { model: string; key: string }; zero?: number; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh };
 
 const LIMIT = Math.PI / 2 - .02;
 /** lean: metres the eye goes out, radians the view rolls */
@@ -129,7 +129,7 @@ export class Player {
             const tune = { model: gun.spec.model, key: sid ? `aim@${sid}` : "aim" } as const;
             const saved = weapon?.[tune.key as "aim"];
             if (saved) hold.aim = aimOf(saved);
-            this.carried.push({ gun, model, hold, weapon, tune, scope, zoom, scopeModel, scopeAt, scopeMesh });
+            this.carried.push({ gun, model, hold, weapon, tune, zero: saved?.zero, scope, zoom, scopeModel, scopeAt, scopeMesh });
         }
         this.select(0);
         if (this.setting.character)
@@ -253,17 +253,24 @@ export class Player {
     }
 
     private fire(camera: Camera, gun: Gun) {
-        const cam = camera.worldMatrix, c = gun.caliber, hold = this.held.hold;
-        const muzzle = this.vm.muzzle;
-        const from = point(cam, muzzle.from);
-        let d = direction(cam, muzzle.direction);
+        const cam = camera.worldMatrix, c = gun.caliber, carried = this.held, hold = carried.hold, vm = this.vm.matrix;
+        const zero = carried.zero ?? gun.spec.zero;
+        const muzzle = point(vm, hold.muzzle);
+        const from = point(cam, muzzle);
+        // hip: down the bore, tipped up so it meets the sights' height at the zero
+        const bore = this.vm.muzzle.direction;
+        const hip = tip(bore, zeroAngle(c.speed, c.drag, zero, Math.max(0, hold.sight[1] - hold.muzzle[1])));
+        // aimed: through the point the drawn sights (rear -> front) look at, `zero` ahead, plus the drop there
+        // (a real gun's sights are filed to its barrel: off points or a hand tune can't throw it off)
+        const s = point(vm, hold.sight), f = point(vm, hold.front ?? [hold.sight[0], hold.sight[1], hold.muzzle[2]]);
+        const line = unit([f[0] - s[0], f[1] - s[1], f[2] - s[2]]);
+        const at = [s[0] + line[0] * zero, s[1] + line[1] * zero, s[2] + line[2] * zero];
+        const aimed = tip(unit([at[0] - muzzle[0], at[1] - muzzle[1], at[2] - muzzle[2]]), zeroAngle(c.speed, c.drag, zero, 0));
+        const a = gun.aimed;
+        let d = direction(cam, unit([hip[0] + (aimed[0] - hip[0]) * a, hip[1] + (aimed[1] - hip[1]) * a, hip[2] + (aimed[2] - hip[2]) * a]));
         const up = direction(cam, [0, 1, 0]), right = direction(cam, [1, 0, 0]);
-        // the sights sit over the bore: tipped up so they meet at the zero
-        const zero = zeroAngle(c.speed, c.drag, gun.spec.zero, Math.max(0, hold.sight[1] - hold.muzzle[1]));
         const [sx, sy] = gun.scatter(this.mover.speed / 4.2);
-        d = [d[0] + up[0] * (zero + sy) + right[0] * sx, d[1] + up[1] * (zero + sy) + right[1] * sx, d[2] + up[2] * (zero + sy) + right[2] * sx];
-        const l = Math.hypot(...d);
-        d = [d[0] / l, d[1] / l, d[2] / l];
+        d = unit([d[0] + up[0] * sy + right[0] * sx, d[1] + up[1] * sy + right[1] * sx, d[2] + up[2] * sy + right[2] * sx]);
         // a tracer every round for single shots, every third for automatics
         const tracer = !gun.spec.auto || this.tracerCount++ % 3 === 0;
         this.bullets.fire({ from, direction: d, speed: c.speed, drag: c.drag, life: c.life, tracer, data: { gun: gun.spec.model } });
@@ -359,6 +366,17 @@ export class Player {
 export function aimOf(t: AimTune): NonNullable<Hold["aim"]> {
     const r = Math.PI / 180;
     return { offset: [...t.offset], angle: [t.angle[0] * r, t.angle[1] * r, t.angle[2] * r] };
+}
+
+function unit(v: ArrayLike<number>): Vec3 {
+    const l = Math.hypot(v[0], v[1], v[2]) || 1;
+    return [v[0] / l, v[1] / l, v[2] / l];
+}
+
+/** camera space direction turned up by `angle` (about camera x) */
+function tip(d: Vec3, angle: number): Vec3 {
+    const c = Math.cos(angle), s = Math.sin(angle);
+    return [d[0], d[1] * c - d[2] * s, d[1] * s + d[2] * c];
 }
 
 function smoothstep(a: number, b: number, x: number) {
