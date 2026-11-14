@@ -18,7 +18,7 @@ function build() {
     const groundPath = Array.from({ length: 41 }, (_, i) => { const x = -span / 2 * 1.2 + i / 40 * span * 1.2; return [x, ground(x, 0), 0]; });
     const floor = sweep(groundPath, { width: span * .8, profile: { points: [[-1, 0], [1, 0]], color: [.35, .5, .3] }, bank: 'flat', step: 0 });
     const item = (name, mesh, group = 'bridges') => ({ name, group, kind: 'model', gltf: gltfFromMesh(mesh), note: `${mesh.positions.length / 9 | 0} tris` });
-    const types = ['foot-wood', 'slab-stone', 'arch-stone', 'trestle-wood', 'girder'];
+    const types = ['foot-wood', 'slab-stone', 'arch-stone', 'arch-concrete', 'trestle-wood', 'girder'];
     gallery.items = [
         ...types.map(t => item(t + (t === pick(use === 'path' ? 'path' : use, span, height) ? ' ★' : ''), merge([bridge(t, path, { width, ground, use }), floor]))),
         ...Object.keys(PORTAL).map(k => item('portal ' + k, portal([0, 0, 0], [0, -1], PORTAL[k]), 'portals')),

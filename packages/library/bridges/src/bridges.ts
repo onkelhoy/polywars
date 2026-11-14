@@ -11,8 +11,10 @@ export function pick(cls: string, span: number, height: number): BridgeType {
     // small ways: short and low (wood footbridges, stone slabs / arches), never tall timber trestles
     if (cls === "path") return height > 6 ? "arch-stone" : "foot-wood";
     // a truss needs length: short spans (a few metres at a junction, high up) are stone, never a lone truss frame
-    if (cls === "rail") return span >= 30 && (span > 160 || height > 35) ? "girder" : span < 70 && height > 4 ? "arch-stone" : "trestle-wood";
+    if (cls === "rail") return height > 20 && span >= 50 && span <= 220 ? "arch-concrete" : span >= 30 && (span > 160 || height > 35) ? "girder" : span < 70 && height > 4 ? "arch-stone" : "trestle-wood";
     if (cls === "lane") return height < 4 ? "slab-stone" : "arch-stone";
+    // tall crossings: one concrete arch under the deck (open spandrels), very long ones a girder
+    if (height > 20 && span >= 50 && span <= 260) return "arch-concrete";
     if (span >= 30 && (span > 140 || height > 30)) return "girder";
     return height < 4 ? "slab-stone" : "arch-stone";
 }
@@ -97,6 +99,31 @@ export function bridgeFor(cls: string, path: Vec3[], options: Partial<BridgeOpti
 }
 
 const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
+    /**
+     * One concrete arch springing from the valley sides (12% / 88% along), two ribs, posts up to the deck every ~6 m
+     * (open spandrels), plain piers on the outer bits; deck with a low parapet.
+     */
+    "arch-concrete": (path, o) => {
+        const s = new Soup(), L = length(path), st = along(path, Math.max(4, L / Math.round(L / 6)));
+        const fa = .12, fb = .88, A = along(path, L, L * fa)[0], B = along(path, L, L * fb)[0];
+        const ya = o.ground(A.p[0], A.p[2]) - 1, yb = o.ground(B.p[0], B.p[2]) - 1;
+        const mid = along(path, L, L / 2)[0], apex = mid.p[1] - 1.4;
+        const rib = (d: number) => { const t = (d / L - fa) / (fb - fa); return ya + (yb - ya) * t + (apex - (ya + yb) / 2) * 4 * t * (1 - t); };
+        const w = o.width / 2 * .75, R = Math.max(.9, Math.min(1.8, L / 90));
+        const on = (a: Station, k: number, y: number): Vec3 => [a.p[0] + a.side[0] * w * k, y, a.p[2] + a.side[1] * w * k];
+        // ribs: segments along the parabola (finer than the posts)
+        const fine = along(path, L / 24).filter(a => a.d >= L * fa - 1e-6 && a.d <= L * fb + 1e-6);
+        for (const k of [-1, 1]) for (let i = 0; i < fine.length - 1; i++) s.beam(on(fine[i], k, rib(fine[i].d)), on(fine[i + 1], k, rib(fine[i + 1].d)), R, R * 1.3, CONCRETE);
+        for (const a of st.slice(1, -1))
+        {
+            const inArch = a.d > L * fa && a.d < L * fb, foot = inArch ? rib(a.d) : o.ground(a.p[0], a.p[2]) - 1, top = a.p[1] - .5;
+            if (top - foot < .4) continue;
+            if (!inArch) { pier(s, a, o, o.width * 1.05, 1, STONE); continue; }
+            for (const k of [-1, 1]) s.beam(on(a, k, foot), on(a, k, top), .5, .5, CONCRETE);
+            s.beam(on(a, -1, top - .3), on(a, 1, top - .3), .4, .5, CONCRETE);
+        }
+        return merge([deck(path, o, .7, .9, CONCRETE, STONE, 1.08, { step: 2, bands: { every: 3, shade: .05 } }), s.mesh()]);
+    },
     "foot-wood": (path, o) => {
         const s = new Soup(), w = o.width / 2;
         for (const a of along(path, 2))
@@ -227,7 +254,7 @@ const BUILD: Record<BridgeType, (path: Vec3[], o: BridgeOptions) => Mesh> = {
 /** far look: the deck (low parapet, few points) on plain piers; girders keep their two top chords */
 function far(type: BridgeType, path: Vec3[], o: BridgeOptions): Mesh {
     const s = new Soup(), L = length(path), look: Record<BridgeType, [RGB, RGB, number, number]> = {
-        "foot-wood": [WOOD_DARK, WOOD, .15, 4], "slab-stone": [STONE_DARK, STONE, .6, 7], "arch-stone": [STONE_DARK, STONE, .6, 14],
+        "foot-wood": [WOOD_DARK, WOOD, .15, 4], "slab-stone": [STONE_DARK, STONE, .6, 7], "arch-stone": [STONE_DARK, STONE, .6, 14], "arch-concrete": [STONE, CONCRETE, .7, 12],
         "trestle-wood": [WOOD_DARK, WOOD, .5, 5], girder: [STONE, CONCRETE, .8, 55],
     };
     const [side, top, thick, every] = look[type];

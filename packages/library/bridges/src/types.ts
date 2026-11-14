@@ -2,7 +2,7 @@ import type { Mesh } from "@papit/game-mesh";
 export type Vec3 = [number, number, number];
 export type RGB = [number, number, number];
 
-export type BridgeType = "foot-wood" | "slab-stone" | "arch-stone" | "trestle-wood" | "girder";
+export type BridgeType = "foot-wood" | "slab-stone" | "arch-stone" | "arch-concrete" | "trestle-wood" | "girder";
 
 export type BridgeOptions = {
     /** deck width, m */
