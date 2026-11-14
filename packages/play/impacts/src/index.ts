@@ -1,3 +1,2 @@
-// exports
-export * from "./component";
+export * from "./impacts";
 export * from "./types";

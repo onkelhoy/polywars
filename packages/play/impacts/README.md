@@ -1,36 +1,16 @@
 # @polywar/impacts
 
-Bullet tracers, hit particles (distance culled) and decal hit marks.
+What bullets leave behind, drawn unlit in one pass after the scene: tracer streaks, bits and dust off a hit (only within `far` of the camera), marks on the surface, muzzle flashes and smoke.
 
-![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
-
----
-
-![Type](https://img.shields.io/badge/Type-play-orange)
-[![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/impacts.svg?logo=npm)](https://www.npmjs.com/package/@polywar/impacts)
-
----
-
-## installation
-
-```bash
-npm install @polywar/impacts
+```ts
+const impacts = new Impacts(layer, { far: 150, marks: 600 });
+bullets.onhit = (b, hit) => impacts.hit(hit.point, hit.normal, hit.surface, b.direction);
+impacts.flash(muzzle, direction);
+// each frame
+impacts.update(dt);
+impacts.tracers(bullets.list.filter(b => b.tracer));
+impacts.draw(camera); renderer.reset();
 ```
 
-## License
-
-Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)
-
-**Key points:**
-
-- ✅ Free to use in commercial projects
-- ✅ Free to modify and distribute
-- ✅ Attribution required
-- ❌ Cannot resell the component itself as a standalone product
-
-See the [LICENSE](https://github.com/onkelhoy/papit/blob/main/LICENSE) file for full details.
-
-## Related Components
-
-- [@papit/web-component](https://github.com/onkelhoy/papit/tree/main/packages/web/engines/web-component): Core utilities, decorators, and base component class
+`SURFACES`: looks per surface (`ground`, `wood`, `metal` sparks, `stone`, `flesh`, `water`, `default`); pass `surfaces` to add or change. `clear()` drops all.
+View `experiment`: a gun firing on its own at ground, wood, steel, stone and a body.
