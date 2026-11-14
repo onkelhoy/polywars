@@ -1,7 +1,8 @@
 # Plan
 
 ## Where we are
-Round 7 (11.31–11.44 screenshots on Desktop: rivers, lakes, ways): confirmed, running task by task on `feature/infrastructure`, commit per task. Water (1–4) done; next: task 5 (rail × rail). Water audit: `node tools/audit-ways.mjs medium` line `water:` (all 0 except 1 pond end, 3 mouth nodes .24 m).
+Round 7 (11.31–11.44 screenshots on Desktop: rivers, lakes, ways): confirmed, running task by task on `feature/infrastructure`, commit per task. Tasks 1–7 done; next: task 8 (tunnels). Task 12 dropped (owner: roads stay real meshes). Water audit: `node tools/audit-ways.mjs medium` line `water:` (all 0 except 1 pond end, 3 mouth nodes .24 m).
+Task 7 leftovers (audit `ways stacked` 15 → 8): slab stub by a junction (777,-238); two highways overlapping at a shallow angle, ~1 m apart (405,720); highway junction 7 m right over the rail (476,-728), should bridge; highway fork off a bridge at 16% (-168,66); seed 2 station spur runs back along its own track (-283,-666).
 Round 6 done (19.43 screenshots + owner notes), waiting for owner review. Open: rail at (268,-437) 20 m under ground in an uncarved cut; rail all-bridge into a station at highway-bridge height (-104,-704); gravel roads still meshes; built props no lods.
 Round 3 (owner review 2026-11-13 evening, 14 screenshots on Desktop): "it looks buggy, fix it all". Owner away, runs on its own: "next task" through all, commit per task on `feature/infrastructure`, no merge.
 Round 5 (19:09 screenshots: tunnels not connected, roads climbing into / blocking portals) done, waiting for owner review. Round 4 tasks 1–6 done. Next idea from owner: more tunnel detail once tunnels work. Round 3 tasks 1–9 done. Open: tight highway switchbacks, long mountain viaducts, rail station tangles, fragmented rivers, river→lake outlet steps.
@@ -24,14 +25,14 @@ Round 2 tasks 1–7 done, task 8 (tunnels) folded into round 3 task 8. Round 1 d
 - [x] 2. River levels: never rising, meets lake / sea / parent at its level; springs taper from a trickle; restarted pieces get a spring or go; waterfalls straight, connected above.
 - [x] 3. Ground sealed to water after all hooks: channel under surface, banks / lake shores over it (lip); RTIN keeps those nodes exact. Measure triangles.
 - [x] 4. Water audit (ground over river, floating river / lake edges, unconnected rivers = 0) + shots.
-- [ ] 5. Rail × rail: overlapping / side by side → one track or proper gap (also on trusses); crossings = real junction.
-- [ ] 6. Piers never on another way.
-- [ ] 7. Ways at different levels: no deck through deck, no stray truss bars, no forks hanging under a road.
+- [x] 5. Rail × rail: overlapping / side by side → one track or proper gap (also on trusses); crossings = real junction.
+- [x] 6. Piers never on another way.
+- [x] 7. Ways at different levels: no deck through deck, no stray truss bars, no forks hanging under a road.
 - [ ] 8. Tunnels: no forks / crossings underground.
 - [ ] 9. Portals: no ground slab in the arch; no short bridge over the forecourt dip.
 - [ ] 10. No dead ends at cliffs with stub railings.
 - [ ] 11. Round 6 leftovers: rail 20 m under ground (268,-437); rail all-bridge into high station (-104,-704).
-- [ ] 12. (optional) Gravel roads painted too.
+- [-] 12. (dropped) Gravel roads painted too.
 
 ## Tasks (round 6)
 - [x] 1. Wireframe shows roads, bridges, tunnels, portals, fences, built props.
