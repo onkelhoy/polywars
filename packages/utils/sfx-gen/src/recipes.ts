@@ -126,7 +126,9 @@ export function brass(surface: Surface, seed: number) {
 /** the voice of a gun from its spec numbers: louder, lower, longer with more muzzle energy */
 export function voice(kind: GunVoice["kind"], action: Action, caliber: string, speed: number): GunVoice {
     const special: Record<string, number> = { "22-lr": .04, "450-nitro": 1, "12-gauge": .9, "20x138b": 1 };
-    const energy = special[caliber] ?? Math.max(0, Math.min(1, (speed - 230) / 650 + (kind === "rifle" ? .1 : 0)));
+    // speed alone makes slow heavy pistol rounds (.45 ACP) sound like a .22: handguns and smgs get a floor
+    const floor = kind === "rifle" ? 0 : .3;
+    const energy = special[caliber] ?? Math.max(floor, Math.min(1, (speed - 230) / 650 + (kind === "rifle" ? .1 : 0)));
     // shot balls are round and slow off the muzzle quickly: no crack worth hearing
     return { kind, action, energy, supersonic: speed > 360 && caliber !== "12-gauge" };
 }
