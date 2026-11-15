@@ -25,6 +25,12 @@
 - Case models for shot shells (12 gauge) and the 20 mm Lahti case: both use the .30-06 case now. Ithaca 37 ejects downward (it throws right now).
 - `tools/blender/packs/store.mjs` still defaults to the old flat store layout (the store is now sorted into `Weapons/`, `Vehicles/`, ...).
 
+- Hand editor (key H, next to T): side silhouette of the gun (2D from the model's triangles), drag R / L hand circles onto it, arms as lines shoulder -> elbow -> hand with draggable elbow + shoulder; live on the first person arms; kept in the browser, exported to weapon.json `hands` via `npm run aim`. Replaces hiding the arms.
+- Elbow / shoulder per pose (hip / aimed).
+- Action steps after a shot: bolt / pump / lever guns get a "cycle" step after "shot" (bolt-open / bolt-close cues); per gun reload animations fixed by the owner.
+- Reloads in detail: rounds into the magazine, magazine swap, stripper clips.
+- Fatigue lowers recoil `control`.
+
 ## Shooting range (`@polywar/shooting-range`)
 Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view `range`. Ideas from the owner:
 - [ ] button to move the targets nearer / further (moving targets on the rails)

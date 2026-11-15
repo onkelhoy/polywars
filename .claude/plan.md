@@ -1,7 +1,13 @@
 # Plan: weapons (branch `feature/weapon-assets`)
 
 ## Where we are
-Phase A + B + C done, waiting for owner feedback (listen in `packages/utils/sfx-gen` view `sounds`, `packages/play/weapon-audio` view `scenes`, shells in `packages/play/debris` view `shells`, all of it in `player` view `range`). Next: phase D (body), see backlog "Playable character". Physics: always `@papit/rigidbody` (one shared `World`), shells now, gun toss (phase E) later; no own physics.
+Branch `feature/ssao` (has pistol sound + eject fix, SSAO in viewport + both range views, `AimTuner` T panel in `@polywar/player`). Next: gun handling tasks below, in order, one line status each. Owner checks in the shooting range view.
+
+## Tasks (confirmed)
+1. Arms toggle: "show arms" checkbox in both range menus (`player` + `shooting-range` views), kept in localStorage; player skips `Arms.draw` when off.
+3. Sway (`viewmodel/src/viewmodel.ts`): aimed, the gun turns round the rear sight (pivot already `h.sight`) and the eye/rear line stays put: translation sway (`ox`/`oy` breath, `shift` from turning) fades out with `aimed`, angular sway stays, so the front sight drifts, not the near one. Sway grows with move speed, settles over ~1-2 s standing still.
+4. Recoil: a shot = gun snaps back toward the player (z) + muzzle up, turning round a point under the bore (grip / shoulder), not the sight; fast attack (~30 ms), damped return. Strength from caliber energy / gun weight. `control` 0..1 factor (fatigue later) scales how much is held back.
+5. Elbow lag: elbows (IK pole in `player/src/arms.ts`) trail the hands a little when looking round (from the viewmodel turn springs).
 
 ## Done
 A. Weapons assets: 24 rifles + 3 scopes from `~/Developer/3d/store` (`tools/blender/packs/rifles.py`), `weapon.json` / `scope.json` points (`weapon-points.py`, check with `grid-shot.py`), meta (`tools/weapons/meta.mjs`), specs + calibers, `@polywar/armory` (loader, scope fit, `ArmedGun`, weapons-only view), gallery `focus` (header "show only"), catalog weapons under `models/weapons/armory`.
