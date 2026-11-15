@@ -1,0 +1,1 @@
+import '@polywar/shooting-range';
