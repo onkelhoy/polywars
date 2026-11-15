@@ -249,7 +249,7 @@ export class Player {
         const carried = this.held;
         if (!carried || carried.gun !== gun || !this.camera) return;
         const cam = this.camera.worldMatrix, world = this.vm.world(cam, this.cam), m = this.mover;
-        this.feel.cue(cue, gun, { world, muzzle: point(cam, this.vm.muzzle.from), velocity: [m.velocity[0], m.velocity[1], m.velocity[2]], eject: carried.weapon?.points.eject });
+        this.feel.cue(cue, gun, { world, muzzle: point(cam, this.vm.muzzle.from), velocity: [m.velocity[0], m.velocity[1], m.velocity[2]], eject: carried.weapon?.points?.eject });
     }
 
     private fire(camera: Camera, gun: Gun) {
