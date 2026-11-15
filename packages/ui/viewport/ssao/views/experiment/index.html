@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ssao</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport id="view">
+        <aside>
+            <h1>ssao</h1>
+            <label><input id="on" type="checkbox" checked /> on</label>
+            <label><input id="debug" type="checkbox" /> ao only</label>
+            <label>radius <input id="radius" type="range" min="0.05" max="2" step="0.05" value="0.5" /></label>
+            <label>strength <input id="strength" type="range" min="0" max="1" step="0.05" value="1" /></label>
+            <label>power <input id="power" type="range" min="0.5" max="4" step="0.1" value="1.5" /></label>
+            <label>samples <input id="samples" type="range" min="4" max="16" step="1" value="12" /></label>
+            <label>scale <input id="scale" type="range" min="0.25" max="1" step="0.25" value="0.5" /></label>
+        </aside>
+    </pw-viewport>
+</body>
+
+</html>
