@@ -3,7 +3,7 @@ import { SHADERS } from "./shaders";
 
 /**
  * `radius` metres the occlusion looks round each point, `strength` 0..1 how dark it gets, `power` contrast,
- * `bias` metres a sample must be behind the surface (stops self shadowing), `samples` 1..16,
+ * `bias` metres a sample must be behind the surface (stops self shadowing), plus .5% of the distance, `samples` 1..16,
  * `scale` AO resolution part of the frame, `fade` start / end metres where it goes away (far terrain stays clean),
  * `debug` shows the AO alone.
  */
@@ -206,7 +206,7 @@ export class SSAO {
     }
 }
 
-/** `n` points in the +z hemisphere, more of them near the centre (fixed seed: same look every run) */
+/** `n` points in the +z hemisphere, none close to the surface plane (grazing floors self occlude), more of them near the centre (fixed seed: same look every run) */
 function makeKernel(n: number) {
     let seed = 1;
     const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -214,7 +214,7 @@ function makeKernel(n: number) {
     for (let i = 0; i < n; i++)
     {
         let x, y, z, l;
-        do { x = rnd() * 2 - 1; y = rnd() * 2 - 1; z = rnd(); l = Math.hypot(x, y, z); } while (l > 1 || l < .1);
+        do { x = rnd() * 2 - 1; y = rnd() * 2 - 1; z = rnd(); l = Math.hypot(x, y, z); } while (l > 1 || l < .1 || z / l < .25);
         const k = i / n, s = (.1 + .9 * k * k) / l;
         out.set([x * s, y * s, z * s], i * 3);
     }

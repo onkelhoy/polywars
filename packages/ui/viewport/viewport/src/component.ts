@@ -6,6 +6,7 @@ import { Camera, GameEngine, GameObject, type Layer3D } from "@papit/game-engine
 import sheet from "./style.css" with { type: "css" };
 import "@papit/joystick";
 import { fly, panZoom, walk } from "@polywar/viewport-camera";
+import { SSAO } from "@polywar/ssao";
 import type { PanMode, TouchInput, WalkSetting } from "@polywar/viewport-camera";
 import type { Color, ViewportMode } from "./types";
 
@@ -39,6 +40,12 @@ export class Viewport extends CustomElement {
 
     /** hide the origin dot; the bar's "origin" button toggles it */
     @property({ type: Boolean, attribute: "no-origin", rerender: true }) noOrigin: boolean = false;
+    /** screen space ambient occlusion round `draw` (`@polywar/ssao`); its look in `occlusion.options` */
+    @property({ type: Boolean }) ssao: boolean = false;
+    /** the SSAO pass (made on first use) */
+    get occlusion() { return this.ao ??= this.layer ? new SSAO(this.layer) : undefined; }
+    private ao?: SSAO;
+
     /** where the origin dot sits, world space */
     origin: [number, number, number] = [0, 0, 0];
 
@@ -92,7 +99,7 @@ export class Viewport extends CustomElement {
         const demo = this;
         engine.add(new class extends GameObject {
             override update(dt: number) { demo.time += dt; demo.tick?.(dt, demo); demo.updateAxes(); demo.updateOrigin(); }
-            override render(layer: any) { if (layer.camera) demo.draw?.(layer.camera, demo); }
+            override render(layer: any) { if (layer.camera) demo.frame(layer.camera); }
         }());
         engine.on("theme", () => this.readBackground());
         this.readBackground();
@@ -112,6 +119,22 @@ export class Viewport extends CustomElement {
         layer.setting.height = ratio ? Math.max(1, Math.round(el.clientHeight * ratio)) : 0;
         layer.resize();
     }
+
+    /** `draw`, offscreen and darkened by SSAO when `ssao` is on */
+    private frame(camera: Camera) {
+        const ao = this.ssao ? this.occlusion : undefined;
+        this.drawing = camera;
+        ao?.begin();
+        this.draw?.(camera, this);
+        this.endOcclusion();
+        this.drawing = undefined;
+    }
+
+    /** Finish SSAO now (inside `draw`): what's drawn after goes straight to the canvas, e.g. first person hands. */
+    endOcclusion() {
+        if (this.drawing) this.ao?.end(this.drawing);
+    }
+    private drawing?: Camera;
 
     disconnectedCallback() {
         super.disconnectedCallback?.();

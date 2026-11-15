@@ -70,6 +70,8 @@ export class Scope {
     private depth: WebGLRenderbuffer;
     private quad: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer };
     private saved: Int32Array | null = null;
+    /** the framebuffer bound before `begin` (an offscreen pass like SSAO), bound again by `end` */
+    private previous: WebGLFramebuffer | null = null;
     private viewMatrix = mat4();
     private projectionMatrix = mat4();
     private eye = { x: 0, y: 0, z: 0 };
@@ -144,6 +146,7 @@ export class Scope {
         invertRigid(this.viewMatrix, world);
         this.eye.x = world[12]; this.eye.y = world[13]; this.eye.z = world[14];
         this.saved = gl.getParameter(gl.VIEWPORT);
+        this.previous = gl.getParameter(gl.FRAMEBUFFER_BINDING);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
         gl.viewport(0, 0, this.size, this.size);
         return { viewMatrix: this.viewMatrix, projectionMatrix: this.projectionMatrix, worldPosition: this.eye, width: this.size, height: this.size };
@@ -151,7 +154,7 @@ export class Scope {
 
     end() {
         const gl = this.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.previous);
         if (this.saved) gl.viewport(this.saved[0], this.saved[1], this.saved[2], this.saved[3]);
     }
 

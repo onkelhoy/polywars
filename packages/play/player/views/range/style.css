@@ -21,11 +21,3 @@ body:not(.playing) #hud { display: none; }
 #marker.on { opacity: 1; transition: none; }
 #ammo { position: absolute; right: 24px; bottom: 20px; font: 600 20px system-ui; text-align: right; white-space: pre; text-shadow: 0 0 3px #000; }
 #state { position: absolute; left: 24px; bottom: 20px; white-space: pre; opacity: .8; text-shadow: 0 0 3px #000; }
-#tune { display: none; position: absolute; top: 8px; right: 8px; width: 330px; padding: 10px; background: #000c; border-radius: 6px; }
-body.tuning #tune { display: block; }
-#tune h2 { margin: 0 0 4px; font-size: 15px; }
-#tune label { display: grid; grid-template-columns: 110px 1fr 56px; gap: 6px; align-items: center; margin: 3px 0; }
-#tune output { text-align: right; }
-#tune button { margin: 2px; }
-#tune-info { display: block; text-align: left !important; opacity: .8; }
-#tune code, #tune small { margin: 0 .3em; }

@@ -36,6 +36,8 @@ export type PlayerSetting = {
     surface?: (at: [number, number, number]) => string;
     /** draws the scene again for the scope's picture */
     scene?: (view: View) => void;
+    /** after the world, before the hands (own depth): e.g. finish SSAO here so the hands get none */
+    worldDrawn?: () => void;
 };
 
 export type PlayerEvents = {

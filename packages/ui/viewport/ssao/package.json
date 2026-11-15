@@ -62,7 +62,6 @@
     "@papit/theme": "*",
     "@papit/translator": "*",
     "@papit/codeblock": "*",
-    "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@papit/game-mesh": "*"
   },

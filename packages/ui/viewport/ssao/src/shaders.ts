@@ -48,7 +48,8 @@ void main() {
     vec3 tg = rv - n * dot(rv, n);
     tg = length(tg) < 1e-3 ? normalize(cross(n, vec3(0., 1., 0.)) + 1e-4) : normalize(tg);
     mat3 tbn = mat3(tg, cross(n, tg), n);
-    float occlusion = 0.;
+    // depth gets coarser with distance: the bias grows with it
+    float occlusion = 0., lift = bias - p.z * .005;
     for (int i = 0; i < 16; i++) {
         if (i >= samples) break;
         vec3 s = p + tbn * kernel[i] * radius;
@@ -57,7 +58,7 @@ void main() {
         if (q.x < 0. || q.y < 0. || q.x > 1. || q.y > 1.) continue;
         float z = at(q).z;
         float range = smoothstep(0., 1., radius / abs(p.z - z));
-        occlusion += (z >= s.z + bias ? 1. : 0.) * range;
+        occlusion += (z >= s.z + lift ? 1. : 0.) * range;
     }
     float ao = pow(clamp(1. - occlusion / float(samples), 0., 1.), power);
     color = vec4(vec3(mix(ao, 1., smoothstep(fade.x, fade.y, -p.z))), 1.);

@@ -329,6 +329,7 @@ export class Player {
         this.feel.draw(r);
         this.impacts.draw(camera);
         r.reset();
+        this.setting.worldDrawn?.();
         if (!carried) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);

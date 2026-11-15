@@ -3,7 +3,7 @@ import { Camera } from '@papit/game-engine';
 import { Renderer, Model } from '@polywar/renderer';
 import { Matrix4 } from '@papit/matrix';
 import { GUNS } from '@polywar/weapons';
-import { Player } from '@polywar/player';
+import { Player, AimTuner } from '@polywar/player';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange } from '@polywar/shooting-range';
 
@@ -24,6 +24,7 @@ const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: range.cast, surface: range.surface,
     scene: () => { model.draw(renderer, identity); drawStands(); },
     character: '/assets/models/characters/knight/character.json',
+    worldDrawn: () => demo.endOcclusion(),
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
     guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? Object.keys(GUNS),
 }, {
@@ -33,9 +34,10 @@ const player = new Player(layer, renderer, {
         requestAnimationFrame(() => requestAnimationFrame(() => $('#marker').classList.remove('on')));
         lastHit = `${hit.target.name} · ${bullet.travelled.toFixed(0)} m`;
     },
-    exit: () => document.body.classList.remove('playing'),
+    exit: () => { if (!tuner?.open) document.body.classList.remove('playing'); },
 }, range.spawn);
 window.player = player;
+let tuner;
 // cases bounce off every box (the player steps its own world)
 for (const s of range.solids)
 {
@@ -43,6 +45,8 @@ for (const s of range.solids)
     player.feel.world.add(new RigidBody({ shape: new Box(...size), position: { x: at[0], y: at[1], z: at[2] } }));
 }
 await player.ready;
+// ---- aim tuning (T): the player's panel ----
+tuner = new AimTuner(player, document.body, { active: () => document.body.classList.contains('playing') });
 
 // ---- a gun over each case: turning slowly, muzzle along the case; F takes it ----
 const stands = range.stands.map((s, i) => ({ ...s, gun: i < player.carried.length ? i : -1 }));
@@ -68,6 +72,11 @@ addEventListener('keydown', e => {
 });
 
 // ---- menu ----
+// ---- ambient occlusion: a setting kept in the browser (every playable view shares it) ----
+const AO = 'polywar.ssao';
+demo.ssao = localStorage.getItem(AO) !== 'off';
+$('#ao').checked = demo.ssao;
+$('#ao').onchange = e => { demo.ssao = e.target.checked; localStorage.setItem(AO, demo.ssao ? 'on' : 'off'); };
 $('#body').onchange = e => { player.showBody = e.target.checked; };
 $('#clear').onclick = () => { player.impacts.clear(); player.feel.debris.clear(); };
 $('#play').onclick = () => {
@@ -79,6 +88,7 @@ demo.look([range.spawn[0] - 6, 3.5, range.spawn[2] + 1], [range.spawn[0], 1, -30
 // ---- loop ----
 demo.tick = () => {
     if (!document.body.classList.contains('playing')) return;
+    tuner.update();
     const g = player.gun, m = player.mover, c = player.held, f = m.feet;
     const camera = layer.camera, fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
     const gap = Math.tan(player.spread) / Math.tan(fov / 2) * layer.element.clientHeight / 2;
