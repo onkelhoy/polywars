@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>shooting-range | range</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".1" far="3000" no-bar no-axes no-origin>
+    <div id="hud">
+        <div id="cross"><i></i><i></i><i></i><i></i></div>
+        <div id="marker">×</div>
+        <output id="prompt"></output>
+        <output id="ammo"></output>
+        <output id="state"></output>
+    </div>
+    <aside id="menu">
+        <h1>shooting range</h1>
+        <p><b>click to play</b> · WASD walk · shift run · space jump · left mouse fire · right mouse aim · Q E lean · R reload · <b>F</b> take the gun over the case in front of you · 1-9 / [ ] guns · Esc menu</p>
+        <p>Indoor lanes with moving targets at 18 m, outdoor stands every 100 m out to 800 m. Stairs at the back go up to the roof.</p>
+        <label><input id="body" type="checkbox" checked /> show body</label>
+        <button id="play" type="button">play</button>
+        <button id="clear" type="button">clear marks</button>
+    </aside>
+    </pw-viewport>
+</body>
+
+</html>

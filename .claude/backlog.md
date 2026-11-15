@@ -25,5 +25,14 @@
 - Case models for shot shells (12 gauge) and the 20 mm Lahti case: both use the .30-06 case now. Ithaca 37 ejects downward (it throws right now).
 - `tools/blender/packs/store.mjs` still defaults to the old flat store layout (the store is now sorted into `Weapons/`, `Vehicles/`, ...).
 
+## Shooting range (`@polywar/shooting-range`)
+Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view `range`. Ideas from the owner:
+- [ ] button to move the targets nearer / further (moving targets on the rails)
+- [ ] binoculars ("kikare") on the roof to look down the range
+- [ ] lamps
+- [ ] gun per case picked on purpose (now: the first 15 of the loadout, in order)
+- [ ] distance-marker numbers and the target face are textures: game-mesh draws one colour per face, so they are lost (model them, or textured draw). `Target(Square)` image points to a missing file in ~/Downloads
+- [ ] booths are one mesh each: 973 face boxes; simpler collision if split into boxes in Blender
+
 ## World
 - Save / load a generated world (skip generation): bake to a file / model, later pass over the network.
