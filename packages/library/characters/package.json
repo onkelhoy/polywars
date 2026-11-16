@@ -55,7 +55,9 @@
   "dependencies": {
     "@papit/game-mesh": "*",
     "@polywar/skeleton": "*",
-    "@polywar/3d-asset-preview": "*"
+    "@polywar/3d-asset-preview": "*",
+    "@polywar/renderer": "*",
+    "@papit/matrix": "*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

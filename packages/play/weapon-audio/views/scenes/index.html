@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weapon-audio | scenes</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".1" far="2000">
+    <aside>
+        <h1>weapon-audio</h1>
+        <p>A gun (red) in the open, in a street, in a room. The ear (blue) stands off by the slider: hear it late and faint far off. Scene comes from rays.</p>
+        <label>gun <select id="gun"></select></label>
+        <label>spot <select id="spot"><option value="open">open field</option><option value="walls">street</option><option value="indoor">room</option></select></label>
+        <label>ear off <input id="ear" type="range" min="0" max="800" step="1" value="2" /><span id="earv"></span></label>
+        <label>brass on <select id="surface"><option>dirt</option><option>stone</option><option>wood</option><option>metal</option></select></label>
+        <button id="fire" type="button">fire (hold for auto)</button>
+        <button id="reload" type="button">reload</button>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
+</body>
+
+</html>

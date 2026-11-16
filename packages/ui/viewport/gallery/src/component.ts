@@ -26,6 +26,7 @@ const is3D = (kind: AssetKind) => kind === "model" || kind === "material";
  * - `tree`: an `Assets` tree set directly (same shape as the manifest), shown after the manifest.
  * - `items`: extra entries, e.g. generated meshes, shown after the manifest ones.
  * - `kinds`: which kinds start visible; the header toggles them, and searches names and groups.
+ * - `focus`: a group path prefix (e.g. `models/weapons`): only items under it. The header picks it (top two levels).
  *
  * 3D tiles share one canvas over the page (a scissor rect per tile) so any number of them costs one
  * WebGL context. Drag a tile to turn it; click opens it in `pw-3d-asset-preview` (or what `opener` makes).
@@ -40,6 +41,8 @@ export class Gallery extends CustomElement {
     @property({ type: Array, attribute: false, after: function (this: Gallery) { this.sync(); } }) items: GalleryItem[] = [];
     @property({ type: Array, attribute: false, rerender: true }) kinds: AssetKind[] = ["model", "material", "audio", "image", "video"];
     @property({ rerender: true }) search: string = "";
+    /** group prefix to show only, "" = all */
+    @property({ rerender: true }) focus: string = "";
     /** clip every tile plays when it has it (else "idle") */
     @property({ rerender: true }) animation: string = "idle";
     /** skin factory for loaded models, see `Model.load` */
@@ -258,6 +261,7 @@ export class Gallery extends CustomElement {
 
     private handleopen = (item: GalleryItem) => () => this.open(item);
     private handleclip = (e: Event) => { this.animation = (e.target as HTMLSelectElement).value; };
+    private handlefocus = (e: Event) => { this.focus = (e.target as HTMLSelectElement).value; };
     private handlesearch = (e: Event) => { this.search = (e.target as HTMLInputElement).value; };
     private handlekind = (kind: AssetKind) => () => {
         this.kinds = this.kinds.includes(kind) ? this.kinds.filter(k => k !== kind) : [...this.kinds, kind];
@@ -310,13 +314,19 @@ export class Gallery extends CustomElement {
     render() {
         const q = this.search.toLowerCase();
         const all = this.all;
-        const shown = all.filter(i => this.kinds.includes(i.kind) && (!q || `${i.group ?? ""}/${i.name}`.toLowerCase().includes(q)));
+        const under = (g = "") => !this.focus || g === this.focus || g.startsWith(this.focus + "/");
+        const shown = all.filter(i => this.kinds.includes(i.kind) && under(i.group) && (!q || `${i.group ?? ""}/${i.name}`.toLowerCase().includes(q)));
+        const focuses = [...new Set(all.flatMap(i => { const p = (i.group ?? "").split("/").filter(Boolean); return [p[0], p.length > 1 ? `${p[0]}/${p[1]}` : ""]; }).filter(Boolean))].sort();
         const top = (g = "") => g.split("/")[0];
         const rest = (g = "") => g.split("/").slice(1).join("/");
         const tops = [...new Set(shown.map(i => top(i.group)))];
         return html`
             <header>
                 <input type="search" placeholder="search" aria-label="search" @input="${this.handlesearch}" />
+                <select aria-label="show only" @change="${this.handlefocus}">
+                    <option value="">everything</option>
+                    ${focuses.map(f => html`<option value="${f}" ${f === this.focus && "selected"}>${f.includes("/") ? "· " + f.split("/")[1] : f}</option>`)}
+                </select>
                 ${KINDS.map(k => html`<pap-button size="small" variant="${this.kinds.includes(k) ? "filled" : "outline"}" @click="${this.handlekind(k)}">${k}</pap-button>`)}
                 ${this.clips.size ? html`
                     <select aria-label="animation" @change="${this.handleclip}">

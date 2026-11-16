@@ -58,7 +58,8 @@
     "@polywar/shading": "*",
     "@polywar/skeleton": "*",
     "@polywar/terrain": "*",
-    "@polywar/terrain-material": "*"
+    "@polywar/terrain-material": "*",
+    "@polywar/armory": "*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

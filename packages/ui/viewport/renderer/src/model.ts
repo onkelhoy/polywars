@@ -131,6 +131,33 @@ export class Model {
     }
 
     /** world matrix of the skeleton's non-joint ancestors: joint space -> model space (for drawing bones) */
+    private triangles?: Float32Array;
+    /** every triangle in model space, rest pose (skinned: strongest joint), x y z per corner; for 2D views / picking */
+    restTriangles(): Float32Array {
+        if (this.triangles) return this.triangles;
+        const out: number[] = [], joints = this.rig?.matrices;
+        for (const item of this.items)
+            for (const p of this.gltf.meshes[this.gltf.nodes[item.node].mesh!].primitives)
+            {
+                const posed: number[] = [];
+                for (let i = 0, vi = 0; i < p.positions.length; i += 3, vi++)
+                {
+                    let m: Matrix4 = item.world;
+                    if (item.skinned && joints && p.joints && p.weights)
+                    {
+                        let best = 0;
+                        for (let k = 1; k < 4; k++) if (p.weights[vi * 4 + k] > p.weights[vi * 4 + best]) best = k;
+                        m = this.skeleton.clone.multiply(Matrix4.create(joints.subarray(p.joints[vi * 4 + best] * 16, p.joints[vi * 4 + best] * 16 + 16)));
+                    }
+                    const v = m.clone.multiply([p.positions[i], p.positions[i + 1], p.positions[i + 2], 1]);
+                    posed.push(v[0], v[1], v[2]);
+                }
+                const n = p.indices ? p.indices.length : posed.length / 3;
+                for (let t = 0; t < n; t++) { const v = (p.indices ? p.indices[t] : t) * 3; out.push(posed[v], posed[v + 1], posed[v + 2]); }
+            }
+        return this.triangles = new Float32Array(out);
+    }
+
     get skeletonMatrix() {
         return this.skeleton;
     }

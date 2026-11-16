@@ -1,0 +1,25 @@
+{
+    "rate": 32000,
+    "sounds": {
+        "dirt": [
+            "dirt-1.wav",
+            "dirt-2.wav",
+            "dirt-3.wav"
+        ],
+        "stone": [
+            "stone-1.wav",
+            "stone-2.wav",
+            "stone-3.wav"
+        ],
+        "wood": [
+            "wood-1.wav",
+            "wood-2.wav",
+            "wood-3.wav"
+        ],
+        "metal": [
+            "metal-1.wav",
+            "metal-2.wav",
+            "metal-3.wav"
+        ]
+    }
+}

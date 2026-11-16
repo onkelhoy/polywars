@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ballistics | drop</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <h1>ballistics</h1>
+    <p>Every gun zeroed at its own distance, flown by <code>Bullets</code> (gravity + drag). Height over the sight line (y, m) against distance (x, m).</p>
+    <label>range <input id="range" type="range" min="50" max="600" step="10" value="400" /> <span></span> m</label>
+    <canvas id="chart" width="1000" height="420"></canvas>
+    <output id="info"></output>
+</body>
+
+</html>

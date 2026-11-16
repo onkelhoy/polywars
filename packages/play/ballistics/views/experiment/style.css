@@ -1,0 +1,6 @@
+@import "@papit/theme";
+
+:root { color-scheme: dark; }
+body { margin: 16px; font: 13px system-ui, sans-serif; background: var(--background); color: var(--text); }
+canvas { display: block; background: #0004; border-radius: 4px; max-width: 100%; }
+output { display: block; white-space: pre; opacity: .8; margin-top: 8px; font-family: ui-monospace, monospace; }

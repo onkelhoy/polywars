@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>debris | shells</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".02" far="200">
+    <aside>
+        <h1>debris</h1>
+        <p>Cases thrown from a gun over bumpy ground, a crate and a steel plate: <code>@papit/rigidbody</code>. Resting ones leave the world (drawn only), past the cap the oldest shrink away.</p>
+        <label>rate <input id="rate" type="range" min="0" max="15" step="1" value="4" /></label>
+        <label>cap <input id="cap" type="range" min="10" max="200" step="10" value="60" /></label>
+        <button id="burst" type="button">burst of 20</button>
+        <button id="clear" type="button">clear</button>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
+</body>
+
+</html>

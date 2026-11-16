@@ -56,7 +56,8 @@
     "@papit/joystick": "^0.0.1",
     "@papit/vector": "*",
     "@papit/web-component": "*",
-    "@polywar/viewport-camera": "*"
+    "@polywar/viewport-camera": "*",
+    "@polywar/ssao": "*"
   },
   "peerDependencies": {
     "react": "^19"

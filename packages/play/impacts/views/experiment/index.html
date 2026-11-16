@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>impacts | hits</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".05" far="1000">
+    <aside>
+        <h1>impacts</h1>
+        <p>A gun at the left fires on its own at the ground, a wood crate, a steel plate, a stone wall and a body.</p>
+        <label>rate <input id="rate" type="range" min="1" max="20" step="1" value="6" /></label>
+        <label><input id="tracers" type="checkbox" checked /> tracers</label>
+        <button id="clear" type="button">clear marks</button>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
+</body>
+
+</html>

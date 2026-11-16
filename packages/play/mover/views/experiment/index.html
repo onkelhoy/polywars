@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mover | slopes</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".1" far="800">
+    <aside>
+        <h1>mover</h1>
+        <p>click walk: WASD, shift run, space jump, Esc back. The cone is too steep (slide), the ramp is 35°, crates step / stand.</p>
+        <button id="walk" type="button">walk</button>
+        <label>slope ° <input id="slope" type="range" min="10" max="70" step="1" value="40" /><span></span></label>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
+</body>
+
+</html>

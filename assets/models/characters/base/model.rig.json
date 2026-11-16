@@ -45,31 +45,67 @@
    "deform": true
   },
   "thumb.1.L": {
-   "length": 0.04717,
+   "length": 0.03986,
    "deform": true
   },
   "thumb.2.L": {
-   "length": 0.0324,
+   "length": 0.02672,
+   "deform": true
+  },
+  "thumb.3.L": {
+   "length": 0.02025,
    "deform": true
   },
   "index.1.L": {
-   "length": 0.04,
-   "deform": true
-  },
-  "index.2.L": {
    "length": 0.035,
    "deform": true
   },
+  "index.2.L": {
+   "length": 0.03,
+   "deform": true
+  },
+  "index.3.L": {
+   "length": 0.025,
+   "deform": true
+  },
   "fingers.1.L": {
-   "length": 0.04,
+   "length": 0.035,
    "deform": true
   },
   "fingers.2.L": {
-   "length": 0.03,
+   "length": 0.028,
+   "deform": true
+  },
+  "fingers.3.L": {
+   "length": 0.022,
    "deform": true
   },
   "prop.L": {
    "length": 0.1,
+   "deform": false
+  },
+  "thumb.ik.L": {
+   "length": 0.01446,
+   "deform": false
+  },
+  "thumb.pole.L": {
+   "length": 0.01,
+   "deform": false
+  },
+  "index.ik.L": {
+   "length": 0.015,
+   "deform": false
+  },
+  "index.pole.L": {
+   "length": 0.01,
+   "deform": false
+  },
+  "fingers.ik.L": {
+   "length": 0.015,
+   "deform": false
+  },
+  "fingers.pole.L": {
+   "length": 0.01,
    "deform": false
   },
   "shoulder.R": {
@@ -89,31 +125,67 @@
    "deform": true
   },
   "thumb.1.R": {
-   "length": 0.04717,
+   "length": 0.03986,
    "deform": true
   },
   "thumb.2.R": {
-   "length": 0.0324,
+   "length": 0.02672,
+   "deform": true
+  },
+  "thumb.3.R": {
+   "length": 0.02025,
    "deform": true
   },
   "index.1.R": {
-   "length": 0.04,
-   "deform": true
-  },
-  "index.2.R": {
    "length": 0.035,
    "deform": true
   },
+  "index.2.R": {
+   "length": 0.03,
+   "deform": true
+  },
+  "index.3.R": {
+   "length": 0.025,
+   "deform": true
+  },
   "fingers.1.R": {
-   "length": 0.04,
+   "length": 0.035,
    "deform": true
   },
   "fingers.2.R": {
-   "length": 0.03,
+   "length": 0.028,
+   "deform": true
+  },
+  "fingers.3.R": {
+   "length": 0.022,
    "deform": true
   },
   "prop.R": {
    "length": 0.1,
+   "deform": false
+  },
+  "thumb.ik.R": {
+   "length": 0.01446,
+   "deform": false
+  },
+  "thumb.pole.R": {
+   "length": 0.01,
+   "deform": false
+  },
+  "index.ik.R": {
+   "length": 0.015,
+   "deform": false
+  },
+  "index.pole.R": {
+   "length": 0.01,
+   "deform": false
+  },
+  "fingers.ik.R": {
+   "length": 0.015,
+   "deform": false
+  },
+  "fingers.pole.R": {
+   "length": 0.01,
    "deform": false
   },
   "thigh.L": {
@@ -190,11 +262,53 @@
    "pole": "elbow.pole.L"
   },
   {
+   "bone": "thumb.3.L",
+   "chain": 3,
+   "target": "thumb.ik.L",
+   "weight": 0.0,
+   "pole": "thumb.pole.L"
+  },
+  {
+   "bone": "index.3.L",
+   "chain": 3,
+   "target": "index.ik.L",
+   "weight": 0.0,
+   "pole": "index.pole.L"
+  },
+  {
+   "bone": "fingers.3.L",
+   "chain": 3,
+   "target": "fingers.ik.L",
+   "weight": 0.0,
+   "pole": "fingers.pole.L"
+  },
+  {
    "bone": "forearm.R",
    "chain": 2,
    "target": "hand.ik.R",
    "weight": 0.0,
    "pole": "elbow.pole.R"
+  },
+  {
+   "bone": "thumb.3.R",
+   "chain": 3,
+   "target": "thumb.ik.R",
+   "weight": 0.0,
+   "pole": "thumb.pole.R"
+  },
+  {
+   "bone": "index.3.R",
+   "chain": 3,
+   "target": "index.ik.R",
+   "weight": 0.0,
+   "pole": "index.pole.R"
+  },
+  {
+   "bone": "fingers.3.R",
+   "chain": 3,
+   "target": "fingers.ik.R",
+   "weight": 0.0,
+   "pole": "fingers.pole.R"
   },
   {
    "bone": "shin.L",

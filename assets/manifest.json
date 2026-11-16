@@ -5,6 +5,4406 @@
    "name": "audio",
    "assets": [
     {
+     "name": "effects",
+     "assets": [
+      {
+       "name": "weapons",
+       "assets": [
+        {
+         "name": "arisaka-type-99",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/bolt-close-1.wav",
+           "size": 16096
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/bolt-close-2.wav",
+           "size": 16244
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/bolt-open-1.wav",
+           "size": 17168
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/bolt-open-2.wav",
+           "size": 17300
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/clip-in-1.wav",
+           "size": 21904
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/clip-in-2.wav",
+           "size": 21868
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/dry-1.wav",
+           "size": 5760
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/dry-2.wav",
+           "size": 5756
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/mag-in-1.wav",
+           "size": 10262
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/mag-in-2.wav",
+           "size": 10248
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/mag-out-1.wav",
+           "size": 10282
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/round-in-1.wav",
+           "size": 8952
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/round-in-2.wav",
+           "size": 8928
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/shot-open-1.wav",
+           "size": 91564
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/shot-open-2.wav",
+           "size": 92382
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/shot-walls-1.wav",
+           "size": 40086
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/shot-walls-2.wav",
+           "size": 40594
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/arisaka-type-99/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "beretta-model-57",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/bolt-close-1.wav",
+           "size": 16258
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/bolt-close-2.wav",
+           "size": 16196
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/bolt-open-1.wav",
+           "size": 17190
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/bolt-open-2.wav",
+           "size": 17140
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/clip-in-1.wav",
+           "size": 21844
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/clip-in-2.wav",
+           "size": 21910
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/dry-1.wav",
+           "size": 5806
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/dry-2.wav",
+           "size": 5770
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/mag-in-1.wav",
+           "size": 10256
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/mag-in-2.wav",
+           "size": 10264
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/round-in-1.wav",
+           "size": 9062
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/round-in-2.wav",
+           "size": 8950
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/shot-walls-1.wav",
+           "size": 39890
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/shot-walls-2.wav",
+           "size": 40474
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/beretta-model-57/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "brass",
+         "assets": [
+          {
+           "name": "dirt-1.wav",
+           "file": "/assets/audio/effects/weapons/brass/dirt-1.wav",
+           "size": 10078
+          },
+          {
+           "name": "dirt-2.wav",
+           "file": "/assets/audio/effects/weapons/brass/dirt-2.wav",
+           "size": 12316
+          },
+          {
+           "name": "dirt-3.wav",
+           "file": "/assets/audio/effects/weapons/brass/dirt-3.wav",
+           "size": 9462
+          },
+          {
+           "name": "metal-1.wav",
+           "file": "/assets/audio/effects/weapons/brass/metal-1.wav",
+           "size": 32044
+          },
+          {
+           "name": "metal-2.wav",
+           "file": "/assets/audio/effects/weapons/brass/metal-2.wav",
+           "size": 32044
+          },
+          {
+           "name": "metal-3.wav",
+           "file": "/assets/audio/effects/weapons/brass/metal-3.wav",
+           "size": 32044
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/brass/sounds.json",
+           "size": 476
+          },
+          {
+           "name": "stone-1.wav",
+           "file": "/assets/audio/effects/weapons/brass/stone-1.wav",
+           "size": 28242
+          },
+          {
+           "name": "stone-2.wav",
+           "file": "/assets/audio/effects/weapons/brass/stone-2.wav",
+           "size": 27980
+          },
+          {
+           "name": "stone-3.wav",
+           "file": "/assets/audio/effects/weapons/brass/stone-3.wav",
+           "size": 28804
+          },
+          {
+           "name": "wood-1.wav",
+           "file": "/assets/audio/effects/weapons/brass/wood-1.wav",
+           "size": 16434
+          },
+          {
+           "name": "wood-2.wav",
+           "file": "/assets/audio/effects/weapons/brass/wood-2.wav",
+           "size": 13790
+          },
+          {
+           "name": "wood-3.wav",
+           "file": "/assets/audio/effects/weapons/brass/wood-3.wav",
+           "size": 17658
+          }
+         ]
+        },
+        {
+         "name": "carcano-m1891",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/bolt-close-1.wav",
+           "size": 16216
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/bolt-close-2.wav",
+           "size": 16248
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/bolt-open-1.wav",
+           "size": 17058
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/bolt-open-2.wav",
+           "size": 17266
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/clip-in-1.wav",
+           "size": 21740
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/clip-in-2.wav",
+           "size": 21776
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/dry-1.wav",
+           "size": 5812
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/dry-2.wav",
+           "size": 5750
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/mag-in-1.wav",
+           "size": 10210
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/mag-in-2.wav",
+           "size": 10114
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/round-in-1.wav",
+           "size": 9150
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/round-in-2.wav",
+           "size": 8966
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/shot-walls-1.wav",
+           "size": 35828
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/shot-walls-2.wav",
+           "size": 38650
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/carcano-m1891/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "double-deuce",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/bolt-close-1.wav",
+           "size": 16192
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/bolt-close-2.wav",
+           "size": 16216
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/bolt-open-1.wav",
+           "size": 17290
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/bolt-open-2.wav",
+           "size": 17312
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/clip-in-1.wav",
+           "size": 21884
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/clip-in-2.wav",
+           "size": 21926
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/dry-1.wav",
+           "size": 6006
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/dry-2.wav",
+           "size": 5754
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/mag-in-1.wav",
+           "size": 10216
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/mag-in-2.wav",
+           "size": 10300
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/round-in-1.wav",
+           "size": 9032
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/round-in-2.wav",
+           "size": 8766
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/shot-walls-1.wav",
+           "size": 37368
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/shot-walls-2.wav",
+           "size": 40196
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/double-deuce/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/double-deuce/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "general-liu",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/bolt-close-1.wav",
+           "size": 16184
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/bolt-close-2.wav",
+           "size": 16010
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/bolt-open-1.wav",
+           "size": 17170
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/bolt-open-2.wav",
+           "size": 17292
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/clip-in-1.wav",
+           "size": 21874
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/clip-in-2.wav",
+           "size": 21838
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/dry-1.wav",
+           "size": 5764
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/dry-2.wav",
+           "size": 5840
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/mag-in-1.wav",
+           "size": 10130
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/mag-in-2.wav",
+           "size": 10278
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/round-in-1.wav",
+           "size": 8922
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/round-in-2.wav",
+           "size": 8798
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/shot-walls-1.wav",
+           "size": 39548
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/shot-walls-2.wav",
+           "size": 39828
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/general-liu/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/general-liu/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "gewehr-43",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/bolt-close-1.wav",
+           "size": 16208
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/bolt-close-2.wav",
+           "size": 16214
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/bolt-open-1.wav",
+           "size": 17284
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/bolt-open-2.wav",
+           "size": 17192
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/clip-in-1.wav",
+           "size": 21874
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/clip-in-2.wav",
+           "size": 21872
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/dry-1.wav",
+           "size": 5878
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/dry-2.wav",
+           "size": 5870
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/mag-in-1.wav",
+           "size": 10324
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/mag-in-2.wav",
+           "size": 10262
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/round-in-1.wav",
+           "size": 9008
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/round-in-2.wav",
+           "size": 8970
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/shot-walls-1.wav",
+           "size": 39196
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/shot-walls-2.wav",
+           "size": 38984
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-43/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/gewehr-43/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "gewehr-88",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/bolt-close-1.wav",
+           "size": 16226
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/bolt-close-2.wav",
+           "size": 16090
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/bolt-open-1.wav",
+           "size": 17126
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/bolt-open-2.wav",
+           "size": 17120
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/clip-in-1.wav",
+           "size": 21844
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/clip-in-2.wav",
+           "size": 21874
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/dry-1.wav",
+           "size": 5764
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/dry-2.wav",
+           "size": 5692
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/mag-in-1.wav",
+           "size": 10254
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/mag-in-2.wav",
+           "size": 10264
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/round-in-1.wav",
+           "size": 9010
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/round-in-2.wav",
+           "size": 9010
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/shot-walls-1.wav",
+           "size": 39050
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/shot-walls-2.wav",
+           "size": 39760
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/gewehr-88/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/gewehr-88/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "ithaca-m37",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/bolt-close-1.wav",
+           "size": 16236
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/bolt-close-2.wav",
+           "size": 16236
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/bolt-open-1.wav",
+           "size": 14612
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/bolt-open-2.wav",
+           "size": 14602
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/clip-in-1.wav",
+           "size": 21836
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/clip-in-2.wav",
+           "size": 21888
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/dry-1.wav",
+           "size": 5936
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/dry-2.wav",
+           "size": 5802
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/mag-in-1.wav",
+           "size": 10278
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/mag-in-2.wav",
+           "size": 10288
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/mag-out-2.wav",
+           "size": 10280
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/round-in-1.wav",
+           "size": 8804
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/round-in-2.wav",
+           "size": 9040
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/shot-walls-1.wav",
+           "size": 37920
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/shot-walls-2.wav",
+           "size": 35600
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/ithaca-m37/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "k31",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/bolt-close-1.wav",
+           "size": 16192
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/bolt-close-2.wav",
+           "size": 15918
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/bolt-open-1.wav",
+           "size": 17184
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/bolt-open-2.wav",
+           "size": 17154
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/clip-in-1.wav",
+           "size": 21878
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/clip-in-2.wav",
+           "size": 21848
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/dry-1.wav",
+           "size": 5854
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/dry-2.wav",
+           "size": 5802
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/mag-in-1.wav",
+           "size": 10202
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/mag-in-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/mag-out-2.wav",
+           "size": 10270
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/round-in-1.wav",
+           "size": 8932
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/round-in-2.wav",
+           "size": 9196
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/shot-walls-1.wav",
+           "size": 38284
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/shot-walls-2.wav",
+           "size": 37672
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/k31/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/k31/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/k31/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "kar98k",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/bolt-close-1.wav",
+           "size": 16274
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/bolt-close-2.wav",
+           "size": 16046
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/bolt-open-1.wav",
+           "size": 17188
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/bolt-open-2.wav",
+           "size": 17256
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/clip-in-1.wav",
+           "size": 21872
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/clip-in-2.wav",
+           "size": 21724
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/dry-1.wav",
+           "size": 5940
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/dry-2.wav",
+           "size": 5824
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/mag-in-1.wav",
+           "size": 10160
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/mag-in-2.wav",
+           "size": 10280
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/round-in-1.wav",
+           "size": 9040
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/round-in-2.wav",
+           "size": 9036
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/shot-open-2.wav",
+           "size": 95122
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/shot-walls-1.wav",
+           "size": 40118
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/shot-walls-2.wav",
+           "size": 36596
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/kar98k/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/kar98k/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "kropatschek",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/bolt-close-1.wav",
+           "size": 16200
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/bolt-close-2.wav",
+           "size": 16088
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/bolt-open-1.wav",
+           "size": 17248
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/bolt-open-2.wav",
+           "size": 17232
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/clip-in-1.wav",
+           "size": 21780
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/clip-in-2.wav",
+           "size": 21660
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/dry-1.wav",
+           "size": 5910
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/dry-2.wav",
+           "size": 5850
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/mag-in-1.wav",
+           "size": 10328
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/mag-in-2.wav",
+           "size": 10250
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/round-in-1.wav",
+           "size": 9096
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/round-in-2.wav",
+           "size": 8810
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/shot-walls-1.wav",
+           "size": 39410
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/shot-walls-2.wav",
+           "size": 40168
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/kropatschek/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/kropatschek/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "lahti-l39",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/bolt-close-1.wav",
+           "size": 16104
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/bolt-close-2.wav",
+           "size": 16252
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/bolt-open-1.wav",
+           "size": 17232
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/bolt-open-2.wav",
+           "size": 17134
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/clip-in-1.wav",
+           "size": 21776
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/clip-in-2.wav",
+           "size": 21744
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/dry-1.wav",
+           "size": 5896
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/dry-2.wav",
+           "size": 5836
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/mag-in-1.wav",
+           "size": 10244
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/mag-in-2.wav",
+           "size": 10286
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/round-in-1.wav",
+           "size": 8940
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/round-in-2.wav",
+           "size": 8954
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/shot-walls-1.wav",
+           "size": 37062
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/shot-walls-2.wav",
+           "size": 40366
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/lahti-l39/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/lahti-l39/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "lebel-m1886",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/bolt-close-1.wav",
+           "size": 16192
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/bolt-close-2.wav",
+           "size": 16122
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/bolt-open-1.wav",
+           "size": 17148
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/bolt-open-2.wav",
+           "size": 17140
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/clip-in-1.wav",
+           "size": 21824
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/clip-in-2.wav",
+           "size": 21778
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/dry-1.wav",
+           "size": 5816
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/dry-2.wav",
+           "size": 5832
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/mag-in-1.wav",
+           "size": 10144
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/mag-in-2.wav",
+           "size": 10328
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/round-in-1.wav",
+           "size": 8966
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/round-in-2.wav",
+           "size": 8978
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/shot-open-1.wav",
+           "size": 91564
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/shot-open-2.wav",
+           "size": 95016
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/shot-walls-1.wav",
+           "size": 40302
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/shot-walls-2.wav",
+           "size": 40044
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/lebel-m1886/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "m1-garand",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/bolt-close-1.wav",
+           "size": 16118
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/bolt-close-2.wav",
+           "size": 16112
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/bolt-open-1.wav",
+           "size": 17198
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/bolt-open-2.wav",
+           "size": 17144
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/clip-in-1.wav",
+           "size": 21822
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/clip-in-2.wav",
+           "size": 21812
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/dry-1.wav",
+           "size": 5700
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/dry-2.wav",
+           "size": 5694
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/mag-in-1.wav",
+           "size": 10186
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/mag-in-2.wav",
+           "size": 10312
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/round-in-1.wav",
+           "size": 8982
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/round-in-2.wav",
+           "size": 8906
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/shot-open-1.wav",
+           "size": 92792
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/shot-walls-1.wav",
+           "size": 40482
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/shot-walls-2.wav",
+           "size": 38236
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/m1-garand/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/m1-garand/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "m1903a1-springfield",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/bolt-close-1.wav",
+           "size": 16232
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/bolt-close-2.wav",
+           "size": 16208
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/bolt-open-1.wav",
+           "size": 17256
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/bolt-open-2.wav",
+           "size": 17206
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/clip-in-1.wav",
+           "size": 21788
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/clip-in-2.wav",
+           "size": 21804
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/dry-1.wav",
+           "size": 5844
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/dry-2.wav",
+           "size": 5842
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/mag-in-1.wav",
+           "size": 10234
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/mag-in-2.wav",
+           "size": 10288
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/round-in-1.wav",
+           "size": 9032
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/round-in-2.wav",
+           "size": 9172
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/shot-open-2.wav",
+           "size": 92754
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/shot-walls-1.wav",
+           "size": 40628
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/shot-walls-2.wav",
+           "size": 39784
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/m1903a1-springfield/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "m1911",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/bolt-close-1.wav",
+           "size": 16070
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/bolt-close-2.wav",
+           "size": 16178
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/bolt-open-1.wav",
+           "size": 17216
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/bolt-open-2.wav",
+           "size": 17096
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/clip-in-1.wav",
+           "size": 21630
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/clip-in-2.wav",
+           "size": 21832
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/dry-1.wav",
+           "size": 5878
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/dry-2.wav",
+           "size": 5800
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/mag-in-1.wav",
+           "size": 10162
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/mag-in-2.wav",
+           "size": 10288
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/round-in-1.wav",
+           "size": 8772
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/round-in-2.wav",
+           "size": 9050
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/shot-indoor-1.wav",
+           "size": 57870
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/shot-indoor-2.wav",
+           "size": 57872
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/shot-open-2.wav",
+           "size": 95940
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/shot-walls-1.wav",
+           "size": 40554
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/shot-walls-2.wav",
+           "size": 36058
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/m1911/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/m1911/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/m1911/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "mas-36",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/bolt-close-1.wav",
+           "size": 16142
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/bolt-close-2.wav",
+           "size": 16104
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/bolt-open-1.wav",
+           "size": 17210
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/bolt-open-2.wav",
+           "size": 17050
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/clip-in-1.wav",
+           "size": 21862
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/clip-in-2.wav",
+           "size": 21918
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/dry-1.wav",
+           "size": 5752
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/dry-2.wav",
+           "size": 5802
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/mag-in-1.wav",
+           "size": 10254
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/mag-in-2.wav",
+           "size": 10276
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/mag-out-2.wav",
+           "size": 10282
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/round-in-1.wav",
+           "size": 8954
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/round-in-2.wav",
+           "size": 8856
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/shot-walls-1.wav",
+           "size": 40190
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/shot-walls-2.wav",
+           "size": 39168
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/mas-36/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/mas-36/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "mauser-c96",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/bolt-close-1.wav",
+           "size": 16150
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/bolt-close-2.wav",
+           "size": 16196
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/bolt-open-1.wav",
+           "size": 17126
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/bolt-open-2.wav",
+           "size": 17238
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/clip-in-1.wav",
+           "size": 21532
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/clip-in-2.wav",
+           "size": 21740
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/dry-1.wav",
+           "size": 5954
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/dry-2.wav",
+           "size": 5626
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/mag-in-1.wav",
+           "size": 10198
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/mag-in-2.wav",
+           "size": 10152
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/round-in-1.wav",
+           "size": 8902
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/round-in-2.wav",
+           "size": 9108
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/shot-indoor-1.wav",
+           "size": 59042
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/shot-indoor-2.wav",
+           "size": 59036
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/shot-walls-1.wav",
+           "size": 38808
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/shot-walls-2.wav",
+           "size": 39736
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/mauser-c96/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/mauser-c96/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "mp28",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/bolt-close-1.wav",
+           "size": 16174
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/bolt-close-2.wav",
+           "size": 16194
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/bolt-open-1.wav",
+           "size": 17246
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/bolt-open-2.wav",
+           "size": 17060
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/clip-in-1.wav",
+           "size": 21764
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/clip-in-2.wav",
+           "size": 21710
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/dry-1.wav",
+           "size": 5732
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/dry-2.wav",
+           "size": 5584
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/mag-in-1.wav",
+           "size": 10308
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/mag-in-2.wav",
+           "size": 10182
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/round-in-1.wav",
+           "size": 8854
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/round-in-2.wav",
+           "size": 8784
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/shot-indoor-1.wav",
+           "size": 57872
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/shot-indoor-2.wav",
+           "size": 57882
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/shot-walls-1.wav",
+           "size": 39632
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/shot-walls-2.wav",
+           "size": 39552
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/mp28/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/mp28/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/mp28/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "mp40",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/bolt-close-1.wav",
+           "size": 16222
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/bolt-close-2.wav",
+           "size": 16240
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/bolt-open-1.wav",
+           "size": 17050
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/bolt-open-2.wav",
+           "size": 17096
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/clip-in-1.wav",
+           "size": 21804
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/clip-in-2.wav",
+           "size": 21762
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/dry-1.wav",
+           "size": 5760
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/dry-2.wav",
+           "size": 5848
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/mag-in-1.wav",
+           "size": 10264
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/mag-in-2.wav",
+           "size": 10184
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/mag-out-2.wav",
+           "size": 10280
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/round-in-1.wav",
+           "size": 8832
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/round-in-2.wav",
+           "size": 8862
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/shot-indoor-1.wav",
+           "size": 57878
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/shot-indoor-2.wav",
+           "size": 57868
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/shot-open-1.wav",
+           "size": 89140
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/shot-walls-1.wav",
+           "size": 40440
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/shot-walls-2.wav",
+           "size": 39850
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/mp40/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/mp40/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/mp40/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "p14-enfield",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/bolt-close-1.wav",
+           "size": 16192
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/bolt-close-2.wav",
+           "size": 16074
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/bolt-open-1.wav",
+           "size": 17292
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/bolt-open-2.wav",
+           "size": 17232
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/clip-in-1.wav",
+           "size": 21832
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/clip-in-2.wav",
+           "size": 21898
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/dry-1.wav",
+           "size": 5840
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/dry-2.wav",
+           "size": 5826
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/mag-in-1.wav",
+           "size": 10262
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/mag-in-2.wav",
+           "size": 10226
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/round-in-1.wav",
+           "size": 9020
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/round-in-2.wav",
+           "size": 8890
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/shot-walls-1.wav",
+           "size": 38592
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/shot-walls-2.wav",
+           "size": 40490
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/p14-enfield/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/p14-enfield/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "ppsh-41",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/bolt-close-1.wav",
+           "size": 16136
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/bolt-close-2.wav",
+           "size": 16098
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/bolt-open-1.wav",
+           "size": 17252
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/bolt-open-2.wav",
+           "size": 17086
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/clip-in-1.wav",
+           "size": 21690
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/clip-in-2.wav",
+           "size": 21742
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/dry-1.wav",
+           "size": 5826
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/dry-2.wav",
+           "size": 5850
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/mag-in-1.wav",
+           "size": 10280
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/mag-in-2.wav",
+           "size": 10254
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/round-in-1.wav",
+           "size": 8828
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/round-in-2.wav",
+           "size": 8584
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/shot-indoor-1.wav",
+           "size": 59586
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/shot-indoor-2.wav",
+           "size": 59048
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/shot-open-2.wav",
+           "size": 95272
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/shot-walls-1.wav",
+           "size": 38582
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/shot-walls-2.wav",
+           "size": 36786
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/ppsh-41/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/ppsh-41/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "remington-model-8",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/bolt-close-1.wav",
+           "size": 16198
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/bolt-close-2.wav",
+           "size": 16206
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/bolt-open-1.wav",
+           "size": 17264
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/bolt-open-2.wav",
+           "size": 17204
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/clip-in-1.wav",
+           "size": 21726
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/clip-in-2.wav",
+           "size": 21872
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/dry-1.wav",
+           "size": 5842
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/dry-2.wav",
+           "size": 5786
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/mag-in-1.wav",
+           "size": 10292
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/mag-in-2.wav",
+           "size": 10248
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/mag-out-2.wav",
+           "size": 10282
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/round-in-1.wav",
+           "size": 8840
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/round-in-2.wav",
+           "size": 8584
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/shot-walls-1.wav",
+           "size": 39182
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/shot-walls-2.wav",
+           "size": 39080
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/remington-model-8/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/remington-model-8/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "ross-mk3",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/bolt-close-1.wav",
+           "size": 16262
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/bolt-close-2.wav",
+           "size": 16238
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/bolt-open-1.wav",
+           "size": 17180
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/bolt-open-2.wav",
+           "size": 17212
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/clip-in-1.wav",
+           "size": 21942
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/clip-in-2.wav",
+           "size": 21874
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/dry-1.wav",
+           "size": 5790
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/dry-2.wav",
+           "size": 5878
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/mag-in-1.wav",
+           "size": 10166
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/mag-in-2.wav",
+           "size": 10332
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/round-in-1.wav",
+           "size": 8976
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/round-in-2.wav",
+           "size": 8864
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/shot-open-1.wav",
+           "size": 91494
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/shot-walls-1.wav",
+           "size": 40536
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/shot-walls-2.wav",
+           "size": 39418
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/ross-mk3/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/ross-mk3/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "ruger-10-22",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/bolt-close-1.wav",
+           "size": 16084
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/bolt-close-2.wav",
+           "size": 16082
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/bolt-open-1.wav",
+           "size": 17270
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/bolt-open-2.wav",
+           "size": 17276
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/clip-in-1.wav",
+           "size": 21822
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/clip-in-2.wav",
+           "size": 21928
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/dry-1.wav",
+           "size": 5784
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/dry-2.wav",
+           "size": 5746
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/mag-in-1.wav",
+           "size": 10342
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/mag-in-2.wav",
+           "size": 10292
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/mag-out-1.wav",
+           "size": 10282
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/round-in-1.wav",
+           "size": 8892
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/round-in-2.wav",
+           "size": 8932
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/shot-indoor-1.wav",
+           "size": 45050
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/shot-indoor-2.wav",
+           "size": 45048
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/shot-open-1.wav",
+           "size": 79442
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/shot-open-2.wav",
+           "size": 86436
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/shot-walls-1.wav",
+           "size": 30124
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/shot-walls-2.wav",
+           "size": 30488
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/ruger-10-22/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "smle-mk3",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/bolt-close-1.wav",
+           "size": 16182
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/bolt-close-2.wav",
+           "size": 16162
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/bolt-open-1.wav",
+           "size": 17194
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/bolt-open-2.wav",
+           "size": 17126
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/clip-in-1.wav",
+           "size": 21862
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/clip-in-2.wav",
+           "size": 21778
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/dry-1.wav",
+           "size": 5958
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/dry-2.wav",
+           "size": 5830
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/mag-in-1.wav",
+           "size": 10338
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/mag-in-2.wav",
+           "size": 10326
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/round-in-1.wav",
+           "size": 8996
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/round-in-2.wav",
+           "size": 8758
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/shot-walls-1.wav",
+           "size": 36174
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/shot-walls-2.wav",
+           "size": 40320
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/smle-mk3/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/smle-mk3/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "sterling",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/bolt-close-1.wav",
+           "size": 16090
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/bolt-close-2.wav",
+           "size": 16128
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/bolt-open-1.wav",
+           "size": 17126
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/bolt-open-2.wav",
+           "size": 17224
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/clip-in-1.wav",
+           "size": 21840
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/clip-in-2.wav",
+           "size": 21782
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/dry-1.wav",
+           "size": 5670
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/dry-2.wav",
+           "size": 5962
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/mag-in-1.wav",
+           "size": 10124
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/mag-in-2.wav",
+           "size": 10276
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/round-in-1.wav",
+           "size": 9032
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/round-in-2.wav",
+           "size": 9014
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/shot-indoor-1.wav",
+           "size": 57880
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/shot-indoor-2.wav",
+           "size": 57878
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/shot-walls-1.wav",
+           "size": 38554
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/shot-walls-2.wav",
+           "size": 40282
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/sterling/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/sterling/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/sterling/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "stg-44",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/bolt-close-1.wav",
+           "size": 16086
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/bolt-close-2.wav",
+           "size": 16162
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/bolt-open-1.wav",
+           "size": 17182
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/bolt-open-2.wav",
+           "size": 17264
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/clip-in-1.wav",
+           "size": 21756
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/clip-in-2.wav",
+           "size": 21836
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/dry-1.wav",
+           "size": 5648
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/dry-2.wav",
+           "size": 5820
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/mag-in-1.wav",
+           "size": 10214
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/mag-in-2.wav",
+           "size": 10254
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/round-in-1.wav",
+           "size": 8938
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/round-in-2.wav",
+           "size": 8980
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/shot-open-1.wav",
+           "size": 95950
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/shot-walls-1.wav",
+           "size": 39582
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/shot-walls-2.wav",
+           "size": 40544
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/stg-44/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/stg-44/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "svt-40",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/bolt-close-1.wav",
+           "size": 16188
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/bolt-close-2.wav",
+           "size": 16136
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/bolt-open-1.wav",
+           "size": 17246
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/bolt-open-2.wav",
+           "size": 17270
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/clip-in-1.wav",
+           "size": 21700
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/clip-in-2.wav",
+           "size": 21896
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/dry-1.wav",
+           "size": 5776
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/dry-2.wav",
+           "size": 5836
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/mag-in-1.wav",
+           "size": 10198
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/mag-in-2.wav",
+           "size": 10342
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/round-in-1.wav",
+           "size": 8586
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/round-in-2.wav",
+           "size": 9012
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/shot-open-2.wav",
+           "size": 91766
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/shot-walls-1.wav",
+           "size": 39192
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/shot-walls-2.wav",
+           "size": 38812
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/svt-40/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/svt-40/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "thompson-m1",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/bolt-close-1.wav",
+           "size": 16186
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/bolt-close-2.wav",
+           "size": 16036
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/bolt-open-1.wav",
+           "size": 17156
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/bolt-open-2.wav",
+           "size": 17224
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/clip-in-1.wav",
+           "size": 21902
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/clip-in-2.wav",
+           "size": 21754
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/dry-1.wav",
+           "size": 5850
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/dry-2.wav",
+           "size": 5848
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/mag-in-1.wav",
+           "size": 10328
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/mag-in-2.wav",
+           "size": 10300
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/mag-out-1.wav",
+           "size": 10282
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/round-in-1.wav",
+           "size": 9282
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/round-in-2.wav",
+           "size": 8802
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/shot-indoor-1.wav",
+           "size": 57878
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/shot-indoor-2.wav",
+           "size": 57870
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/shot-open-1.wav",
+           "size": 89724
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/shot-open-2.wav",
+           "size": 91190
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/shot-walls-1.wav",
+           "size": 39140
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/shot-walls-2.wav",
+           "size": 40170
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/thompson-m1/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/thompson-m1/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "tt-pistol",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/bolt-close-1.wav",
+           "size": 16024
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/bolt-close-2.wav",
+           "size": 16172
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/bolt-open-1.wav",
+           "size": 17076
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/bolt-open-2.wav",
+           "size": 17206
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/clip-in-1.wav",
+           "size": 21786
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/clip-in-2.wav",
+           "size": 21780
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/dry-1.wav",
+           "size": 5836
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/dry-2.wav",
+           "size": 5688
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/mag-in-1.wav",
+           "size": 10176
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/mag-in-2.wav",
+           "size": 10134
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/round-in-1.wav",
+           "size": 8904
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/round-in-2.wav",
+           "size": 8986
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/shot-indoor-1.wav",
+           "size": 59036
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/shot-indoor-2.wav",
+           "size": 59036
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/shot-open-1.wav",
+           "size": 89156
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/shot-open-2.wav",
+           "size": 94076
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/shot-walls-1.wav",
+           "size": 39686
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/shot-walls-2.wav",
+           "size": 39400
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/tt-pistol/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/tt-pistol/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "vetterli-m78",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/bolt-close-1.wav",
+           "size": 16112
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/bolt-close-2.wav",
+           "size": 16164
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/bolt-open-1.wav",
+           "size": 17286
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/bolt-open-2.wav",
+           "size": 17290
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/clip-in-1.wav",
+           "size": 21842
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/clip-in-2.wav",
+           "size": 21826
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/dry-1.wav",
+           "size": 5808
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/dry-2.wav",
+           "size": 5846
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/mag-in-1.wav",
+           "size": 10198
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/mag-in-2.wav",
+           "size": 10196
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/round-in-1.wav",
+           "size": 8964
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/round-in-2.wav",
+           "size": 8930
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/shot-indoor-1.wav",
+           "size": 63702
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/shot-indoor-2.wav",
+           "size": 63704
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/shot-walls-1.wav",
+           "size": 39992
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/shot-walls-2.wav",
+           "size": 39412
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/vetterli-m78/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "vz-52",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/bolt-close-1.wav",
+           "size": 16142
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/bolt-close-2.wav",
+           "size": 16114
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/bolt-open-1.wav",
+           "size": 17282
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/bolt-open-2.wav",
+           "size": 17072
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/clip-in-1.wav",
+           "size": 21872
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/clip-in-2.wav",
+           "size": 21870
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/dry-1.wav",
+           "size": 5928
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/dry-2.wav",
+           "size": 5664
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/mag-in-1.wav",
+           "size": 10336
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/mag-in-2.wav",
+           "size": 10192
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/mag-out-2.wav",
+           "size": 10282
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/round-in-1.wav",
+           "size": 8936
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/round-in-2.wav",
+           "size": 9060
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/shot-walls-1.wav",
+           "size": 34610
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/shot-walls-2.wav",
+           "size": 39008
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/vz-52/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/vz-52/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "winchester-1866",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/bolt-close-1.wav",
+           "size": 16222
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/bolt-close-2.wav",
+           "size": 16234
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/bolt-open-1.wav",
+           "size": 14616
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/bolt-open-2.wav",
+           "size": 14748
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/clip-in-1.wav",
+           "size": 21816
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/clip-in-2.wav",
+           "size": 21816
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/dry-1.wav",
+           "size": 5820
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/dry-2.wav",
+           "size": 5804
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/mag-in-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/mag-in-2.wav",
+           "size": 10260
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/mag-out-1.wav",
+           "size": 10282
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/round-in-1.wav",
+           "size": 9102
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/round-in-2.wav",
+           "size": 8838
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/shot-indoor-1.wav",
+           "size": 56682
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/shot-indoor-2.wav",
+           "size": 56140
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/shot-open-2.wav",
+           "size": 94298
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/shot-walls-1.wav",
+           "size": 40346
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/shot-walls-2.wav",
+           "size": 39400
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1866/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/winchester-1866/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "winchester-1895",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/bolt-close-1.wav",
+           "size": 16246
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/bolt-close-2.wav",
+           "size": 16132
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/bolt-open-1.wav",
+           "size": 14672
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/bolt-open-2.wav",
+           "size": 14452
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/clip-in-1.wav",
+           "size": 21738
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/clip-in-2.wav",
+           "size": 21708
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/dry-1.wav",
+           "size": 5846
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/dry-2.wav",
+           "size": 5842
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/mag-in-1.wav",
+           "size": 10224
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/mag-in-2.wav",
+           "size": 10236
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/mag-out-2.wav",
+           "size": 10282
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/round-in-1.wav",
+           "size": 8752
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/round-in-2.wav",
+           "size": 9038
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/shot-open-2.wav",
+           "size": 91564
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/shot-walls-1.wav",
+           "size": 39736
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/shot-walls-2.wav",
+           "size": 40056
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1895/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/winchester-1895/sounds.json",
+           "size": 1047
+          }
+         ]
+        },
+        {
+         "name": "winchester-1910",
+         "assets": [
+          {
+           "name": "bolt-close-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/bolt-close-1.wav",
+           "size": 16122
+          },
+          {
+           "name": "bolt-close-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/bolt-close-2.wav",
+           "size": 16102
+          },
+          {
+           "name": "bolt-open-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/bolt-open-1.wav",
+           "size": 17156
+          },
+          {
+           "name": "bolt-open-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/bolt-open-2.wav",
+           "size": 17184
+          },
+          {
+           "name": "clip-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/clip-in-1.wav",
+           "size": 21806
+          },
+          {
+           "name": "clip-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/clip-in-2.wav",
+           "size": 21804
+          },
+          {
+           "name": "dry-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/dry-1.wav",
+           "size": 5838
+          },
+          {
+           "name": "dry-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/dry-2.wav",
+           "size": 5718
+          },
+          {
+           "name": "mag-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/mag-in-1.wav",
+           "size": 10232
+          },
+          {
+           "name": "mag-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/mag-in-2.wav",
+           "size": 10302
+          },
+          {
+           "name": "mag-out-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/mag-out-1.wav",
+           "size": 10284
+          },
+          {
+           "name": "mag-out-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/mag-out-2.wav",
+           "size": 10284
+          },
+          {
+           "name": "round-in-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/round-in-1.wav",
+           "size": 8946
+          },
+          {
+           "name": "round-in-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/round-in-2.wav",
+           "size": 9078
+          },
+          {
+           "name": "shot-indoor-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/shot-indoor-1.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-indoor-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/shot-indoor-2.wav",
+           "size": 64044
+          },
+          {
+           "name": "shot-open-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/shot-open-1.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-open-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/shot-open-2.wav",
+           "size": 96044
+          },
+          {
+           "name": "shot-walls-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/shot-walls-1.wav",
+           "size": 40382
+          },
+          {
+           "name": "shot-walls-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/shot-walls-2.wav",
+           "size": 40224
+          },
+          {
+           "name": "slide-1.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/slide-1.wav",
+           "size": 19244
+          },
+          {
+           "name": "slide-2.wav",
+           "file": "/assets/audio/effects/weapons/winchester-1910/slide-2.wav",
+           "size": 19244
+          },
+          {
+           "name": "sounds.json",
+           "file": "/assets/audio/effects/weapons/winchester-1910/sounds.json",
+           "size": 1047
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
      "name": "songs",
      "assets": [
       {
@@ -3508,17 +7908,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/base/model.blend",
-         "size": 126995
+         "size": 131298
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/base/model.glb",
-         "size": 243076
+         "size": 294576
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/base/model.rig.json",
-         "size": 3484
+         "size": 5346
         }
        ]
       },
@@ -3644,6 +8044,86 @@
          "name": "Sword.glb",
          "file": "/assets/models/characters/knight/Sword.glb",
          "size": 38380
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/knight/character.json",
+         "size": 1104
+        }
+       ]
+      },
+      {
+       "name": "ww2-soldier-german",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "WW2 soldier low poly.fbx",
+           "file": "/assets/models/characters/ww2-soldier-german/source/WW2 soldier low poly.fbx",
+           "size": 2591644
+          }
+         ]
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/ww2-soldier-german/character.json",
+         "size": 658
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/ww2-soldier-german/model.blend",
+         "size": 257269
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/ww2-soldier-german/model.glb",
+         "size": 478152
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/ww2-soldier-german/model.rig.json",
+         "size": 5397
+        }
+       ]
+      },
+      {
+       "name": "ww2-soldier-us",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "Color Pallete.jpg",
+           "file": "/assets/models/characters/ww2-soldier-us/source/Color Pallete.jpg",
+           "size": 16855
+          },
+          {
+           "name": "WW2Soldier.fbx",
+           "file": "/assets/models/characters/ww2-soldier-us/source/WW2Soldier.fbx",
+           "size": 131964
+          }
+         ]
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/ww2-soldier-us/character.json",
+         "size": 654
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/ww2-soldier-us/model.blend",
+         "size": 143369
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/ww2-soldier-us/model.glb",
+         "size": 191168
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/ww2-soldier-us/model.rig.json",
+         "size": 5367
         }
        ]
       }
@@ -10853,6 +15333,101 @@
        ]
       },
       {
+       "name": "attachments",
+       "assets": [
+        {
+         "name": "scope-1",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/attachments/scope-1/about/license.txt",
+             "size": 364
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/attachments/scope-1/model.blend",
+           "size": 786116
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/attachments/scope-1/model.glb",
+           "size": 23080
+          },
+          {
+           "name": "scope.json",
+           "file": "/assets/models/weapons/attachments/scope-1/scope.json",
+           "size": 195
+          }
+         ]
+        },
+        {
+         "name": "scope-2",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/attachments/scope-2/about/license.txt",
+             "size": 364
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/attachments/scope-2/model.blend",
+           "size": 787932
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/attachments/scope-2/model.glb",
+           "size": 27348
+          },
+          {
+           "name": "scope.json",
+           "file": "/assets/models/weapons/attachments/scope-2/scope.json",
+           "size": 189
+          }
+         ]
+        },
+        {
+         "name": "scope-3",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/attachments/scope-3/about/license.txt",
+             "size": 364
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/attachments/scope-3/model.blend",
+           "size": 786700
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/attachments/scope-3/model.glb",
+           "size": 23936
+          },
+          {
+           "name": "scope.json",
+           "file": "/assets/models/weapons/attachments/scope-3/scope.json",
+           "size": 191
+          }
+         ]
+        }
+       ]
+      },
+      {
        "name": "grenades",
        "assets": [
         {
@@ -10906,6 +15481,366 @@
        "name": "guns",
        "assets": [
         {
+         "name": "arisaka-type-99",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/model.blend",
+           "size": 1088068
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/model.glb",
+           "size": 164552
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/weapon.json",
+           "size": 681
+          }
+         ]
+        },
+        {
+         "name": "beretta-m1951",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/beretta-m1951/model.blend",
+           "size": 938209
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/beretta-m1951/model.glb",
+           "size": 173992
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/beretta-m1951/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
+         "name": "beretta-model-57",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/beretta-model-57/about/license.txt",
+             "size": 724
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/beretta-model-57/model.blend",
+           "size": 259447
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/beretta-model-57/model.glb",
+           "size": 419632
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/beretta-model-57/weapon.json",
+           "size": 458
+          }
+         ]
+        },
+        {
+         "name": "borchardt-c93",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/borchardt-c93/model.blend",
+           "size": 191531
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/borchardt-c93/model.glb",
+           "size": 187184
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/borchardt-c93/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
+         "name": "carcano-m1891",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/carcano-m1891/model.blend",
+           "size": 158147
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/carcano-m1891/model.glb",
+           "size": 127564
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/carcano-m1891/weapon.json",
+           "size": 533
+          }
+         ]
+        },
+        {
+         "name": "double-deuce",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/double-deuce/about/license.txt",
+             "size": 760
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/double-deuce/model.blend",
+           "size": 249835
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/double-deuce/model.glb",
+           "size": 391188
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/double-deuce/weapon.json",
+           "size": 461
+          }
+         ]
+        },
+        {
+         "name": "general-liu",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/general-liu/about/license.txt",
+             "size": 728
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/general-liu/model.blend",
+           "size": 214266
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/general-liu/model.glb",
+           "size": 219912
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/general-liu/weapon.json",
+           "size": 456
+          }
+         ]
+        },
+        {
+         "name": "gewehr-43",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/gewehr-43/model.blend",
+           "size": 896882
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/gewehr-43/model.glb",
+           "size": 134668
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/gewehr-43/weapon.json",
+           "size": 520
+          }
+         ]
+        },
+        {
+         "name": "gewehr-88",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/gewehr-88/about/license.txt",
+             "size": 696
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/gewehr-88/model.blend",
+           "size": 163847
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/gewehr-88/model.glb",
+           "size": 185168
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/gewehr-88/weapon.json",
+           "size": 465
+          }
+         ]
+        },
+        {
+         "name": "husqvarna-m40",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/husqvarna-m40/model.blend",
+           "size": 1136804
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/husqvarna-m40/model.glb",
+           "size": 196348
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/husqvarna-m40/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
+         "name": "ithaca-m37",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/ithaca-m37/model.blend",
+           "size": 820740
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/ithaca-m37/model.glb",
+           "size": 69344
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/ithaca-m37/weapon.json",
+           "size": 453
+          }
+         ]
+        },
+        {
+         "name": "k31",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/k31/model.blend",
+           "size": 170838
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/k31/model.glb",
+           "size": 146704
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/k31/weapon.json",
+           "size": 532
+          }
+         ]
+        },
+        {
+         "name": "kar98k",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/kar98k/model.blend",
+           "size": 894286
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/kar98k/model.glb",
+           "size": 157968
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/kar98k/weapon.json",
+           "size": 600
+          }
+         ]
+        },
+        {
+         "name": "kropatschek",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/kropatschek/model.blend",
+           "size": 849173
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/kropatschek/model.glb",
+           "size": 112176
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/kropatschek/weapon.json",
+           "size": 536
+          }
+         ]
+        },
+        {
+         "name": "lahti-l39",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/lahti-l39/model.blend",
+           "size": 325080
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/lahti-l39/model.glb",
+           "size": 440820
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/lahti-l39/weapon.json",
+           "size": 461
+          }
+         ]
+        },
+        {
+         "name": "lebel-m1886",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/lebel-m1886/model.blend",
+           "size": 157610
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/lebel-m1886/model.glb",
+           "size": 126240
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/lebel-m1886/weapon.json",
+           "size": 596
+          }
+         ]
+        },
+        {
          "name": "m1-garand",
          "assets": [
           {
@@ -10942,6 +15877,31 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/m1-garand/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/m1-garand/weapon.json",
+           "size": 656
+          }
+         ]
+        },
+        {
+         "name": "m1903a1-springfield",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/model.blend",
+           "size": 841699
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/model.glb",
+           "size": 105148
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/weapon.json",
+           "size": 617
           }
          ]
         },
@@ -10982,6 +15942,41 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/m1911/model.rig.json",
            "size": 548
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/m1911/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
+         "name": "mas-36",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/mas-36/about/license.txt",
+             "size": 684
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/mas-36/model.blend",
+           "size": 177614
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/mas-36/model.glb",
+           "size": 244576
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/mas-36/weapon.json",
+           "size": 452
           }
          ]
         },
@@ -10989,39 +15984,119 @@
          "name": "mauser-c96",
          "assets": [
           {
-           "name": "gun.blend",
-           "file": "/assets/models/weapons/guns/mauser-c96/gun.blend",
-           "size": 127516
-          },
-          {
-           "name": "gun.glb",
-           "file": "/assets/models/weapons/guns/mauser-c96/gun.glb",
-           "size": 87864
-          },
-          {
-           "name": "mag.blend",
-           "file": "/assets/models/weapons/guns/mauser-c96/mag.blend",
-           "size": 97171
-          },
-          {
-           "name": "mag.glb",
-           "file": "/assets/models/weapons/guns/mauser-c96/mag.glb",
-           "size": 4344
-          },
-          {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/mauser-c96/model.blend",
-           "size": 92498
+           "size": 164568
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/mauser-c96/model.glb",
-           "size": 218172
+           "size": 148404
           },
           {
-           "name": "model.rig.json",
-           "file": "/assets/models/weapons/guns/mauser-c96/model.rig.json",
-           "size": 548
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/mauser-c96/weapon.json",
+           "size": 99
+          }
+         ]
+        },
+        {
+         "name": "mp28",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/mp28/model.blend",
+           "size": 227951
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/mp28/model.glb",
+           "size": 253324
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/mp28/weapon.json",
+           "size": 458
+          }
+         ]
+        },
+        {
+         "name": "mp40",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/mp40/model.blend",
+           "size": 214898
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/mp40/model.glb",
+           "size": 234240
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/mp40/weapon.json",
+           "size": 461
+          }
+         ]
+        },
+        {
+         "name": "nagant-m1895",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/nagant-m1895/model.blend",
+           "size": 183437
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/nagant-m1895/model.glb",
+           "size": 172148
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/nagant-m1895/weapon.json",
+           "size": 98
+          }
+         ]
+        },
+        {
+         "name": "nambu-type-14",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/nambu-type-14/model.blend",
+           "size": 200915
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/nambu-type-14/model.glb",
+           "size": 202184
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/nambu-type-14/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
+         "name": "p14-enfield",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/p14-enfield/model.blend",
+           "size": 933426
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/p14-enfield/model.glb",
+           "size": 160084
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/p14-enfield/weapon.json",
+           "size": 530
           }
          ]
         },
@@ -11062,6 +16137,121 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/ppsh-41/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/ppsh-41/weapon.json",
+           "size": 464
+          }
+         ]
+        },
+        {
+         "name": "remington-model-8",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/remington-model-8/model.blend",
+           "size": 823163
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/remington-model-8/model.glb",
+           "size": 90608
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/remington-model-8/weapon.json",
+           "size": 524
+          }
+         ]
+        },
+        {
+         "name": "ross-mk3",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/ross-mk3/model.blend",
+           "size": 163432
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/ross-mk3/model.glb",
+           "size": 130388
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/ross-mk3/weapon.json",
+           "size": 531
+          }
+         ]
+        },
+        {
+         "name": "ruger-10-22",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/ruger-10-22/model.blend",
+           "size": 860611
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/ruger-10-22/model.glb",
+           "size": 87956
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/ruger-10-22/weapon.json",
+           "size": 515
+          }
+         ]
+        },
+        {
+         "name": "smle-mk3",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/smle-mk3/about/license.txt",
+             "size": 704
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/smle-mk3/model.blend",
+           "size": 286164
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/smle-mk3/model.glb",
+           "size": 409088
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/smle-mk3/weapon.json",
+           "size": 523
+          }
+         ]
+        },
+        {
+         "name": "sterling",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/sterling/model.blend",
+           "size": 335738
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/sterling/model.glb",
+           "size": 462376
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/sterling/weapon.json",
+           "size": 456
           }
          ]
         },
@@ -11102,6 +16292,41 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/stg-44/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/stg-44/weapon.json",
+           "size": 505
+          }
+         ]
+        },
+        {
+         "name": "svt-40",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/svt-40/about/license.txt",
+             "size": 684
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/svt-40/model.blend",
+           "size": 299745
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/svt-40/model.glb",
+           "size": 379668
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/svt-40/weapon.json",
+           "size": 519
           }
          ]
         },
@@ -11142,6 +16367,11 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/thompson-m1/model.rig.json",
            "size": 492
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/thompson-m1/weapon.json",
+           "size": 519
           }
          ]
         },
@@ -11182,6 +16412,161 @@
            "name": "model.rig.json",
            "file": "/assets/models/weapons/guns/tt-pistol/model.rig.json",
            "size": 548
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/tt-pistol/weapon.json",
+           "size": 98
+          }
+         ]
+        },
+        {
+         "name": "vetterli-m78",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/vetterli-m78/model.blend",
+           "size": 157499
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/vetterli-m78/model.glb",
+           "size": 123872
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/vetterli-m78/weapon.json",
+           "size": 455
+          }
+         ]
+        },
+        {
+         "name": "vz-52",
+         "assets": [
+          {
+           "name": "about",
+           "assets": [
+            {
+             "name": "license.txt",
+             "file": "/assets/models/weapons/guns/vz-52/about/license.txt",
+             "size": 678
+            }
+           ]
+          },
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/vz-52/model.blend",
+           "size": 273744
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/vz-52/model.glb",
+           "size": 403716
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/vz-52/weapon.json",
+           "size": 462
+          }
+         ]
+        },
+        {
+         "name": "webley-mk-vi",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/webley-mk-vi/model.blend",
+           "size": 180835
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/webley-mk-vi/model.glb",
+           "size": 158320
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/webley-mk-vi/weapon.json",
+           "size": 98
+          }
+         ]
+        },
+        {
+         "name": "welrod-mk2",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/welrod-mk2/model.blend",
+           "size": 147039
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/welrod-mk2/model.glb",
+           "size": 101600
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/welrod-mk2/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
+         "name": "winchester-1866",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/winchester-1866/model.blend",
+           "size": 828960
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/winchester-1866/model.glb",
+           "size": 96600
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/winchester-1866/weapon.json",
+           "size": 555
+          }
+         ]
+        },
+        {
+         "name": "winchester-1895",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/winchester-1895/model.blend",
+           "size": 921253
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/winchester-1895/model.glb",
+           "size": 144332
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/winchester-1895/weapon.json",
+           "size": 471
+          }
+         ]
+        },
+        {
+         "name": "winchester-1910",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/winchester-1910/model.blend",
+           "size": 1056229
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/winchester-1910/model.glb",
+           "size": 149036
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/winchester-1910/weapon.json",
+           "size": 456
           }
          ]
         }
