@@ -3,7 +3,10 @@ import { Camera } from '@papit/game-engine';
 import { Renderer, Model } from '@polywar/renderer';
 import { Matrix4 } from '@papit/matrix';
 import { GUNS } from '@polywar/weapons';
-import { Player, AimTuner } from '@polywar/player';
+import { Player, WeaponEditor } from '@polywar/player';
+import { CHARACTERS } from '@polywar/characters';
+const CHARACTER = 'polywar.character';
+const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange } from '@polywar/shooting-range';
 
@@ -23,7 +26,7 @@ let lastHit = '';
 const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: range.cast, surface: range.surface,
     scene: () => { model.draw(renderer, identity); drawStands(); },
-    character: '/assets/models/characters/knight/character.json',
+    character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
     worldDrawn: () => demo.endOcclusion(),
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
     guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? Object.keys(GUNS),
@@ -46,7 +49,7 @@ for (const s of range.solids)
 }
 await player.ready;
 // ---- aim tuning (T): the player's panel ----
-tuner = new AimTuner(player, document.body, { active: () => document.body.classList.contains('playing') });
+tuner = new WeaponEditor(player, document.body, { active: () => document.body.classList.contains('playing') });
 
 // ---- a gun over each case: turning slowly, muzzle along the case; F takes it ----
 const stands = range.stands.map((s, i) => ({ ...s, gun: i < player.carried.length ? i : -1 }));
@@ -77,6 +80,9 @@ const AO = 'polywar.ssao';
 demo.ssao = localStorage.getItem(AO) !== 'off';
 $('#ao').checked = demo.ssao;
 $('#ao').onchange = e => { demo.ssao = e.target.checked; localStorage.setItem(AO, demo.ssao ? 'on' : 'off'); };
+$('#character').innerHTML = Object.entries(CHARACTERS).map(([id, c]) => `<option value="${id}">${c.name}</option>`).join('');
+$('#character').value = CHARACTERS[characterId] ? characterId : 'ww2-soldier-us';
+$('#character').onchange = e => { localStorage.setItem(CHARACTER, e.target.value); void player.setCharacter(CHARACTERS[e.target.value].url); };
 $('#body').onchange = e => { player.showBody = e.target.checked; };
 $('#clear').onclick = () => { player.impacts.clear(); player.feel.debris.clear(); };
 $('#play').onclick = () => {

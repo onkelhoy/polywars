@@ -8,6 +8,9 @@ import type { Hold, Motion } from "./types";
  * breathes, kicks on a shot, dips on landing, goes down for a reload and across the chest at a sprint.
  * Everything in camera space (eye at 0, -z ahead); `world(camera)` for the world.
  */
+/** recoil spring rate (1/s): the peak comes at 1/RECOIL_W s */
+const RECOIL_W = 25;
+
 export class ViewModel {
     /** item model space -> camera space */
     readonly matrix: Mat4 = mat4();
@@ -34,10 +37,20 @@ export class ViewModel {
     set(hold: Hold) { this.hold = hold; }
     get current() { return this.hold; }
 
-    /** A shot: `kick` radians the muzzle jumps up, `side` either way (from `Gun.recoil()`). */
-    fire(recoil: { kick: number; side: number }) {
+    /** 0..1 how well the shooter holds the recoil: less = a bigger, wilder jump (tired / wounded lower it later) */
+    control = .5;
+
+    /** A shot: `kick` radians the muzzle jumps up, `side` either way, `impulse` kg·m/s push back (from `Gun.recoil()`). */
+    fire(recoil: { kick: number; side: number; impulse?: number }) {
         const w = this.hold.weight ?? 1, a = this.aimed;
-        this.kickSpring.kick(recoil.kick * 30 / w, recoil.side * 18 / w, (.6 - a * .25) / w);
+        this.kickSpring.kick(0, recoil.side * 18 / w, 0);
+        // one push into a critically damped spring: back toward the body and up in ~40 ms, eased home over ~200 ms.
+        // power: caliber energy over the gun's weight; less control and the hip (one hand worse) make it bigger and wilder
+        const h = this.hold, hip = (1 - a) * (h.fore ? .5 : 1), loose = 1 - this.control;
+        const p = (recoil.impulse ?? 4) / w * (1 - this.control * .6) * (1 + hip * .5);
+        const wild = loose * .6 + hip * .8, r = () => (Math.random() * 2 - 1) * wild;
+        const v = RECOIL_W * Math.E, up = Math.min(.12, p * .007) * (1 + r() * .4), back = Math.min(.35, p * .014);
+        this.recoilSpring.kick(up * v, back * v, up * r() * .6 * v, up * r() * .8 * v);
         this.viewSpring.kick(recoil.kick * 14, recoil.side * 6);
     }
 
@@ -57,6 +70,7 @@ export class ViewModel {
         // strafing leans it
         this.turn.target[2] = -(m.strafe ?? 0) * .012 * (1 - a * .6);
         this.turn.stiffness = 90 * w ** -.5;
+        this.recoilSpring.update(dt);
         this.turn.update(dt); this.shift.update(dt); this.kickSpring.update(dt); this.viewSpring.update(dt);
         this.view[0] = this.viewSpring.value[0]; this.view[1] = this.viewSpring.value[1];
 
@@ -70,11 +84,17 @@ export class ViewModel {
         this.lowered += (reload - this.lowered) * (1 - Math.exp(-dt * 10));
         const low = this.lowered, run = this.sprinting;
 
-        const ox = Math.cos(this.stride) * .014 * bob + Math.sin(t * 1.1) * .0025 * breath;
-        const oy = -Math.abs(Math.sin(this.stride)) * .02 * bob + Math.sin(t * 1.7) * .002 * breath - low * .07 - run * .06;
-        const oz = this.kickSpring.value[2] * .06 + low * .03;
-        const yaw = Math.sin(t * .8) * .004 * breath + this.kickSpring.value[1] * .03 + run * .7 * (h.fore ? 1 : .4);
-        const pitch = Math.sin(t * 1.3 + 1) * .004 * breath + this.kickSpring.value[0] * .03 + low * .35 - run * .25;
+        // moving stirs the sway up, standing still it settles over ~1.5 s
+        const stir = Math.min(1, m.speed / 4.5);
+        this.stirred += (stir - this.stirred) * (1 - Math.exp(-dt * (stir > this.stirred ? 4 : 1.5)));
+        const sway = breath * (1 + this.stirred * 2.5);
+        // aimed: no sliding (the eye / rear sight line stays put), only turning round the rear sight
+        const slide = 1 - a;
+        const ox = (Math.cos(this.stride) * .014 * bob + Math.sin(t * 1.1) * .0025 * breath) * slide;
+        const oy = (-Math.abs(Math.sin(this.stride)) * .02 * bob + Math.sin(t * 1.7) * .002 * breath) * slide - low * .07 - run * .06;
+        const oz = low * .03;
+        const yaw = Math.sin(t * .8) * .004 * sway + this.kickSpring.value[1] * .03 + run * .7 * (h.fore ? 1 : .4);
+        const pitch = Math.sin(t * 1.3 + 1) * .004 * sway + low * .35 - run * .25;
         const roll = Math.cos(this.stride) * .03 * bob - low * .55 + run * .35;
 
         // hip: grip at `hip`, the bore at the middle `converge` ahead; aimed: the sight on the eye line
@@ -86,15 +106,23 @@ export class ViewModel {
         const pivot: Vec3 = [mix(h.grip[0], h.sight[0], a), mix(h.grip[1], h.sight[1], a), mix(h.grip[2], h.sight[2], a)];
         // aimed: the sight line (not the bore) down the middle of the view, rear and front sight both on it
         const [lineYaw, linePitch] = h.front ? sightLine(h.sight, h.front) : [0, 0];
+        const ha = h.hipAngle ?? [0, 0, 0];
         const R = compose(mat4(), 0, 0, 0,
-            hipYaw * (1 - a) + (tune.angle[1] - lineYaw) * a + this.turn.value[0] + yaw,
-            hipPitch * (1 - a) + (tune.angle[0] - linePitch) * a + this.turn.value[1] + pitch,
-            this.turn.value[2] + roll + tune.angle[2] * a);
-        const T = compose(mat4(), P[0] + this.shift.value[0] + ox, P[1] + this.shift.value[1] + oy, P[2] + this.shift.value[2] + oz);
+            (hipYaw + ha[1]) * (1 - a) + (tune.angle[1] - lineYaw) * a + this.turn.value[0] + yaw,
+            (hipPitch + ha[0]) * (1 - a) + (tune.angle[0] - linePitch) * a + this.turn.value[1] + pitch,
+            this.turn.value[2] + roll + tune.angle[2] * a + ha[2] * (1 - a));
+        const T = compose(mat4(), P[0] + this.shift.value[0] * slide + ox, P[1] + this.shift.value[1] * slide + oy, P[2] + this.shift.value[2] * slide + oz);
         const back = compose(mat4(), -pivot[0], -pivot[1], -pivot[2]);
         multiply(this.matrix, T, multiply(mat4(), R, back));
+        // recoil turns round a point under the bore (the grip), not the sight
+        const g = h.grip, rc = this.recoilSpring.value;
+        const kick = multiply(mat4(), compose(mat4(), g[0], g[1], g[2] + rc[1], rc[2], rc[0], rc[3]), compose(mat4(), -g[0], -g[1], -g[2]));
+        multiply(this.matrix, this.matrix, kick);
     }
     private sprinting = 0;
+    /** recoil push: muzzle up (rad), back (m), yaw, roll (rad); critically damped */
+    private recoilSpring = new Spring(4, RECOIL_W ** 2, 2 * RECOIL_W);
+    private stirred = 0;
     private lowered = 0;
 
     /** camera space: where the bullet leaves and the way the bore points (unit) */
@@ -102,6 +130,9 @@ export class ViewModel {
         const d = direction(this.matrix, [0, 0, -1]), l = Math.hypot(...d);
         return { from: point(this.matrix, this.hold.muzzle), direction: [d[0] / l, d[1] / l, d[2] / l] };
     }
+
+    /** how far the gun trails the view's turn: [yaw, pitch] radians (elbows can trail with it) */
+    get lag(): [number, number] { return [this.turn.value[0], this.turn.value[1]]; }
 
     /** camera space: where the hands go (fore: none for one handed) */
     get hands(): { grip: Vec3; fore?: Vec3 } {

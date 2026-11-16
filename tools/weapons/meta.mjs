@@ -46,6 +46,13 @@ const GUNS = {
     "sterling": { action: "auto" },
     "ithaca-m37": { action: "pump" },
     "lahti-l39": { action: "semi" },
+    "beretta-m1951": { action: "pistol" },
+    "borchardt-c93": { action: "pistol" },
+    "husqvarna-m40": { action: "pistol" },
+    "nagant-m1895": { action: "pistol" },
+    "nambu-type-14": { action: "pistol" },
+    "webley-mk-vi": { action: "pistol" },
+    "welrod-mk2": { action: "pistol" },
 };
 
 /** JSON with short number arrays on one line */

@@ -2,6 +2,8 @@
 export type Caliber = {
     /** muzzle speed, m/s */
     speed: number;
+    /** what leaves the muzzle per shot (all balls for shot shells), g: with `speed` the recoil */
+    grams?: number;
     /** quadratic drag per metre (v = v0·e^(-drag·x)) */
     drag: number;
     /** seconds a bullet lives */

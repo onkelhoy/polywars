@@ -5,9 +5,10 @@ Rest pose is a T-pose (easy to map downloaded rigs onto). Height ~1.8 m, origin 
 
 Bones (Blender style names, .L/.R so mirror tools work):
   root > hips > spine > spine.1 > chest > neck > head
-                                  chest > shoulder > upper_arm > forearm > hand > thumb.1/2, index.1/2, fingers.1/2, prop
+                                  chest > shoulder > upper_arm > forearm > hand > thumb.1-3, index.1-3, fingers.1-3, prop
          hips > thigh > shin > foot > toe
   root > foot.ik, knee.pole, hand.ik, elbow.pole   (controls, not deforming)
+  hand > thumb.ik/pole, index.ik/pole, fingers.ik/pole   (finger tips, IK chain 3, 0 at rest)
 IK: shin -> foot.ik (pole knee.pole), forearm -> hand.ik (pole elbow.pole), chain 2.
 foot / hand copy the world rotation of foot.ik / hand.ik. Arm IK is 0 at rest (FK arms), on in fps clips.
 Mannequin: rigid parts, one vertex group per bone (whole limbs can come off later).
@@ -34,12 +35,15 @@ SIDE = {
     "upper_arm": ((.18, .01, 1.45), (.46, .03, 1.45), "shoulder", True),
     "forearm": ((.46, .03, 1.45), (.72, .01, 1.45), "upper_arm", True),
     "hand": ((.72, .01, 1.45), (.8, .01, 1.45), "forearm", True),
-    "thumb.1": ((.74, -.025, 1.44), (.775, -.055, 1.43), "hand", True),
-    "thumb.2": ((.775, -.055, 1.43), (.8, -.075, 1.425), "thumb.1", True),
-    "index.1": ((.8, -.022, 1.45), (.84, -.022, 1.45), "hand", True),
-    "index.2": ((.84, -.022, 1.45), (.875, -.022, 1.45), "index.1", True),
-    "fingers.1": ((.8, .012, 1.45), (.84, .012, 1.45), "hand", True),
-    "fingers.2": ((.84, .012, 1.45), (.87, .012, 1.45), "fingers.1", True),
+    "thumb.1": ((.74, -.025, 1.44), (.77, -.05, 1.432), "hand", True),
+    "thumb.2": ((.77, -.05, 1.432), (.79, -.067, 1.427), "thumb.1", True),
+    "thumb.3": ((.79, -.067, 1.427), (.805, -.08, 1.423), "thumb.2", True),
+    "index.1": ((.8, -.022, 1.45), (.835, -.022, 1.45), "hand", True),
+    "index.2": ((.835, -.022, 1.45), (.865, -.022, 1.45), "index.1", True),
+    "index.3": ((.865, -.022, 1.45), (.89, -.022, 1.45), "index.2", True),
+    "fingers.1": ((.8, .012, 1.45), (.835, .012, 1.45), "hand", True),
+    "fingers.2": ((.835, .012, 1.45), (.863, .012, 1.45), "fingers.1", True),
+    "fingers.3": ((.863, .012, 1.45), (.885, .012, 1.45), "fingers.2", True),
     "prop": ((.77, -.005, 1.43), (.77, -.105, 1.43), "hand", False),
     "thigh": ((.1, 0, .95), (.1, -.02, .52), "hips", True),
     "shin": ((.1, -.02, .52), (.1, .0, .09), "thigh", True),
@@ -50,7 +54,15 @@ SIDE = {
     "knee.pole": ((.1, -.6, .52), (.1, -.65, .52), "root", False),
     "hand.ik": ((.72, .01, 1.45), (.8, .01, 1.45), "root", False),
     "elbow.pole": ((.46, .5, 1.45), (.46, .55, 1.45), "root", False),
+    # finger tips + poles ride on the hand: move a tip to curl the finger (grip)
+    "thumb.ik": ((.805, -.08, 1.423), (.815, -.09, 1.42), "hand", False),
+    "thumb.pole": ((.79, -.11, 1.44), (.79, -.12, 1.44), "hand", False),
+    "index.ik": ((.89, -.022, 1.45), (.905, -.022, 1.45), "hand", False),
+    "index.pole": ((.835, -.022, 1.5), (.835, -.022, 1.51), "hand", False),
+    "fingers.ik": ((.885, .012, 1.45), (.9, .012, 1.45), "hand", False),
+    "fingers.pole": ((.835, .012, 1.5), (.835, .012, 1.51), "hand", False),
 }
+FINGERS = ("thumb", "index", "fingers")
 
 
 def bones():
@@ -107,7 +119,7 @@ def _armature():
     # colour sets like a Blender rig: controls stand out
     for b in data.bones:
         if not b.use_deform:
-            b.color.palette = "THEME09" if b.name.startswith(("foot.ik", "hand.ik")) else "THEME03"
+            b.color.palette = "THEME09" if b.name.startswith(("foot.ik", "hand.ik")) or b.name.endswith(".ik.L") or b.name.endswith(".ik.R") else "THEME03"
     return arm
 
 
@@ -126,6 +138,16 @@ def _constraints(arm):
             cr.name = "Copy Rotation"
             cr.target, cr.subtarget = arm, target
             cr.influence = weight
+        for f in FINGERS:
+            tip = f"{f}.3.{side}"
+            ik = arm.pose.bones[tip].constraints.new("IK")
+            ik.name = "IK"
+            ik.target, ik.subtarget = arm, f"{f}.ik.{side}"
+            ik.pole_target, ik.pole_subtarget = arm, f"{f}.pole.{side}"
+            ik.chain_count = 3
+            ik.use_stretch = False
+            ik.influence = 0
+            ik.pole_angle = _pole_angle(arm, tip, f"{f}.ik.{side}", ik)
 
 
 def _pole_angle(arm, tip, target, ik):
@@ -134,7 +156,10 @@ def _pole_angle(arm, tip, target, ik):
     keep = ik.influence
     ik.influence = 1
     pb, rest = arm.pose.bones[target], arm.data.bones[target]
-    root = arm.data.bones[tip].parent.head_local
+    root = arm.data.bones[tip]
+    for _ in range(ik.chain_count - 1):
+        root = root.parent
+    root = root.head_local
     pb.location = rest.matrix_local.to_3x3().inverted() @ ((root - rest.head_local) * .45)
     pole = arm.data.bones[ik.pole_subtarget].head_local
     bpy.context.view_layer.update()
@@ -215,10 +240,11 @@ def _skin(arm):
         part(f"forearm.{s}", .04, .032, ext=(-.02, -.01))
         ball(f"hand.{s}", .033)
         part(f"hand.{s}", .035, .032, 1.25, .45, (-.01, 0), segs=4)
-        for f in ("thumb.1", "thumb.2", "index.1", "index.2"):
-            part(f"{f}.{s}", .012, .01, segs=4)
-        part(f"fingers.1.{s}", .012, .011, 2.3, 1, segs=4)
-        part(f"fingers.2.{s}", .011, .01, 2.3, 1, segs=4)
+        for f in ("thumb", "index"):
+            for i in "123":
+                part(f"{f}.{i}.{s}", .012, .01, segs=4)
+        for i in "123":
+            part(f"fingers.{i}.{s}", .012, .01, 2.3, 1, segs=4)
         ball(f"thigh.{s}", .07)
         part(f"thigh.{s}", .075, .055, ext=(-.04, -.03))
         ball(f"shin.{s}", .055)
@@ -294,7 +320,7 @@ class Clip:
             pb.location = (0, 0, 0)
             pb.rotation_quaternion = (1, 0, 0, 0)
             for con in pb.constraints:
-                con.influence = 0 if pb.name.startswith(("forearm", "hand")) else 1
+                con.influence = 0 if pb.name.startswith(("forearm", "hand")) or pb.name.startswith(FINGERS) else 1
         return action
 
 

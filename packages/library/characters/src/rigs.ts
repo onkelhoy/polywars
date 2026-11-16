@@ -7,8 +7,9 @@ export const HUMANOID: BaseRig = {
     name: "humanoid",
     bones: [
         "root", "hips", "spine", "spine.1", "chest", "neck", "head",
-        ...sides(["shoulder", "upper_arm", "forearm", "hand", "thumb.1", "thumb.2", "index.1", "index.2", "fingers.1", "fingers.2", "prop",
-            "thigh", "shin", "foot", "toe", "foot.ik", "knee.pole", "hand.ik", "elbow.pole"]),
+        ...sides(["shoulder", "upper_arm", "forearm", "hand", "thumb.1", "thumb.2", "thumb.3", "index.1", "index.2", "index.3", "fingers.1", "fingers.2", "fingers.3", "prop",
+            "thigh", "shin", "foot", "toe", "foot.ik", "knee.pole", "hand.ik", "elbow.pole",
+            "thumb.ik", "thumb.pole", "index.ik", "index.pole", "fingers.ik", "fingers.pole"]),
     ],
     parts: {
         head: ["head", "neck"],

@@ -25,6 +25,8 @@ export type Hold = {
     converge?: number;
     /** hand tuning of the aimed pose, on top of the sight line: camera space `offset` (m, x right, y up, z back) and `angle` [pitch up, yaw left, roll] (radians) */
     aim?: { offset: Vec3; angle: Vec3 };
+    /** hand tuning of the hip pose's angle: [pitch up, yaw left, roll] (radians) */
+    hipAngle?: Vec3;
 };
 
 /** What the holder did this frame. */

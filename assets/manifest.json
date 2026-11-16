@@ -1956,32 +1956,32 @@
           {
            "name": "shot-indoor-1.wav",
            "file": "/assets/audio/effects/weapons/m1911/shot-indoor-1.wav",
-           "size": 44510
+           "size": 57870
           },
           {
            "name": "shot-indoor-2.wav",
            "file": "/assets/audio/effects/weapons/m1911/shot-indoor-2.wav",
-           "size": 45048
+           "size": 57872
           },
           {
            "name": "shot-open-1.wav",
            "file": "/assets/audio/effects/weapons/m1911/shot-open-1.wav",
-           "size": 92722
+           "size": 96044
           },
           {
            "name": "shot-open-2.wav",
            "file": "/assets/audio/effects/weapons/m1911/shot-open-2.wav",
-           "size": 86036
+           "size": 95940
           },
           {
            "name": "shot-walls-1.wav",
            "file": "/assets/audio/effects/weapons/m1911/shot-walls-1.wav",
-           "size": 31570
+           "size": 40554
           },
           {
            "name": "shot-walls-2.wav",
            "file": "/assets/audio/effects/weapons/m1911/shot-walls-2.wav",
-           "size": 30124
+           "size": 36058
           },
           {
            "name": "slide-1.wav",
@@ -2316,32 +2316,32 @@
           {
            "name": "shot-indoor-1.wav",
            "file": "/assets/audio/effects/weapons/mp28/shot-indoor-1.wav",
-           "size": 54378
+           "size": 57872
           },
           {
            "name": "shot-indoor-2.wav",
            "file": "/assets/audio/effects/weapons/mp28/shot-indoor-2.wav",
-           "size": 54390
+           "size": 57882
           },
           {
            "name": "shot-open-1.wav",
            "file": "/assets/audio/effects/weapons/mp28/shot-open-1.wav",
-           "size": 93152
+           "size": 96044
           },
           {
            "name": "shot-open-2.wav",
            "file": "/assets/audio/effects/weapons/mp28/shot-open-2.wav",
-           "size": 94770
+           "size": 96044
           },
           {
            "name": "shot-walls-1.wav",
            "file": "/assets/audio/effects/weapons/mp28/shot-walls-1.wav",
-           "size": 37012
+           "size": 39632
           },
           {
            "name": "shot-walls-2.wav",
            "file": "/assets/audio/effects/weapons/mp28/shot-walls-2.wav",
-           "size": 37718
+           "size": 39552
           },
           {
            "name": "slide-1.wav",
@@ -2436,17 +2436,17 @@
           {
            "name": "shot-indoor-1.wav",
            "file": "/assets/audio/effects/weapons/mp40/shot-indoor-1.wav",
-           "size": 54386
+           "size": 57878
           },
           {
            "name": "shot-indoor-2.wav",
            "file": "/assets/audio/effects/weapons/mp40/shot-indoor-2.wav",
-           "size": 54374
+           "size": 57868
           },
           {
            "name": "shot-open-1.wav",
            "file": "/assets/audio/effects/weapons/mp40/shot-open-1.wav",
-           "size": 83314
+           "size": 89140
           },
           {
            "name": "shot-open-2.wav",
@@ -2456,12 +2456,12 @@
           {
            "name": "shot-walls-1.wav",
            "file": "/assets/audio/effects/weapons/mp40/shot-walls-1.wav",
-           "size": 38916
+           "size": 40440
           },
           {
            "name": "shot-walls-2.wav",
            "file": "/assets/audio/effects/weapons/mp40/shot-walls-2.wav",
-           "size": 37482
+           "size": 39850
           },
           {
            "name": "slide-1.wav",
@@ -3276,12 +3276,12 @@
           {
            "name": "shot-indoor-1.wav",
            "file": "/assets/audio/effects/weapons/sterling/shot-indoor-1.wav",
-           "size": 54386
+           "size": 57880
           },
           {
            "name": "shot-indoor-2.wav",
            "file": "/assets/audio/effects/weapons/sterling/shot-indoor-2.wav",
-           "size": 54392
+           "size": 57878
           },
           {
            "name": "shot-open-1.wav",
@@ -3291,17 +3291,17 @@
           {
            "name": "shot-open-2.wav",
            "file": "/assets/audio/effects/weapons/sterling/shot-open-2.wav",
-           "size": 93148
+           "size": 96044
           },
           {
            "name": "shot-walls-1.wav",
            "file": "/assets/audio/effects/weapons/sterling/shot-walls-1.wav",
-           "size": 34072
+           "size": 38554
           },
           {
            "name": "shot-walls-2.wav",
            "file": "/assets/audio/effects/weapons/sterling/shot-walls-2.wav",
-           "size": 40120
+           "size": 40282
           },
           {
            "name": "slide-1.wav",
@@ -3636,32 +3636,32 @@
           {
            "name": "shot-indoor-1.wav",
            "file": "/assets/audio/effects/weapons/thompson-m1/shot-indoor-1.wav",
-           "size": 45050
+           "size": 57878
           },
           {
            "name": "shot-indoor-2.wav",
            "file": "/assets/audio/effects/weapons/thompson-m1/shot-indoor-2.wav",
-           "size": 45030
+           "size": 57870
           },
           {
            "name": "shot-open-1.wav",
            "file": "/assets/audio/effects/weapons/thompson-m1/shot-open-1.wav",
-           "size": 76084
+           "size": 89724
           },
           {
            "name": "shot-open-2.wav",
            "file": "/assets/audio/effects/weapons/thompson-m1/shot-open-2.wav",
-           "size": 80206
+           "size": 91190
           },
           {
            "name": "shot-walls-1.wav",
            "file": "/assets/audio/effects/weapons/thompson-m1/shot-walls-1.wav",
-           "size": 30124
+           "size": 39140
           },
           {
            "name": "shot-walls-2.wav",
            "file": "/assets/audio/effects/weapons/thompson-m1/shot-walls-2.wav",
-           "size": 31974
+           "size": 40170
           },
           {
            "name": "slide-1.wav",
@@ -7908,17 +7908,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/base/model.blend",
-         "size": 126995
+         "size": 131298
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/base/model.glb",
-         "size": 243076
+         "size": 294576
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/base/model.rig.json",
-         "size": 3484
+         "size": 5346
         }
        ]
       },
@@ -8049,6 +8049,81 @@
          "name": "character.json",
          "file": "/assets/models/characters/knight/character.json",
          "size": 1104
+        }
+       ]
+      },
+      {
+       "name": "ww2-soldier-german",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "WW2 soldier low poly.fbx",
+           "file": "/assets/models/characters/ww2-soldier-german/source/WW2 soldier low poly.fbx",
+           "size": 2591644
+          }
+         ]
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/ww2-soldier-german/character.json",
+         "size": 658
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/ww2-soldier-german/model.blend",
+         "size": 257269
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/ww2-soldier-german/model.glb",
+         "size": 478152
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/ww2-soldier-german/model.rig.json",
+         "size": 5397
+        }
+       ]
+      },
+      {
+       "name": "ww2-soldier-us",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "Color Pallete.jpg",
+           "file": "/assets/models/characters/ww2-soldier-us/source/Color Pallete.jpg",
+           "size": 16855
+          },
+          {
+           "name": "WW2Soldier.fbx",
+           "file": "/assets/models/characters/ww2-soldier-us/source/WW2Soldier.fbx",
+           "size": 131964
+          }
+         ]
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/ww2-soldier-us/character.json",
+         "size": 654
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/ww2-soldier-us/model.blend",
+         "size": 143369
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/ww2-soldier-us/model.glb",
+         "size": 191168
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/ww2-soldier-us/model.rig.json",
+         "size": 5367
         }
        ]
       }
@@ -15421,7 +15496,27 @@
           {
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/arisaka-type-99/weapon.json",
-           "size": 528
+           "size": 681
+          }
+         ]
+        },
+        {
+         "name": "beretta-m1951",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/beretta-m1951/model.blend",
+           "size": 938209
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/beretta-m1951/model.glb",
+           "size": 173992
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/beretta-m1951/weapon.json",
+           "size": 94
           }
          ]
         },
@@ -15452,6 +15547,26 @@
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/beretta-model-57/weapon.json",
            "size": 458
+          }
+         ]
+        },
+        {
+         "name": "borchardt-c93",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/borchardt-c93/model.blend",
+           "size": 191531
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/borchardt-c93/model.glb",
+           "size": 187184
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/borchardt-c93/weapon.json",
+           "size": 94
           }
          ]
         },
@@ -15586,6 +15701,26 @@
          ]
         },
         {
+         "name": "husqvarna-m40",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/husqvarna-m40/model.blend",
+           "size": 1136804
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/husqvarna-m40/model.glb",
+           "size": 196348
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/husqvarna-m40/weapon.json",
+           "size": 94
+          }
+         ]
+        },
+        {
          "name": "ithaca-m37",
          "assets": [
           {
@@ -15681,7 +15816,7 @@
           {
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/lahti-l39/weapon.json",
-           "size": 455
+           "size": 461
           }
          ]
         },
@@ -15849,39 +15984,14 @@
          "name": "mauser-c96",
          "assets": [
           {
-           "name": "gun.blend",
-           "file": "/assets/models/weapons/guns/mauser-c96/gun.blend",
-           "size": 127516
-          },
-          {
-           "name": "gun.glb",
-           "file": "/assets/models/weapons/guns/mauser-c96/gun.glb",
-           "size": 87864
-          },
-          {
-           "name": "mag.blend",
-           "file": "/assets/models/weapons/guns/mauser-c96/mag.blend",
-           "size": 97171
-          },
-          {
-           "name": "mag.glb",
-           "file": "/assets/models/weapons/guns/mauser-c96/mag.glb",
-           "size": 4344
-          },
-          {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/mauser-c96/model.blend",
-           "size": 92498
+           "size": 164568
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/mauser-c96/model.glb",
-           "size": 218172
-          },
-          {
-           "name": "model.rig.json",
-           "file": "/assets/models/weapons/guns/mauser-c96/model.rig.json",
-           "size": 548
+           "size": 148404
           },
           {
            "name": "weapon.json",
@@ -15927,6 +16037,46 @@
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/mp40/weapon.json",
            "size": 461
+          }
+         ]
+        },
+        {
+         "name": "nagant-m1895",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/nagant-m1895/model.blend",
+           "size": 183437
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/nagant-m1895/model.glb",
+           "size": 172148
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/nagant-m1895/weapon.json",
+           "size": 98
+          }
+         ]
+        },
+        {
+         "name": "nambu-type-14",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/nambu-type-14/model.blend",
+           "size": 200915
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/nambu-type-14/model.glb",
+           "size": 202184
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/nambu-type-14/weapon.json",
+           "size": 94
           }
          ]
         },
@@ -16317,6 +16467,46 @@
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/vz-52/weapon.json",
            "size": 462
+          }
+         ]
+        },
+        {
+         "name": "webley-mk-vi",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/webley-mk-vi/model.blend",
+           "size": 180835
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/webley-mk-vi/model.glb",
+           "size": 158320
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/webley-mk-vi/weapon.json",
+           "size": 98
+          }
+         ]
+        },
+        {
+         "name": "welrod-mk2",
+         "assets": [
+          {
+           "name": "model.blend",
+           "file": "/assets/models/weapons/guns/welrod-mk2/model.blend",
+           "size": 147039
+          },
+          {
+           "name": "model.glb",
+           "file": "/assets/models/weapons/guns/welrod-mk2/model.glb",
+           "size": 101600
+          },
+          {
+           "name": "weapon.json",
+           "file": "/assets/models/weapons/guns/welrod-mk2/weapon.json",
+           "size": 94
           }
          ]
         },

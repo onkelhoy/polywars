@@ -1,6 +1,11 @@
 # Backlog
 
 ## Playable character
+- [ ] Elbow lag: elbows (IK pole in `player/src/arms.ts`) trail the hands a little when looking round (from the viewmodel turn springs).
+- [ ] Gun reloads as real clips: hands on the magazine / clip, gun turned, sometimes put down. Simple reload first. Kar98k uses `cycle` (open, held, close) for now.
+- [ ] More rigged guns like the Kar98k: `bolt` bone, `cycle` / `shoot` / `reload` actions, faces on `wood` / `metal`, `tools/blender/packs/gun-clips.py`.
+- [ ] Recoil `control` from a tired / wounded meter; hip fire finesse (two hand grip steadier).
+- [ ] Muzzle flash shape (star / cone, not squares).
 - Third person camera (body + gun in the hand socket, attachments visible).
 - Loadout screen: pick character, attachments, guns; then play.
 - Ragdoll death (copy arrow-warfare `ragdoll`, verlet on the knight's bones).

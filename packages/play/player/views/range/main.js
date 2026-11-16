@@ -5,7 +5,10 @@ import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Matrix4 } from '@papit/matrix';
 import { nearest, castGround, castBox, castCylinder } from '@polywar/ballistics';
 import { GUNS } from '@polywar/weapons';
-import { Player, AimTuner } from '@polywar/player';
+import { Player, WeaponEditor } from '@polywar/player';
+import { CHARACTERS } from '@polywar/characters';
+const CHARACTER = 'polywar.character';
+const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box, Capsule } from '@papit/rigidbody';
 
 const $ = s => document.querySelector(s);
@@ -80,7 +83,7 @@ const cast = nearest(
 
 const player = new Player(layer, renderer, {
     ground, colliders: () => colliders, cast, scene,
-    character: '/assets/models/characters/knight/character.json',
+    character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
     worldDrawn: () => demo.endOcclusion(),
     // what a case lands on: a target / crate under it, the road, else dirt
     surface: ([x, y, z]) => {
@@ -124,6 +127,9 @@ guns.forEach((g, i) => {
 });
 const paint = () => [...$('#guns').children].forEach((b, i) => b.classList.toggle('on', i === player.current));
 paint();
+$('#character').innerHTML = Object.entries(CHARACTERS).map(([id, c]) => `<option value="${id}">${c.name}</option>`).join('');
+$('#character').value = CHARACTERS[characterId] ? characterId : 'ww2-soldier-us';
+$('#character').onchange = e => { localStorage.setItem(CHARACTER, e.target.value); void player.setCharacter(CHARACTERS[e.target.value].url); };
 $('#body').onchange = e => { player.showBody = e.target.checked; };
 $('#clear').onclick = () => { player.impacts.clear(); player.feel.debris.clear(); };
 
@@ -142,7 +148,7 @@ $('#play').onclick = play;
 demo.look([0, 3, 12], [0, 1, -30]);
 
 // ---- aim tuning (T): the player's panel ----
-const tuner = new AimTuner(player, document.body, { active: () => document.body.classList.contains('playing') });
+const tuner = new WeaponEditor(player, document.body, { active: () => document.body.classList.contains('playing') });
 const tuning = () => tuner.open;
 
 // ---- loop ----

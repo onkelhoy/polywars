@@ -6,6 +6,8 @@ const RIGS = {
     humanoid: '/assets/models/characters/base/model.glb',
     quadruped: '/assets/models/animals/farm/Cow.glb',
     biped: '/assets/models/characters/bird/model.glb',
+    'ww2-us': '/assets/models/characters/ww2-soldier-us/model.glb',
+    'ww2-german': '/assets/models/characters/ww2-soldier-german/model.glb',
 };
 const preview = document.querySelector('pw-3d-asset-preview');
 preview.skin = Skeleton.skin;

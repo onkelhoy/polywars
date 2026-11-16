@@ -14,7 +14,7 @@ export const SURFACES: Record<string, SurfaceLook> = {
     water: { bits: 14, bitColour: [.8, .85, .9], bitSpeed: 4, bitLife: .6, puff: 2, puffColour: [.85, .9, .95], puffSize: .3, mark: 0, markColour: [0, 0, 0], rimColour: [0, 0, 0] },
 };
 
-type Particle = { p: Vec3; v: Vec3; age: number; life: number; size: number; grow: number; colour: Colour; glow: boolean; drag: number; gravity: number };
+type Particle = { p: Vec3; v: Vec3; age: number; life: number; size: number; grow: number; colour: Colour; glow: boolean; drag: number; gravity: number; flash?: number };
 
 const FLOATS = 7; // x y z r g b a (premultiplied)
 const MARK_VERTICES = 18; // 6 triangles
@@ -110,10 +110,18 @@ export class Impacts {
         for (let i = 0; i < 4; i++)
         {
             const s = size * (1 - i * .2);
-            this.add({ p: [at[0] + direction[0] * s * i * .8, at[1] + direction[1] * s * i * .8, at[2] + direction[2] * s * i * .8], v: [0, 0, 0], age: 0, life: .045, size: s, grow: 0, colour: [1, .75, .35], glow: true, drag: 0, gravity: 0 });
+            // the first one starts at the muzzle (its back edge), not over the barrel
+            const ahead = s * (i * .8 + .5);
+            this.add({ p: [at[0] + direction[0] * ahead, at[1] + direction[1] * ahead, at[2] + direction[2] * ahead], v: [0, 0, 0], age: 0, life: .045, size: s, grow: 0, colour: [1, .75, .35], glow: true, drag: 0, gravity: 0, flash: ahead });
         }
         for (let i = 0; i < 2; i++)
             this.add({ p: [...at], v: cone(direction, .5, 1 + Math.random()), age: 0, life: .6 + Math.random() * .4, size: .05, grow: .4, colour: [.6, .6, .6], glow: false, drag: 4, gravity: -.4 });
+    }
+
+    /** keeps the live muzzle flashes on a moving muzzle (the gun kicks while they burn): call each frame before `draw` */
+    follow(at: Vec3, direction: Vec3) {
+        for (const q of this.particles)
+            if (q.flash !== undefined) q.p = [at[0] + direction[0] * q.flash, at[1] + direction[1] * q.flash, at[2] + direction[2] * q.flash];
     }
 
     /**

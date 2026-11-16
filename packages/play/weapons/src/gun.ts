@@ -93,7 +93,9 @@ export class Gun {
         const s = this.spec, side = (random() * 2 - 1) * s.side;
         // aimed: the shoulder takes more of it
         const k = 1 - this.aimed * .35;
-        return { kick: s.kick * k, climb: s.climb * k, side: side * k };
+        // the push back, kg·m/s (bullet momentum, the gases roughly add half)
+        const c = this.caliber, impulse = (c?.grams ?? 8) / 1000 * (c?.speed ?? 400) * 1.5;
+        return { kick: s.kick * k, climb: s.climb * k, side: side * k, impulse };
     }
 
     /** Starts a reload unless full or one's under way. Returns whether it started. */

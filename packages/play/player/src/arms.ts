@@ -12,6 +12,15 @@ export type ArmsLook = {
     forearm: number;
 };
 
+/** where the arms start and bend, camera space, [right, left]: the IK pole runs shoulder -> elbow */
+export type ArmsPose = { shoulder: [Vec3, Vec3]; elbow: [Vec3, Vec3] };
+
+/** the pose for a look: shoulders mirrored, elbows out and down */
+export function armsPoseOf(look: ArmsLook): ArmsPose {
+    const s = look.shoulder, k = .2 / Math.hypot(1, 1, .4);
+    return { shoulder: [[s[0], s[1], s[2]], [-s[0], s[1], s[2]]], elbow: [[s[0] + k, s[1] - k, s[2] + .4 * k], [-s[0] - k, s[1] - k, s[2] + .4 * k]] };
+}
+
 /** knight-ish: grey sleeves, a dark cuff, bare hands */
 export const KNIGHT_ARMS: ArmsLook = {
     sleeve: [.3, .3, .32, 1], cuff: [.25, .22, .2, 1], skin: [.93, .78, .62, 1],
@@ -32,24 +41,19 @@ export class Arms {
         this.hand = upload(gl, new MeshBuilder().box("#ffffff", { at: [0, 0, -.5], scale: [1, 1, 1] }).build());
     }
 
-    draw(renderer: Renderer, camera: ArrayLike<number>, hands: { grip: Vec3; fore?: Vec3 }) {
-        const s = this.look.shoulder;
-        this.arm(renderer, camera, [s[0], s[1], s[2]], hands.grip, [1, -1, .4]);
-        if (hands.fore) this.arm(renderer, camera, [-s[0], s[1], s[2]], hands.fore, [-1, -1, .4]);
+    /** `lag`: the gun's trail behind the turn [yaw, pitch] (radians): the elbows trail a little more */
+    draw(renderer: Renderer, camera: ArrayLike<number>, hands: { grip: Vec3; fore?: Vec3 }, lag: [number, number] = [0, 0], pose: ArmsPose = armsPoseOf(this.look)) {
+        const lx = -lag[0] * 5, ly = lag[1] * 5;
+        const pole = (i: 0 | 1): Vec3 => {
+            const s = pose.shoulder[i], e = pose.elbow[i], d: Vec3 = [e[0] - s[0], e[1] - s[1], e[2] - s[2]], l = Math.hypot(...d) || 1;
+            return [d[0] / l + lx, d[1] / l + ly, d[2] / l];
+        };
+        this.arm(renderer, camera, pose.shoulder[0], hands.grip, pole(0));
+        if (hands.fore) this.arm(renderer, camera, pose.shoulder[1], hands.fore, pole(1));
     }
 
     private arm(renderer: Renderer, camera: ArrayLike<number>, shoulder: Vec3, hand: Vec3, pole: Vec3) {
-        const { upper, forearm } = this.look;
-        const d: Vec3 = [hand[0] - shoulder[0], hand[1] - shoulder[1], hand[2] - shoulder[2]];
-        const reach = Math.hypot(...d) || 1e-6;
-        const along = Math.min(reach, upper + forearm - 1e-3);
-        const a = (upper * upper - forearm * forearm + along * along) / (2 * along);
-        const out = Math.sqrt(Math.max(0, upper * upper - a * a));
-        const u: Vec3 = [d[0] / reach, d[1] / reach, d[2] / reach];
-        const dot = pole[0] * u[0] + pole[1] * u[1] + pole[2] * u[2];
-        const side: Vec3 = [pole[0] - u[0] * dot, pole[1] - u[1] * dot, pole[2] - u[2] * dot];
-        const sl = Math.hypot(...side) || 1;
-        const elbow: Vec3 = [shoulder[0] + u[0] * a + side[0] / sl * out, shoulder[1] + u[1] * a + side[1] / sl * out, shoulder[2] + u[2] * a + side[2] / sl * out];
+        const elbow = elbowOf(this.look, shoulder, hand, pole);
         // the wrist a hand's length short of the grip (a stretched arm reaches, the hand stays a hand)
         const eh: Vec3 = [hand[0] - elbow[0], hand[1] - elbow[1], hand[2] - elbow[2]], el = Math.hypot(...eh) || 1;
         const toward = (p: Vec3, k: number): Vec3 => [p[0] + eh[0] / el * k, p[1] + eh[1] / el * k, p[2] + eh[2] / el * k];
@@ -71,4 +75,20 @@ export class Arms {
     }
 
     destroy() { this.box.destroy(); this.hand.destroy(); }
+}
+
+/** the elbow of a two bone arm from `shoulder` to `hand`, bent toward `pole` (a direction) */
+export function elbowOf(look: { upper: number; forearm: number }, shoulder: Vec3, hand: Vec3, pole: Vec3): Vec3 {
+    const { upper, forearm } = look;
+    const d: Vec3 = [hand[0] - shoulder[0], hand[1] - shoulder[1], hand[2] - shoulder[2]];
+    const reach = Math.hypot(...d) || 1e-6;
+    const along = Math.min(reach, upper + forearm - 1e-3);
+    const a = (upper * upper - forearm * forearm + along * along) / (2 * along);
+    const out = Math.sqrt(Math.max(0, upper * upper - a * a));
+    const u: Vec3 = [d[0] / reach, d[1] / reach, d[2] / reach];
+    const dot = pole[0] * u[0] + pole[1] * u[1] + pole[2] * u[2];
+    const side: Vec3 = [pole[0] - u[0] * dot, pole[1] - u[1] * dot, pole[2] - u[2] * dot];
+    const sl = Math.hypot(...side) || 1;
+    const elbow: Vec3 = [shoulder[0] + u[0] * a + side[0] / sl * out, shoulder[1] + u[1] * a + side[1] / sl * out, shoulder[2] + u[2] * a + side[2] / sl * out];
+    return elbow;
 }

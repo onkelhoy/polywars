@@ -44,6 +44,14 @@ GUNS = {
     "sterling": ("low-poly-sterling-smg", "source/Sterling SMG.fbx", .69, "r"),
     "ithaca-m37": ("low-poly-ithaca-m37", "source/Ithaca M37.blend", 1.0, ""),
     "lahti-l39": ("low-poly-lahti-l39", "source/Lahti L39.fbx", 2.24, "u"),
+    "beretta-m1951": ("low-poly-beretta-m1951", "Beretta M1951.blend", .203, ""),
+    "borchardt-c93": ("low-poly-borchardt-c-93", "Borchardt.fbx", .35, ""),
+    "husqvarna-m40": ("low-poly-husqvarna-m40", "Husqvarna m40.blend", .267, ""),
+    "nagant-m1895": ("low-poly-nagant-m1895", "Nagant M1895.fbx", .235, ""),
+    "nambu-type-14": ("low-poly-nambu-type-14", "Nambu Type 14.fbx", .23, ""),
+    "webley-mk-vi": ("low-poly-webley-mk-vi", "Webley MKIV.fbx", .286, ""),
+    "mauser-c96": ("low-poly-masuer-c96", "Masuer C96.fbx", .312, ""),
+    "welrod-mk2": ("low-poly-welrod-mk2", "Welrod Mk2.fbx", .31, ""),
 }
 UGP = "Ultimate Gun Pack - July 2019"
 SCOPES = {f"scope-{i}": (UGP, f"Blends/Accessories/Scope_{i}.blend", .30, "m") for i in (1, 2, 3)}

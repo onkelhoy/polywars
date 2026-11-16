@@ -6,17 +6,19 @@ import { Attachments, Character } from "@polywar/characters";
 import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
-import { direction, mat4, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
+import { direction, invertRigid, mat4, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS, type Cue } from "@polywar/weapons";
 import { Armory, type AimTune, type WeaponFile } from "@polywar/armory";
-import { Arms } from "./arms";
+import { Arms, armsPoseOf, type ArmsPose } from "./arms";
+import { reach, type SkinLike } from "./body-arms";
+import type { HandsFile } from "./weapon-editor";
 import { Feel } from "./feel";
 import { holdOf, scopeMountFor, scopeMountOf } from "./holds";
 import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
 
 /** `scopeModel` (a scope from the armory) is drawn `scopeAt` off the gun; `scopeMesh` is the stand-in without one */
-type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; tune: { model: string; key: string }; zero?: number; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh };
+type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; tune: { model: string; key: string }; zero?: number; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh; arms?: ArmsPose; turn?: [[number, number], [number, number]]; hands?: { grip: Vec3; fore?: Vec3 }; base: Vec3 };
 
 const LIMIT = Math.PI / 2 - .02;
 /** lean: metres the eye goes out, radians the view rolls */
@@ -129,23 +131,72 @@ export class Player {
             const tune = { model: gun.spec.model, key: sid ? `aim@${sid}` : "aim" } as const;
             const saved = weapon?.[tune.key as "aim"];
             if (saved) hold.aim = aimOf(saved);
-            this.carried.push({ gun, model, hold, weapon, tune, zero: saved?.zero, scope, zoom, scopeModel, scopeAt, scopeMesh });
+            this.carried.push({ gun, model, hold, weapon, tune, zero: saved?.zero, scope, zoom, scopeModel, scopeAt, scopeMesh, base: [...hold.hip] as Vec3 });
+            const hands = (weapon as { hands?: HandsFile } | undefined)?.hands;
+            if (hands) this.setHands(this.carried.length - 1, hands);
         }
         this.select(0);
-        if (this.setting.character)
-        {
-            this.character = await Character.load(this.setting.character);
-            this.body = await Model.load(this.gl, this.character.model, { skin: this.character.skin });
-            this.attachments = new Attachments(this.gl, this.character);
-            const skin = this.body.skin as unknown as { bones?: { name: string }[] } | undefined;
-            const hide = this.character.json.firstPerson?.hide ?? [];
-            // the head and the arms (first person arms are drawn on their own)
-            const parts = this.character.parts;
-            const names = new Set([...hide, ...(parts["arm.L"] ?? []), ...(parts["arm.R"] ?? []), ...(parts.head ?? [])]);
-            this.hidden = (skin?.bones ?? []).map((b, i) => names.has(b.name) || /Thumb|Finger|MiddleHand/.test(b.name) ? i : -1).filter(i => i >= 0);
-        }
+        if (this.setting.character) await this.setCharacter(this.setting.character);
     }
 
+    /**
+     * Swaps the body (a `character.json` url). Bodies with `arm.L` / `arm.R` parts (upper arm, forearm, hand) hold
+     * the gun with their own arms (IK), others get the drawn box arms.
+     */
+    async setCharacter(url: string) {
+        const character = await Character.load(url);
+        const body = await Model.load(this.gl, character.model, { skin: character.skin });
+        this.body?.destroy?.();
+        this.character = character; this.body = body;
+        this.attachments = new Attachments(this.gl, character);
+        const skin = body.skin as unknown as SkinLike & { bones: { name: string }[] };
+        const parts = character.parts;
+        const chain = (side: "L" | "R") => { const p = parts[`arm.${side}`] ?? [], n = p.slice(-3); return n.length === 3 && n.every(b => skin.armature.find(b)) ? n as [string, string, string] : undefined; };
+        const r = chain("R"), l = chain("L");
+        this.bodyArms = r && l ? [r, l] : undefined;
+        const armBones = new Set<string>();
+        for (const side of ["arm.L", "arm.R"]) for (const n of parts[side] ?? []) for (const b of below(skin.armature.find(n))) armBones.add(b.name);
+        const head = new Set([...(character.json.firstPerson?.hide ?? []), ...(parts.head ?? [])]);
+        const index = (test: (name: string) => boolean) => skin.bones.map((b, i) => test(b.name) ? i : -1).filter(i => i >= 0);
+        // the world pass: no head, no arms (the arms come with the gun, on its depth)
+        this.hidden = index(n => head.has(n) || armBones.has(n) || /Thumb|Finger|MiddleHand/.test(n));
+        // the gun's pass: only the arms
+        this.onlyArms = this.bodyArms ? index(n => !armBones.has(n)) : [];
+    }
+    /** body arm chains [right, left] (upper arm, forearm, hand) */
+    private bodyArms?: [[string, string, string], [string, string, string]];
+    private onlyArms: number[] = [];
+
+    /** the hand pose of a carried gun (hand editor, weapon.json `hands`) */
+    handsOf(index: number): HandsFile {
+        const c = this.carried[index], pose = c.arms ?? armsPoseOf(this.arms.look), h = c.hands ?? c.hold;
+        return { grip: [...h.grip], fore: h.fore && [...h.fore], hip: [...c.hold.hip], hipAngle: [...(c.hold.hipAngle ?? [0, 0, 0])], turn: c.turn && [[...c.turn[0]], [...c.turn[1]]], shoulder: [[...pose.shoulder[0]], [...pose.shoulder[1]]], elbow: [[...pose.elbow[0]], [...pose.elbow[1]]] };
+    }
+    setHands(index: number, h: HandsFile) {
+        const c = this.carried[index];
+        c.hands = { grip: h.grip, fore: c.hold.fore && (h.fore ?? c.hold.fore) };
+        if (h.hip) c.hold.hip = h.hip;
+        if (h.hipAngle) c.hold.hipAngle = h.hipAngle;
+        if (h.turn) c.turn = h.turn;
+        c.arms = { shoulder: h.shoulder, elbow: h.elbow };
+    }
+    resetHands(index: number) {
+        const c = this.carried[index];
+        c.hold.hip = [...c.base]; c.hold.hipAngle = undefined; c.hands = undefined; c.arms = undefined; c.turn = undefined;
+    }
+
+    /** the body holds the gun with its own arms (no drawn box arms) */
+    get bodyHolds() { return !!this.bodyArms && !!this.body && this.showBody; }
+    /** camera space shoulder of the body's arm (0 right, 1 left), undefined without body arms */
+    shoulderOf(side: 0 | 1): Vec3 | undefined {
+        const skin = this.body?.skin as unknown as SkinLike | undefined, cam = this.camera?.worldMatrix;
+        if (!this.bodyHolds || !skin || !cam) return undefined;
+        const b = skin.armature.find(this.bodyArms![side][0]) as unknown as { head: ArrayLike<number> } | undefined;
+        if (!b) return undefined;
+        const w = this.bodyMatrix().multiply(this.body!.skeletonMatrix).multiply([b.head[0], b.head[1], b.head[2], 1]) as unknown as number[];
+        return point(invertRigid(mat4(), cam), [w[0], w[1], w[2]]);
+    }
+    get armsLook() { return this.arms.look; }
     get held() { return this.carried[this.current]; }
     get gun() { return this.held?.gun; }
 
@@ -223,9 +274,7 @@ export class Player {
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
-            if (gun.reloading > 0) pose.pose(gun.emptyReload ? "reload-empty" : "reload", gun.progress * 2, false);
-            else if (gun.sinceShot < .25) pose.pose("fire", gun.sinceShot, false);
-            else pose.pose("idle", 0);
+            pose.pose(...gunClip(pose, gun), false);
             this.spread = gun.spread(m.speed / 4.2);
         }
         const strafe = m.velocity[0] * rx + m.velocity[2] * rz;
@@ -280,7 +329,7 @@ export class Player {
             const ball = unit([d[0] + up[0] * py + right[0] * px, d[1] + up[1] * py + right[1] * px, d[2] + up[2] * py + right[2] * px]);
             this.bullets.fire({ from, direction: ball, speed: c.speed * (balls > 1 ? .95 + Math.random() * .1 : 1), drag: c.drag, life: c.life, tracer: tracer && i === 0, data: { gun: gun.spec.model } });
         }
-        this.impacts.flash(from, d, gun.spec.kind === "pistol" ? .08 : c.pellets || gun.spec.caliber === "20x138b" ? .3 : .14);
+        this.impacts.flash(from, direction(cam, bore), gun.spec.kind === "pistol" ? .08 : c.pellets || gun.spec.caliber === "20x138b" ? .3 : .14);
         const recoil = gun.recoil();
         this.vm.fire(recoil);
         this.climb += recoil.climb;
@@ -296,6 +345,22 @@ export class Player {
         const clip = !m.grounded && m.airTime > .15 ? "Jump" : m.speed < .3 ? "Idle" : m.speed < 5 ? "Walking" : "Run";
         if (clip !== this.clip) { this.clip = clip; this.bodyTime = 0; }
         this.bodyTime += dt * (clip === "Walking" ? Math.max(.6, m.speed / 3.2) : clip === "Run" ? m.speed / 7 : 1);
+    }
+
+    private posed?: Float32Array;
+
+    /** bends the body's arms onto the held gun's hands (skin space), elbows toward the arm poses */
+    private reachGun(skin: SkinLike, cam: ArrayLike<number>, carried: Carried) {
+        const toSkin = this.bodyMatrix().multiply(this.body!.skeletonMatrix).clone.inverse();
+        const local = (p: Vec3): Vec3 => { const v = toSkin.clone.multiply([p[0], p[1], p[2], 1]) as unknown as number[]; return [v[0], v[1], v[2]]; };
+        const along = (d: Vec3): Vec3 => { const a = local([0, 0, 0]), b = local(d); return [b[0] - a[0], b[1] - a[1], b[2] - a[2]]; };
+        const camDir = (d: Vec3) => direction(cam, d);
+        const hands = carried.hands ?? carried.hold, pose = carried.arms ?? armsPoseOf(this.arms.look), lag = this.vm.lag;
+        const at = (p: Vec3) => local(point(cam, point(this.vm.matrix, p)));
+        const pole = (i: 0 | 1): Vec3 => { const s = pose.shoulder[i], e = pose.elbow[i]; return along(camDir([e[0] - s[0] - lag[0], e[1] - s[1] + lag[1], e[2] - s[2]])); };
+        const turn = carried.turn ?? [[0, 0], [0, 0]], r = Math.PI / 180;
+        reach(skin, this.bodyArms![0], at(hands.grip), pole(0), [turn[0][0] * r, turn[0][1] * r]);
+        if (hands.fore) reach(skin, this.bodyArms![1], at(hands.fore), pole(1), [turn[1][0] * r, -turn[1][1] * r]);
     }
 
     /** where the body is drawn: at the feet, facing the view, a little back so the eye doesn't look into it */
@@ -316,17 +381,15 @@ export class Player {
         if (this.body && this.showBody)
         {
             this.body.pose(this.clip, this.bodyTime, this.clip !== "Jump");
-            // hidden bones shrink onto their own joint (the neck, the shoulders): no spikes from shared vertices
-            const skin = this.body.skin as unknown as { matrices: Float32Array; bones: { head: ArrayLike<number> }[] } | undefined;
-            if (skin) for (const i of this.hidden)
-            {
-                const h = skin.bones[i].head;
-                skin.matrices.fill(0, i * 16, i * 16 + 16);
-                skin.matrices[i * 16 + 12] = h[0]; skin.matrices[i * 16 + 13] = h[1]; skin.matrices[i * 16 + 14] = h[2]; skin.matrices[i * 16 + 15] = 1;
-            }
+            const skin = this.body.skin as unknown as SkinLike | undefined;
+            if (skin && this.bodyArms && carried) this.reachGun(skin, camera.worldMatrix, carried);
+            this.posed = skin ? skin.matrices.slice() : undefined;
+            if (skin) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
         }
         this.feel.draw(r);
+        const held = this.held;
+        if (held) this.impacts.follow(point(camera.worldMatrix, point(this.vm.matrix, held.hold.muzzle)), direction(camera.worldMatrix, this.vm.muzzle.direction));
         this.impacts.draw(camera);
         r.reset();
         this.setting.worldDrawn?.();
@@ -354,7 +417,15 @@ export class Player {
         carried.model.draw(r, world);
         if (carried.scopeModel && carried.scopeAt) carried.scopeModel.draw(r, world.clone.multiply(carried.scopeAt));
         if (carried.scopeMesh) r.draw(carried.scopeMesh, world);
-        this.arms.draw(r, cam, this.vm.hands);
+        const hands = carried.hands ? { grip: point(this.vm.matrix, carried.hands.grip), fore: carried.hands.fore && point(this.vm.matrix, carried.hands.fore) } : this.vm.hands;
+        const skin = this.body?.skin as unknown as SkinLike | undefined;
+        if (this.body && this.showBody && skin && this.bodyArms && this.posed)
+        {
+            skin.matrices.set(this.posed);
+            collapse(skin, this.onlyArms);
+            this.body.draw(r, this.bodyMatrix());
+        }
+        else this.arms.draw(r, cam, hands, this.vm.lag, carried.arms);
         r.reset();
         if (showGlass) scope!.overlay(this.vm.matrix, this.near, aspect, showScope ? light : 0);
     }
@@ -389,4 +460,43 @@ function tip(d: Vec3, angle: number): Vec3 {
 function smoothstep(a: number, b: number, x: number) {
     const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
     return t * t * (3 - 2 * t);
+}
+
+/** shrinks bones onto their own joint (no spikes from shared vertices) */
+function collapse(skin: SkinLike, bones: number[]) {
+    for (const i of bones)
+    {
+        const h = (skin.bones[i] as unknown as { head: ArrayLike<number> }).head;
+        skin.matrices.fill(0, i * 16, i * 16 + 16);
+        skin.matrices[i * 16 + 12] = h[0]; skin.matrices[i * 16 + 13] = h[1]; skin.matrices[i * 16 + 14] = h[2]; skin.matrices[i * 16 + 15] = 1;
+    }
+}
+type AnyBone = { name: string; children: AnyBone[] };
+const below = (b: AnyBone | null | undefined): AnyBone[] => b ? [b, ...b.children.flatMap(below)] : [];
+
+/**
+ * The held gun's clip and time: its own `reload` / `reload-empty` if it has one, else a bolt gun's `cycle` opens, holds open
+ * while the rounds go in and closes; after a shot `shoot` (the jolt), then `cycle` through the `interval`.
+ */
+function gunClip(model: Model, gun: Gun): [string | undefined, number] {
+    const has = (n: string) => !!model.animation(n), cycle = model.animation("cycle");
+    const len = cycle?.duration ?? 1;
+    if (gun.reloading > 0)
+    {
+        const own = gun.emptyReload && has("reload-empty") ? "reload-empty" : "reload";
+        if (has(own)) return [own, gun.progress * (model.animation(own)!.duration)];
+        if (!cycle) return [undefined, 0];
+        // open (0..40% of the clip), held open, closed at the end
+        const p = gun.progress;
+        return ["cycle", (p < .1 ? p / .1 * .4 : p < .82 ? .4 + (p - .1) / .72 * .2 : .6 + (p - .82) / .18 * .4) * len];
+    }
+    const s = gun.sinceShot, interval = gun.spec.interval;
+    if (cycle && gun.action !== "semi" && gun.action !== "auto" && gun.action !== "pistol" && s < interval)
+    {
+        const f = (s / interval - .2) / .8;
+        if (f > 0) return ["cycle", Math.min(1, f) * len];
+    }
+    if (has("shoot") && s < .4) return ["shoot", s];
+    // rest: frame 0
+    return [cycle ? "cycle" : has("shoot") ? "shoot" : undefined, 0];
 }

@@ -58,6 +58,7 @@
     "@papit/game-mesh": "*",
     "@papit/matrix": "*",
     "@polywar/weapons": "*",
+    "@polywar/characters": "*",
     "@polywar/player": "*"
   },
   "browserslist": [
