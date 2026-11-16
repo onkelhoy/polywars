@@ -6,7 +6,7 @@ import { Attachments, Character } from "@polywar/characters";
 import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
-import { direction, invertRigid, mat4, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
+import { direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS, type Cue } from "@polywar/weapons";
 import { Armory, type AimTune, type WeaponFile } from "@polywar/armory";
 import { Arms, armsPoseOf, type ArmsPose } from "./arms";
@@ -35,6 +35,7 @@ const LEAN = .32, LEAN_ROLL = .2;
  * Guns are `GUNS` ids, `<id>@<scope>` puts a scope from `assets/models/weapons/attachments/` on (e.g. `kar98k@scope-2`).
  */
 export class Player {
+    private obstruction: Obstruction;
     readonly mover: Mover;
     readonly bullets: Bullets;
     readonly impacts: Impacts;
@@ -85,6 +86,7 @@ export class Player {
             this.events.hit?.(b, hit);
         };
         this.vm = new ViewModel({ grip: [0, 0, 0], muzzle: [0, 0, -1], sight: [0, 0, 0], hip: [.15, -.2, -.3], eye: .2 });
+        this.obstruction = new Obstruction({ cast: setting.cast });
         this.arms = new Arms(this.gl);
         this.armory = new Armory(setting.assets ?? "/assets");
         this.feel = new Feel({ world: setting.world, mixer: setting.mixer, ground: setting.ground, cast: setting.cast, surface: setting.surface, assets: setting.assets ?? "/assets" });
@@ -279,6 +281,9 @@ export class Player {
         }
         const strafe = m.velocity[0] * rx + m.velocity[2] * rz;
         this.vm.update(dt, { yaw: turnYaw, pitch: turnPitch, speed: m.speed, strafe, grounded: m.grounded, landed: m.landed, aimed: gun?.aimed ?? 0, reload: gun && gun.reloading > 0 ? gun.progress : -1, sprint });
+        // the barrel against the world (from last frame's camera)
+        if (gun) { const f = this.vm.free; this.vm.obstruct(this.obstruction.update(camera.worldMatrix, f.grip, f.muzzle, this.pitch)); }
+        else this.vm.obstruct({ yaw: 0, back: 0, tuck: 0 });
 
         camera.zoom = 1 + (scoped ? 0 : (gun?.aimed ?? 0) * .25);
         const out = this.lean * LEAN;
@@ -315,7 +320,7 @@ export class Player {
         const line = unit([f[0] - s[0], f[1] - s[1], f[2] - s[2]]);
         const at = [s[0] + line[0] * zero, s[1] + line[1] * zero, s[2] + line[2] * zero];
         const aimed = tip(unit([at[0] - muzzle[0], at[1] - muzzle[1], at[2] - muzzle[2]]), zeroAngle(c.speed, c.drag, zero, 0));
-        const a = gun.aimed;
+        const a = gun.aimed * (1 - this.vm.tucked);
         let d = direction(cam, unit([hip[0] + (aimed[0] - hip[0]) * a, hip[1] + (aimed[1] - hip[1]) * a, hip[2] + (aimed[2] - hip[2]) * a]));
         const up = direction(cam, [0, 1, 0]), right = direction(cam, [1, 0, 0]);
         const [sx, sy] = gun.scatter(this.mover.speed / 4.2);
@@ -398,7 +403,7 @@ export class Player {
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);
         // the glass is there from the start of the raise, black; the picture comes in as the eye gets behind it
-        const aimed = carried.gun.aimed, light = smoothstep(.55, .95, aimed);
+        const aimed = carried.gun.aimed * (1 - this.vm.tucked), light = smoothstep(.55, .95, aimed);
         const showGlass = !!scope && aimed > .02;
         const showScope = showGlass && light > 0 && !!this.setting.scene;
         if (showScope)

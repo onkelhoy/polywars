@@ -57,7 +57,8 @@ export class ViewModel {
     update(dt: number, m: Motion) {
         this.clock += dt;
         const h = this.hold, w = h.weight ?? 1;
-        const a = smooth(Math.max(0, Math.min(1, m.aimed)));
+        // tucked: can't look down the sights
+        const a = smooth(Math.max(0, Math.min(1, m.aimed * (1 - this.tucked))));
         this.aimed = a;
         // turning: the gun stays behind a little (less aimed: the shoulder holds it)
         const lag = (.25 - a * .17) / w;
@@ -118,6 +119,26 @@ export class ViewModel {
         const g = h.grip, rc = this.recoilSpring.value;
         const kick = multiply(mat4(), compose(mat4(), g[0], g[1], g[2] + rc[1], rc[2], rc[0], rc[3]), compose(mat4(), -g[0], -g[1], -g[2]));
         multiply(this.matrix, this.matrix, kick);
+        this.base.set(this.matrix);
+        // the world in the way: turned aside / back / tucked round the grip
+        this.blocked.update(dt);
+        const [by, bb, bt] = this.blocked.value, tk = Math.abs(bt);
+        const push = multiply(mat4(), compose(mat4(), g[0], g[1] - tk * .04, g[2] + bb + tk * .06, by, bt * 1.05, -tk * .35 * Math.sign(bt || 1)), compose(mat4(), -g[0], -g[1], -g[2]));
+        multiply(this.matrix, this.matrix, push);
+    }
+    /** the pose before the world pushed it (for `Obstruction`) */
+    readonly base: Mat4 = mat4();
+    /** yaw aside, back (m), tuck (+1 up, -1 down) */
+    private blocked = new Spring(3, 160, 22);
+    /** what the world does to the gun (`Obstruction.update`'s result), eased in */
+    obstruct(o: { yaw: number; back: number; tuck: number }) {
+        this.blocked.target[0] = o.yaw; this.blocked.target[1] = o.back; this.blocked.target[2] = o.tuck;
+    }
+    /** 0..1 how tucked (no aiming) */
+    get tucked() { return Math.min(1, Math.abs(this.blocked.value[2])); }
+    /** camera space grip / muzzle of the unpushed pose */
+    get free(): { grip: Vec3; muzzle: Vec3 } {
+        return { grip: point(this.base, this.hold.grip), muzzle: point(this.base, this.hold.muzzle) };
     }
     private sprinting = 0;
     /** recoil push: muzzle up (rad), back (m), yaw, roll (rad); critically damped */
