@@ -10,10 +10,10 @@ import { direction, invertRigid, mat4, Obstruction, perspective, point, Scope, V
 import { Gun, GUNS, cycleCues, type Action, type Cue } from "@polywar/weapons";
 import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile } from "@polywar/armory";
 import { Arms, armsPoseOf, type ArmsPose } from "./arms";
-import { bodyArm, FORE_HAND, GRIP_HAND, handRotation, reach, release, turnFrame, type BodyArm, type HandFrame, type SkinLike } from "./body-arms";
+import { bend, bodyArm, FORE_HAND, grip, holdRotation, PISTOL_GRIP, reach, release, turnFrame, WRIST_GRIP, type BodyArm, type HandFrame, type SkinLike } from "./body-arms";
 import type { HandsFile } from "./weapon-editor";
 import { Feel } from "./feel";
-import { holdOf, scopeMountFor, scopeMountOf } from "./holds";
+import { bonePoint, holdOf, scopeMountFor, scopeMountOf } from "./holds";
 import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
 
@@ -491,18 +491,25 @@ export class Player {
         const local = (p: Vec3): Vec3 => { const v = toSkin.clone.multiply([p[0], p[1], p[2], 1]) as unknown as number[]; return [v[0], v[1], v[2]]; };
         const along = (d: Vec3): Vec3 => { const a = local([0, 0, 0]), b = local(d); return [b[0] - a[0], b[1] - a[1], b[2] - a[2]]; };
         const camDir = (d: Vec3) => direction(cam, d);
-        const hands = carried.hands ?? carried.hold, pose = carried.arms ?? armsPoseOf(this.arms.look), lag = this.vm.lag;
+        const hands = carried.hands ?? carried.hold, lag = this.vm.lag;
         const at = (p: Vec3) => local(point(cam, point(this.vm.matrix, p)));
-        const pole = (i: 0 | 1): Vec3 => { const s = pose.shoulder[i], e = pose.elbow[i]; return along(camDir([e[0] - s[0] - lag[0], e[1] - s[1] + lag[1], e[2] - s[2]])); };
+        // camera space: the trigger elbow out, a little down (aimed "down" or "back" would bring it by the eye),
+        // the support elbow down under the gun
+        const pole = (i: 0 | 1): Vec3 => along(camDir(i ? [-.3 - lag[0], -1 + lag[1], 0] : [1 - lag[0], -.35 + lag[1], 0]));
+        // the torso follows the view's pitch (most of it)
+        bend(skin, ["spine", "spine.1", "chest"], [.25, .25, .3], [1, 0, 0], -this.pitch);
         const turn = carried.turn ?? [[0, 0], [0, 0]], r = Math.PI / 180;
         // gun space directions -> skin space (through the gun's sway and the camera)
         const dir = (d: Vec3) => along(camDir(direction(this.vm.matrix, d)));
-        const hand = (i: 0 | 1, p: Vec3, frame: HandFrame) => {
+        const hand = (i: 0 | 1, p: Vec3, frame: HandFrame, trigger?: Vec3) => {
             const f = turnFrame(frame, turn[i][0] * r, (i ? -1 : 1) * turn[i][1] * r);
-            const arm = this.rigArms![i];
-            reach(skin, arm, at(p), handRotation(arm, dir(f.dir), dir(f.palm)), pole(i));
+            const arm = this.rigArms![i], rotation = holdRotation(arm, dir(f.axis), dir(f.palm));
+            const wrist = reach(skin, arm, at(p), rotation, pole(i));
+            grip(skin, arm, f.radius, trigger && { at: at(trigger), wrist, rotation });
         };
-        hand(0, hands.grip, GRIP_HAND);
+        // pistols and pistol grip guns (smgs) by their grip, rifles by the stock's wrist; the index on the trigger
+        const trigger = carried.weapon?.points?.trigger ?? bonePoint(carried.model, "trigger");
+        hand(0, hands.grip, carried.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP, trigger);
         if (hands.fore) hand(1, hands.fore, FORE_HAND);
         else release(skin, this.rigArms![1]);
         skin.update();
@@ -511,7 +518,8 @@ export class Player {
     /** where the body is drawn: at the feet, facing the view, a little back so the eye doesn't look into it */
     private bodyMatrix() {
         const c = this.character!, s = c.json.scale ?? 1, f = this.mover.feet, y = this.yaw;
-        const back = .06;
+        // aimed, the head goes forward onto the stock: the body (head hidden) goes back under the eye
+        const back = .06 + .1 * (this.held?.gun.aimed ?? 0);
         return Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, f[0] + Math.sin(y) * back, f[1], f[2] + Math.cos(y) * back, 1])
             .multiply(Matrix4.rotationY(y + Math.PI))
             .multiply(Matrix4.create([s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1]));

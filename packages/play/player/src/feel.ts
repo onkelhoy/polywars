@@ -21,7 +21,7 @@ export type FeelSetting = {
 };
 
 /** where the gun is now: its world matrix (model space -> world), the muzzle (world), the shooter's velocity */
-export type GunPlace = { world: ArrayLike<number>; muzzle: Vec3; velocity: Vec3; eject?: Vec3 };
+export type GunPlace = { world: ArrayLike<number>; muzzle: Vec3; velocity: Vec3; eject?: Vec3; /** gun space direction the case flies (default right) */ ejectDir?: Vec3 };
 
 /**
  * Gun feel: the gun's cues (`Gun.oncue`) as sounds (`@polywar/weapon-audio`) and thrown cases
@@ -55,7 +55,7 @@ export class Feel {
 
     /** loads a gun's sounds and case */
     async load(gl: WebGL2RenderingContext, gun: Gun) {
-        await Promise.all([this.audio.load(gun.spec.model), this.caseOf(gl, gun.caliber.model)]);
+        await Promise.all([this.audio.load(gun.spec.sounds ?? gun.spec.model), this.caseOf(gl, gun.caliber.model)]);
     }
 
     caseOf(gl: WebGL2RenderingContext, id: string) {
@@ -75,8 +75,8 @@ export class Feel {
 
     /** a cue of the held gun at `place` */
     cue(cue: Cue, gun: Gun, place: GunPlace) {
-        const set = gun.spec.model, w = place.world, at = point(w, [0, 0, 0]);
-        if (cue === "shot") this.audio.shot(set, place.muzzle);
+        const set = gun.spec.sounds ?? gun.spec.model, w = place.world, at = point(w, [0, 0, 0]);
+        if (cue === "shot") this.audio.shot(set, place.muzzle, gun.spec.report);
         else if (cue === "eject") this.eject(gun, place);
         else this.audio.part(set, cue, at);
     }
@@ -88,7 +88,7 @@ export class Feel {
         const w = place.world, r = () => Math.random() * 2 - 1;
         const from = point(w, place.eject ?? [.02, .05, -.1]);
         const unit = (v: Vec3): Vec3 => { const l = Math.hypot(...v) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
-        const right = unit(direction(w, [1, 0, 0])), up = unit(direction(w, [0, 1, 0])), back = unit(direction(w, [0, 0, 1]));
+        const right = unit(direction(w, place.ejectDir ?? [1, 0, 0])), up = unit(direction(w, [0, 1, 0])), back = unit(direction(w, [0, 0, 1]));
         const pistol = gun.spec.kind === "pistol", out = (pistol ? 2.2 : 3) + r() * .5, lift = 1.6 + r() * .4, rear = .4 + r() * .3;
         const v = place.velocity;
         const velocity: Vec3 = [0, 1, 2].map(k => right[k] * out + up[k] * lift + back[k] * rear + v[k]) as Vec3;
