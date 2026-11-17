@@ -1,81 +1,121 @@
+import { Quaternion } from "@papit/quaternion";
+import { Vector3 } from "@papit/vector";
 import type { Vec3 } from "@polywar/viewmodel";
 
-type Bone = { name: string; head: ArrayLike<number>; children: Bone[] };
+type P = ArrayLike<number>;
+type Bone = {
+    name: string; parent: Bone | null; children: Bone[];
+    head: Vector3; worldRotation: Quaternion; rotation: Quaternion;
+    moveTo(point: P): void;
+};
 /** the bits of `@polywar/skeleton` used here */
-export type SkinLike = { bones: Bone[]; matrices: Float32Array; armature: { find(name: string): Bone | null | undefined } };
+export type SkinLike = {
+    bones: Bone[]; matrices: Float32Array;
+    armature: { find(name: string): Bone | null | undefined };
+    ik: Map<string, unknown>;
+    setIK(bone: string, weight: number): void;
+    update(): Float32Array;
+    reset(): void;
+};
 
-const sub = (a: ArrayLike<number>, b: ArrayLike<number>): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const len = (a: Vec3) => Math.hypot(a[0], a[1], a[2]);
-const norm = (a: Vec3): Vec3 => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+/** an arm of the rig: chain (upper arm, forearm, hand) + its controls (`hand.ik`, `elbow.pole`) */
+export type BodyArm = {
+    upper: Bone; forearm: Bone; hand: Bone; control: Bone; pole: Bone;
+    /** the clavicle: turns forward when the hand is out of reach */
+    shoulder?: Bone;
+    /** shoulder to wrist, straight */
+    length: number;
+    /**
+     * rest, skin space: the hand's world rotation, its direction (knuckles) and palm,
+     * `contact`: wrist to the middle of the palm (what goes on the gun)
+     */
+    rest: { rotation: Quaternion; dir: Vector3; palm: Vector3; contact: Vector3 };
+};
 
-/** column major 4x4 helpers */
-function mul(a: ArrayLike<number>, b: ArrayLike<number>, out: Float32Array<ArrayBufferLike> = new Float32Array(16)) {
-    const r = new Float32Array(16);
-    for (let c = 0; c < 4; c++)
-        for (let row = 0; row < 4; row++)
-            r[c * 4 + row] = a[row] * b[c * 4] + a[4 + row] * b[c * 4 + 1] + a[8 + row] * b[c * 4 + 2] + a[12 + row] * b[c * 4 + 3];
-    out.set(r);
-    return out;
-}
-const apply = (m: ArrayLike<number>, p: Vec3): Vec3 => [m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12], m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13], m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]];
+/** how a hand sits on a gun, gun space (x right, y up, -z forward): knuckle direction + palm normal */
+export type HandFrame = { dir: Vec3; palm: Vec3 };
+/** the trigger hand: knuckles forward and down, palm on the grip's right side */
+export const GRIP_HAND: HandFrame = { dir: [0, -.55, -.85], palm: [-1, 0, 0] };
+/** the support hand: knuckles forward, palm up under the fore end */
+export const FORE_HAND: HandFrame = { dir: [.15, .1, -1], palm: [.5, .85, 0] };
 
-/** rotation (unit quaternion x y z w) to a matrix turning round `at` */
-function turnAt(q: number[], at: Vec3) {
-    const [x, y, z, w] = q;
-    const m = new Float32Array([
-        1 - 2 * (y * y + z * z), 2 * (x * y + z * w), 2 * (x * z - y * w), 0,
-        2 * (x * y - z * w), 1 - 2 * (x * x + z * z), 2 * (y * z + x * w), 0,
-        2 * (x * z + y * w), 2 * (y * z - x * w), 1 - 2 * (x * x + y * y), 0,
-        0, 0, 0, 1]);
-    const r = apply(m, at);
-    m[12] = at[0] - r[0]; m[13] = at[1] - r[1]; m[14] = at[2] - r[2];
-    return m;
-}
-/** shortest turn from `a` to `b` (unit) */
-function arc(a: Vec3, b: Vec3): number[] {
-    const d = dot(a, b);
-    if (d < -.9999) { const ax = norm(Math.abs(a[0]) < .9 ? cross(a, [1, 0, 0]) : cross(a, [0, 1, 0])); return [...ax, 0]; }
-    const c = cross(a, b), w = 1 + d, l = Math.hypot(c[0], c[1], c[2], w);
-    return [c[0] / l, c[1] / l, c[2] / l, w / l];
-}
-/** turn of `angle` round `axis` (unit) */
-const about = (axis: Vec3, angle: number) => { const s = Math.sin(angle / 2); return [axis[0] * s, axis[1] * s, axis[2] * s, Math.cos(angle / 2)]; };
-
-/** a joint's posed head (the space the joint matrices put the mesh in) */
-const headNow = (_: SkinLike, bone: Bone): Vec3 => [bone.head[0], bone.head[1], bone.head[2]];
-
-/** a bone and everything under it */
-const below = (b: Bone): Bone[] => [b, ...b.children.flatMap(below)];
+const v = (p: P) => new Vector3(p[0], p[1], p[2]);
+/** `a` without its part along unit `n`, normalized */
+const reject = (a: P, n: Vector3) => v(a).subtract(n.clone.multiply(n.dot(v(a)))).normalize();
 
 /**
- * Bends a body's arm (`upper`, `forearm`, `hand` bone names) so the hand's head reaches `target`, the elbow toward
- * `pole` (a direction), all in the skin's space, on top of the posed joint matrices. `turn`: the hand's own tilt and
- * twist (radians) round the forearm's end.
+ * Finds an arm of the human rig (`tools/blender/lib/human_rig.py`) by side ("L" / "R"), undefined without the
+ * controls. Reads the rest frame: call before posing (resets the skin).
  */
-export function reach(skin: SkinLike, names: [string, string, string], target: Vec3, pole: Vec3, turn: [number, number] = [0, 0]) {
-    const [u, f, h] = names.map(n => skin.armature.find(n));
-    if (!u || !f || !h) return;
-    const S = headNow(skin, u), E0 = headNow(skin, f), H0 = headNow(skin, h);
-    const l1 = len(sub(E0, S)), l2 = len(sub(H0, E0));
-    const d = sub(target, S), reachLen = Math.min(len(d), l1 + l2 - 1e-4), dir = norm(d);
-    const a = (l1 * l1 - l2 * l2 + reachLen * reachLen) / (2 * reachLen), out = Math.sqrt(Math.max(0, l1 * l1 - a * a));
-    const side = norm(sub(pole, dir.map(v => v * dot(pole, dir)) as Vec3));
-    const E: Vec3 = [S[0] + dir[0] * a + side[0] * out, S[1] + dir[1] * a + side[1] * out, S[2] + dir[2] * a + side[2] * out];
-    const T: Vec3 = [S[0] + dir[0] * reachLen, S[1] + dir[1] * reachLen, S[2] + dir[2] * reachLen];
-
-    const d1 = turnAt(arc(norm(sub(E0, S)), norm(sub(E, S))), S);
-    const fore = norm(sub(apply(d1, H0), apply(d1, E0)));
-    const move1 = apply(d1, E0);
-    const d2 = mul(turnAt(arc(fore, norm(sub(T, E))), E), new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, E[0] - move1[0], E[1] - move1[1], E[2] - move1[2], 1]));
-    const lower = mul(d2, d1);
-    // the hand: tilt round the side axis, twist round the forearm, at the wrist
-    const fd = norm(sub(T, E)), tiltAxis = norm(cross(fd, side));
-    const hand = mul(mul(turnAt(about(fd, turn[1]), T), turnAt(about(tiltAxis, turn[0]), T)), lower);
-
-    const set = (bone: Bone, m: Float32Array) => { const j = skin.bones.indexOf(bone); if (j >= 0) mul(m, skin.matrices.subarray(j * 16, j * 16 + 16), skin.matrices.subarray(j * 16, j * 16 + 16)); };
-    set(u, d1);
-    set(f, lower);
-    for (const b of below(h)) set(b, hand);
+export function bodyArm(skin: SkinLike, names: [string, string, string], side: "L" | "R"): BodyArm | undefined {
+    const [upper, forearm, hand] = names.map(n => skin.armature.find(n));
+    const control = skin.armature.find(`hand.ik.${side}`), pole = skin.armature.find(`elbow.pole.${side}`);
+    if (!upper || !forearm || !hand || !control || !pole || !skin.ik.has(forearm.name)) return undefined;
+    skin.reset(); skin.update();
+    // rest is a T-pose, palms down
+    const top = skin.armature.find("head") ?? skin.armature.find("neck"), hips = skin.armature.find("hips");
+    const up = top && hips ? v(top.head).subtract(hips.head).normalize() : new Vector3(0, 1, 0);
+    const tip = hand.children.find(c => /^fingers\.1|^index\.1/.test(c.name));
+    const dir = tip ? v(tip.head).subtract(hand.head).normalize() : v(hand.head).subtract(forearm.head).normalize();
+    const palm = reject(up.multiply(-1), dir);
+    const knuckles = tip ? Vector3.distance(tip.head, hand.head) : .08;
+    const contact = dir.clone.multiply(knuckles * .6).add(palm.clone.multiply(.025));
+    const length = Vector3.distance(upper.head, forearm.head) + Vector3.distance(forearm.head, hand.head);
+    const shoulder = upper.parent && /shoulder|clavicle/i.test(upper.parent.name) ? upper.parent : undefined;
+    return { upper, forearm, hand, control, pole, shoulder, length, rest: { rotation: hand.worldRotation.clone, dir, palm, contact } };
 }
+
+/** the world (skin space) rotation that turns the rest hand onto knuckles `dir` and palm `palm` (unit, skin space) */
+export function handRotation(arm: BodyArm, dir: P, palm: P) {
+    const d = v(dir).normalize();
+    const swing = Quaternion.fromTo(arm.rest.dir, d);
+    const p0 = reject(swing.rotate(arm.rest.palm.clone), d), p1 = reject(palm, d);
+    const angle = Math.atan2(v(p0).cross(p1).dot(d), p0.dot(p1));
+    const twist = Quaternion.fromAxisAngle(d, angle);
+    const out = Quaternion.identity;
+    Quaternion.multiplyInto(out, swing, arm.rest.rotation);
+    return Quaternion.multiplyInto(out, twist, out);
+}
+
+/** a hand frame tilted (round the side axis) and twisted (round its knuckles), radians */
+export function turnFrame(frame: HandFrame, tilt: number, twist: number): HandFrame {
+    const d = v(frame.dir).normalize(), p = reject(frame.palm, d);
+    const side = d.clone.cross(p).normalize();
+    const qt = Quaternion.fromAxisAngle(side, tilt), qw = Quaternion.fromAxisAngle(d, twist);
+    const dir = qt.rotate(d.clone), palm = qw.rotate(qt.rotate(p.clone));
+    return { dir: [dir[0], dir[1], dir[2]], palm: [palm[0], palm[1], palm[2]] };
+}
+
+/** how far the clavicle turns forward at most (radians) */
+const SHRUG = .6;
+
+/**
+ * Bends the arm with the rig's own IK: the palm goes on `target` with the hand turned to `rotation` (the hand
+ * copies the control), the elbow pole out along `pole` (a direction) from the middle of the arm. Out of reach,
+ * the clavicle turns toward it first. Skin space, on a posed skin. Call `skin.update()` after.
+ */
+export function reach(skin: SkinLike, arm: BodyArm, target: P, rotation: Quaternion, pole: P) {
+    const { control, upper, shoulder } = arm;
+    const now = Quaternion.multiplyInto(Quaternion.identity, rotation, arm.rest.rotation.clone.conjugate());
+    const wrist = v(target).subtract(now.rotate(arm.rest.contact.clone));
+    if (shoulder)
+    {
+        const arc = v(upper.head).subtract(shoulder.head), to = v(wrist).subtract(shoulder.head);
+        const extra = Vector3.distance(wrist, upper.head) - arm.length * .97;
+        if (extra > 0)
+        {
+            const axis = arc.clone.cross(to), turn = Quaternion.fromAxisAngle(axis, Math.min(SHRUG, extra / arc.magnitude));
+            const world = Quaternion.multiplyInto(Quaternion.identity, turn, shoulder.worldRotation);
+            Quaternion.multiplyInto(shoulder.rotation, shoulder.parent?.worldRotation.clone.conjugate() ?? Quaternion.identity, world);
+        }
+    }
+    control.moveTo(wrist);
+    const parent = control.parent?.worldRotation.clone.conjugate() ?? Quaternion.identity;
+    Quaternion.multiplyInto(control.rotation, parent, rotation);
+    const mid = v(upper.head).add(wrist).multiply(.5).add(v(pole).normalize().multiply(.5));
+    arm.pole.moveTo(mid);
+    skin.setIK(arm.forearm.name, 1);
+}
+
+/** lets go: the arm back to the clip (FK) */
+export function release(skin: SkinLike, arm: BodyArm) { skin.setIK(arm.forearm.name, 0); }

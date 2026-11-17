@@ -62,7 +62,9 @@
     "@papit/audio": "*",
     "@papit/rigidbody": "*",
     "@polywar/weapon-audio": "*",
-    "@polywar/debris": "*"
+    "@polywar/debris": "*",
+    "@papit/quaternion": "*",
+    "@papit/vector": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -7,10 +7,10 @@ import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
 import { direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
-import { Gun, GUNS, type Cue } from "@polywar/weapons";
-import { Armory, type AimTune, type WeaponFile } from "@polywar/armory";
+import { Gun, GUNS, cycleCues, type Action, type Cue } from "@polywar/weapons";
+import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile } from "@polywar/armory";
 import { Arms, armsPoseOf, type ArmsPose } from "./arms";
-import { reach, type SkinLike } from "./body-arms";
+import { bodyArm, FORE_HAND, GRIP_HAND, handRotation, reach, release, turnFrame, type BodyArm, type HandFrame, type SkinLike } from "./body-arms";
 import type { HandsFile } from "./weapon-editor";
 import { Feel } from "./feel";
 import { holdOf, scopeMountFor, scopeMountOf } from "./holds";
@@ -31,7 +31,7 @@ const LEAN = .32, LEAN_ROLL = .2;
  * Its body (a `character.json`) is drawn under the view, head and arms left out.
  *
  * Keys: WASD walk, shift run, space jump, left mouse fire, right mouse aim (held) or Option / Alt (toggle),
- * Q / E lean, R reload, 1..9 / wheel switch guns (wheel zooms a scope while aimed), Esc lets go of the mouse.
+ * Q / E lean, R reload, 1..9 / [ ] switch guns, wheel zooms a scope while aimed, Esc lets go of the mouse.
  * Guns are `GUNS` ids, `<id>@<scope>` puts a scope from `assets/models/weapons/attachments/` on (e.g. `kar98k@scope-2`).
  */
 export class Player {
@@ -67,6 +67,8 @@ export class Player {
     private tracerCount = 0;
     /** aim toggled on (Option / Alt; the range's tuning panel holds it) */
     toggled = false;
+    /** per gun model: iron sight flipped up and seconds since the flip (V) */
+    private toggles = new Map<string, { on: boolean; t: number }>();
     /** -1 left .. 1 right, eased */
     lean = 0;
     readonly armory: Armory;
@@ -99,10 +101,30 @@ export class Player {
         const loaded = await Promise.all(ids.map(async entry => {
             const [id, scopeId] = entry.split("@"), spec = GUNS[id];
             const weapon = await this.armory.weapon(spec.model).catch(() => undefined);
+            if (weapon?.sounds) spec.sounds = weapon.sounds;
             // a scoped spec without a named scope takes the first that fits
             const sid = scopeId ?? (spec.scope ? weapon?.scopes[0] : undefined);
             const scope = sid ? await this.armory.scope(sid).catch(() => undefined) : undefined;
             const [model, scopeModel] = await Promise.all([Model.load(this.gl, `${url}${spec.model}/model.glb`), scope ? Model.load(this.gl, scope.url + scope.model) : undefined]);
+            // the case flies at weapon.json `animation.shoot.eject` (a frame of `shoot`, which plays over the shot's span)
+            const ej = weapon?.animation?.shoot?.eject, shoot = model.animation(weapon?.animation?.shoot?.clip ?? "shoot");
+            if (ej !== undefined && shoot && shoot.duration > 0 && ["semi", "auto", "pistol"].includes(weapon!.action))
+            {
+                const span = Math.min(shoot.duration, Math.max(.08, spec.interval * .85));
+                const at = ej / (weapon!.animation!.fps ?? 24) / shoot.duration * span / spec.interval;
+                spec.cues = { ...spec.cues, cycle: [...(spec.cues?.cycle ?? []).filter(c => c[1] !== "eject"), [at, "eject"]] };
+            }
+            // bolt / lever / pump: the case flies at `animation.cycle.eject` (a frame of `cycle`, played over the last 80% of the interval)
+            const cyc = weapon?.animation?.cycle as { clip?: string; eject?: number } | undefined, cej = cyc?.eject, cycle = model.animation(cyc?.clip ?? "cycle");
+            if (cej !== undefined && cycle && cycle.duration > 0 && !["semi", "auto", "pistol"].includes(weapon!.action))
+            {
+                const at = .2 + .8 * Math.min(1, cej / (weapon!.animation!.fps ?? 24) / cycle.duration);
+                spec.cues = { ...spec.cues, cycle: [...(spec.cues?.cycle ?? cycleCues(spec, weapon!.action as Action)).filter(c => c[1] !== "eject"), [at, "eject"]] };
+            }
+            // the reload's sounds from weapon.json `animation.reload` / `reloadEmpty` cues
+            const anim = weapon?.animation;
+            if (anim?.reload) spec.cues = { ...spec.cues, reload: stepCues(model, anim.reload, anim.fps ?? 24) };
+            if (anim?.reloadEmpty) spec.cues = { ...spec.cues, reloadEmpty: stepCues(model, anim.reloadEmpty, anim.fps ?? 24) };
             return { id, weapon, scope, model, scopeModel, sid };
         }));
         for (const { id, weapon, scope: data, model, scopeModel, sid } of loaded)
@@ -155,7 +177,9 @@ export class Player {
         const parts = character.parts;
         const chain = (side: "L" | "R") => { const p = parts[`arm.${side}`] ?? [], n = p.slice(-3); return n.length === 3 && n.every(b => skin.armature.find(b)) ? n as [string, string, string] : undefined; };
         const r = chain("R"), l = chain("L");
+        const ar = r && bodyArm(skin, r, "R"), al = l && bodyArm(skin, l, "L");
         this.bodyArms = r && l ? [r, l] : undefined;
+        this.rigArms = ar && al ? [ar, al] : undefined;
         const armBones = new Set<string>();
         for (const side of ["arm.L", "arm.R"]) for (const n of parts[side] ?? []) for (const b of below(skin.armature.find(n))) armBones.add(b.name);
         const head = new Set([...(character.json.firstPerson?.hide ?? []), ...(parts.head ?? [])]);
@@ -163,10 +187,12 @@ export class Player {
         // the world pass: no head, no arms (the arms come with the gun, on its depth)
         this.hidden = index(n => head.has(n) || armBones.has(n) || /Thumb|Finger|MiddleHand/.test(n));
         // the gun's pass: only the arms
-        this.onlyArms = this.bodyArms ? index(n => !armBones.has(n)) : [];
+        this.onlyArms = this.rigArms ? index(n => !armBones.has(n)) : [];
     }
     /** body arm chains [right, left] (upper arm, forearm, hand) */
     private bodyArms?: [[string, string, string], [string, string, string]];
+    /** the arms with their rig controls (IK, the hand copies the control's rotation), [right, left] */
+    private rigArms?: [BodyArm, BodyArm];
     private onlyArms: number[] = [];
 
     /** the hand pose of a carried gun (hand editor, weapon.json `hands`) */
@@ -188,7 +214,7 @@ export class Player {
     }
 
     /** the body holds the gun with its own arms (no drawn box arms) */
-    get bodyHolds() { return !!this.bodyArms && !!this.body && this.showBody; }
+    get bodyHolds() { return !!this.rigArms && !!this.body && this.showBody; }
     /** camera space shoulder of the body's arm (0 right, 1 left), undefined without body arms */
     shoulderOf(side: 0 | 1): Vec3 | undefined {
         const skin = this.body?.skin as unknown as SkinLike | undefined, cam = this.camera?.worldMatrix;
@@ -202,13 +228,105 @@ export class Player {
     get held() { return this.carried[this.current]; }
     get gun() { return this.held?.gun; }
 
+    /** a toggled part of the gun (`press` flips it): `pair` [on, off] clips, or `single` played forward on, backward off */
+    private part(model: Model, name: string, press: boolean, dt: number, pair: [string, string], single: string) {
+        const two = !!model.animation(pair[0]), one = !two && !!model.animation(single);
+        if (!two && !one) return;
+        const key = `${this.current}:${name}`;
+        let st = this.toggles.get(key);
+        if (!st) this.toggles.set(key, st = { on: false, t: 99 });
+        if (press) { st.on = !st.on; st.t = 0; }
+        st.t += dt;
+        if (two)
+        {
+            const clip = st.on ? pair[0] : pair[1], len = model.animation(clip)!.duration;
+            // off at rest = frame 0 of the on clip
+            if (st.on || st.t < len) model.layer(clip, Math.min(st.t, len));
+            return;
+        }
+        const len = model.animation(single)!.duration, t = Math.min(st.t, len);
+        model.layer(single, st.on ? t : len - t);
+    }
+
+    /**
+     * A break action's pose from its barrels: opened through the reload (the fired cases out, held, new rounds in,
+     * closed), then per barrel the hammer, a spent case, the trigger pull and the safety.
+     */
+    private breakPose(model: Model, gun: Gun, b: NonNullable<GunAnimation["break"]>, fps: number, held: boolean, dt: number) {
+        const p = gun.progress, len = (n: string) => model.animation(n)?.duration ?? 0;
+        const open = gun.reloading <= 0 ? 0 : p < .18 ? p / .18 : p < .82 ? 1 : 1 - (p - .82) / .18;
+        model.pose(b.open, open * len(b.open), false);
+        gun.barrels!.forEach((barrel, i) => {
+            const n = b.barrels[i], name = (t: string) => t.replace("{b}", n);
+            const swap = gun.swapping.includes(i);
+            // swapped: case out (.2..4), held out, the new round in (reversed, .6..8)
+            if (swap && gun.reloading > 0)
+            {
+                const s = p < .2 ? 0 : p < .4 ? (p - .2) / .2 : p < .6 ? 1 : p < .8 ? 1 - (p - .6) / .2 : 0;
+                model.layer(name(b.swap), s * len(name(b.swap)));
+            }
+            const fresh = swap && gun.reloading > 0 && p >= .5;
+            if (barrel.spent && !fresh) model.layer(name(b.spent), 0);
+            // the hammer coming back (its `cock` clip), then held back
+            const cock = b.cock && name(b.cock);
+            if (barrel.cocked && cock && barrel.cocking < len(cock)) model.layer(cock, barrel.cocking);
+            else if (barrel.cocked) model.layer(name(b.cocked), 0);
+            const pull = gun.pull;
+            if (pull?.barrel === i)
+            {
+                const shoot = name(b.shoot), d = len(shoot), span = .07, t = Math.min(1, pull.since / span) * d;
+                const pulled = (b.pulled ?? 1) / fps;
+                if (pull.fired && pull.since < span) model.layer(shoot, t);
+                else if (held || pull.since < span) model.layer(shoot, Math.min(t, pulled), b.trigger ? [name(b.trigger)] : undefined);
+            }
+        });
+        // the safety slides over its clip's length
+        if (!b.safety) return;
+        const d = len(b.safety.replace("{b}", b.barrels[0])) || .1;
+        this.safety = Math.max(0, Math.min(d, this.safety + (gun.safe ? dt : -dt)));
+        if (this.safety > 0) for (const n of b.barrels) model.layer(b.safety.replace("{b}", n), this.safety);
+    }
+    /** seconds into the safety clip (0 off) */
+    private safety = 0;
+
+    /** weapon.json clip timeline (`reload` / `reloadEmpty` pieces, `shoot.last`): false when the file has none for now */
+    private stepPose(model: Model, gun: Gun, anim: GunAnimation | undefined) {
+        if (!anim) return false;
+        const fps = anim.fps ?? 24;
+        if (gun.reloading > 0)
+        {
+            const steps = gun.emptyReload ? anim.reloadEmpty ?? anim.reload : anim.reload;
+            if (!steps) return false;
+            let p = gun.progress, i = 0;
+            const total = steps.reduce((a, s) => a + s.share, 0);
+            p *= total;
+            while (i < steps.length - 1 && p > steps[i].share) p -= steps[i++].share;
+            const s = steps[i], f = Math.min(1, p / s.share);
+            if (s.hold) model.pose(s.hold, model.animation(s.hold)?.duration ?? 0, false);
+            else if (s.clip)
+            {
+                const [a, b] = span(model, s, fps), t = s.reverse ? b + (a - b) * f : a + (b - a) * f;
+                model.pose(s.clip, t, false);
+            }
+            if (s.over) model.layer(s.over.clip, (s.over.frame ?? 0) / fps, s.over.only);
+            return true;
+        }
+        // the last round: its own clip, then held at its end while empty
+        const last = anim.shoot?.last, clip = last && model.animation(last);
+        if (!clip || gun.rounds > 0) return false;
+        const shoot = model.animation(anim.shoot?.clip ?? "shoot"), sc = shoot && shoot.duration > 0 ? clip.duration / shoot.duration : 1;
+        const len = Math.min(clip.duration, Math.max(.08, gun.spec.interval * .85) * sc);
+        model.pose(last, Math.min(1, gun.sinceShot / len) * clip.duration, false);
+        return true;
+    }
+
     select(index: number) {
         if (!this.carried[index]) return;
         this.held?.gun.cancel();
         this.current = index;
         this.vm.set(this.carried[index].hold);
         // sounds load when a gun is first taken up (all of them at once is ~20 MB)
-        void this.feel.audio.load(this.carried[index].gun.spec.model);
+        void this.feel.audio.load(this.carried[index].gun.spec.sounds ?? this.carried[index].gun.spec.model);
     }
 
     /** put on the engine camera: `new Camera({ controllers: [player.controller] })` */
@@ -248,10 +366,9 @@ export class Player {
         // switching and zoom
         for (let i = 1; i <= 9; i++) if (pressed.has(String(i))) this.select(i - 1);
         if (pressed.has("[") || pressed.has("]")) this.select((this.current + (pressed.has("]") ? 1 : -1) + this.carried.length) % this.carried.length);
-        if (wheel)
+        if (wheel && scoped)
         {
-            if (scoped) { const [lo, hi] = carried!.zoom!; carried!.scope!.zoom = Math.max(lo, Math.min(hi, carried!.scope!.zoom * (wheel < 0 ? 1.15 : 1 / 1.15))); }
-            else this.select((this.current + (wheel > 0 ? 1 : -1) + this.carried.length) % this.carried.length);
+            const [lo, hi] = carried!.zoom!; carried!.scope!.zoom = Math.max(lo, Math.min(hi, carried!.scope!.zoom * (wheel < 0 ? 1.15 : 1 / 1.15)));
         }
         if (pressed.has("r")) gun?.reload();
 
@@ -272,11 +389,23 @@ export class Player {
         if (gun)
         {
             gun.aim(aiming && !sprint);
+            // break actions: C pulls the hammers back, X the safety
+            if (pressed.has("c")) gun.cock();
+            if (gun.barrels && pressed.has("x")) gun.toggleSafety();
             const event = sprint ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
-            pose.pose(...gunClip(pose, gun), false);
+            const brk = carried.weapon?.animation?.break;
+            if (gun.barrels && brk && pose.animation(brk.open)) this.breakPose(pose, gun, brk, carried.weapon!.animation!.fps ?? 24, !!input?.buttons.has(0), dt);
+            else if (!this.stepPose(pose, gun, carried.weapon?.animation)) pose.pose(...gunClip(pose, gun, carried.weapon?.animation?.rest as string | undefined), false);
+            // toggled parts on top of the clip: V the iron sight, B the stock (one clip played back = off, or an up / down pair)
+            const tg = carried.weapon?.animation?.toggles as Record<string, { key: string; clip?: string; on?: string; off?: string }> | undefined;
+            const sight = tg?.sight, stock = tg?.stock;
+            this.part(pose, "sight", pressed.has(sight?.key ?? "v"), dt, [sight?.on ?? "iron-scope-up", sight?.off ?? "iron-scope-down"], sight?.clip ?? "ironscope");
+            this.part(pose, "stock", pressed.has(stock?.key ?? "b"), dt, [stock?.on ?? "stock-fold", stock?.off ?? "stock-unfold"], stock?.clip ?? "foldstock");
+            // the rounds shown in the magazine drop away when it's empty (until the new one is in)
+            if (pose.animation("empty-mag") && gun.rounds === 0 && !(gun.reloading > 0 && gun.progress > .55)) pose.layer("empty-mag", 0);
             this.spread = gun.spread(m.speed / 4.2);
         }
         const strafe = m.velocity[0] * rx + m.velocity[2] * rz;
@@ -303,13 +432,15 @@ export class Player {
         const carried = this.held;
         if (!carried || carried.gun !== gun || !this.camera) return;
         const cam = this.camera.worldMatrix, world = this.vm.world(cam, this.cam), m = this.mover;
-        this.feel.cue(cue, gun, { world, muzzle: point(cam, this.vm.muzzle.from), velocity: [m.velocity[0], m.velocity[1], m.velocity[2]], eject: carried.weapon?.points?.eject });
+        this.feel.cue(cue, gun, { world, muzzle: point(cam, this.vm.muzzle.from), velocity: [m.velocity[0], m.velocity[1], m.velocity[2]], eject: carried.weapon?.points?.eject, ejectDir: carried.weapon?.points?.ejectDir });
     }
 
     private fire(camera: Camera, gun: Gun) {
         const cam = camera.worldMatrix, c = gun.caliber, carried = this.held, hold = carried.hold, vm = this.vm.matrix;
         const zero = carried.zero ?? gun.spec.zero;
-        const muzzle = point(vm, hold.muzzle);
+        // more barrels: the one that fired
+        const barrel = gun.pull && carried.weapon?.points?.barrels?.[gun.pull.barrel];
+        const muzzle = point(vm, barrel || hold.muzzle);
         const from = point(cam, muzzle);
         // hip: down the bore, tipped up so it meets the sights' height at the zero
         const bore = this.vm.muzzle.direction;
@@ -334,7 +465,7 @@ export class Player {
             const ball = unit([d[0] + up[0] * py + right[0] * px, d[1] + up[1] * py + right[1] * px, d[2] + up[2] * py + right[2] * px]);
             this.bullets.fire({ from, direction: ball, speed: c.speed * (balls > 1 ? .95 + Math.random() * .1 : 1), drag: c.drag, life: c.life, tracer: tracer && i === 0, data: { gun: gun.spec.model } });
         }
-        this.impacts.flash(from, direction(cam, bore), gun.spec.kind === "pistol" ? .08 : c.pellets || gun.spec.caliber === "20x138b" ? .3 : .14);
+        this.impacts.flash(from, direction(cam, bore), gun.spec.flash ?? (gun.spec.kind === "pistol" ? .08 : c.pellets || gun.spec.caliber === "20x138b" ? .3 : .14));
         const recoil = gun.recoil();
         this.vm.fire(recoil);
         this.climb += recoil.climb;
@@ -364,8 +495,17 @@ export class Player {
         const at = (p: Vec3) => local(point(cam, point(this.vm.matrix, p)));
         const pole = (i: 0 | 1): Vec3 => { const s = pose.shoulder[i], e = pose.elbow[i]; return along(camDir([e[0] - s[0] - lag[0], e[1] - s[1] + lag[1], e[2] - s[2]])); };
         const turn = carried.turn ?? [[0, 0], [0, 0]], r = Math.PI / 180;
-        reach(skin, this.bodyArms![0], at(hands.grip), pole(0), [turn[0][0] * r, turn[0][1] * r]);
-        if (hands.fore) reach(skin, this.bodyArms![1], at(hands.fore), pole(1), [turn[1][0] * r, -turn[1][1] * r]);
+        // gun space directions -> skin space (through the gun's sway and the camera)
+        const dir = (d: Vec3) => along(camDir(direction(this.vm.matrix, d)));
+        const hand = (i: 0 | 1, p: Vec3, frame: HandFrame) => {
+            const f = turnFrame(frame, turn[i][0] * r, (i ? -1 : 1) * turn[i][1] * r);
+            const arm = this.rigArms![i];
+            reach(skin, arm, at(p), handRotation(arm, dir(f.dir), dir(f.palm)), pole(i));
+        };
+        hand(0, hands.grip, GRIP_HAND);
+        if (hands.fore) hand(1, hands.fore, FORE_HAND);
+        else release(skin, this.rigArms![1]);
+        skin.update();
     }
 
     /** where the body is drawn: at the feet, facing the view, a little back so the eye doesn't look into it */
@@ -387,7 +527,7 @@ export class Player {
         {
             this.body.pose(this.clip, this.bodyTime, this.clip !== "Jump");
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.bodyArms && carried) this.reachGun(skin, camera.worldMatrix, carried);
+            if (skin && this.rigArms) { if (carried) this.reachGun(skin, camera.worldMatrix, carried); else this.rigArms.forEach(a => release(skin, a)); }
             this.posed = skin ? skin.matrices.slice() : undefined;
             if (skin) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
@@ -424,7 +564,7 @@ export class Player {
         if (carried.scopeMesh) r.draw(carried.scopeMesh, world);
         const hands = carried.hands ? { grip: point(this.vm.matrix, carried.hands.grip), fore: carried.hands.fore && point(this.vm.matrix, carried.hands.fore) } : this.vm.hands;
         const skin = this.body?.skin as unknown as SkinLike | undefined;
-        if (this.body && this.showBody && skin && this.bodyArms && this.posed)
+        if (this.body && this.showBody && skin && this.rigArms && this.posed)
         {
             skin.matrices.set(this.posed);
             collapse(skin, this.onlyArms);
@@ -462,6 +602,29 @@ function tip(d: Vec3, angle: number): Vec3 {
     return [d[0], d[1] * c - d[2] * s, d[1] * s + d[2] * c];
 }
 
+/** a clip piece's [from, to] seconds */
+function span(model: Model, s: ClipStep, fps: number): [number, number] {
+    const d = model.animation(s.clip ?? s.hold ?? "")?.duration ?? 0;
+    return [s.from !== undefined ? s.from / fps : 0, s.to !== undefined ? s.to / fps : d];
+}
+
+/** the cues of clip pieces as a 0..1 timeline of the reload */
+function stepCues(model: Model, steps: ClipStep[], fps: number): [number, Cue][] {
+    const total = steps.reduce((a, s) => a + s.share, 0), out: [number, Cue][] = [];
+    let start = 0;
+    for (const s of steps)
+    {
+        const [a, b] = span(model, s, fps);
+        for (const [cue, frame] of Object.entries(s.cues ?? {}))
+        {
+            const k = b > a ? (frame / fps - a) / (b - a) : 0;
+            out.push([(start + Math.max(0, Math.min(1, s.reverse ? 1 - k : k)) * s.share) / total, cue as Cue]);
+        }
+        start += s.share;
+    }
+    return out.sort((x, y) => x[0] - y[0]);
+}
+
 function smoothstep(a: number, b: number, x: number) {
     const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
     return t * t * (3 - 2 * t);
@@ -480,16 +643,56 @@ type AnyBone = { name: string; children: AnyBone[] };
 const below = (b: AnyBone | null | undefined): AnyBone[] => b ? [b, ...b.children.flatMap(below)] : [];
 
 /**
- * The held gun's clip and time: its own `reload` / `reload-empty` if it has one, else a bolt gun's `cycle` opens, holds open
+ * The held gun's clip and time: its own `reload` / `reload-empty` if it has one, a pistol's `magazine-eject` + `clock`, else a bolt gun's `cycle` opens, holds open
  * while the rounds go in and closes; after a shot `shoot` (the jolt), then `cycle` through the `interval`.
  */
-function gunClip(model: Model, gun: Gun): [string | undefined, number] {
+function gunClip(model: Model, gun: Gun, rest?: string): [string | undefined, number] {
     const has = (n: string) => !!model.animation(n), cycle = model.animation("cycle");
     const len = cycle?.duration ?? 1;
     if (gun.reloading > 0)
     {
+        const insert = model.animation("insert-mag");
+        if (insert && !has("reload") && !has("reload-empty"))
+        {
+            // `eject-mag` (if any) takes the magazine out, held out, then `insert-mag` (frame 0 out, 4 in, the bolt to 9)
+            const p = gun.progress, f = (n: number) => n / 24, end = Math.min(insert.duration, f(9)), eject = model.animation("eject-mag");
+            if (eject)
+            {
+                if (p < .35) return ["eject-mag", p / .35 * eject.duration];
+                if (p < .55) return ["eject-mag", eject.duration];
+            }
+            else
+            {
+                // no eject clip: insert-mag 4..0 backwards
+                if (p < .12) return ["insert-mag", f(4) * (1 - p / .12)];
+                if (p < .55) return ["insert-mag", 0];
+            }
+            if (p < .7) return ["insert-mag", f(4) * (p - .55) / .15];
+            if (p < .88) return ["insert-mag", f(4) + (end - f(4)) * (p - .7) / .18];
+            return ["insert-mag", end];
+        }
         const own = gun.emptyReload && has("reload-empty") ? "reload-empty" : "reload";
         if (has(own)) return [own, gun.progress * (model.animation(own)!.duration)];
+        // pistol: magazine out, held, back in (eject reversed), then the slide racked (`clock`)
+        const eject = model.animation("magazine-eject") ?? model.animation("mag-eject"), clock = model.animation("clock");
+        // only a magazine-out clip: out, held, back in (reversed)
+        if (eject && !clock)
+        {
+            const p = gun.progress, e = eject.duration, n = eject.name!;
+            if (p < .25) return [n, p / .25 * e];
+            if (p < .65) return [n, e];
+            if (p < .85) return [n, (1 - (p - .65) / .2) * e];
+            return [n, 0];
+        }
+        if (eject && clock)
+        {
+            const p = gun.progress, e = eject.duration;
+            const n = eject.name!;
+            if (p < .15) return [n, p / .15 * e];
+            if (p < .55) return [n, e];
+            if (p < .7) return [n, (1 - (p - .55) / .15) * e];
+            return ["clock", (p - .7) / .3 * clock.duration];
+        }
         if (!cycle) return [undefined, 0];
         // open (0..40% of the clip), held open, closed at the end
         const p = gun.progress;
@@ -501,7 +704,14 @@ function gunClip(model: Model, gun: Gun): [string | undefined, number] {
         const f = (s / interval - .2) / .8;
         if (f > 0) return ["cycle", Math.min(1, f) * len];
     }
-    if (has("shoot") && s < .4) return ["shoot", s];
-    // rest: frame 0
+    // `shoot` runs from the shot itself and is over before the next one (a pistol's slide is back and home within the interval)
+    const shoot = model.animation("shoot");
+    if (shoot)
+    {
+        const span = Math.min(shoot.duration, Math.max(.08, interval * .85));
+        if (s < span) return ["shoot", s / span * shoot.duration];
+    }
+    // rest: weapon.json `animation.rest` (e.g. `loaded`, hammer cocked), else frame 0
+    if (rest && has(rest)) return [rest, 0];
     return [cycle ? "cycle" : has("shoot") ? "shoot" : undefined, 0];
 }
