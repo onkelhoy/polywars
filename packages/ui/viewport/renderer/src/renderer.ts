@@ -1,3 +1,4 @@
+import type { Lights } from "@polywar/light";
 import type { Layer3D } from "@papit/game-engine";
 import type { GPUMesh } from "@papit/game-mesh";
 import { TEXTURED_UNIFORMS, bindMaps, type Maps } from "@polywar/textured";
@@ -85,13 +86,15 @@ export const CARD_STRIDE = 16;
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
-    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", "billboard", "fadePart", ...TEXTURED_UNIFORMS];
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", "billboard", "fadePart", "lightPos", "lightColor", "lightCount", ...TEXTURED_UNIFORMS];
 
 let renderers = 0;
 
 /** Draws `@papit/game-mesh` GPU meshes, plain or skinned, with one light. Programs come from the layer (async, see `ready`). */
 export class Renderer {
     light: Light = structuredClone(DAYLIGHT);
+    /** point lights (`@polywar/light`), the nearest few to the eye light every draw */
+    lights?: Lights;
     readonly gl: WebGL2RenderingContext;
     /** resolves once the shader programs are linked; draws before that are skipped */
     readonly ready: Promise<void>;
@@ -261,6 +264,9 @@ export class Renderer {
         gl.uniform1f(p.uniforms.lampRange, l.lampRange);
         const e = v.worldPosition ?? { x: 0, y: 0, z: 0 };
         gl.uniform3f(p.uniforms.eye, e.x, e.y, e.z);
+        const lights = this.lights?.pick([e.x, e.y, e.z]);
+        gl.uniform1i(p.uniforms.lightCount, lights?.count ?? 0);
+        if (lights?.count) { gl.uniform4fv(p.uniforms.lightPos, lights.positions); gl.uniform4fv(p.uniforms.lightColor, lights.colors); }
         this.current = p;
         return p;
     }

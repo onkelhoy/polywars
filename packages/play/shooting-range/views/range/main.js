@@ -16,6 +16,7 @@ import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
+import { Lights } from '@polywar/light';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -28,6 +29,15 @@ const SKY = [.62, .72, .84, 1];
 const range = await ShootingRange.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
 window.range = range;
+
+// ---- lamps: a point light per bulb (range.json `lights`); ?night dims the sun to see them ----
+renderer.lights = new Lights();
+for (const l of range.data.lights ?? []) renderer.lights.add({ ...l });
+if (new URLSearchParams(location.search).has('night'))
+{
+    Object.assign(renderer.light, { sunStrength: .05, ambient: .08, fogColor: [.03, .04, .07] });
+    SKY.splice(0, 3, .03, .04, .07);
+}
 
 // ---- grass (@polywar/grass) by range.json zones: none wins over short over tall; planted round the camera ----
 const zones = range.data.grass ?? [];

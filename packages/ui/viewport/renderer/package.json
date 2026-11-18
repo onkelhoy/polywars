@@ -54,7 +54,8 @@
     "@papit/game-mesh": "*",
     "@papit/matrix": "*",
     "@papit/quaternion": "*",
-    "@polywar/textured": "*"
+    "@polywar/textured": "*",
+    "@polywar/light": "*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

@@ -1,3 +1,4 @@
+import { LIGHTS_GLSL } from "@polywar/light";
 import { SKINNING_GLSL } from "@papit/game-mesh";
 import { TEXTURED_FRAGMENT_GLSL, TEXTURED_VERTEX_GLSL } from "@polywar/textured";
 
@@ -114,6 +115,7 @@ uniform float bands, soft, grit, gloss;
 uniform bool surfaced;
 out vec4 outColor;
 ${TEXTURED_FRAGMENT_GLSL}
+${LIGHTS_GLSL}
 float hash3(vec3 p) { p = fract(p * vec3(.1031, .1030, .0973)); p += dot(p, p.yxz + 33.33); return fract((p.x + p.y) * p.z); }
 float vnoise(vec3 p) {
     vec3 i = floor(p), f = fract(p);
@@ -143,7 +145,7 @@ void main() {
     if (surfaced) spec = 0.0;
     // gloss: a soft edged sun highlight, banded like the light
     if (gloss > 0.0) spec += smoothstep(.45, .6, pow(max(dot(n, normalize(normalize(sunDirection) + v)), 0.0), 24.0)) * gloss * sunStrength * step(0.001, sun);
-    vec3 lit = base.rgb * (hemi + sunColor * sun * sunStrength + lampColor * lamp * lampStrength) + sunColor * spec;
+    vec3 lit = base.rgb * (hemi + sunColor * sun * sunStrength + lampColor * lamp * lampStrength + pointLights(vWorld, n, toon)) + sunColor * spec;
     float d = length(vWorld - eye);
     float fog = 1.0 - exp(-d * fogDensity);
     // linear -> sRGB for the screen

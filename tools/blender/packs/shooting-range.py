@@ -154,6 +154,36 @@ def game(v):
     return [round(v[0], 4), round(v[2], 4), round(-v[1], 4)]
 
 
+GLOW = "Lamp glow"
+
+
+def lamp_lights(color=(1, .78, .5), strength=1.6, range_=9):
+    """a point light per loose part with the GLOW material (the bulbs), game space"""
+    out = []
+    for obj in bpy.data.objects:
+        if obj.type != "MESH" or GLOW not in [m.name for m in obj.data.materials if m]:
+            continue
+        me, M, g = obj.data, obj.matrix_world, obj.data.materials.find(GLOW)
+        faces = [p for p in me.polygons if p.material_index == g]
+        # loose parts of the glow faces (shared vertices)
+        parent = {}
+        def find(a):
+            while parent.setdefault(a, a) != a:
+                a = parent[a]
+            return a
+        for p in faces:
+            for v in p.vertices[1:]:
+                parent[find(v)] = find(p.vertices[0])
+        parts = {}
+        for p in faces:
+            for v in p.vertices:
+                parts.setdefault(find(v), set()).add(v)
+        for vs in parts.values():
+            c = sum((M @ me.vertices[v].co for v in vs), Vector()) / len(vs)
+            out.append({"name": obj.name, "position": game(c), "color": list(color), "strength": strength, "range": range_})
+    return out
+
+
 def box(lo, hi):
     a, b = game(lo), game(hi)
     return [min(a[k], b[k]) for k in range(3)], [max(a[k], b[k]) for k in range(3)]
@@ -197,7 +227,7 @@ def decimate():
 
 
 def points():
-    data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "grass": [], "vehicles": [], "spawn": None}
+    data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "grass": [], "vehicles": [], "lights": [], "spawn": None}
     for obj in sorted(bpy.context.scene.objects, key=lambda o: o.name):
         if obj.type != "MESH" or not obj.data.polygons:
             continue
@@ -257,6 +287,7 @@ def points():
     # spawn: behind the middle case, facing down the range
     xs = sorted(s["at"][0] for s in data["stands"]) or [0]
     z = max((s["at"][2] for s in data["stands"]), default=0)
+    data["lights"] = lamp_lights()
     data["spawn"] = [round(xs[len(xs) // 2], 3), 0, round(z - 1.5, 3)]
     sp = bpy.data.objects.get("Spawn")
     if sp:
