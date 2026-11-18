@@ -1,6 +1,6 @@
-"""The shooting range (owner's ~/Developer/3d/shooting-range/model.v2.blend, made by range-v2.py from model.blend) -> @polywar/shooting-range asset.
+"""The shooting range (owner's ~/Developer/3d/shooting-range/camp.blend, made by camp-layout.py) -> @polywar/shooting-range asset.
 
-  blender -b --disable-autoexec ~/Developer/3d/shooting-range/model.v2.blend -P tools/blender/packs/shooting-range.py
+  blender -b --disable-autoexec ~/Developer/3d/shooting-range/camp.blend -P tools/blender/packs/shooting-range.py
 
 The .blend is never saved. Writes packages/play/shooting-range/asset/shooting-range/model.glb (via export.py) and range.json:
   { ground: [[x,y,z]*3, ...] triangles, solids: [{ min, max, surface, name }], stands: [{ at, yaw }],
@@ -20,6 +20,16 @@ OUT = os.path.join(pw.ROOT, "packages/play/shooting-range/asset/shooting-range")
 # steps: walkable stairs (a box per step); anything else is solid
 ROLES = [
     ("Ground", "ground"),
+    ("Berm", "ground"),
+    ("Bunker earth bank", "ground"),
+    ("Bunker roof earth", "decor"),
+    ("Stand.", "stand"),
+    ("Target.", "target"),
+    ("Button base", "decor"),
+    ("Flag Flag cloth", "decor"),
+    ("Flag Flag gravel", "decor"),
+    ("Tent", "decor"),
+    ("Rock.c", "solid"),
     ("Road", "decor"),
     ("Rail.", "decor"),
     ("Tree.", "decor"),
@@ -39,7 +49,7 @@ ROLES = [
     ("stairs", "steps"),
 ]
 # one box per object, whatever its parts
-LUMPS = ("Rock.", "Sandbag.bank.")
+LUMPS = ("Rock.", "Sandbag", "Jeep", "Crate", "Barrel", "Flag stone")
 # objects without a material get one (colour)
 PAINT = {"Single Target.001": (.30, .36, .20, 1), "Moving Target-guy": (.80, .70, .52, 1), "Single Target.008": (.27, .19, .06, 1)}
 # material name -> surface (bullet marks, case sounds)
