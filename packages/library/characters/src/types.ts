@@ -1,3 +1,6 @@
+/** what a body does, each played by a clip */
+export type Move = "idle" | "walk" | "run" | "jump";
+
 /** `character.json`, hand written next to a character's `model.glb` (paths relative to it). */
 export type CharacterJSON = {
     name: string;
@@ -17,6 +20,8 @@ export type CharacterJSON = {
     scale?: number;
     /** things worn on a bone (helmets, pads, packs), by name */
     attachments?: Record<string, AttachmentJSON>;
+    /** the body's clip names (glb animations) per move, default: `Idle` / `idle`, `Walking` / `walk`, `Run` / `run`, `Jump` / `jump` */
+    clips?: Partial<Record<Move, string>>;
     /** first person: the bone the eye sits on and bones shrunk away (head, hair) so they don't fill the view */
     firstPerson?: { eye: string; offset?: [number, number, number]; hide?: string[] };
 };

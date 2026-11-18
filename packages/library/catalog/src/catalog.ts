@@ -1,15 +1,13 @@
 import type { Gallery, GalleryItem } from "@polywar/gallery";
 import { GRASS_LOOKS, GrassPatch } from "@polywar/grass-material";
 import { SHADINGS, ShadingBall } from "@polywar/shading";
-import { DEFAULTS, MAPS, Terrain } from "@polywar/terrain";
 import { TERRAIN_LOOKS, TerrainSample } from "@polywar/terrain-material";
 import { Skeleton } from "@polywar/skeleton";
 import { Armory } from "@polywar/armory";
 
 /**
  * Fills a `pw-gallery` with the whole library: every file of the root `assets/` folder (its manifest),
- * plus the shader materials (shading styles, grass and terrain looks), the generated terrains (map presets, low quality)
- * and the baked surfaces (`model.glb` + maps).
+ * plus the shader materials (shading styles, grass and terrain looks) and the baked surfaces (`model.glb` + maps). No generated terrains (slow to build; see `@polywar/terrain` views).
  * Weapons: every gun, and every gun with each scope it takes (`@polywar/armory`), under `models/weapons/armory`
  * (pick "models/weapons" in the header for weapons only).
  * Rigged models get a `Skeleton` (bones in the preview; IK when a `rig.json` sits next to the glb).
@@ -41,10 +39,6 @@ export async function catalog(gallery: Gallery, location = "/assets") {
         name, group: "materials/terrain", kind: "material", note: "@polywar/terrain-material",
         scene: layer => new TerrainSample(layer, look),
     }));
-    const terrains: GalleryItem[] = Object.entries(MAPS).map(([name, map]) => ({
-        name, group: "terrain", kind: "model", note: "@polywar/terrain",
-        scene: layer => new Terrain(layer, { ...map, quality: "low", mesh: { ...DEFAULTS.mesh, skirt: 0 } }),
-    }));
     const textured: GalleryItem[] = files.filter(f => /\/model\.glb$/.test(f) && known.has(f.replace(/model\.glb$/, "color.png"))).map(file => {
         const parts = file.split("/");
         return { name: parts.at(-2)!, group: `materials/textured/${parts.at(-4)}`, kind: "material", src: file, note: "@polywar/textured" };
@@ -52,5 +46,5 @@ export async function catalog(gallery: Gallery, location = "/assets") {
     const armory = await new Armory(location).items().catch(e => (console.warn("catalog: armory", e), []));
     const weapons: GalleryItem[] = armory.map(i => ({ ...i, group: `models/weapons/armory/${i.group}` }));
     gallery.location = location;
-    gallery.items = [...shadings, ...grass, ...terrainLooks, ...textured, ...terrains, ...weapons];
+    gallery.items = [...shadings, ...grass, ...terrainLooks, ...textured, ...weapons];
 }

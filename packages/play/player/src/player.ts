@@ -2,7 +2,7 @@ import type { Camera, CameraController, Layer3D } from "@papit/game-engine";
 import { upload, type GPUMesh } from "@papit/game-mesh";
 import { Matrix4 } from "@papit/matrix";
 import { Bullets, zeroAngle } from "@polywar/ballistics";
-import { Attachments, Character } from "@polywar/characters";
+import { Attachments, Character, type Move } from "@polywar/characters";
 import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
@@ -60,7 +60,9 @@ export class Player {
     private gl: WebGL2RenderingContext;
     private eye: number;
     private bodyTime = 0;
-    private clip = "Idle";
+    private move: Move = "idle";
+    /** the body's clip per move (character.json `clips`, else the first name the glb has) */
+    private clips: Partial<Record<Move, string>> = {};
     private climb = 0;
     private near = mat4();
     private hidden: number[] = [];
@@ -172,6 +174,8 @@ export class Player {
         const body = await Model.load(this.gl, character.model, { skin: character.skin });
         this.body?.destroy?.();
         this.character = character; this.body = body;
+        const names: Record<Move, string[]> = { idle: ["Idle", "idle"], walk: ["Walking", "walk"], run: ["Run", "run"], jump: ["Jump", "jump"] };
+        this.clips = Object.fromEntries((Object.keys(names) as Move[]).map(k => [k, [character.json.clips?.[k], ...names[k]].find(n => n && body.animation(n))]));
         this.attachments = new Attachments(this.gl, character);
         const skin = body.skin as unknown as SkinLike & { bones: { name: string }[] };
         const parts = character.parts;
@@ -478,9 +482,9 @@ export class Player {
         const body = this.body;
         if (!body) return;
         const m = this.mover;
-        const clip = !m.grounded && m.airTime > .15 ? "Jump" : m.speed < .3 ? "Idle" : m.speed < 5 ? "Walking" : "Run";
-        if (clip !== this.clip) { this.clip = clip; this.bodyTime = 0; }
-        this.bodyTime += dt * (clip === "Walking" ? Math.max(.6, m.speed / 3.2) : clip === "Run" ? m.speed / 7 : 1);
+        const move = !m.grounded && m.airTime > .15 ? "jump" : m.speed < .3 ? "idle" : m.speed < 5 ? "walk" : "run";
+        if (move !== this.move) { this.move = move; this.bodyTime = 0; }
+        this.bodyTime += dt * (move === "walk" ? Math.max(.6, m.speed / 3.2) : move === "run" ? m.speed / 7 : 1);
     }
 
     private posed?: Float32Array;
@@ -533,7 +537,7 @@ export class Player {
         const r = this.renderer, gl = this.gl, carried = this.held;
         if (this.body && this.showBody)
         {
-            this.body.pose(this.clip, this.bodyTime, this.clip !== "Jump");
+            this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
             if (skin && this.rigArms) { if (carried) this.reachGun(skin, camera.worldMatrix, carried); else this.rigArms.forEach(a => release(skin, a)); }
             this.posed = skin ? skin.matrices.slice() : undefined;

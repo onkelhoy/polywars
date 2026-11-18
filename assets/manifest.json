@@ -7898,6 +7898,66 @@
      "name": "characters",
      "assets": [
       {
+       "name": "army-soldier-cartoon",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "98562d67ea70dc98b644b8c37b56c21b.fbx",
+           "file": "/assets/models/characters/army-soldier-cartoon/source/98562d67ea70dc98b644b8c37b56c21b.fbx",
+           "size": 27775788
+          }
+         ]
+        },
+        {
+         "name": "textures",
+         "assets": [
+          {
+           "name": "texture_pbr_20250901.png",
+           "file": "/assets/models/characters/army-soldier-cartoon/textures/texture_pbr_20250901.png",
+           "size": 13333773
+          },
+          {
+           "name": "texture_pbr_20250901_metallic.png",
+           "file": "/assets/models/characters/army-soldier-cartoon/textures/texture_pbr_20250901_metallic.png",
+           "size": 2205661
+          },
+          {
+           "name": "texture_pbr_20250901_normal.png",
+           "file": "/assets/models/characters/army-soldier-cartoon/textures/texture_pbr_20250901_normal.png",
+           "size": 7498121
+          },
+          {
+           "name": "texture_pbr_20250901_roughness.png",
+           "file": "/assets/models/characters/army-soldier-cartoon/textures/texture_pbr_20250901_roughness.png",
+           "size": 2692702
+          }
+         ]
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/army-soldier-cartoon/character.json",
+         "size": 662
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/army-soldier-cartoon/model.blend",
+         "size": 515499
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/army-soldier-cartoon/model.glb",
+         "size": 2016884
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/army-soldier-cartoon/model.rig.json",
+         "size": 5374
+        }
+       ]
+      },
+      {
        "name": "base",
        "assets": [
         {
@@ -8053,6 +8113,111 @@
        ]
       },
       {
+       "name": "soldier-low-poly",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "LowPolySoldier.fbx",
+           "file": "/assets/models/characters/soldier-low-poly/source/LowPolySoldier.fbx",
+           "size": 360172
+          }
+         ]
+        },
+        {
+         "name": "textures",
+         "assets": [
+          {
+           "name": "Soldier_TX.png",
+           "file": "/assets/models/characters/soldier-low-poly/textures/Soldier_TX.png",
+           "size": 351
+          }
+         ]
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/soldier-low-poly/character.json",
+         "size": 656
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/soldier-low-poly/model.blend",
+         "size": 422028
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/soldier-low-poly/model.glb",
+         "size": 1429928
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/soldier-low-poly/model.rig.json",
+         "size": 5378
+        }
+       ]
+      },
+      {
+       "name": "ww2-soldier-allied",
+       "assets": [
+        {
+         "name": "source",
+         "assets": [
+          {
+           "name": "7311cde45afa9a3dcd0cc29371d83051.fbx",
+           "file": "/assets/models/characters/ww2-soldier-allied/source/7311cde45afa9a3dcd0cc29371d83051.fbx",
+           "size": 26493356
+          }
+         ]
+        },
+        {
+         "name": "textures",
+         "assets": [
+          {
+           "name": "texture_pbr_20250901.png",
+           "file": "/assets/models/characters/ww2-soldier-allied/textures/texture_pbr_20250901.png",
+           "size": 12585078
+          },
+          {
+           "name": "texture_pbr_20250901_metallic.png",
+           "file": "/assets/models/characters/ww2-soldier-allied/textures/texture_pbr_20250901_metallic.png",
+           "size": 2196522
+          },
+          {
+           "name": "texture_pbr_20250901_normal.png",
+           "file": "/assets/models/characters/ww2-soldier-allied/textures/texture_pbr_20250901_normal.png",
+           "size": 7007168
+          },
+          {
+           "name": "texture_pbr_20250901_roughness.png",
+           "file": "/assets/models/characters/ww2-soldier-allied/textures/texture_pbr_20250901_roughness.png",
+           "size": 2627569
+          }
+         ]
+        },
+        {
+         "name": "character.json",
+         "file": "/assets/models/characters/ww2-soldier-allied/character.json",
+         "size": 658
+        },
+        {
+         "name": "model.blend",
+         "file": "/assets/models/characters/ww2-soldier-allied/model.blend",
+         "size": 599435
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/characters/ww2-soldier-allied/model.glb",
+         "size": 2291888
+        },
+        {
+         "name": "model.rig.json",
+         "file": "/assets/models/characters/ww2-soldier-allied/model.rig.json",
+         "size": 5376
+        }
+       ]
+      },
+      {
        "name": "ww2-soldier-german",
        "assets": [
         {
@@ -8073,12 +8238,12 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/ww2-soldier-german/model.blend",
-         "size": 257269
+         "size": 274227
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/ww2-soldier-german/model.glb",
-         "size": 478152
+         "size": 667284
         },
         {
          "name": "model.rig.json",
@@ -8113,17 +8278,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/ww2-soldier-us/model.blend",
-         "size": 143369
+         "size": 161668
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/ww2-soldier-us/model.glb",
-         "size": 191168
+         "size": 380020
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/ww2-soldier-us/model.rig.json",
-         "size": 5367
+         "size": 5373
         }
        ]
       }
@@ -15486,12 +15651,22 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/arisaka-type-99/model.blend",
-           "size": 1088068
+           "size": 1372874
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/model.blend1",
+           "size": 1375434
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/arisaka-type-99/model.glb",
-           "size": 164552
+           "size": 291644
+          },
+          {
+           "name": "original.blend",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/original.blend",
+           "size": 1375434
           },
           {
            "name": "weapon.json",
@@ -15506,17 +15681,27 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/beretta-m1951/model.blend",
-           "size": 938209
+           "size": 1127646
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/beretta-m1951/model.blend1",
+           "size": 1127646
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/beretta-m1951/model.glb",
-           "size": 173992
+           "size": 201552
+          },
+          {
+           "name": "original.blend",
+           "file": "/assets/models/weapons/guns/beretta-m1951/original.blend",
+           "size": 1127646
           },
           {
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/beretta-m1951/weapon.json",
-           "size": 94
+           "size": 2305
           }
          ]
         },
@@ -15536,17 +15721,27 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/beretta-model-57/model.blend",
-           "size": 259447
+           "size": 252461
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/beretta-model-57/model.blend1",
+           "size": 251407
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/beretta-model-57/model.glb",
-           "size": 419632
+           "size": 429104
+          },
+          {
+           "name": "original.blend",
+           "file": "/assets/models/weapons/guns/beretta-model-57/original.blend",
+           "size": 251407
           },
           {
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/beretta-model-57/weapon.json",
-           "size": 458
+           "size": 1314
           }
          ]
         },
@@ -15606,17 +15801,27 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/double-deuce/model.blend",
-           "size": 249835
+           "size": 251037
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/double-deuce/model.blend1",
+           "size": 251761
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/double-deuce/model.glb",
-           "size": 391188
+           "size": 514156
+          },
+          {
+           "name": "original.blend",
+           "file": "/assets/models/weapons/guns/double-deuce/original.blend",
+           "size": 251761
           },
           {
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/double-deuce/weapon.json",
-           "size": 461
+           "size": 1583
           }
          ]
         },
@@ -15766,12 +15971,22 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/kar98k/model.blend",
-           "size": 894286
+           "size": 1013128
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/kar98k/model.blend1",
+           "size": 1014408
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/kar98k/model.glb",
-           "size": 157968
+           "size": 272768
+          },
+          {
+           "name": "original.blend",
+           "file": "/assets/models/weapons/guns/kar98k/original.blend",
+           "size": 1014408
           },
           {
            "name": "weapon.json",
@@ -15891,17 +16106,27 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/m1903a1-springfield/model.blend",
-           "size": 841699
+           "size": 1460192
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/model.blend1",
+           "size": 1460192
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/m1903a1-springfield/model.glb",
-           "size": 105148
+           "size": 332540
+          },
+          {
+           "name": "original.blend",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/original.blend",
+           "size": 1460192
           },
           {
            "name": "weapon.json",
            "file": "/assets/models/weapons/guns/m1903a1-springfield/weapon.json",
-           "size": 617
+           "size": 1640
           }
          ]
         },
@@ -16026,12 +16251,22 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/mp40/model.blend",
-           "size": 214898
+           "size": 225403
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/mp40/model.blend1",
+           "size": 225569
           },
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/mp40/model.glb",
-           "size": 234240
+           "size": 421552
+          },
+          {
+           "name": "original.blend",
+           "file": "/assets/models/weapons/guns/mp40/original.blend",
+           "size": 225569
           },
           {
            "name": "weapon.json",
