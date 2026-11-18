@@ -182,7 +182,8 @@ export class Grass {
         if (!g || !this.material.useGround(view, light, time, darken)) return;
         gl.enable(gl.DEPTH_TEST);
         gl.bindVertexArray(g.vao);
-        gl.drawElements(gl.TRIANGLES, g.count, g.indexed!, 0);
+        if (g.indexed) gl.drawElements(gl.TRIANGLES, g.count, g.indexed, 0);
+        else gl.drawArrays(gl.TRIANGLES, 0, g.count);
         gl.bindVertexArray(null);
     }
 
@@ -257,6 +258,23 @@ export class Grass {
     }
 
     /** grid over the planted area, following `height`, about 1 m cells */
+    /**
+     * Use your own floor for `drawGround` (world space triangles, xyz per vertex, e.g. the level's ground where grass grows)
+     * instead of the planted area's height grid. Kept until the next call; `plant` over a non window area rebuilds the grid.
+     */
+    setGround(positions: Float32Array) {
+        const gl = this.gl;
+        if (this.ground) { gl.deleteVertexArray(this.ground.vao); this.ground.buffers.forEach(b => gl.deleteBuffer(b)); }
+        const vao = gl.createVertexArray()!, pb = gl.createBuffer()!;
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, pb);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.bindVertexArray(null);
+        this.ground = { vao, buffers: [pb], count: positions.length / 3 };
+    }
+
     private buildGround() {
         const gl = this.gl, pl = this.planting!, a = pl.area;
         const nx = Math.min(256, Math.max(1, Math.ceil(a.width))), nz = Math.min(256, Math.max(1, Math.ceil(a.depth)));

@@ -44,8 +44,8 @@ if (new URLSearchParams(location.search).has('night'))
 const zones = range.data.grass ?? [];
 const inZone = (kind, x, z) => zones.some(g => g.kind === kind && x >= g.min[0] && x <= g.max[0] && z >= g.min[1] && z <= g.max[1]);
 const GROW = { tall: { density: 1, height: 1, dry: .3, flowers: .15 }, short: { density: .7, height: .4, dry: .2, flowers: .05 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
-// dense near, thinning out (lod: share left at the far end) to a ragged edge ~90 m out
-const grass = new Grass(layer, { settings: { density: 90, distance: 90, lod: .15, maxTufts: 350_000, sizeScale: 1.8 } });
+// the grass view's look (defaults); dense near, thinning out (lod: share left at the far end) to a ragged edge ~120 m out
+const grass = new Grass(layer, { settings: { density: 110, distance: 120, lod: .12, maxTufts: 500_000 } });
 // everywhere on the ground (hills, banks too), tall by default; not under solids (buildings, sandbags, floors)
 const covered = (x, z) => { const y = range.ground(x, z); return range.colliders(x, z).some(b => x >= b.min[0] && x <= b.max[0] && z >= b.min[2] && z <= b.max[2] && b.max[1] > y - .1 && b.min[1] < y + 1); };
 {
@@ -55,14 +55,28 @@ const covered = (x, z) => { const y = range.ground(x, z); return range.colliders
         area: { x: lo[0], z: lo[1], width: hi[0] - lo[0], depth: hi[1] - lo[1] },
         height: (x, z) => range.ground(x, z),
         grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
-        window: 100,
+        window: 130,
     });
+    // the grass ground (patches, spots) on the range's own ground where grass grows: top, not too steep, lifted 2 cm
+    const floor = [];
+    for (const t of range.data.ground)
+    {
+        const c = [0, 1, 2].map(k => (t[0][k] + t[1][k] + t[2][k]) / 3);
+        const u = t[1].map((v, k) => v - t[0][k]), w = t[2].map((v, k) => v - t[0][k]);
+        const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], l = Math.hypot(...n) || 1;
+        if (Math.abs(n[1] / l) < .55 || Math.abs(range.ground(c[0], c[2]) - c[1]) > .05) continue;
+        if (GROW[inZone('none', c[0], c[2]) || covered(c[0], c[2]) ? 'none' : 'tall'].density === 0) continue;
+        for (const p of t) floor.push(p[0], p[1] + .02, p[2]);
+    }
+    grass.setGround(new Float32Array(floor));
 }
 function drawGrass(camera) {
     const e = camera.worldPosition;
     if (!e) return;
     grass.follow(e[0] ?? e.x, e[2] ?? e.z);
-    grass.draw(camera, renderer.light, performance.now() / 1000);
+    const t = performance.now() / 1000;
+    grass.drawGround(camera, renderer.light, t);
+    grass.draw(camera, renderer.light, t);
     renderer.reset();
 }
 window.grass = grass;
@@ -378,8 +392,8 @@ demo.draw = camera => {
     renderer.begin(camera, SKY);
     model.draw(renderer, identity);
     drawStands();
-    drawCars();
     drawGrass(camera);
+    drawCars();
     glow.draw(camera, renderer.lights);
     renderer.reset();
     if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); }
