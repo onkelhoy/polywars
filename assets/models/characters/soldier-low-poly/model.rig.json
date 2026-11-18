@@ -80,34 +80,6 @@
    "length": 0.02081,
    "deform": true
   },
-  "prop.L": {
-   "length": 0.1,
-   "deform": false
-  },
-  "thumb.ik.L": {
-   "length": 0.01446,
-   "deform": false
-  },
-  "thumb.pole.L": {
-   "length": 0.01,
-   "deform": false
-  },
-  "index.ik.L": {
-   "length": 0.015,
-   "deform": false
-  },
-  "index.pole.L": {
-   "length": 0.01,
-   "deform": false
-  },
-  "fingers.ik.L": {
-   "length": 0.015,
-   "deform": false
-  },
-  "fingers.pole.L": {
-   "length": 0.01,
-   "deform": false
-  },
   "shoulder.R": {
    "length": 0.15,
    "deform": true
@@ -160,34 +132,6 @@
    "length": 0.02081,
    "deform": true
   },
-  "prop.R": {
-   "length": 0.1,
-   "deform": false
-  },
-  "thumb.ik.R": {
-   "length": 0.01446,
-   "deform": false
-  },
-  "thumb.pole.R": {
-   "length": 0.01,
-   "deform": false
-  },
-  "index.ik.R": {
-   "length": 0.015,
-   "deform": false
-  },
-  "index.pole.R": {
-   "length": 0.01,
-   "deform": false
-  },
-  "fingers.ik.R": {
-   "length": 0.015,
-   "deform": false
-  },
-  "fingers.pole.R": {
-   "length": 0.01,
-   "deform": false
-  },
   "thigh.L": {
    "length": 0.43417,
    "deform": true
@@ -219,132 +163,8 @@
   "toe.R": {
    "length": 0.09002,
    "deform": true
-  },
-  "foot.ik.L": {
-   "length": 0.13416,
-   "deform": false
-  },
-  "foot.ik.R": {
-   "length": 0.13416,
-   "deform": false
-  },
-  "knee.pole.L": {
-   "length": 0.05,
-   "deform": false
-  },
-  "knee.pole.R": {
-   "length": 0.05,
-   "deform": false
-  },
-  "hand.ik.L": {
-   "length": 0.08,
-   "deform": false
-  },
-  "hand.ik.R": {
-   "length": 0.08,
-   "deform": false
-  },
-  "elbow.pole.L": {
-   "length": 0.05,
-   "deform": false
-  },
-  "elbow.pole.R": {
-   "length": 0.05,
-   "deform": false
   }
  },
- "ik": [
-  {
-   "bone": "forearm.L",
-   "chain": 2,
-   "target": "hand.ik.L",
-   "weight": 0.0,
-   "pole": "elbow.pole.L"
-  },
-  {
-   "bone": "thumb.3.L",
-   "chain": 3,
-   "target": "thumb.ik.L",
-   "weight": 0.0,
-   "pole": "thumb.pole.L"
-  },
-  {
-   "bone": "index.3.L",
-   "chain": 3,
-   "target": "index.ik.L",
-   "weight": 0.0,
-   "pole": "index.pole.L"
-  },
-  {
-   "bone": "fingers.3.L",
-   "chain": 3,
-   "target": "fingers.ik.L",
-   "weight": 0.0,
-   "pole": "fingers.pole.L"
-  },
-  {
-   "bone": "forearm.R",
-   "chain": 2,
-   "target": "hand.ik.R",
-   "weight": 0.0,
-   "pole": "elbow.pole.R"
-  },
-  {
-   "bone": "thumb.3.R",
-   "chain": 3,
-   "target": "thumb.ik.R",
-   "weight": 0.0,
-   "pole": "thumb.pole.R"
-  },
-  {
-   "bone": "index.3.R",
-   "chain": 3,
-   "target": "index.ik.R",
-   "weight": 0.0,
-   "pole": "index.pole.R"
-  },
-  {
-   "bone": "fingers.3.R",
-   "chain": 3,
-   "target": "fingers.ik.R",
-   "weight": 0.0,
-   "pole": "fingers.pole.R"
-  },
-  {
-   "bone": "shin.L",
-   "chain": 2,
-   "target": "foot.ik.L",
-   "weight": 1.0,
-   "pole": "knee.pole.L"
-  },
-  {
-   "bone": "shin.R",
-   "chain": 2,
-   "target": "foot.ik.R",
-   "weight": 1.0,
-   "pole": "knee.pole.R"
-  }
- ],
- "copyRotation": [
-  {
-   "bone": "hand.L",
-   "target": "hand.ik.L",
-   "weight": 0.0
-  },
-  {
-   "bone": "hand.R",
-   "target": "hand.ik.R",
-   "weight": 0.0
-  },
-  {
-   "bone": "foot.L",
-   "target": "foot.ik.L",
-   "weight": 1.0
-  },
-  {
-   "bone": "foot.R",
-   "target": "foot.ik.R",
-   "weight": 1.0
-  }
- ]
+ "ik": [],
+ "copyRotation": []
 }

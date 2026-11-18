@@ -1,4 +1,5 @@
-"""Unrigged store characters (.fbx mesh only) -> assets/models/characters/<slug>/model.blend on the base rig (human_rig).
+"""Unrigged store characters (.fbx mesh only) -> assets/models/characters/<slug>/model.blend on the base rig
+(the owner's characters/base/model.blend, lib/base_rig.py).
 
   blender -b -P tools/blender/packs/store_soldiers.py [-- <slug> ...]
 
@@ -11,7 +12,7 @@ import bpy, os, sys, glob
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mathutils import Matrix, Vector
-import pw, human_rig
+import pw, base_rig
 
 HEIGHT = 1.8
 # landmarks (x, z) as fractions of the height, left side (+x); `leg`: x of the knee / ankle;
@@ -101,8 +102,8 @@ def _depth(body, x, z, r=.03):
 
 def _fit(body, fit):
     """the base armature's deform bones (no controls: to_base places those), joints on the landmarks"""
-    arm = human_rig._armature()
-    spec = human_rig.bones()
+    arm = base_rig.armature(deform_only=True)
+    spec = base_rig.bones()
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode="EDIT")
     eb = arm.data.edit_bones

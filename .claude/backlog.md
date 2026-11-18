@@ -1,5 +1,42 @@
 # Backlog
 
+## Long term goal: browser editor
+A full editor in the browser, no download: place assets (scene.json, see World: scene + instancing), pose / animate on the rig, gun hand clips, materials / palette. Grows from the pieces we have (viewport, gallery, gizmo, weapon / hand editor), each a papit-ready package. Blender stays the authoring tool until then.
+
+## Rig bake + hands (proposed)
+Rig bake done (`export.py --bake`, runtime IK via `Skeleton.addIK` + `HUMANOID.controls`). Next: hands. Numbers kept from the original list.
+3. Hand poses as clips: owner poses in model.blend (`hand.grip.pistol`, `hand.grip.wrist`, `hand.grip.fore`, `hand.mag`, `hand.flat`, `hand.open`, `hand.trigger`), exported as clips. Runtime blends them on the hand's bones only (bone mask), per hand, with a weight. Replaces the runtime finger IK curl in `grip()`.
+4. Better holding: weapon.json `hands` per gun picks the pose per hand + placement (with the hand editor, see Playable character). Trigger finger blends `hand.trigger` on fire.
+5. Mag switch: support hand follows the reload cues: fore -> gun's mag (point from the gun glb) on `mag-out`, mag parented to the hand (`hand.mag` pose) -> pouch (body socket) and a new mag back -> `mag-in` -> fore. Bolt / slide cues: hand to the handle. Times from weapon.json `animation` cues. One hand path per action type (box mag, stripper clip, single rounds / tube, bolt / slide), fitted from the gun's points, shared by all guns of that type.
+5b. Per gun hand clips (optional): owner links the base rig into the gun blend and animates hold / cycle / reload with the gun. map-gun bakes per clip (same names as the gun clips): wrist position + rotation in gun space (-> arm IK target, follows the gun when aimed / lowered / recoiling) + finger local rotations (FK onto the real rig); the linked rig is not exported. Replaces the shared path / pose for that gun.
+6. Brace hand: not aiming and close to a wall / fence (side + forward casts at hip–chest height), the free hand (support hand: gun lowered / tucked / one-handed) blends off the gun onto it: IK to hit point + normal. Wall (wide flat hit): `hand.flat`, fingers spread. Fence / rail (thin bar, `bar` tag on the geometry or from the hit): `hand.grip` round it. Spring in / out, hysteresis, drops when it would overreach. Tells the player how close they are (the fps layer hides it).
+6b. Aim at a wall: aiming with the barrel blocked pushes the body back softly until it fits (up to ~.4 m); no room behind = tuck as today. Walking forward into it while aiming is blocked. Over a fence the casts pass, so you can stand close and aim.
+6c. Close-up dim: the nearer the face is to a surface (same casts), the darker / slightly desaturated the screen edges (one uniform in a post pass, cheap). Never fully dark.
+7. FPS viewmodel: same hand clips; finger IK only if the fps close-up needs more (decide after 3).
+8. Later, optional: foot planting on uneven ground (leg IK to a ground cast, near the camera only).
+
+## World: materials (proposed, later)
+Few shaders, one palette texture: every model UV-maps its faces onto swatches of a tiny colour-swap texture (no material swaps, batches well, recolour = swap the texture / row).
+1. Shaders: `opaque` (one for matte + shiny: roughness / metal / emissive come from a second property texture at the same UV), `cutout` (foliage, alpha test + wind), `transparent` (glass, water). That's 3 total.
+2. Palette layout: swatch grid, colour texture + property texture, a tool / Blender step to snap model UVs to swatches (replaces the bake to vertex colours in export.py).
+3. papit: `game-mesh` draws base colour x COLOR_0 only, no texture sampling: needs texture + UV support (report to owner, not patched here).
+
+## Gun animation map (proposed)
+Gun animation map: `animation` property in each gun's weapon.json (format in `.claude/skills/map-gun/SKILL.md`).
+0. Rename per gun: `model.blend` / `model.glb` / `weapon.json` -> `<id>.model.blend` / `<id>.model.glb` / `<id>.weapon.json` (all guns; armory, player, manifest, tools/blender + tools/weapons follow).
+1. `@polywar/armory`: `animation` in the WeaponFile type.
+2. Player: `gunClip` + toggles + empty from the file; drop the hardcoded names, shares and MP40 frames. Fallback: today's name convention.
+3. Cues (eject, mag-in, ...) from the file instead of `actions.ts` fractions when present.
+4. Points from the owner's empties (`exit.bullet` / `exit.barrel`, `exit.shell`) into weapon.json on export (gun-clips.py), replacing guessed muzzle / eject.
+5. Write the `animation` block for kar98k, arisaka-type-99, beretta-m1951, mp40.
+
+## World: scene + instancing (proposed, later)
+`tools/blender/export.py` `realize_instances` copies every linked instance into the glb (big files, no instancing).
+1. Scene format + loader: `scene.json` = placements (`asset` id from the library + position / rotation / scale) + optional one-off glb; loader draws each asset once, instanced.
+2. Blender export: collection instances / linked duplicates of library assets -> placements, only one-off geometry stays in the glb. First user: shooting range.
+3. Textures: the `opaque` shader always samples a texture (palette by default, own image for e.g. range targets / distance markers): a texture bind, not a shader swap.
+4. World editor (later): pick from the catalog, place with a gizmo, snap, save the same `scene.json`.
+
 ## Playable character
 - [ ] Elbow lag: elbows (IK pole in `player/src/arms.ts`) trail the hands a little when looking round (from the viewmodel turn springs).
 - [ ] Gun reloads as real clips: hands on the magazine / clip, gun turned, sometimes put down. Simple reload first. Kar98k uses `cycle` (open, held, close) for now.
@@ -22,7 +59,7 @@
 
 - Gun sounds are synthesised (sfx-gen): good enough to play with, real recordings can replace files (list them in `sounds.json`). 20 MB of WAVs (32 kHz mono): OGG / fewer variants if the Pages size matters.
 - Other players' guns: same `Feel.cue` with their gun place (far shots already come late and dull by distance).
-- Papit reports: `rigidbody` has no heightfield / triangle mesh shape (debris makes hull tiles under moving pieces); its sweep and prune broad phase could be its own package (a general spatial index, papit has none).
+- Papit reports: `quaternion` has no from-matrix / from-axes (own copies in `player/src/feel.ts` `quaternion`, `skeleton/src/skeleton.ts` `fromMatrix`). `rigidbody` has no heightfield / triangle mesh shape (debris makes hull tiles under moving pieces); its sweep and prune broad phase could be its own package (a general spatial index, papit has none).
 
 - In-game zeroing: keys step the rear sight / scope turret (`Carried.zero`), like a real rifle; the range's `T` panel sets the default per gun.
 - Downloads to import later (in ~/Downloads, Nov 14): low-poly soldier, willys jeep, ww2 headwear, street lights, medieval houses, wooden bench, simple / picnic table, goose, gun targets, gorebox range props, shooting range target, Zeiss Terra scope, `assets-low-poly.zip` (242 MB, unchecked).
@@ -47,3 +84,7 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 
 ## World
 - Save / load a generated world (skip generation): bake to a file / model, later pass over the network.
+- Pistol two hand hold: support hand cups the grip hand (now palm up like a fore end); aimed the right forearm crosses the view (pistol held close, arms bent).
+- Per gun hand frames (axis / palm / radius / finger targets) in weapon.json `hands`, set from the hand editor (H).
+- Real textures in the renderer (owner OK): `game-mesh` draws base colour x COLOR_0 only, export bakes images into vertex colours (one colour per face). Bake writes sRGB pixels into Blender's linear colour slot: everything a bit pale (all models alike).
+- New store characters (`tools/blender/packs/store_soldiers.py`, unrigged FBX -> base rig by landmarks + bone heat): allied has a few harness strap spikes at the sides (weighted on a voxel copy, bone heat fails on its mesh); landmarks eyeballed from renders.

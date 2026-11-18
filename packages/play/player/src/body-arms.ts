@@ -16,6 +16,8 @@ export type SkinLike = {
     armature: { find(name: string): Bone | null | undefined };
     ik: Map<string, unknown>;
     setIK(bone: string, weight: number): void;
+    /** `@polywar/skeleton` `addIK`: an IK with control bones made at runtime */
+    addIK?(bone: string, control: { chain: number; target: string; pole?: { name: string; near: string; offset: [number, number, number] }; parent?: string; copy?: string }): unknown;
     update(): Float32Array;
     reset(): void;
 };
@@ -23,7 +25,7 @@ export type SkinLike = {
 /** a finger: 3 bones, its tip control (IK, chain 3) and pole; rest base (skin space) and length */
 type Finger = { name: "thumb" | "index" | "fingers"; ik: string; tip: Bone; pole: Bone; base: Vector3; length: number };
 
-/** an arm of the rig: chain (upper arm, forearm, hand) + its controls (`hand.ik`, `elbow.pole`) */
+/** an arm of the rig: chain (upper arm, forearm, hand) + its controls (`hand.ik`, `elbow.pole`: from the file or made by `addIK`) */
 export type BodyArm = {
     upper: Bone; forearm: Bone; hand: Bone; control: Bone; pole: Bone;
     /** the clavicle: turns forward when the hand is out of reach */
@@ -41,7 +43,12 @@ export type BodyArm = {
     fingers: Finger[];
     /** 1 when the thumb sits on the +(dir x palm) side of the hand, else -1 */
     thumb: number;
+    /** the elbow pole's rest distance from the shoulder joint (m): it never goes further */
+    elbowReach: number;
 };
+
+/** how much the elbow pole follows the hand (like the blend's Child Of on `elbow.pole`, influence .3) */
+const ELBOW_FOLLOW = .3;
 
 /**
  * How a hand holds a bar of the gun, gun space (x right, y up, -z forward): `axis` the bar (the thumb points
@@ -60,7 +67,7 @@ const v = (p: P) => new Vector3(p[0], p[1], p[2]);
 const reject = (a: P, n: Vector3) => v(a).subtract(n.clone.multiply(n.dot(v(a)))).normalize();
 
 /**
- * Finds an arm of the human rig (`tools/blender/lib/human_rig.py`) by side ("L" / "R"), undefined without the
+ * Finds an arm of the humanoid rig (`characters/base/model.blend`, controls from `addIK`) by side ("L" / "R"), undefined without the
  * controls. Reads the rest frame: call before posing (resets the skin).
  */
 export function bodyArm(skin: SkinLike, names: [string, string, string], side: "L" | "R"): BodyArm | undefined {
@@ -88,7 +95,8 @@ export function bodyArm(skin: SkinLike, names: [string, string, string], side: "
     }
     const thumbBone = skin.armature.find(`thumb.1.${side}`);
     const thumb = thumbBone && v(thumbBone.head).subtract(hand.head).dot(dir.clone.cross(palm)) < 0 ? -1 : 1;
-    return { upper, forearm, hand, control, pole, shoulder, length, up, fingers, thumb, rest: { rotation: hand.worldRotation.clone, head: v(hand.head), dir, palm, contact } };
+    const elbowReach = Vector3.distance(pole.head, upper.head);
+    return { upper, forearm, hand, control, pole, shoulder, length, up, fingers, thumb, elbowReach, rest: { rotation: hand.worldRotation.clone, head: v(hand.head), dir, palm, contact } };
 }
 
 /** the world (skin space) rotation that turns the rest hand onto knuckles `dir` and palm `palm` (unit, skin space) */
@@ -174,8 +182,13 @@ export function reach(skin: SkinLike, arm: BodyArm, target: P, rotation: Quatern
     control.moveTo(wrist);
     const parent = control.parent?.worldRotation.clone.conjugate() ?? Quaternion.identity;
     Quaternion.multiplyInto(control.rotation, parent, rotation);
-    // papit's two bone IK bends toward the pole as seen from the chain's root
-    arm.pole.moveTo(v(upper.head).add(v(pole).normalize().multiply(.5)));
+    // papit's two bone IK bends toward the pole as seen from the chain's root. Like the blend: the pole rides the
+    // body (`pole` direction from the shoulder), follows the hand a little (Child Of), stays near the shoulder (Limit Distance)
+    const base = v(upper.head).add(v(pole).normalize().multiply(.5));
+    const follow = now.rotate(base.clone.subtract(arm.rest.head)).add(wrist);
+    const at = base.add(follow.subtract(base).multiply(ELBOW_FOLLOW));
+    const out = v(at).subtract(upper.head), far = out.magnitude;
+    arm.pole.moveTo(far > arm.elbowReach ? v(upper.head).add(out.multiply(arm.elbowReach / far)) : at);
     skin.setIK(arm.forearm.name, 1);
     return wrist;
 }

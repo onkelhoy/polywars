@@ -1,6 +1,11 @@
 """Exports a .blend to .glb next to it (same name), for @papit/game-mesh.
 
-  blender -b <file.blend> -P tools/blender/export.py [-- <out.glb>]
+  blender -b <file.blend> -P tools/blender/export.py [-- <out.glb>] [--bake]
+
+- `--bake` (authoring rigs, e.g. characters/base): every action is sampled with its constraints (IK, Child Of,
+  scale grips, ...) into plain FK keys; then control bones (not deform, nothing parented or weighted, no kept
+  child) and all constraints go, and a deform bone under a control sits back on the bone it starts at
+  (hand -> forearm, foot -> shin, head -> neck). Only the in-memory copy changes, the .blend is never saved.
 
 - Linked collection instances are made real (local mesh copies), so linked part files export.
 - Objects parented to a bone become skinned meshes: vertex groups named like a bone keep their
@@ -136,6 +141,120 @@ def trim_actions():
             print(f"trimmed {a.name}: {end} -> {last}")
 
 
+def _kept(arm):
+    """bones the game needs: deform, carrying an object or vertex weights, and their ancestors"""
+    used = {o.parent_bone for o in bpy.data.objects if o.parent == arm and o.parent_type == "BONE"}
+    for o in bpy.data.objects:
+        if o.type == "MESH" and any(m.type == "ARMATURE" and m.object == arm for m in o.modifiers):
+            weighted = {g.group for v in o.data.vertices for g in v.groups if g.weight > 0}
+            used |= {vg.name for vg in o.vertex_groups if vg.index in weighted}
+    keep = set()
+    for b in arm.data.bones:
+        if b.use_deform or b.name in used:
+            while b and b.name not in keep:
+                keep.add(b.name)
+                b = b.parent
+    return keep
+
+
+def _sample(arm, action, names):
+    """armature space pose matrices of `names`, per frame of `action` (alone, NLA muted)"""
+    ad = arm.animation_data
+    ad.action = action
+    if action.slots:
+        ad.action_slot = action.slots[0]
+    scene = bpy.context.scene
+    start, end = (int(round(f)) for f in action.frame_range)
+    frames = []
+    for f in range(start, end + 1):
+        scene.frame_set(f)
+        frames.append((f, {n: arm.pose.bones[n].matrix.copy() for n in names}))
+    return frames
+
+
+def bake_rig(arm):
+    keep = _kept(arm)
+    ad = arm.animation_data_create()
+    mutes = [(t, t.mute) for t in ad.nla_tracks]
+    for t, _ in mutes:
+        t.mute = True
+    was = ad.action
+    baked = {a: _sample(arm, a, keep) for a in bpy.data.actions if a.slots and any(s.target_id_type == "OBJECT" for s in a.slots)}
+    for pb in arm.pose.bones:
+        for c in list(pb.constraints):
+            pb.constraints.remove(c)
+    # edit: drop the controls, deform bones under a control back onto the bone they start at
+    bpy.context.view_layer.objects.active = arm
+    mode = arm.mode
+    bpy.ops.object.mode_set(mode="EDIT")
+    eb = arm.data.edit_bones
+    for b in list(eb):
+        if b.name not in keep:
+            continue
+        if b.use_deform and b.parent and not b.parent.use_deform:
+            home = next((o for o in eb if o.name in keep and o.use_deform and o is not b and (o.tail - b.head).length < 1e-4
+                         and b not in o.parent_recursive), None)
+            if home:
+                b.parent, b.use_connect = home, True
+                print(f"bake: {b.name} -> {home.name}")
+    removed = [b.name for b in eb if b.name not in keep]
+    for name in removed:
+        eb.remove(eb[name])
+    # controls left childless by the moves above (e.g. foot.ik)
+    used = _kept(arm) - {b.name for b in arm.data.bones if not b.use_deform}
+    while True:
+        bare = [b for b in eb if not b.use_deform and not b.children and b.name not in used]
+        if not bare:
+            break
+        for b in bare:
+            removed.append(b.name)
+            keep.discard(b.name)
+            eb.remove(b)
+    for b in eb:
+        b.inherit_scale, b.use_inherit_rotation, b.use_local_location = "FULL", True, True
+    bpy.ops.object.mode_set(mode="POSE")
+    print(f"bake: dropped {len(removed)} control bones: {', '.join(removed)}")
+    # re-key every action as FK from the samples
+    order = []
+    def walk(b):
+        order.append(b.name)
+        for c in b.children:
+            walk(c)
+    for b in arm.data.bones:
+        if not b.parent:
+            walk(b)
+    for action, frames in baked.items():
+        ad.action = action
+        if action.slots:
+            ad.action_slot = action.slots[0]
+        for layer in action.layers:
+            for strip in layer.strips:
+                for bag in strip.channelbags:
+                    bag.fcurves.clear()
+        prev = {}
+        for f, mats in frames:
+            for name in order:
+                pb, bone = arm.pose.bones[name], arm.data.bones[name]
+                rest = bone.matrix_local if not bone.parent else bone.parent.matrix_local.inverted() @ bone.matrix_local
+                pose = mats[name] if not bone.parent else mats[bone.parent.name].inverted() @ mats[name]
+                pb.rotation_mode = "QUATERNION"
+                pb.matrix_basis = rest.inverted() @ pose
+                q = pb.rotation_quaternion.copy()
+                if name in prev:
+                    q.make_compatible(prev[name])
+                pb.rotation_quaternion = q
+                prev[name] = q
+                pb.keyframe_insert("rotation_quaternion", frame=f, group=name)
+                pb.keyframe_insert("scale", frame=f, group=name)
+                if not bone.use_connect:
+                    pb.keyframe_insert("location", frame=f, group=name)
+        print(f"bake: {action.name} {len(frames)} frames")
+    ad.action = was if was in baked else None
+    for t, m in mutes:
+        t.mute = m
+    bpy.ops.object.mode_set(mode=mode if mode != "EDIT" else "OBJECT")
+
+
 def write_rig(arm, out):
     rig = {"bones": {}, "ik": [], "copyRotation": []}
     for b in arm.data.bones:
@@ -155,8 +274,12 @@ def write_rig(arm, out):
     print("wrote", os.path.relpath(path, pw.ROOT))
 
 
-def export(out):
+def export(out, bake=False):
     arms = [o for o in bpy.context.scene.objects if o.type == "ARMATURE"]
+    if bake:
+        trim_actions()
+        for arm in arms:
+            bake_rig(arm)
     for arm in arms[:1]:
         write_rig(arm, out)
     for arm in arms:
@@ -181,5 +304,5 @@ def export(out):
 
 
 if __name__ == "__main__":
-    a = pw.args()
-    export(a[0] if a else os.path.splitext(bpy.data.filepath)[0] + ".glb")
+    a = [x for x in pw.args() if not x.startswith("--")]
+    export(a[0] if a else os.path.splitext(bpy.data.filepath)[0] + ".glb", "--bake" in pw.args())

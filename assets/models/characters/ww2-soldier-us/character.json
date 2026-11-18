@@ -3,8 +3,8 @@
     "model": "model.glb",
     "rig": "model.rig.json",
     "sockets": {
-        "hand.R": "prop.R",
-        "hand.L": "prop.L"
+        "hand.R": "hand.R",
+        "hand.L": "hand.L"
     },
     "parts": {
         "head": [

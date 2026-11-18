@@ -2,15 +2,35 @@ import type { BaseRig } from "./types";
 
 const sides = (names: string[]) => names.flatMap(n => [`${n}.L`, `${n}.R`]);
 
-/** `tools/blender/lib/human_rig.py`: spine, arms with fingers, legs, IK controls. */
+type Control = NonNullable<BaseRig["controls"]>[number];
+/** a left side control and its mirror (x flipped, `.L` -> `.R`) */
+const mirrored = (c: Control): Control[] => {
+    const r = (n: string) => n.replace(/\.L$/, ".R");
+    return [c, {
+        ...c, bone: r(c.bone), target: r(c.target), parent: c.parent && r(c.parent), copy: c.copy && r(c.copy),
+        pole: c.pole && { name: r(c.pole.name), near: r(c.pole.near), offset: [-c.pole.offset[0], c.pole.offset[1], c.pole.offset[2]] },
+    }];
+};
+
+/**
+ * `characters/base/model.blend` exported with `--bake`: spine, arms with fingers, legs, clips as FK. The Blender
+ * controls are gone; `controls` makes the ones the game drives (arms on a gun, finger tips, feet), poles as they sit
+ * in the blend (glTF: +Y up, +Z forward).
+ */
 export const HUMANOID: BaseRig = {
     name: "humanoid",
     bones: [
         "root", "hips", "spine", "spine.1", "chest", "neck", "head",
-        ...sides(["shoulder", "upper_arm", "forearm", "hand", "thumb.1", "thumb.2", "thumb.3", "index.1", "index.2", "index.3", "fingers.1", "fingers.2", "fingers.3", "prop",
-            "thigh", "shin", "foot", "toe", "foot.ik", "knee.pole", "hand.ik", "elbow.pole",
-            "thumb.ik", "thumb.pole", "index.ik", "index.pole", "fingers.ik", "fingers.pole"]),
+        ...sides(["shoulder", "upper_arm", "forearm", "hand", "thumb.1", "thumb.2", "thumb.3", "index.1", "index.2", "index.3", "fingers.1", "fingers.2", "fingers.3",
+            "thigh", "shin", "foot", "toe"]),
     ],
+    controls: [
+        { bone: "forearm.L", chain: 2, target: "hand.ik.L", copy: "hand.L", pole: { name: "elbow.pole.L", near: "forearm.L", offset: [0, 0, -.47] } },
+        { bone: "shin.L", chain: 2, target: "foot.ik.L", copy: "foot.L", pole: { name: "knee.pole.L", near: "shin.L", offset: [0, 0, .58] } },
+        { bone: "thumb.3.L", chain: 3, target: "thumb.ik.L", parent: "hand.L", pole: { name: "thumb.pole.L", near: "thumb.2.L", offset: [-.015, .007, .028] } },
+        { bone: "index.3.L", chain: 3, target: "index.ik.L", parent: "hand.L", pole: { name: "index.pole.L", near: "index.2.L", offset: [.029, .045, 0] } },
+        { bone: "fingers.3.L", chain: 3, target: "fingers.ik.L", parent: "hand.L", pole: { name: "fingers.pole.L", near: "fingers.2.L", offset: [.026, .045, 0] } },
+    ].flatMap(c => mirrored(c as Control)),
     parts: {
         head: ["head", "neck"],
         torso: ["hips", "spine", "spine.1", "chest"],
@@ -19,7 +39,7 @@ export const HUMANOID: BaseRig = {
         "leg.L": ["thigh.L", "shin.L", "foot.L", "toe.L"],
         "leg.R": ["thigh.R", "shin.R", "foot.R", "toe.R"],
     },
-    sockets: { "hand.R": "prop.R", "hand.L": "prop.L", head: "head" },
+    sockets: { "hand.R": "hand.R", "hand.L": "hand.L", head: "head" },
 };
 
 /** The farm pack rig (Cow, Horse, Pig, ...): body, neck + head, four legs with foot IK. Tails are extra. */

@@ -1,5 +1,5 @@
 // npm run assets [-- --all] [-- --no-export] [-- --no-serve]
-// 1. exports every .blend in assets/ to .glb (when the .glb is older than any .blend in its folder, or --all)
+// 1. exports every .blend in assets/ to .glb (when the .glb is older than any .blend in its folder, or --all); characters with --bake
 // 1b. folders with a `lod.json` ({ "ratios": [0.4, 0.12] }) get <name>.lod1.glb, ... per .glb (tools/blender/lod.py), when stale
 // 2. writes assets/manifest.json, a tree of every file (the gallery package's generator)
 // 3. serves the gallery of everything (packages/library/catalog, its view) until Ctrl+C
@@ -33,7 +33,11 @@ if (!process.argv.includes("--no-export"))
     {
         const glb = blend.replace(/\.blend$/, ".glb");
         if (!all && existsSync(glb) && statSync(glb).mtimeMs >= newest(dirname(blend))) continue;
-        const r = spawnSync(BLENDER, ["-b", blend, "-P", join(ROOT, "tools/blender/export.py")], { encoding: "utf8" });
+        // humanoid characters are authoring rigs: clips baked to FK, controls stripped (export.py --bake)
+        const conf = join(dirname(blend), "character.json");
+        const humanoid = blend.endsWith("/model.blend") && existsSync(conf) && (JSON.parse(readFileSync(conf, "utf8")).base ?? "humanoid") === "humanoid";
+        const bake = blend.includes("/models/characters/") && humanoid ? ["--", "--bake"] : [];
+        const r = spawnSync(BLENDER, ["-b", blend, "-P", join(ROOT, "tools/blender/export.py"), ...bake], { encoding: "utf8" });
         const ok = r.status === 0 && /exported/.test(r.stdout);
         console.log(ok ? "exported" : "FAILED  ", relative(ROOT, glb));
         if (!ok) console.log(r.stdout.split("\n").filter(l => /Error|Traceback/.test(l)).join("\n"), r.stderr);

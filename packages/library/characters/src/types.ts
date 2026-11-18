@@ -10,7 +10,7 @@ export type CharacterJSON = {
     rig?: string;
     /** base rig the bones follow (`humanoid`, `quadruped`, `bird`), default `humanoid` */
     base?: string;
-    /** socket name: bone that holds things there, e.g. "hand.R": "prop.R" */
+    /** socket name: bone that holds things there, e.g. "hand.R": "hand.R" */
     sockets?: Record<string, string>;
     /** body part name: its bones (hit zones, dismember, hide) */
     parts?: Record<string, string[]>;
@@ -46,4 +46,13 @@ export type BaseRig = {
     bones: string[];
     parts: Record<string, string[]>;
     sockets: Record<string, string>;
+    /**
+     * IK the game makes at runtime (baked rigs export no controls): same shape as `@polywar/skeleton`'s
+     * `IKControl` (bone + chain, made target / pole, pole offset skin space from `near`'s rest head, `copy`).
+     */
+    controls?: {
+        bone: string; chain: number; target: string;
+        pole?: { name: string; near: string; offset: [number, number, number] };
+        parent?: string; copy?: string;
+    }[];
 };

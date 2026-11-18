@@ -179,6 +179,8 @@ export class Player {
         this.attachments = new Attachments(this.gl, character);
         const skin = body.skin as unknown as SkinLike & { bones: { name: string }[] };
         const parts = character.parts;
+        // baked rigs carry no controls: make the ones the base rig names (no-op where the file has them)
+        for (const c of character.base?.controls ?? []) skin.addIK?.(c.bone, c);
         const chain = (side: "L" | "R") => { const p = parts[`arm.${side}`] ?? [], n = p.slice(-3); return n.length === 3 && n.every(b => skin.armature.find(b)) ? n as [string, string, string] : undefined; };
         const r = chain("R"), l = chain("L");
         const ar = r && bodyArm(skin, r, "R"), al = l && bodyArm(skin, l, "L");

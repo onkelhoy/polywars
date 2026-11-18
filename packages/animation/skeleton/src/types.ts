@@ -7,3 +7,17 @@ export type RigJSON = {
     /** `bone` takes the world rotation of `target` (same rest orientation), after IK */
     copyRotation: { bone: string; target: string; weight: number }[];
 };
+
+/** An IK made at runtime (`Skeleton.addIK`), for rigs whose file has no controls (baked). */
+export type IKControl = {
+    /** the bone the IK sits on (its tail reaches the target) and how many bones turn */
+    bone: string; chain: number;
+    /** name of the target bone made for it */
+    target: string;
+    /** made bone the joints bend toward: `offset` (skin space, m) from the rest head of `near` */
+    pole?: { name: string; near: string; offset: [number, number, number] };
+    /** the target's parent (default: none, armature space) */
+    parent?: string;
+    /** this child of `bone` takes the target's rotation (hand, foot) */
+    copy?: string;
+};

@@ -1,7 +1,7 @@
 import { Armature, Bone, IK } from "@papit/armature";
 import { sampleChannel, type GLTF, type GLTFAnimation } from "@papit/game-mesh";
 import { Quaternion } from "@papit/quaternion";
-import type { RigJSON } from "./types";
+import type { IKControl, RigJSON } from "./types";
 
 // glTF bones point along +Y, @papit/armature bones along +X. C turns X onto Y (90° about Z).
 const S = Math.SQRT1_2;
@@ -107,6 +107,47 @@ export class Skeleton {
         for (let j = 0; j < this.bones.length; j++)
             multiply(this.bind, j * 16, CI_MATRIX, 0, source.inverseBindMatrices ?? IDENTITY, source.inverseBindMatrices ? j * 16 : 0);
         this.update();
+    }
+
+    /**
+     * Adds an IK the file doesn't carry (a baked rig's rig.json has none), with its control bones made here: not
+     * skinned, not in `bones`. At rest `target` sits on `bone`'s tail (under `parent`, default the armature root),
+     * `pole` sits at `offset` (skin space) from the rest head of bone `near`. `copy`: that child of `bone` takes the target's rotation (a hand).
+     * Weight 0 until `setIK`. Returns the one already on `bone` if there is one. Resets the pose.
+     */
+    addIK(bone: string, { chain, target, pole, parent, copy }: { chain: number; target: string; pole?: IKControl["pole"]; parent?: string; copy?: string }) {
+        const existing = this.ik.get(bone);
+        if (existing) return existing;
+        const near = pole && this.armature.find(pole.near);
+        if (pole && !near) return undefined;
+        const end = this.armature.find(bone), under = parent ? this.armature.find(parent) ?? undefined : undefined, copier = copy ? this.armature.find(copy) : null;
+        if (!end || (parent && !under) || (copy && copier?.parent !== end)) return undefined;
+        this.reset();
+        this.armature.update();
+        const control = (name: string, at: ArrayLike<number>, rotation?: ArrayLike<number>) => {
+            const made = !this.armature.find(name);
+            const b = this.armature.find(name) ?? this.armature.add(name, { parent: under, attach: 0 });
+            if (rotation)
+            {
+                tmp.set(under?.worldRotation ?? [0, 0, 0, 1]);
+                conjugate(tmp);
+                Quaternion.multiplyInto(b.rotation, tmp, rotation);
+            }
+            b.update();
+            b.moveTo(at);
+            if (made) this.rest.push({ offset: [...b.offset], rotation: [...b.rotation] });
+            return b;
+        };
+        const t = control(target, end.tail, copier?.worldRotation);
+        const p = pole && near ? control(pole.name, [near.head[0] + pole.offset[0], near.head[1] + pole.offset[1], near.head[2] + pole.offset[2]]) : undefined;
+        this.armature.update();
+        const ik = this.armature.ik(end, { chain, target: t, pole: p, weight: 0 });
+        this.ik.set(bone, ik);
+        this.weights.set(ik, 0);
+        const normal = planeNormal(ik);
+        if (normal) this.planes.set(ik, { normal, bones: ik.bones.map(b => ({ dir: direction(b), world: [...b.worldRotation] })) });
+        if (copier) this.copies.push({ bone: copier, target: t, weight: 0 });
+        return ik;
     }
 
     /** IK and copy rotation on (rest weights) or off (pure FK, what the clip says) */

@@ -1,4 +1,5 @@
-"""Store soldiers (.fbx) -> assets/models/characters/<slug>/model.blend with our bone names (see human_rig).
+"""Store soldiers (.fbx) -> assets/models/characters/<slug>/model.blend with our bone names, on the base rig
+(the owner's characters/base/model.blend, see lib/base_rig.py).
 
   blender -b -P tools/blender/packs/soldiers.py
 
@@ -9,7 +10,7 @@ ancestor. Source animations are dropped (we use our own clips).
 import bpy, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
 from mathutils import Matrix, Vector
-import pw, human_rig
+import pw, base_rig
 
 HEIGHT = 1.8
 SIDE = lambda m: {k + s: v + s for k, v in m.items() for s in (".L", ".R")}
@@ -100,15 +101,11 @@ def build(slug, src, names):
     print("wrote", slug, len(arm.data.bones), "bones")
 
 
-# controls follow a deform bone: (bone, end) -> moved like that bone's head / tail
-FOLLOW = {"root": None, "foot.ik": "foot", "knee.pole": "shin", "hand.ik": "hand", "elbow.pole": "forearm", "prop": "hand",
-          **{f"{f}.ik": f"{f}.3:tail" for f in human_rig.FINGERS}, **{f"{f}.pole": f"{f}.2" for f in human_rig.FINGERS}}
-
-
 def to_base(old, body):
     """Re-poses the soldier into the base rest pose (bone directions), bakes it, then swaps in the base armature
-    (human_rig) fitted to the soldier's joints. Base bones the soldier lacks keep their base offset to the parent."""
-    spec = human_rig.bones()
+    (base_rig: controls, constraints, clips) fitted to the soldier's joints. Deform bones the soldier lacks keep
+    their base offset to the parent; controls move with the nearest fitted joint (each end on its own)."""
+    spec = base_rig.bones()
     # 1. pose: turn each bone onto the base direction, parents first
     bpy.context.view_layer.objects.active = old
     bpy.ops.object.mode_set(mode="POSE")
@@ -129,44 +126,87 @@ def to_base(old, body):
     bpy.ops.object.modifier_apply(modifier=next(m.name for m in body.modifiers if m.type == "ARMATURE"))
     have = {pb.name: (pb.head.copy(), pb.tail.copy()) for pb in old.pose.bones}
     bpy.data.objects.remove(old)
-    # 3. base armature, fitted
-    arm = human_rig._armature()
+    # 3. base armature, fitted: deform bones parents first, then the controls
+    arm = base_rig.armature()
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode="EDIT")
     eb = arm.data.edit_bones
+    axes = {b.name: b.z_axis.copy() for b in eb}  # the owner's rolls (pole angles are set for them)
     moved = {}
-    for name, (h, t, par, _) in spec.items():
-        b, base = eb[name], name.rsplit(".", 1)
-        key = base[0] if base[-1] in "LR" else name
-        side = "." + base[-1] if base[-1] in "LR" else ""
+    order = []
+    def walk(b):
+        order.append(b.name)
+        for c in b.children:
+            walk(c)
+    for b in eb:
+        if not b.parent:
+            walk(b)
+    for name in order:
+        h, t, par, deform = spec[name]
+        if not deform and name != "root":
+            continue
+        b = eb[name]
         if name in have:
             b.head, b.tail = have[name]
         else:
-            ref = FOLLOW.get(key, "@parent")
-            if ref is None:
-                continue
-            if ref == "@parent":
-                d = moved.get(par, Vector())
-            else:
-                bone, _, end = ref.partition(":")
-                d = moved.get(bone + side, Vector()) if not end else (Vector(eb[bone + side].tail) - Vector(spec[bone + side][1]))
+            # the parent's end nearest this head (fingers sit at the hand's tail)
+            ph, pt = (Vector(x) for x in spec[par][:2]) if par in spec else (Vector(), Vector())
+            ends = moved.get(par, (Vector(), Vector()))
+            d = ends[0] if (ph - Vector(h)).length < (pt - Vector(h)).length else ends[1]
             b.head, b.tail = Vector(h) + d, Vector(t) + d
-        moved[name] = Vector(b.head) - Vector(h)
-    # keep connected chains connected (shoulder tail -> upper_arm head, ...)
+        moved[name] = (Vector(b.head) - Vector(h), Vector(b.tail) - Vector(t))
+    # joints that meet in the base meet here too (hand / foot / head sit on their limb's tail without a parent link)
+    for name in order:
+        h, _, _, deform = spec[name]
+        if not deform:
+            continue
+        at = next((o for o in order if o != name and spec[o][3] and (Vector(spec[o][1]) - Vector(h)).length < 1e-4), None)
+        if at:
+            b, d = eb[name], Vector(eb[at].tail) - Vector(eb[name].head)
+            if d.length > 1e-6:
+                b.head, b.tail = b.head + d, b.tail + d
+                moved[name] = (Vector(b.head) - Vector(h), Vector(b.tail) - Vector(spec[name][1]))
+    moved = {k: v for k, v in moved.items() if spec[k][3]}
+    joints = [(Vector(spec[n][e]), n, e) for n in moved for e in (0, 1)]
+    def shift(p):
+        _, n, e = min(joints, key=lambda j: (j[0] - p).length)
+        return moved[n][e]
+    for name in order:
+        h, t, par, deform = spec[name]
+        if deform or name == "root":
+            continue
+        b = eb[name]
+        b.head, b.tail = Vector(h) + shift(Vector(h)), Vector(t) + shift(Vector(t))
+    # keep connected chains connected (shoulder tail -> upper_arm head, control -> its .ik tip, ...)
     for b in eb:
         kids = [c for c in b.children if c.use_connect]
         if kids:
             b.tail = kids[0].head
-    for side in "LR":
-        for limb, pole in (("thigh", "knee.pole"), ("shin", "knee.pole"), ("upper_arm", "elbow.pole"), ("forearm", "elbow.pole")):
-            b = eb[f"{limb}.{side}"]
-            b.align_roll(eb[f"{pole}.{side}"].head - b.head)
+    for b in eb:
+        b.align_roll(axes[b.name])
+    # poles into the fitted chain's bend plane (same distance, same side as in the base), so the rest stays put
+    iks = [(pb.name, c.chain_count, c.pole_subtarget) for pb in arm.pose.bones for c in pb.constraints if c.type == "IK" and c.pole_subtarget]
+    for tip, count, pole in iks:
+        chain = [eb[tip]]
+        while len(chain) < count and chain[-1].parent:
+            chain.append(chain[-1].parent)
+        root, end = Vector(chain[-1].head), Vector(chain[0].tail)
+        line = (end - root).normalized()
+        mid = sum((Vector(b.head) for b in chain[:-1]), Vector()) / max(1, len(chain) - 1)
+        bend = (mid - root) - line * line.dot(mid - root)
+        p = eb[pole]
+        off = Vector(p.head) - mid
+        if bend.length < 1e-3 or (off - line * line.dot(off)).length < 1e-6:
+            continue
+        side = 1 if (off - line * line.dot(off)).dot(bend) > 0 else -1
+        to = mid + line * line.dot(off) + bend.normalized() * side * (off - line * line.dot(off)).length
+        d = to - Vector(p.head)
+        p.head, p.tail = p.head + d, p.tail + d
     bpy.ops.object.mode_set(mode="OBJECT")
-    human_rig._constraints(arm)
+    base_rig.refit(arm)
     body.parent = arm
     body.modifiers.new("rig", "ARMATURE").object = arm
-    bpy.context.scene.render.fps = human_rig.FPS
-    human_rig._clips(arm)  # same rig: the base clips (idle, walk, run, fps-idle)
+    bpy.context.scene.render.fps = base_rig.FPS
     return arm
 
 
