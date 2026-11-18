@@ -10,7 +10,8 @@ const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange, buttonAt } from '@polywar/shooting-range';
-import { Vehicle } from '@polywar/vehicle';
+import { Vehicles } from '@polywar/vehicle';
+import { nearest } from '@polywar/ballistics';
 import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
@@ -27,9 +28,13 @@ const range = await ShootingRange.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
 window.range = range;
 
+// cars share one world (they hit each other); bullets hit them too
+const fleet = new Vehicles({ ground: range.ground, solids: range.colliders });
+const shots = nearest(range.cast, fleet.cast);
+window.fleet = fleet;
 let lastHit = '';
 const player = new Player(layer, renderer, {
-    ground: range.ground, colliders: range.colliders, cast: range.cast, surface: range.surface,
+    ground: range.ground, colliders: range.colliders, cast: shots, surface: range.surface,
     scene: () => { model.draw(renderer, identity); drawStands(); },
     character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
     worldDrawn: () => demo.endOcclusion(),
@@ -181,7 +186,7 @@ demo.draw = camera => {
 const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;
     const spec = await (await fetch(base + 'vehicle.json')).json();
-    const car = new Vehicle({ spec, ground: range.ground, solids: range.colliders }, v.at, v.yaw);
+    const car = fleet.add({ spec }, v.at, v.yaw);
     return { car, spec, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
 let driving, seatCam = false, nearCar;
@@ -232,8 +237,6 @@ addEventListener('keydown', e => {
 function driveCamera(camera, dt) {
     const { car, spec } = driving, input = player.input;
     const { dx, dy } = input?.consume() ?? { dx: 0, dy: 0 };
-    const k = n => input?.key(n) ? 1 : 0;
-    car.update(dt, { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' ') });
     let eye, yaw, pitch;
     if (seatCam)
     {
@@ -268,9 +271,16 @@ const seat = {
     update: (c, dt) => {
         dt = Math.min(dt, .1);
         // cars left rolling settle a few seconds, then park (no cost)
+        const inputs = new Map();
+        if (driving)
+        {
+            const input = player.input, k = n => input?.key(n) ? 1 : 0;
+            inputs.set(driving.car, { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' ') });
+        }
+        fleet.update(dt, inputs);
         for (const c2 of cars)
         {
-            if (c2 !== driving && c2.awake > 0) { c2.awake -= dt; c2.car.update(dt); }
+            if (c2 !== driving && c2.awake > 0) c2.awake -= dt;
             // the engine runs while driven and a few seconds after (idling), then stops
             if (c2.engine)
             {

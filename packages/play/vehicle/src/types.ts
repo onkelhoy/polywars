@@ -1,4 +1,5 @@
 import type { Vector3 } from "@papit/vector";
+import type { World } from "@papit/rigidbody";
 
 /** a point / direction as stored in json: [x, y, z] (math runs on `@papit/vector` Vector3) */
 export type Point = ArrayLike<number>;
@@ -34,12 +35,17 @@ export type VehicleSpec = {
 /** a static axis aligned box the chassis bumps into and wheels drive onto (same shape as `@polywar/mover` boxes) */
 export type Solid = { min: Point; max: Point };
 
+/** a list, or the ones near x / z (e.g. a grid lookup like `@polywar/mover` colliders) */
+export type SolidSource = Solid[] | ((x: number, z: number) => Solid[]);
+
 export type VehicleSetting = {
     spec: VehicleSpec;
     /** ground height at x / z */
     ground: (x: number, z: number) => number;
-    /** boxes to bump into / drive onto: a list, or the ones near x / z (e.g. a grid lookup like `@polywar/mover` colliders) */
-    solids?: Solid[] | ((x: number, z: number) => Solid[]);
+    /** boxes to bump into / drive onto (ignored with a shared `world`: `Vehicles` keeps them) */
+    solids?: SolidSource;
+    /** a shared world (`Vehicles`): the host steps it and calls `drive` before each step */
+    world?: World;
     /** suspension travel, m. Default .3 */
     travel?: number;
     /** spring frequency, Hz: lower is softer. Default 1.3 */

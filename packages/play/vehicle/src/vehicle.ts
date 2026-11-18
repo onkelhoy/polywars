@@ -1,7 +1,8 @@
-import { Box, Hull, RigidBody, World, raycast } from "@papit/rigidbody";
+import { Hull, RigidBody, World, raycast } from "@papit/rigidbody";
+import { NearSolids } from "./solids";
 import { Vector3 } from "@papit/vector";
 import { Quaternion } from "@papit/quaternion";
-import type { DriveInput, Point, Solid, VehicleSetting, VehicleSpec, WheelState } from "./types";
+import type { DriveInput, Point, VehicleSetting, VehicleSpec, WheelState } from "./types";
 
 import type { Matrix4 } from "@papit/matrix";
 
@@ -14,7 +15,8 @@ const LATERAL = 18, LOCK = 18;
 /**
  * A car on `@papit/rigidbody`: a hull chassis plus raycast wheels (spring + damper each), tyre grip with a
  * friction circle, engine / brakes / handbrake and speed scaled steering. Model space is glTF (y up, nose -z).
- * Owns its world (the `solids` near the car as static boxes in it) and steps it in fixed steps inside `update`.
+ * Alone it owns a world (the `solids` near the car as static boxes in it) and steps it inside `update`; in a
+ * shared world (`Vehicles`, cars hit each other) the group steps it and calls `drive` before each step.
  * Draw with `matrix` (model) and the `wheel` / `steeringWheel` node matrices.
  */
 export class Vehicle {
@@ -43,10 +45,10 @@ export class Vehicle {
     /** called on every gear change (sound, a camera nudge) */
     onshift?: (gear: number, up: boolean) => void;
 
-    private s: Required<Omit<VehicleSetting, "solids" | "body">> & Pick<VehicleSetting, "solids">;
-    /** solids near the car, as static bodies in the world */
-    private near = new Map<Solid, RigidBody>();
-    private solids: RigidBody[] = [];
+    private s: Required<Omit<VehicleSetting, "solids" | "world">> & Pick<VehicleSetting, "solids">;
+    /** solids near the car as static bodies (alone: its own; shared: the group's) */
+    solids: NearSolids;
+    private owned: boolean;
     /** centre of mass, model space */
     private com: Vector3;
     private corners: Vector3[];
@@ -97,7 +99,9 @@ export class Vehicle {
         for (const x of [box.min[0], box.max[0]]) for (const y of [box.min[1], box.max[1]]) for (const z of [box.min[2], box.max[2]])
             this.corners.push(new Vector3(x, y, z).subtract(this.com));
 
-        this.world = new World({ gravity: { x: 0, y: -G, z: 0 }, allowSleep: false });
+        this.owned = !setting.world;
+        this.world = setting.world ?? new World({ gravity: { x: 0, y: -G, z: 0 }, allowSleep: false });
+        this.solids = new NearSolids(this.world, this.owned ? setting.solids : undefined);
         this.body = new RigidBody({
             shape: new Hull(this.corners.map(c => ({ x: c.x, y: c.y, z: c.z }))), mass: spec.mass,
             friction: .6, linearDamping: .02, angularDamping: .3,
@@ -109,26 +113,6 @@ export class Vehicle {
             contact: new Vector3(0, 0, 0), normal: new Vector3(0, 1, 0),
         }));
         this.place(at[0], at[2], yaw);
-    }
-
-    /** the solids within reach become static bodies in the world, the ones left behind leave it */
-    private gather() {
-        const src = this.s.solids;
-        if (!src) return;
-        const { x, z } = this.body.position, R = 4;
-        const found = new Set<Solid>();
-        if (typeof src === "function") { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const s of src(x + i * R, z + j * R)) found.add(s); }
-        else for (const s of src) if (s.max[0] > x - 2 * R && s.min[0] < x + 2 * R && s.max[2] > z - 2 * R && s.min[2] < z + 2 * R) found.add(s);
-        for (const [s, b] of this.near) if (!found.has(s)) { this.world.remove(b); this.near.delete(s); }
-        for (const s of found) if (!this.near.has(s))
-        {
-            const { min, max } = s;
-            this.near.set(s, this.world.add(new RigidBody({
-                shape: new Box(Math.max(.02, max[0] - min[0]), Math.max(.02, max[1] - min[1]), Math.max(.02, max[2] - min[2])),
-                position: { x: (min[0] + max[0]) / 2, y: (min[1] + max[1]) / 2, z: (min[2] + max[2]) / 2 },
-            })));
-        }
-        this.solids = [...this.near.values()];
     }
 
     /** stand it on its wheels at x / z, nose turned `yaw` (rad, 0 = -z, + turns left) */
@@ -144,17 +128,18 @@ export class Vehicle {
         b.angularVelocity.x = b.angularVelocity.y = b.angularVelocity.z = 0;
         b.updateInertia();
         b.wake();
-        this.gather();
+        if (this.owned) this.solids.gather([b.position]);
     }
 
+    /** alone: steps its own world. Shared: use `Vehicles.update` */
     update(dt: number, input: DriveInput = { throttle: 0, steer: 0 }) {
         const step = this.world.timestep;
         this.left += Math.min(dt, .25);
-        this.gather();
+        this.solids.gather([this.body.position]);
         while (this.left >= step)
         {
             this.left -= step;
-            this.forces(step, input);
+            this.drive(step, input);
             this.world.step();
         }
     }
@@ -195,7 +180,8 @@ export class Vehicle {
 
     // ---- physics ----
 
-    private forces(dt: number, input: DriveInput) {
+    /** this step's wheel, engine and drag forces (call before each world step) */
+    drive(dt: number, input: DriveInput) {
         const b = this.body, s = this.s, spec = this.spec;
         const quarter = spec.mass / this.wheels.length;
         const q = b.rotation, up = q.rotate(set(this.up, 0, 1, 0)), nose = q.rotate(set(this.nose, 0, 0, -1));
@@ -354,9 +340,10 @@ export class Vehicle {
             normal[2] = (ground(x, z - e) - ground(x, z + e)) / (2 * e);
             normal.normalize();
         }
-        if (this.solids.length)
+        const solids = this.solids.bodies;
+        if (solids.length)
         {
-            const hit = raycast(this.solids, from, dir, reach);
+            const hit = raycast(solids, from, dir, reach);
             if (hit && (best === null || hit.t < best) && hit.normal.y > .3)
             {
                 best = hit.t;

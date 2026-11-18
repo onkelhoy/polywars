@@ -37,6 +37,8 @@ model.draw(renderer, car.matrix(Matrix4.create()));
 - Chassis: a `@papit/rigidbody` hull in its own world (stepped inside `update`, fixed 1/120 s); `solids` are static boxes in it. The ground is a height function: wheels cast onto it, chassis corners get a stiff spring if they dig in.
 - Wheels: ray from the mount down the body's -y, spring + damper (`frequency`, `damping`, `travel`), tyre grip with a friction circle (`grip`), locked rear on handbrake (`slide` sideways grip left).
 - Throttle opposing the motion brakes; at a stop it reverses. Steering lock shrinks with speed (`steerFade`).
+- Several cars: `const fleet = new Vehicles({ ground, solids })`, `fleet.add({ spec }, at, yaw)`, `fleet.update(dt, new Map([[car, input]]))`: one world, cars hit each other; `fleet.cast(from, to)` lets bullets hit them (`@polywar/ballistics` Hit shape, surface `metal`).
+- Gearbox: automatic (`gears`, `pull`, `shiftTime`), `rpm`, `power` (throttle after the shift cut), `onshift`, `slip`; `boost` scales the top speed.
 - `toWorld(p)` for seat / eye / exit points, `place(x, z, yaw)` to reset.
 - View: `views/drive` (bumpy ground, ramp, crates, chase / seat cam, tuning sliders).
 
