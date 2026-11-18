@@ -9,7 +9,7 @@ import { elbowOf } from "./arms";
  */
 export type HandsFile = { grip: Vec3; fore?: Vec3; shoulder: [Vec3, Vec3]; elbow: [Vec3, Vec3]; hip?: Vec3; hipAngle?: Vec3; turn?: [[number, number], [number, number]] };
 /** per gun model: `aim`, `aim@<scope>`, `hands` (the shape of weapon.json) */
-type Kept = Record<string, { hands?: HandsFile } & Record<string, AimTune | HandsFile | undefined>>;
+type Kept = Record<string, { hands?: HandsFile } & Record<string, AimTune | HandsFile | Vec3 | undefined>>;
 
 type EditorOptions = {
     /** T only works while this is true (the view is playing) */
@@ -30,6 +30,7 @@ const AXES: Record<View, { h: [number, number]; v: [number, number] }> = {
     front: { h: [0, 1], v: [1, 1] },
 };
 const POSE: [string, string, number, number][] = [["x", "right", 15, .1], ["y", "up", 15, .1], ["z", "back", 20, .1], ["pitch", "pitch", 30, .1], ["yaw", "yaw", 30, .1], ["roll", "roll", 40, .1]];
+const SCOPE: [string, string][] = [["sx", "scope →"], ["sy", "scope ↑"], ["sz", "scope back"]];
 const HANDS: [string, string][] = [["rt", "R tilt"], ["rw", "R twist"], ["lt", "L tilt"], ["lw", "L twist"]];
 
 const CSS = `
@@ -86,6 +87,8 @@ export class WeaponEditor {
             <div class="pose-sliders"></div>
             <label class="zero"><span>zero</span><input name="zero" type="range" min="25" max="500" step="25" value="100" /><output name="zero-v"></output></label>
             <div class="hand-sliders"></div>
+            <label class="scope-pick"><span>scope</span><select name="scope"></select><output></output></label>
+            <div class="scope-sliders"></div>
             <p>Kept in this browser per gun. Export, then <code>npm run aim -- ~/Downloads/weapon.json</code>.</p>
             <button name="reset" type="button">reset pose</button><button name="reset-hands" type="button">reset hands</button>
             <button name="export" type="button">export all</button><button name="forget" type="button">forget all</button><output class="info"></output>`;
@@ -96,6 +99,12 @@ export class WeaponEditor {
         };
         for (const [id, name, range, step] of POSE) slider(".pose-sliders", id, name, range, step);
         for (const [id, name] of HANDS) slider(".hand-sliders", id, name, 90, 1);
+        // the scope on the gun (O cycles too) and its place on the mount, mm
+        for (const [id, name] of SCOPE) slider(".scope-sliders", id, name, 60, .5);
+        const pick = el.querySelector<HTMLSelectElement>('select[name="scope"]')!;
+        pick.innerHTML = `<option value="">none</option>` + player.scopeIds.map(id => `<option>${id}</option>`).join("");
+        pick.onchange = async () => { await this.player.setScope(this.player.current, pick.value || undefined, this.keptMount(pick.value)); this.show(); };
+        for (const [id] of SCOPE) this.input(id).oninput = () => this.fromScopeSliders();
         for (const [id] of POSE) this.input(id).oninput = () => this.fromPoseSliders();
         this.input("zero").oninput = () => this.fromPoseSliders();
         for (const [id] of HANDS) this.input(id).oninput = () => this.fromHandSliders();
@@ -147,6 +156,8 @@ export class WeaponEditor {
             const kept = this.stored()[c.tune.model], t = (kept?.[c.tune.key] ?? old[c.tune.model]?.[c.tune.key]) as AimTune | undefined;
             if (t) { c.hold.aim = aimOf(t); c.zero = t.zero; }
             if (kept?.hands) player.setHands(i, kept.hands);
+            const mount = c.sid ? kept?.[`mount@${c.sid}`] as Vec3 | undefined : undefined;
+            if (mount) void player.setScope(i, c.sid, mount);
         });
         addEventListener("keydown", e => {
             if (e.key.toLowerCase() !== this.key || !this.options.active() || (e.target as HTMLElement)?.tagName === "INPUT") return;
@@ -181,11 +192,23 @@ export class WeaponEditor {
     private output(name: string) { return this.element.querySelector<HTMLOutputElement>(`output[name="${name}"]`)!; }
     private info(text: string) { this.element.querySelector<HTMLOutputElement>(".info")!.value = text; }
     private stored(): Kept { return JSON.parse(localStorage.getItem(this.store) ?? "{}"); }
-    private keep(key: string, value: AimTune | HandsFile | undefined) {
+    private keep(key: string, value: AimTune | HandsFile | Vec3 | undefined) {
         const all = this.stored(), model = this.player.held.tune.model, entry = all[model] ??= {};
         if (value) entry[key] = value; else delete entry[key];
         localStorage.setItem(this.store, JSON.stringify(all));
     }
+    private keptMount(sid: string) { return sid ? this.stored()[this.player.held.tune.model]?.[`mount@${sid}`] as Vec3 | undefined : undefined; }
+
+    /** the scope sliders (mm) -> the mount nudge, kept as `mount@<scope>` */
+    private async fromScopeSliders() {
+        const c = this.player.held;
+        if (!c.sid) return;
+        const m = SCOPE.map(([id]) => +(+this.input(id).value / 1000).toFixed(4)) as Vec3;
+        this.keep(`mount@${c.sid}`, m.every(v => v === 0) ? undefined : m);
+        await this.player.setScope(this.player.current, c.sid, m);
+        this.showValues();
+    }
+
     private saveHands() { this.keep("hands", this.player.handsOf(this.player.current)); }
 
     // ---- the pose ----
@@ -244,6 +267,7 @@ export class WeaponEditor {
         for (const [id, , , ] of POSE) this.output(`${id}-v`).value = `${(+this.input(id).value).toFixed(1)} ${"xyz".includes(id) ? "cm" : "°"}`;
         for (const [id] of HANDS) this.output(`${id}-v`).value = `${this.input(id).value}°`;
         this.output("zero-v").value = `${this.input("zero").value} m`;
+        for (const [id] of SCOPE) this.output(`${id}-v`).value = `${this.input(id).value} mm`;
     }
 
     private show() {
@@ -257,6 +281,9 @@ export class WeaponEditor {
         this.input("zero").value = String(c.zero ?? c.gun.spec.zero);
         const turn = this.player.handsOf(this.player.current).turn ?? [[0, 0], [0, 0]];
         [turn[0][0], turn[0][1], turn[1][0], turn[1][1]].forEach((v, i) => { this.input(HANDS[i][0]).value = String(v); });
+        this.element.querySelector<HTMLSelectElement>('select[name="scope"]')!.value = c.sid ?? "";
+        (this.element.querySelector(".scope-sliders") as HTMLElement).style.display = c.sid ? "" : "none";
+        SCOPE.forEach(([id], i) => { this.input(id).value = String((c.mount?.[i] ?? 0) * 1000); });
         this.showValues();
         this.fit();
     }

@@ -21,6 +21,7 @@ for (const [model, keys] of Object.entries(tunes))
     for (const [key, tune] of Object.entries(keys))
     {
         if (key === "hands") { json.hands = tune; console.log(`set   ${model} hands`); continue; }
+        if (key.startsWith("mount@")) { json[key] = tune; console.log(`set   ${model} ${key}`); continue; }
         const zero = [...tune.offset, ...tune.angle].every(v => v === 0) && tune.zero === undefined;
         if (zero) delete json[key];
         else json[key] = tune;

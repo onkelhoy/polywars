@@ -81,8 +81,9 @@ export function holdFromPoints(weapon: WeaponFile, spec: GunSpec): Hold | undefi
  * A scope from `@polywar/armory` on a gun: eyepiece / objective in gun space (the rings on the gun's mount),
  * the glass radius a guess from the tube (`lens`).
  */
-export function scopeMountFor(weapon: WeaponFile, scope: ScopeData, lens = .018): ScopeMount & { offset: Vec3 } {
-    const offset = scopeOffset(weapon, scope);
+export function scopeMountFor(weapon: WeaponFile, scope: ScopeData, lens = .018, adjust: Vec3 = [0, 0, 0]): ScopeMount & { offset: Vec3 } {
+    // `adjust`: hand set nudge (weapon.json `mount@<scope>`, m, gun space)
+    const o = scopeOffset(weapon, scope), offset: Vec3 = [o[0] + adjust[0], o[1] + adjust[1], o[2] + adjust[2]];
     const eyepiece = onGun(scope.points.eyepiece, offset), objective = onGun(scope.points.objective, offset);
     return { eyepiece, objective, length: Math.hypot(objective[0] - eyepiece[0], objective[1] - eyepiece[1], objective[2] - eyepiece[2]), lens, offset };
 }

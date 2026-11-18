@@ -19,7 +19,7 @@ import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
 
 /** `scopeModel` (a scope from the armory) is drawn `scopeAt` off the gun; `scopeMesh` is the stand-in without one */
-type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; tune: { model: string; key: string }; zero?: number; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh; arms?: ArmsPose; turn?: [[number, number], [number, number]]; hands?: { grip: Vec3; fore?: Vec3 }; base: Vec3 };
+type Carried = { gun: Gun; model: Model; hold: Hold; weapon?: WeaponFile; tune: { model: string; key: string }; zero?: number; scope?: Scope; zoom?: [number, number]; scopeModel?: Model; scopeAt?: Matrix4; scopeMesh?: GPUMesh; sid?: string; mount?: Vec3; arms?: ArmsPose; turn?: [[number, number], [number, number]]; hands?: { grip: Vec3; fore?: Vec3 }; base: Vec3 };
 
 const LIMIT = Math.PI / 2 - .02;
 /** lean: metres the eye goes out, radians the view rolls */
@@ -35,7 +35,7 @@ const BACK_OFF = .4;
  * Its body (a `character.json`) is drawn under the view, head and arms left out.
  *
  * Keys: WASD walk, shift run, space jump, left mouse fire, right mouse aim (held) or Option / Alt (toggle),
- * Q / E lean, R reload, 1..9 / [ ] switch guns, wheel zooms a scope while aimed, Esc lets go of the mouse.
+ * Q / E lean, R reload, O puts the next scope on, 1..9 / [ ] switch guns, wheel zooms a scope while aimed, Esc lets go of the mouse.
  * Guns are `GUNS` ids, `<id>@<scope>` puts a scope from `assets/models/weapons/attachments/` on (e.g. `kar98k@scope-2`).
  */
 export class Player {
@@ -154,7 +154,7 @@ export class Player {
             let zoom: [number, number] | undefined;
             if (weapon && data)
             {
-                const mount = scopeMountFor(weapon, data);
+                const mount = scopeMountFor(weapon, data, undefined, (weapon as Record<string, unknown>)[`mount@${sid}`] as Vec3 | undefined);
                 scope = new Scope(this.layer, mount);
                 zoom = data.zoom;
                 scopeAt = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...mount.offset, 1]);
@@ -173,7 +173,7 @@ export class Player {
             const tune = { model: gun.spec.model, key: sid ? `aim@${sid}` : "aim" } as const;
             const saved = weapon?.[tune.key as "aim"];
             if (saved) hold.aim = aimOf(saved);
-            this.carried.push({ gun, model, hold, weapon, tune, zero: saved?.zero, scope, zoom, scopeModel, scopeAt, scopeMesh, base: [...hold.hip] as Vec3 });
+            this.carried.push({ gun, model, hold, weapon, tune, zero: saved?.zero, scope, zoom, scopeModel, scopeAt, scopeMesh, sid: data ? sid : undefined, base: [...hold.hip] as Vec3 });
             const hands = (weapon as { hands?: HandsFile } | undefined)?.hands;
             if (hands) this.setHands(this.carried.length - 1, hands);
         }
@@ -351,6 +351,43 @@ export class Player {
         void this.feel.audio.load(this.carried[index].gun.spec.sounds ?? this.carried[index].gun.spec.model);
     }
 
+    /** scope ids that can go on a gun (folders under `assets/models/weapons/attachments/`) */
+    readonly scopeIds = ["scope-1", "scope-2", "scope-3"];
+
+    /**
+     * Puts scope `sid` on carried gun `index` (undefined takes it off), nudged by `mount` (m, gun space; default
+     * weapon.json `mount@<sid>`). The aimed pose is the gun's `aim@<sid>` tune. Any gun with a weapon.json takes one.
+     */
+    async setScope(index: number, sid?: string, mount?: Vec3) {
+        const c = this.carried[index], weapon = c.weapon;
+        if (!weapon) return;
+        const data = sid ? await this.armory.scope(sid).catch(() => undefined) : undefined;
+        const model = data ? (c.sid === sid && c.scopeModel ? c.scopeModel : await Model.load(this.gl, data.url + data.model)) : undefined;
+        if (c.scopeModel && c.scopeModel !== model) c.scopeModel.destroy();
+        c.scope?.destroy(); c.scopeMesh?.destroy();
+        const keepHands = c.hands, hold = holdOf(c.model, c.gun.spec, weapon);
+        c.scope = c.scopeMesh = c.scopeAt = c.zoom = undefined;
+        c.scopeModel = model; c.sid = data ? sid : undefined;
+        c.mount = data ? mount ?? (weapon as Record<string, unknown>)[`mount@${sid}`] as Vec3 | undefined : undefined;
+        let next = hold;
+        if (data)
+        {
+            const m = scopeMountFor(weapon, data, undefined, c.mount);
+            c.scope = new Scope(this.layer, m);
+            c.zoom = data.zoom;
+            c.scope.zoom = Math.sqrt(data.zoom[0] * data.zoom[1]);
+            c.scopeAt = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...m.offset, 1]);
+            next = c.scope.hold(hold, Math.PI / 3);
+        }
+        c.tune = { model: c.gun.spec.model, key: data ? `aim@${sid}` : "aim" };
+        const saved = weapon[c.tune.key as "aim"];
+        next.aim = saved ? aimOf(saved) : undefined;
+        c.zero = saved?.zero;
+        next.hip = c.hold.hip; next.hipAngle = c.hold.hipAngle;
+        c.hold = next; c.hands = keepHands;
+        if (index === this.current) this.vm.set(c.hold);
+    }
+
     /** put on the engine camera: `new Camera({ controllers: [player.controller] })` */
     readonly controller: CameraController = {
         start: (camera: Camera) => {
@@ -395,6 +432,12 @@ export class Player {
             const [lo, hi] = carried!.zoom!; carried!.scope!.zoom = Math.max(lo, Math.min(hi, carried!.scope!.zoom * (wheel < 0 ? 1.15 : 1 / 1.15)));
         }
         if (pressed.has("r")) gun?.reload();
+        // O: the next scope on the gun (none -> scope-1 -> ... -> none)
+        if (pressed.has("o") && carried)
+        {
+            const ids = [undefined, ...this.scopeIds], next = ids[(ids.indexOf(carried.sid) + 1) % ids.length];
+            void this.setScope(this.current, next);
+        }
 
         // walking
         const ahead = k("w", "arrowup") - k("s", "arrowdown"), side = k("d", "arrowright") - k("a", "arrowleft");
