@@ -43,16 +43,18 @@ if (new URLSearchParams(location.search).has('night'))
 const zones = range.data.grass ?? [];
 const inZone = (kind, x, z) => zones.some(g => g.kind === kind && x >= g.min[0] && x <= g.max[0] && z >= g.min[1] && z <= g.max[1]);
 const GROW = { tall: { density: 1, height: 1, dry: .3, flowers: .15 }, short: { density: .7, height: .4, dry: .2, flowers: .05 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
-const grass = new Grass(layer);
-if (zones.length)
+// dense near, thinning out (lod: share left at the far end) to a ragged edge ~90 m out
+const grass = new Grass(layer, { settings: { density: 90, distance: 90, lod: .15, maxTufts: 350_000, sizeScale: 1.8 } });
+// everywhere on the ground (hills, banks too), tall by default; not under solids (buildings, sandbags, floors)
+const covered = (x, z) => { const y = range.ground(x, z); return range.colliders(x, z).some(b => x >= b.min[0] && x <= b.max[0] && z >= b.min[2] && z <= b.max[2] && b.max[1] > y - .1 && b.min[1] < y + 1); };
 {
-    const lo = [Math.min(...zones.map(g => g.min[0])), Math.min(...zones.map(g => g.min[1]))];
-    const hi = [Math.max(...zones.map(g => g.max[0])), Math.max(...zones.map(g => g.max[1]))];
+    const xs = range.data.ground.flat().map(p => p[0]), zs = range.data.ground.flat().map(p => p[2]);
+    const lo = [Math.min(...xs), Math.min(...zs)], hi = [Math.max(...xs), Math.max(...zs)];
     grass.plant({
         area: { x: lo[0], z: lo[1], width: hi[0] - lo[0], depth: hi[1] - lo[1] },
         height: (x, z) => range.ground(x, z),
-        grow: (x, z) => GROW[inZone('none', x, z) ? 'none' : inZone('short', x, z) ? 'short' : inZone('tall', x, z) ? 'tall' : 'none'],
-        window: 70,
+        grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
+        window: 100,
     });
 }
 function drawGrass(camera) {

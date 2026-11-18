@@ -144,7 +144,9 @@ void main() {
         p *= accentScale[accent - 1];
         p.y += accentHeight[accent - 1] * uvs.y;
     }
-    float fade = 1.0 - smoothstep(maxDistance * .8, maxDistance, length(origin - eye));
+    // ragged edge: each tuft ends somewhere in the last ~45% (patchy by area + a little per tuft), no clean circle
+    float edge = maxDistance * mix(.55, 1.0, .65 * hash(floor(origin.xz * .12)) + .35 * hash(origin.xz + 5.1));
+    float fade = 1.0 - smoothstep(edge * .75, edge, length(origin - eye));
     p *= tuft.w * fade;
 
     // wind: two copies of one noise scrolling apart, multiplied
