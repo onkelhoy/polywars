@@ -15,6 +15,7 @@ import { nearest } from '@polywar/ballistics';
 import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
+import { Grass } from '@polywar/grass';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -27,6 +28,31 @@ const SKY = [.62, .72, .84, 1];
 const range = await ShootingRange.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
 window.range = range;
+
+// ---- grass (@polywar/grass) by range.json zones: none wins over short over tall; planted round the camera ----
+const zones = range.data.grass ?? [];
+const inZone = (kind, x, z) => zones.some(g => g.kind === kind && x >= g.min[0] && x <= g.max[0] && z >= g.min[1] && z <= g.max[1]);
+const GROW = { tall: { density: 1, height: 1, dry: .3, flowers: .15 }, short: { density: .7, height: .4, dry: .2, flowers: .05 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
+const grass = new Grass(layer);
+if (zones.length)
+{
+    const lo = [Math.min(...zones.map(g => g.min[0])), Math.min(...zones.map(g => g.min[1]))];
+    const hi = [Math.max(...zones.map(g => g.max[0])), Math.max(...zones.map(g => g.max[1]))];
+    grass.plant({
+        area: { x: lo[0], z: lo[1], width: hi[0] - lo[0], depth: hi[1] - lo[1] },
+        height: (x, z) => range.ground(x, z),
+        grow: (x, z) => GROW[inZone('none', x, z) ? 'none' : inZone('short', x, z) ? 'short' : inZone('tall', x, z) ? 'tall' : 'none'],
+        window: 70,
+    });
+}
+function drawGrass(camera) {
+    const e = camera.worldPosition;
+    if (!e) return;
+    grass.follow(e[0] ?? e.x, e[2] ?? e.z);
+    grass.draw(camera, renderer.light, performance.now() / 1000);
+    renderer.reset();
+}
+window.grass = grass;
 
 // cars share one world (they hit each other); bullets hit them too
 const fleet = new Vehicles({ ground: range.ground, solids: range.colliders });
@@ -340,6 +366,7 @@ demo.draw = camera => {
     model.draw(renderer, identity);
     drawStands();
     drawCars();
+    drawGrass(camera);
     if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); }
     else player.draw(camera);

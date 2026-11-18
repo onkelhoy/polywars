@@ -65,7 +65,8 @@
     "@polywar/viewmodel": "*",
     "@polywar/vehicle": "*",
     "@polywar/vehicle-audio": "*",
-    "@papit/audio": "*"
+    "@papit/audio": "*",
+    "@polywar/grass": "*"
   },
   "browserslist": [
     "defaults",
