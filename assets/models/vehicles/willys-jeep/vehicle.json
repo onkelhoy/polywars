@@ -1,0 +1,95 @@
+{
+ "model": "model.glb",
+ "frame": "glTF: y up, nose -z, right +x, metres",
+ "size": [
+  1.9558,
+  2.5117,
+  3.4
+ ],
+ "centre": [
+  0.0,
+  1.576,
+  -0.0
+ ],
+ "mass": 1040,
+ "topSpeed": 18,
+ "wheels": [
+  {
+   "node": "Wheel.F.L",
+   "position": [
+    -0.6764,
+    0.3929,
+    -1.1396
+   ],
+   "radius": 0.3929,
+   "width": 0.194,
+   "steer": true,
+   "drive": true
+  },
+  {
+   "node": "Wheel.F.R",
+   "position": [
+    0.6764,
+    0.3929,
+    -1.1396
+   ],
+   "radius": 0.3929,
+   "width": 0.194,
+   "steer": true,
+   "drive": true
+  },
+  {
+   "node": "Wheel.R.L",
+   "position": [
+    -0.6764,
+    0.3929,
+    0.9318
+   ],
+   "radius": 0.3929,
+   "width": 0.194,
+   "steer": false,
+   "drive": true
+  },
+  {
+   "node": "Wheel.R.R",
+   "position": [
+    0.6764,
+    0.3929,
+    0.9318
+   ],
+   "radius": 0.3929,
+   "width": 0.194,
+   "steer": false,
+   "drive": true
+  }
+ ],
+ "steeringWheel": {
+  "node": "SteeringWheel",
+  "position": [
+   -0.3396,
+   1.2213,
+   0.0732
+  ],
+  "axis": [
+   -0.0,
+   0.6733,
+   0.7394
+  ],
+  "turns": 1.5
+ },
+ "seat": [
+  -0.3396,
+  0.9013,
+  0.4932
+ ],
+ "eye": [
+  -0.3396,
+  1.6413,
+  0.4532
+ ],
+ "exit": [
+  -1.4396,
+  0.0,
+  0.4732
+ ]
+}
