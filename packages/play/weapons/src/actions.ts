@@ -1,14 +1,15 @@
 import type { Action, GunSpec, Timeline } from "./types";
 
-/** after a shot, through `interval`: hand worked actions open (the case flies) and close, self loaders throw it at once */
+/** after a shot, through `interval`: hand worked actions open (the case flies) and close; self loaders throw it as the
+ * bolt / slide comes back (the `shoot` clip runs over ~85% of the interval, its bolt rearmost about a third in) */
 const CYCLE: Record<Action, Timeline> = {
     "bolt": [[.3, "bolt-open"], [.33, "eject"], [.7, "bolt-close"]],
     "straight-pull": [[.25, "bolt-open"], [.28, "eject"], [.6, "bolt-close"]],
     "lever": [[.25, "bolt-open"], [.28, "eject"], [.6, "bolt-close"]],
     "pump": [[.2, "bolt-open"], [.23, "eject"], [.5, "bolt-close"]],
-    "semi": [[0, "eject"]],
-    "auto": [[0, "eject"]],
-    "pistol": [[0, "eject"]],
+    "semi": [[.28, "eject"]],
+    "auto": [[.28, "eject"]],
+    "pistol": [[.45, "eject"]],
     "break": [],
 };
 

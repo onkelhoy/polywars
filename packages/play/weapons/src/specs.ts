@@ -106,5 +106,5 @@ export const GUNS: Record<string, GunSpec> = {
         ...rifle, name: "Lahti L-39", model: "lahti-l39", caliber: "20x138b", magazine: 10, interval: .5, zero: 300,
         hip: .09, aimed: .0012, moving: .15, bloom: .04, settle: .04, kick: .3, climb: .07, side: .04, raise: .8, reload: 4, reloadEmpty: 4.6,
     },
-    "double-deuce": { ...rifle, action: "break", name: "Double rifle", model: "double-deuce", caliber: "450-nitro", magazine: 2, interval: .15, aimed: .0015, kick: .2, climb: .05, reload: 2.6, reloadEmpty: 2.6 },
+    "double-deuce": { ...rifle, action: "break", name: "Double rifle", model: "double-deuce", caliber: "450-nitro", magazine: 2, interval: .25, aimed: .0015, kick: .55, climb: .16, side: .06, shove: 2.2, flash: .34, report: { volume: 1.6, rate: .82 }, reload: 2.6, reloadEmpty: 2.6 },
 };

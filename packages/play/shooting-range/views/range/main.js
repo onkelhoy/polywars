@@ -9,6 +9,8 @@ const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange } from '@polywar/shooting-range';
+import '@polywar/gun-menu';
+import { thumbnail } from '@polywar/renderer';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -37,10 +39,10 @@ const player = new Player(layer, renderer, {
         requestAnimationFrame(() => requestAnimationFrame(() => $('#marker').classList.remove('on')));
         lastHit = `${hit.target.name} · ${bullet.travelled.toFixed(0)} m`;
     },
-    exit: () => { if (!tuner?.open) document.body.classList.remove('playing'); },
+    exit: () => { if (!tuner?.open && !menuOpen) document.body.classList.remove('playing'); },
 }, range.spawn);
 window.player = player;
-let tuner;
+let tuner, menuOpen = false;
 // cases bounce off every box (the player steps its own world)
 for (const s of range.solids)
 {
@@ -73,6 +75,24 @@ addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || near < 0 || !document.body.classList.contains('playing')) return;
     player.select(stands[near].gun);
 });
+
+// ---- gun menu (Tab): every gun as a card with its side view, click to take it ----
+await renderer.ready;
+const gunMenu = $('pw-gun-menu');
+gunMenu.items = player.carried.map(c => ({ id: c.gun.spec.model, name: c.gun.spec.name, kind: c.gun.spec.kind, image: thumbnail(renderer, c.model) }));
+function showMenu(on) {
+    menuOpen = on;
+    gunMenu.classList.toggle('open', on);
+    if (on) { gunMenu.current = player.current; gunMenu.filter = ''; document.exitPointerLock(); requestAnimationFrame(() => gunMenu.focusFilter()); }
+    else player.input?.lock();
+}
+gunMenu.addEventListener('pick', e => { player.select(e.detail.index); showMenu(false); });
+addEventListener('keydown', e => {
+    if (!document.body.classList.contains('playing')) return;
+    if (e.key === 'Tab') { e.preventDefault(); showMenu(!menuOpen); }
+    else if (e.key === 'Escape' && menuOpen) showMenu(false);
+});
+document.addEventListener('pointerlockchange', () => { if (document.pointerLockElement && menuOpen) showMenu(false); });
 
 // ---- menu ----
 // ---- ambient occlusion: a setting kept in the browser (every playable view shares it) ----

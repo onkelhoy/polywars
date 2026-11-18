@@ -48,7 +48,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@polywar/ballistics": "*"
+    "@polywar/ballistics": "*",
+    "@polywar/gun-menu": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

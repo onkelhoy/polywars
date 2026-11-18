@@ -2,5 +2,100 @@
     "model": "model.glb",
     "action": "pistol",
     "sounds": "m1911",
-    "scopes": []
+    "scopes": [],
+    "animation": {
+        "fps": 24,
+        "shoot": {
+            "clip": "shoot",
+            "last": "shoot.last"
+        },
+        "reload": [
+            {
+                "clip": "mag.eject",
+                "share": 0.3,
+                "over": {
+                    "clip": "shoot"
+                },
+                "cues": {
+                    "mag-out": 1
+                }
+            },
+            {
+                "hold": "mag.eject",
+                "share": 0.3,
+                "over": {
+                    "clip": "shoot"
+                }
+            },
+            {
+                "clip": "mag.eject",
+                "reverse": true,
+                "share": 0.4,
+                "over": {
+                    "clip": "shoot"
+                },
+                "cues": {
+                    "mag-in": 0
+                }
+            }
+        ],
+        "reloadEmpty": [
+            {
+                "clip": "mag.eject",
+                "share": 0.25,
+                "over": {
+                    "clip": "shoot.last",
+                    "frame": 8
+                },
+                "cues": {
+                    "mag-out": 1
+                }
+            },
+            {
+                "hold": "mag.eject",
+                "share": 0.25,
+                "over": {
+                    "clip": "shoot.last",
+                    "frame": 8
+                }
+            },
+            {
+                "clip": "mag.insert",
+                "share": 0.5,
+                "over": {
+                    "clip": "shoot.last",
+                    "frame": 8,
+                    "only": [
+                        "hammer"
+                    ]
+                },
+                "cues": {
+                    "mag-in": 3,
+                    "slide": 6
+                }
+            }
+        ]
+    },
+    "points": {
+        "muzzle": [
+            -0.0001,
+            0.0569,
+            -0.1015
+        ],
+        "muzzleDir": [
+            0.0,
+            -0.0,
+            -1.0
+        ],
+        "eject": [
+            -0.0001,
+            0.0572,
+            0.0505
+        ],
+        "ejectDir": [
+            0.2993,
+            0.9542,
+            -0.0
+        ]
+    }
 }

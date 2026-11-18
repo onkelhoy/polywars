@@ -20,3 +20,5 @@ body:not(.playing) #hud { display: none; }
 #prompt { position: absolute; left: 50%; top: 62%; transform: translateX(-50%); font: 600 15px system-ui; text-shadow: 0 0 3px #000; }
 #ammo { position: absolute; right: 24px; bottom: 20px; font: 600 20px system-ui; text-align: right; white-space: pre; text-shadow: 0 0 3px #000; }
 #state { position: absolute; left: 24px; bottom: 20px; white-space: pre; opacity: .8; text-shadow: 0 0 3px #000; }
+pw-gun-menu { display: none; position: absolute; inset: 6% 10%; background: #111e; border-radius: 8px; z-index: 5; }
+pw-gun-menu.open { display: block; }

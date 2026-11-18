@@ -26,6 +26,12 @@ export class ViewModel {
     /** the shot's kick: pitch, yaw, back (z) */
     private kickSpring = new Spring(3, 380, 26);
     private viewSpring = new Spring(2, 160, 20);
+    /** the hands losing the gun: pitch up, yaw, lift (m); soft, so quick shots stack */
+    private rise = new Spring(3, 45, 2 * Math.sqrt(45) * .9);
+    /** recent shots (decays): rapid fire loses more and more control */
+    heat = 0;
+    /** turn rate (rad/s, yaw), smoothed: a shot while turning kicks out at an angle */
+    private turning = 0;
     private stride = 0;
     private aimed = 0;
 
@@ -51,7 +57,13 @@ export class ViewModel {
         const wild = loose * .6 + hip * .8, r = () => (Math.random() * 2 - 1) * wild;
         const v = RECOIL_W * Math.E, up = Math.min(.12, p * .007) * (1 + r() * .4), back = Math.min(.35, p * .014);
         this.recoilSpring.kick(up * v, back * v, up * r() * .6 * v, up * r() * .8 * v);
-        this.viewSpring.kick(recoil.kick * 14, recoil.side * 6);
+        // the hands lose it a little: more with each quick shot, tilted by the turn
+        const heat = this.heat, lose = (.4 + loose) * (1 + heat * .7);
+        const tilt = Math.max(-.7, Math.min(.7, this.turning * .25 + this.turn.value[2] * 3)) + r() * .25;
+        const lift = up * lose * 6;
+        this.rise.kick(lift * Math.cos(tilt), lift * Math.sin(tilt), lift * .25);
+        this.heat = Math.min(6, heat + Math.min(1.5, p * .08));
+        this.viewSpring.kick(recoil.kick * 14 * (1 + heat * .35), (recoil.side + Math.sin(tilt) * recoil.kick) * 6);
     }
 
     update(dt: number, m: Motion) {
@@ -72,6 +84,9 @@ export class ViewModel {
         this.turn.target[2] = -(m.strafe ?? 0) * .012 * (1 - a * .6);
         this.turn.stiffness = 90 * w ** -.5;
         this.recoilSpring.update(dt);
+        this.rise.update(dt);
+        this.heat *= Math.exp(-dt * (1.2 + this.control * 1.6));
+        if (dt > 0) this.turning += (m.yaw / dt - this.turning) * (1 - Math.exp(-dt * 12));
         this.turn.update(dt); this.shift.update(dt); this.kickSpring.update(dt); this.viewSpring.update(dt);
         this.view[0] = this.viewSpring.value[0]; this.view[1] = this.viewSpring.value[1];
 
@@ -117,7 +132,8 @@ export class ViewModel {
         multiply(this.matrix, T, multiply(mat4(), R, back));
         // recoil turns round a point under the bore (the grip), not the sight
         const g = h.grip, rc = this.recoilSpring.value;
-        const kick = multiply(mat4(), compose(mat4(), g[0], g[1], g[2] + rc[1], rc[2], rc[0], rc[3]), compose(mat4(), -g[0], -g[1], -g[2]));
+        const rs = this.rise.value;
+        const kick = multiply(mat4(), compose(mat4(), g[0], g[1] + rs[2], g[2] + rc[1], rc[2] + rs[1], rc[0] + rs[0], rc[3] - rs[1] * .5), compose(mat4(), -g[0], -g[1], -g[2]));
         multiply(this.matrix, this.matrix, kick);
         this.base.set(this.matrix);
         // the world in the way: turned aside / back / tucked round the grip

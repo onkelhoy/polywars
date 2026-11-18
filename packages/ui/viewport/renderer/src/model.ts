@@ -179,6 +179,37 @@ export class Model {
     }
 
     /** static mesh parts with their model space matrix, maps and CPU data (skinned parts left out), e.g. for `Renderer.drawInstanced` */
+    private moving = new WeakMap<GLTFAnimation, GLTFAnimation>();
+    /**
+     * Pose more bones on top of the current pose (no reset), e.g. a sight flipped up over the gun's clip. Plain rig only.
+     * Only channels that leave the rest pose somewhere count (exporters key every bone in every clip). `only`: just these bones.
+     */
+    layer(animation: string | GLTFAnimation | undefined, time: number, only?: string[]) {
+        const full = typeof animation === "string" ? this.animation(animation) : animation;
+        if (!full || !this.rig || this.skin) return;
+        let a = this.moving.get(full);
+        if (!a)
+        {
+            const channels = full.channels.filter(c => {
+                const n = this.gltf.nodes[c.node] as { translation?: number[]; rotation?: number[]; scale?: number[] };
+                const rest = c.path === "translation" ? n.translation ?? [0, 0, 0] : c.path === "rotation" ? n.rotation ?? [0, 0, 0, 1] : n.scale ?? [1, 1, 1];
+                const k = rest.length, v = c.values, flip = c.path === "rotation";
+                for (let i = 0; i < v.length; i += k)
+                {
+                    let d = 0, dn = 0;
+                    for (let j = 0; j < k; j++) { d = Math.max(d, Math.abs(v[i + j] - rest[j])); dn = Math.max(dn, Math.abs(v[i + j] + rest[j])); }
+                    if ((flip ? Math.min(d, dn) : d) > 1e-4) return true;
+                }
+                return false;
+            });
+            this.moving.set(full, a = { ...full, channels });
+        }
+        if (only) a = { ...a, channels: a.channels.filter(c => only.includes((this.gltf.nodes[c.node] as { name?: string }).name ?? "")) };
+        sample(a, time, this.rig, false);
+        this.rig.armature.update();
+        this.rig.update();
+    }
+
     get parts(): { mesh: GPUMesh; matrix: Matrix4; maps?: Maps; data: Mesh }[] {
         return this.items.filter(item => !item.skinned).flatMap(item => {
             const meshIndex = this.gltf.nodes[item.node].mesh!;

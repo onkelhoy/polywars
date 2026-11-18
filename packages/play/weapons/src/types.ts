@@ -24,6 +24,8 @@ export type GunSpec = {
     name: string;
     /** folder under `assets/models/weapons/guns/` (model.glb: fire / idle / reload / reload-empty clips) */
     model: string;
+    /** sound set (folder under `assets/audio/effects/weapons/`), default `model` */
+    sounds?: string;
     caliber: string;
     /** rounds in a full gun */
     magazine: number;
@@ -48,7 +50,19 @@ export type GunSpec = {
     action?: Action;
     /** this gun's own cue timelines instead of its action's (e.g. the garand's en-bloc clip) */
     cues?: { cycle?: Timeline; reload?: Timeline; reloadEmpty?: Timeline };
+    /** times the caliber's push back (a big gun shoves harder than its round alone) */
+    shove?: number;
+    /** muzzle flash size (m), default by kind */
+    flash?: number;
+    /** the shot's sound: louder (`volume`), deeper and longer (`rate` < 1) */
+    report?: { volume?: number; rate?: number };
 };
+
+/** One barrel of a break action gun: a round in it, fired (a spent case left), its hammer back. */
+export type Barrel = { loaded: boolean; spent: boolean; cocked: boolean; /** seconds since its hammer was pulled back */ cocking: number };
+
+/** The last pull of a break gun's trigger: which barrel's trigger, whether it fired, seconds since. */
+export type Pull = { barrel: number; fired: boolean; since: number };
 
 /** How a round gets chambered (same as weapon.json `action`). */
 export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "pump" | "break" | "pistol";
@@ -57,7 +71,7 @@ export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "pum
  * A moment of the gun's work, for sounds, shells and later clips: `shot`, `dry` (pulled on empty), `eject`
  * (a case leaves the port), and the parts (names match the sound sets of `@polywar/sfx-gen`).
  */
-export type Cue = "shot" | "dry" | "eject" | "bolt-open" | "bolt-close" | "mag-out" | "mag-in" | "round-in" | "clip-in" | "slide";
+export type Cue = "shot" | "dry" | "eject" | "bolt-open" | "bolt-close" | "mag-out" | "mag-in" | "round-in" | "clip-in" | "slide" | "cock" | "safety";
 
 /** cues at 0..1 through a cycle (of `interval`) or a reload (of its length) */
 export type Timeline = [at: number, cue: Cue][];
