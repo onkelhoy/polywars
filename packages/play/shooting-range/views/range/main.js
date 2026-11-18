@@ -16,7 +16,7 @@ import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
-import { Lights } from '@polywar/light';
+import { Lights, Glow } from '@polywar/light';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -32,6 +32,7 @@ window.range = range;
 
 // ---- lamps: a point light per bulb (range.json `lights`); ?night dims the sun to see them ----
 renderer.lights = new Lights();
+const glow = new Glow(layer);
 for (const l of range.data.lights ?? []) renderer.lights.add({ ...l });
 if (new URLSearchParams(location.search).has('night'))
 {
@@ -379,6 +380,8 @@ demo.draw = camera => {
     drawStands();
     drawCars();
     drawGrass(camera);
+    glow.draw(camera, renderer.lights);
+    renderer.reset();
     if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); }
     else player.draw(camera);
