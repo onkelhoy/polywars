@@ -61,6 +61,17 @@ export type VehicleSetting = {
     centre?: number;
     /** anti-roll bar, share of the spring rate between an axle's wheels. Default 1.5 */
     antiRoll?: number;
+    /** top speed x this (arcade: 1.5 is ~150 km/h for the jeep). Default 1 */
+    boost?: number;
+    /** each forward gear's top as a share of the top speed. Default [.3, .58, 1] (3-speed) */
+    gears?: number[];
+    /** pull per gear x `accel`. Default [1.7, 1.05, .7] */
+    pull?: number[];
+    /** seconds per shift: the power is cut, then eased back in. Default .55 */
+    shiftTime?: number;
+    /** rev / min. Defaults 800 / 3800 */
+    idle?: number;
+    redline?: number;
     /** how much of the tyre force's lean it keeps: 1 real (tips easily), 0 none. Default .3 */
     roll?: number;
 };

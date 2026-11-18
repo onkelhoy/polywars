@@ -215,7 +215,7 @@ def main():
         "size": [abs(x) for x in gl(hi - lo)],
         "centre": gl((lo + hi) / 2),
         "mass": 1040,
-        "topSpeed": 18,
+        "topSpeed": 29,
         "wheels": [{"node": n, "position": gl(c), "radius": round(r, 4), "width": round(wd, 4),
                     "steer": c.y > 0, "drive": True} for n, c, r, wd in sorted(wheel_info)],
         "steeringWheel": {"node": "SteeringWheel", "position": gl(rc), "axis": gl(axis), "turns": 1.5},

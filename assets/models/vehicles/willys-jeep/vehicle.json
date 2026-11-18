@@ -12,7 +12,7 @@
   -0.0
  ],
  "mass": 1040,
- "topSpeed": 18,
+ "topSpeed": 29,
  "wheels": [
   {
    "node": "Wheel.F.L",

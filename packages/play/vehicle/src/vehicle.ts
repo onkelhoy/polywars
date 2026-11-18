@@ -21,6 +21,16 @@ export class Vehicle {
     steering = 0;
     /** along the nose, m/s (negative backwards) */
     speed = 0;
+    /** 1.. forward gears, -1 reverse, 0 neutral (stopped, no throttle) */
+    gear = 1;
+    /** engine speed, rev / min */
+    rpm = 800;
+    /** throttle the engine gets after the shift cut, 0..1 */
+    power = 0;
+    /** seconds left of the current shift (power cut, then eased back in) */
+    shifting = 0;
+    /** called on every gear change (sound, a camera nudge) */
+    onshift?: (gear: number, up: boolean) => void;
 
     private s: Required<Omit<VehicleSetting, "solids" | "body">> & Pick<VehicleSetting, "solids">;
     /** solids near the car, as static bodies in the world */
@@ -38,7 +48,7 @@ export class Vehicle {
     constructor(setting: VehicleSetting, at: Vec3 = [0, 0, 0], yaw = 0) {
         this.s = {
             travel: .3, frequency: 1.3, damping: .3, grip: 1.1, slide: .35, accel: 3.5, brake: 8, reverse: 5,
-            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: .3, ...setting,
+            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: .3, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
         };
         const spec = this.spec = setting.spec;
         const n = spec.wheels.length, quarter = spec.mass / n;
@@ -178,13 +188,33 @@ export class Vehicle {
         const rate = 2.2 * dt;
         this.steering += clamp(target - this.steering, -rate, rate);
 
-        // engine / brake per wheel
+        // engine / gearbox / brake. Automatic: each shift cuts the power (the nose settles), then eases it back in
         const throttle = clamp(input.throttle, -1, 1);
         const braking = throttle * this.speed < 0 && Math.abs(this.speed) > .5;
-        const top = throttle > 0 ? spec.topSpeed : s.reverse;
+        const top = spec.topSpeed * s.boost;
+        const tops = s.gears.map(g => g * top);
+        const n = s.gears.length;
+        if (throttle < 0 && this.speed < .5) this.gear = -1;
+        else if (this.gear < 1 && (throttle > 0 || this.speed > .5)) this.gear = 1;
+        if (this.gear >= 1 && this.shifting <= 0)
+        {
+            const v = Math.max(0, this.speed);
+            if (this.gear < n && v > tops[this.gear - 1] * .95 && throttle > 0) this.shift(this.gear + 1);
+            else if (this.gear > 1 && v < tops[this.gear - 2] * .6) this.shift(this.gear - 1);
+        }
+        this.shifting = Math.max(0, this.shifting - dt);
+        const cut = this.shifting > s.shiftTime * .45 ? 0 : 1 - this.shifting / (s.shiftTime * .45);
+        const want = braking ? 0 : Math.abs(throttle) * cut;
+        this.power += clamp(want - this.power, -dt * 8, dt * 4);
+        const gearTop = this.gear < 0 ? s.reverse : tops[Math.max(0, this.gear - 1)];
+        const ratio = clamp(Math.abs(this.speed) / gearTop, 0, 1.05);
+        const targetRpm = s.idle + (s.redline - s.idle) * ratio + (this.power * (1 - ratio) * 1200 * (this.gear === 1 || this.gear < 0 ? 1 : .3));
+        this.rpm += (targetRpm - this.rpm) * Math.min(1, dt * 10);
         const driven = this.wheels.filter(w => w.spec.drive !== false).length || 1;
-        const fade = Math.max(0, 1 - (this.speed / top) ** 2);
-        const drive = braking ? 0 : throttle * spec.mass * s.accel * fade / driven;
+        const pull = this.gear < 0 ? 1.4 : s.pull[Math.max(0, this.gear - 1)] ?? 1;
+        // full pull until near the gear's top, then the governor / rev limit eases it off
+        const fade = clamp((1 - Math.abs(this.speed) / gearTop) / .12, 0, 1);
+        const drive = braking ? 0 : Math.sign(throttle) * this.power * spec.mass * s.accel * pull * fade / driven;
         const brake = braking ? spec.mass * s.brake / this.wheels.length : 0;
         const rearZ = Math.max(...this.wheels.map(w => w.spec.position[2]));
 
@@ -266,8 +296,15 @@ export class Vehicle {
         }
 
         // air drag
-        const sp = Math.hypot(v.x, v.y, v.z), drag = .9 * sp;
+        const sp = Math.hypot(v.x, v.y, v.z), drag = .5 * sp;
         b.applyForce({ x: -v.x * drag, y: -v.y * drag, z: -v.z * drag });
+    }
+
+    private shift(to: number) {
+        const up = to > this.gear;
+        this.gear = to;
+        this.shifting = this.s.shiftTime;
+        this.onshift?.(to, up);
     }
 
     /** distance to the ground / a solid along dir (unit) within reach, or null; normal into `normal` */

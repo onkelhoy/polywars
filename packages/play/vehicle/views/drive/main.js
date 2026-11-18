@@ -29,7 +29,7 @@ for (const c of solids) b.box('#a07a4a', { at: [(c.min[0] + c.max[0]) / 2, (c.mi
 const mesh = upload(gl, b.build()), identity = Matrix4.create();
 
 const model = await Model.load(gl, base + spec.model);
-const tune = { frequency: 1.3, damping: .3, grip: 1.1 };
+const tune = { frequency: 1.3, damping: .3, grip: 1.1, boost: 1 };
 const yaw = () => { const f = car.toWorld([0, 0, -1], [0, 0, 0], 0); return Math.atan2(-f[0], -f[2]); };
 let car = new Vehicle({ spec, ground, solids, ...tune });
 for (const k of Object.keys(tune)) $('#' + k).oninput = e => {
@@ -82,7 +82,7 @@ demo.layer.camera = new Camera({ near: .1, far: 800, controllers: [chase] });
 demo.tick = dt => {
     car.update(dt, { throttle: axis('KeyW', 'KeyS'), steer: axis('KeyD', 'KeyA'), handbrake: keys.has('Space') });
     const w = car.wheels.map(w => `${w.grounded ? (w.slipping ? 'slip' : 'grip') : 'air '} ${w.length.toFixed(2)}`).join('\n');
-    $('#info').value = `${(car.speed * 3.6).toFixed(0)} km/h · steer ${(car.steering * 180 / Math.PI).toFixed(0)}°\n${w}`;
+    $('#info').value = `${(car.speed * 3.6).toFixed(0)} km/h · gear ${car.gear} · ${car.rpm.toFixed(0)} rpm · steer ${(car.steering * 180 / Math.PI).toFixed(0)}°\n${w}`;
 };
 demo.draw = camera => {
     renderer.begin(camera, demo.background);
