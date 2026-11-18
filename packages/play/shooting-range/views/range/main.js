@@ -10,7 +10,7 @@ const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange, buttonAt } from '@polywar/shooting-range';
-import { Vehicles, Dust } from '@polywar/vehicle';
+import { Vehicles, Dust, SteeringHands } from '@polywar/vehicle';
 import { nearest } from '@polywar/ballistics';
 import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
@@ -187,7 +187,8 @@ const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;
     const spec = await (await fetch(base + 'vehicle.json')).json();
     const car = fleet.add({ spec }, v.at, v.yaw);
-    return { car, spec, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
+    const hands = spec.steeringWheel && new SteeringHands(spec.steeringWheel);
+    return { car, spec, hands, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
 let driving, seatCam = false, nearCar;
 // dust behind the wheels, coloured by what the ground is made of; drawn by the player's impacts
@@ -222,8 +223,19 @@ function drawCars() {
         m.draw(renderer, car.matrix(carMatrix));
     }
 }
+// the driver: hips on the seat, feet on the pedals, knees up, hands on the rim (car space offsets from the seat)
+const FEET = [[.17, -.42, -.62], [-.17, -.42, -.62]], KNEES = [[.22, .5, -1.2], [-.22, .5, -1.2]], ELBOWS = [[.8, -1, .3], [-.8, -1, .3]];
+function drawDriver(camera) {
+    const { car, spec, hands } = driving, s = spec.seat;
+    const at = o => { const p = car.toWorld([s[0] + o[0], s[1] + o[1], s[2] + o[2]]); return [p[0], p[1], p[2]]; };
+    const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
+    const seatM = car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1], s[2], 1]));
+    const rim = hands ? hands.hands().map(h => { const p = car.toWorld(h.at); return { at: [p[0], p[1], p[2]], axis: dir(h.axis), palm: dir(h.palm) }; }) : [];
+    player.drawSeated(camera, seatM, { feet: FEET.map(at), knees: KNEES.map(at), elbows: ELBOWS.map(dir), hands: rim }, seatCam);
+}
 function enter(c) {
     driving = c;
+    c.hands?.reset(c.car.wheelTurn);
     c.engine ??= new EngineSound({ mixer: player.feel.mixer });
     chase.yaw = forward(c.car);
     const p = c.car.body.position;
@@ -285,6 +297,7 @@ const seat = {
             inputs.set(driving.car, { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' ') });
         }
         fleet.update(dt, inputs);
+        driving?.hands?.update(dt, driving.car.wheelTurn);
         for (const c2 of cars) dust.update(dt, c2.car);
         // the player isn't updated while driving: age the dust here
         if (driving) player.impacts.update(dt);
@@ -328,6 +341,6 @@ demo.draw = camera => {
     drawStands();
     drawCars();
     if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); }
-    else if (driving) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); }
+    else if (driving) { drawDriver(camera); demo.endOcclusion(); }
     else player.draw(camera);
 };

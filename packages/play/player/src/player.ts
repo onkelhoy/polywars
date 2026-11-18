@@ -208,6 +208,7 @@ export class Player {
         const index = (test: (name: string) => boolean) => skin.bones.map((b, i) => test(b.name) ? i : -1).filter(i => i >= 0);
         // the world pass: no head, no arms (the arms come with the gun, on its depth)
         this.hidden = index(n => head.has(n) || armBones.has(n) || /Thumb|Finger|MiddleHand/.test(n));
+        this.headOnly = index(n => head.has(n));
         // the gun's pass: only the arms
         this.onlyArms = this.rigArms ? index(n => !armBones.has(n)) : [];
     }
@@ -216,6 +217,8 @@ export class Player {
     /** the arms with their rig controls (IK, the hand copies the control's rotation), [right, left] */
     private rigArms?: [BodyArm, BodyArm];
     private onlyArms: number[] = [];
+    /** head bones (hidden seated in first person) */
+    private headOnly: number[] = [];
 
     /** the hand pose of a carried gun (hand editor, weapon.json `hands`) */
     handsOf(index: number): HandsFile {
@@ -702,6 +705,52 @@ export class Player {
         if (showGlass) scope!.overlay(this.vm.matrix, this.near, aspect, showScope ? light : 0);
     }
 
+    /**
+     * Draws the body seated (driving): hips on `seat` (world matrix, -z forward), feet / knees / hands to world
+     * targets (`hands` [right, left]: rim point, tangent, palm direction). `firstPerson` hides the head.
+     * Draw after the world (same `renderer.begin`).
+     */
+    drawSeated(camera: Camera, seat: Matrix4, pose: { feet: [Vec3, Vec3]; knees: [Vec3, Vec3]; hands: [Hand, Hand]; elbows: [Vec3, Vec3] }, firstPerson: boolean) {
+        const body = this.body, c = this.character;
+        if (!body || !c) return;
+        const s = c.json.scale ?? 1;
+        body.pose(this.clips.idle, 0, true);
+        const skin = body.skin as unknown as SkinLike | undefined;
+        const scale = Matrix4.create([s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1]);
+        let m = seat.clone.multiply(Matrix4.rotationY(Math.PI)).multiply(scale);
+        // hips onto the seat point
+        const hips = skin?.armature.find("hips") as unknown as { head: ArrayLike<number> } | undefined;
+        if (hips)
+        {
+            const w = m.clone.multiply(body.skeletonMatrix).multiply([hips.head[0], hips.head[1], hips.head[2], 1]) as unknown as number[];
+            const o = seat.multiply([0, 0, 0, 1]) as unknown as number[];
+            m = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, o[0] - w[0], o[1] - w[1], o[2] - w[2], 1]).multiply(m);
+        }
+        if (skin)
+        {
+            const toSkin = m.clone.multiply(body.skeletonMatrix).inverse();
+            const local = (p: Vec3): Vec3 => { const q = toSkin.clone.multiply([p[0], p[1], p[2], 1]) as unknown as number[]; return [q[0], q[1], q[2]]; };
+            const along = (d: Vec3): Vec3 => { const a = local([0, 0, 0]), b = local(d); return [b[0] - a[0], b[1] - a[1], b[2] - a[2]]; };
+            (["R", "L"] as const).forEach((side, i) => {
+                const foot = skin.armature.find(`foot.ik.${side}`), knee = skin.armature.find(`knee.pole.${side}`);
+                if (!foot || !knee || !skin.ik.has(`shin.${side}`)) return;
+                foot.moveTo(local(pose.feet[i]));
+                knee.moveTo(local(pose.knees[i]));
+                skin.setIK(`shin.${side}`, 1);
+            });
+            if (this.rigArms) pose.hands.forEach((h, i) => {
+                const arm = this.rigArms![i as 0 | 1];
+                reach(skin, arm, local(h.at), holdRotation(arm, along(h.axis), along(h.palm)), along(pose.elbows[i]));
+                grip(skin, arm, .016);
+            });
+            skin.update();
+            if (firstPerson) collapse(skin, this.headOnly);
+        }
+        body.draw(this.renderer, m);
+        this.impacts.draw(camera);
+        this.renderer.reset();
+    }
+
     destroy() {
         this.input?.destroy();
         this.impacts.destroy();
@@ -710,6 +759,9 @@ export class Player {
         this.feel.destroy();
     }
 }
+
+/** a seated hand target (world): `at` the grab point, `axis` the bar (thumb along it), `palm` toward it */
+export type Hand = { at: Vec3; axis: Vec3; palm: Vec3 };
 
 /** a weapon.json `aim` (degrees) as a `Hold.aim` (radians) */
 export function aimOf(t: AimTune): NonNullable<Hold["aim"]> {

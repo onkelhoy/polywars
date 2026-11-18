@@ -26,7 +26,8 @@ export type VehicleSpec = {
     wheels: WheelSpec[];
     /** model space box the chassis collides as; default from the wheels */
     body?: { min: Point; max: Point };
-    steeringWheel?: { node: string; position: Point; axis: Point; turns?: number };
+    /** `axis` points from the rim to the driver; `radius` the rim's (m) */
+    steeringWheel?: { node: string; position: Point; axis: Point; turns?: number; radius?: number };
     seat?: Point;
     eye?: Point;
     exit?: Point;

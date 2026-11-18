@@ -154,6 +154,7 @@ def main():
     rim = np.array([tuple(body.data.vertices[v].co) for v in parts[steer[0]]])
     rc = rim.mean(axis=0)
     axis = Vector(np.linalg.svd(rim - rc)[2][2])
+    rim_r = float(np.linalg.norm(rim - rc, axis=1).mean())
     rc = Vector(rc)
     if axis.y > 0:  # point from the rim towards the driver (back, -y)
         axis = -axis
@@ -206,8 +207,8 @@ def main():
     print("saved model.blend")
 
     gl = lambda v: [round(v.x, 4), round(v.z, 4), round(-v.y, 4)]  # blender z-up -> glTF y-up
-    seat = rc + Vector((0, -.42, -.32))
-    eye = rc + Vector((0, -.38, .42))
+    seat = rc + Vector((0, -.42, -.44))
+    eye = rc + Vector((0, -.38, .30))
     lo, hi = pw.world_bbox(body)
     data = {
         "model": "model.glb",
@@ -218,7 +219,8 @@ def main():
         "topSpeed": 29,
         "wheels": [{"node": n, "position": gl(c), "radius": round(r, 4), "width": round(wd, 4),
                     "steer": c.y > 0, "drive": True} for n, c, r, wd in sorted(wheel_info)],
-        "steeringWheel": {"node": "SteeringWheel", "position": gl(rc), "axis": gl(axis), "turns": 1.5},
+        "steeringWheel": {"node": "SteeringWheel", "position": gl(rc), "axis": gl(axis), "turns": 1.5,
+                          "radius": round(rim_r, 4)},
         "seat": gl(seat),
         "eye": gl(eye),
         "exit": gl(Vector((rc.x - 1.1, rc.y - .4, 0))),

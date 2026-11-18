@@ -169,11 +169,16 @@ export class Vehicle {
         return pivot(out, p, this.sag - w.length);
     }
 
+    /** the steering wheel's turn round its axis, rad */
+    get wheelTurn() {
+        return -this.steering / this.lock * (this.spec.steeringWheel?.turns ?? 1.5) * Math.PI;
+    }
+
     /** steering wheel node move (model space); undefined without one in the spec */
     steeringWheel<T extends M16>(out: T): T | undefined {
         const sw = this.spec.steeringWheel;
         if (!sw) return undefined;
-        const angle = -this.steering / this.lock * (sw.turns ?? 1.5) * Math.PI;
+        const angle = this.wheelTurn;
         this.turn.setAxisAngle(sw.axis[0], sw.axis[1], sw.axis[2], angle).writeMatrix(out);
         return pivot(out, sw.position, 0);
     }
