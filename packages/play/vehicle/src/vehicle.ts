@@ -9,7 +9,7 @@ const LATERAL = 18, LOCK = 18;
 /**
  * A car on `@papit/rigidbody`: a hull chassis plus raycast wheels (spring + damper each), tyre grip with a
  * friction circle, engine / brakes / handbrake and speed scaled steering. Model space is glTF (y up, nose -z).
- * Owns its world (static `solids` as boxes in it) and steps it in fixed steps inside `update`.
+ * Owns its world (the `solids` near the car as static boxes in it) and steps it in fixed steps inside `update`.
  * Draw with `matrix` (model) and the `wheel` / `steeringWheel` node matrices.
  */
 export class Vehicle {
@@ -23,6 +23,8 @@ export class Vehicle {
     speed = 0;
 
     private s: Required<Omit<VehicleSetting, "solids" | "body">> & Pick<VehicleSetting, "solids">;
+    /** solids near the car, as static bodies in the world */
+    private near = new Map<Solid, RigidBody>();
     private solids: RigidBody[] = [];
     /** centre of mass, model space */
     private com: Vec3;
@@ -36,7 +38,7 @@ export class Vehicle {
     constructor(setting: VehicleSetting, at: Vec3 = [0, 0, 0], yaw = 0) {
         this.s = {
             travel: .3, frequency: 1.3, damping: .3, grip: 1.1, slide: .35, accel: 3.5, brake: 8, reverse: 5,
-            steer: 34, steerFade: 6, centre: .15, ...setting,
+            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: .3, ...setting,
         };
         const spec = this.spec = setting.spec;
         const n = spec.wheels.length, quarter = spec.mass / n;
@@ -66,7 +68,6 @@ export class Vehicle {
             friction: .6, linearDamping: .02, angularDamping: .3,
         });
         this.world.add(this.body);
-        this.setSolids(setting.solids ?? []);
 
         this.wheels = spec.wheels.map(spec => ({
             spec, grounded: false, length: this.sag, spin: 0, omega: 0, load: 0, slipping: false,
@@ -75,13 +76,24 @@ export class Vehicle {
         this.place(at[0], at[2], yaw);
     }
 
-    /** the static boxes (replaces the old ones) */
-    setSolids(solids: Solid[]) {
-        for (const b of this.solids) this.world.remove(b);
-        this.solids = solids.map(({ min, max }) => this.world.add(new RigidBody({
-            shape: new Box(max[0] - min[0], max[1] - min[1], max[2] - min[2]),
-            position: { x: (min[0] + max[0]) / 2, y: (min[1] + max[1]) / 2, z: (min[2] + max[2]) / 2 },
-        })));
+    /** the solids within reach become static bodies in the world, the ones left behind leave it */
+    private gather() {
+        const src = this.s.solids;
+        if (!src) return;
+        const { x, z } = this.body.position, R = 4;
+        const found = new Set<Solid>();
+        if (typeof src === "function") { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const s of src(x + i * R, z + j * R)) found.add(s); }
+        else for (const s of src) if (s.max[0] > x - 2 * R && s.min[0] < x + 2 * R && s.max[2] > z - 2 * R && s.min[2] < z + 2 * R) found.add(s);
+        for (const [s, b] of this.near) if (!found.has(s)) { this.world.remove(b); this.near.delete(s); }
+        for (const s of found) if (!this.near.has(s))
+        {
+            const { min, max } = s;
+            this.near.set(s, this.world.add(new RigidBody({
+                shape: new Box(Math.max(.02, max[0] - min[0]), Math.max(.02, max[1] - min[1]), Math.max(.02, max[2] - min[2])),
+                position: { x: (min[0] + max[0]) / 2, y: (min[1] + max[1]) / 2, z: (min[2] + max[2]) / 2 },
+            })));
+        }
+        this.solids = [...this.near.values()];
     }
 
     /** stand it on its wheels at x / z, nose turned `yaw` (rad, 0 = -z, + turns left) */
@@ -97,11 +109,13 @@ export class Vehicle {
         b.angularVelocity.x = b.angularVelocity.y = b.angularVelocity.z = 0;
         b.updateInertia();
         b.wake();
+        this.gather();
     }
 
     update(dt: number, input: DriveInput = { throttle: 0, steer: 0 }) {
         const step = this.world.timestep;
         this.left += Math.min(dt, .25);
+        this.gather();
         while (this.left >= step)
         {
             this.left -= step;
@@ -200,6 +214,9 @@ export class Vehicle {
             // spring + damper along the body's up, a hard stop at the end of travel
             const vUp = dot(pv, up);
             let load = this.k * (2 * this.sag - w.length) - this.c * vUp;
+            // anti-roll bar: the axle's other wheel more compressed pushes this one down less / more
+            const other = this.wheels.find(o => o !== w && Math.abs(o.spec.position[2] - p[2]) < .05);
+            if (other?.grounded) load += this.k * s.antiRoll * (other.length - w.length);
             if (w.length < .02) load += this.k * 20 * (.02 - w.length) - this.c * 2 * Math.min(0, vUp);
             load = Math.max(0, load);
             w.load = load;
@@ -227,9 +244,11 @@ export class Vehicle {
 
             w.omega = locked ? 0 : vLong / ws.radius;
             w.spin -= w.omega * dt;
-            const F: Vec3 = [0, 0, 0];
-            for (let i = 0; i < 3; i++) F[i] = up[i] * load + fwd[i] * fLong + side[i] * fLat;
-            this.push(r, F);
+            this.push(r, [up[0] * load, up[1] * load, up[2] * load]);
+            // tyre forces act part way up to the centre of mass height: less roll / trip (arcade, `roll`)
+            const lift = -dot(r, up) * (1 - s.roll);
+            const rt: Vec3 = [r[0] + up[0] * lift, r[1] + up[1] * lift, r[2] + up[2] * lift];
+            this.push(rt, [fwd[0] * fLong + side[0] * fLat, fwd[1] * fLong + side[1] * fLat, fwd[2] * fLong + side[2] * fLat]);
         }
 
         // chassis corners in the ground: a stiff spring + friction (the ground is a height function, no body)

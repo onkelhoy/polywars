@@ -10,6 +10,7 @@ const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange, buttonAt } from '@polywar/shooting-range';
+import { Vehicle } from '@polywar/vehicle';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 
@@ -173,4 +174,126 @@ demo.draw = camera => {
     drawStands();
     if (document.body.classList.contains('playing')) player.draw(camera);
     else { player.impacts.draw(camera); renderer.reset(); }
+};
+
+// ---- vehicles: parked jeeps, E in / out, W / S, A / D, Space handbrake, V seat / chase cam ----
+const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
+    const base = `/assets/models/vehicles/${v.kind}/`;
+    const spec = await (await fetch(base + 'vehicle.json')).json();
+    const car = new Vehicle({ spec, ground: range.ground, solids: range.colliders }, v.at, v.yaw);
+    return { car, spec, model: await Model.load(gl, base + spec.model), awake: 0 };
+}));
+let driving, seatCam = false, nearCar;
+window.cars = cars;
+const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
+const carMatrix = Matrix4.create();
+const forward = c => { const f = c.toWorld([0, 0, -1], [0, 0, 0], 0); return Math.atan2(-f[0], -f[2]); };
+// the player stands in the driven car: two cylinders per car for the mover (front / back half)
+const baseColliders = range.colliders;
+range.colliders = (x, z) => {
+    const list = baseColliders(x, z);
+    const extra = cars.filter(c => c !== driving).flatMap(({ car }) => {
+        const p = car.body.position, f = car.toWorld([0, 0, -1], [0, 0, 0], 0);
+        if (Math.hypot(p.x - x, p.z - z) > 6) return [];
+        return [-.85, .85].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: .85, bottom: p.y - 1, top: p.y + .6 }));
+    });
+    return extra.length ? list.concat(extra) : list;
+};
+player.mover.setting && (player.mover.setting.colliders = range.colliders);
+function drawCars() {
+    for (const { car, spec, model: m } of cars)
+    {
+        car.wheels.forEach((w, i) => m.move(w.spec.node, car.wheel(i, Matrix4.create())));
+        const sw = car.steeringWheel(Matrix4.create());
+        if (sw) m.move(spec.steeringWheel.node, sw);
+        m.draw(renderer, car.matrix(carMatrix));
+    }
+}
+function enter(c) {
+    driving = c;
+    chase.yaw = forward(c.car);
+    const p = c.car.body.position;
+    chase.pos = [p.x + Math.sin(chase.yaw) * 7, p.y + 2.5, p.z + Math.cos(chase.yaw) * 7];
+    chase.look = [0, 0];
+}
+function leave() {
+    const c = driving.car, out = c.toWorld(driving.spec.exit);
+    driving.awake = 3;
+    driving = undefined;
+    player.mover.place(out[0], out[2]);
+}
+addEventListener('keydown', e => {
+    if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
+    if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
+    if (driving) leave(); else if (nearCar) enter(nearCar);
+});
+function driveCamera(camera, dt) {
+    const { car, spec } = driving, input = player.input;
+    const { dx, dy } = input?.consume() ?? { dx: 0, dy: 0 };
+    const k = n => input?.key(n) ? 1 : 0;
+    car.update(dt, { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' ') });
+    let eye, yaw, pitch;
+    if (seatCam)
+    {
+        chase.look[0] = Math.max(-2.2, Math.min(2.2, chase.look[0] - dx * .0022));
+        chase.look[1] = Math.max(-1.2, Math.min(1.2, chase.look[1] - dy * .0022));
+        eye = car.toWorld(spec.eye);
+        const f = car.toWorld([0, 0, -1], [0, 0, 0], 0);
+        yaw = forward(car) + chase.look[0];
+        pitch = Math.asin(Math.max(-1, Math.min(1, f[1]))) + chase.look[1];
+    }
+    else
+    {
+        const p = car.body.position;
+        let d = forward(car) - chase.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+        chase.yaw += d * Math.min(1, dt * 3);
+        const want = [p.x + Math.sin(chase.yaw) * 7, 0, p.z + Math.cos(chase.yaw) * 7];
+        want[1] = Math.max(p.y + 2.2, range.ground(want[0], want[2]) + 1);
+        for (let i = 0; i < 3; i++) chase.pos[i] += (want[i] - chase.pos[i]) * Math.min(1, dt * 6);
+        eye = chase.pos;
+        const to = [p.x - eye[0], p.y + .8 - eye[1], p.z - eye[2]];
+        yaw = Math.atan2(-to[0], -to[2]); pitch = Math.atan2(to[1], Math.hypot(to[0], to[2]));
+    }
+    camera.position.set(eye);
+    camera.rotation.set([pitch, yaw, 0]);
+}
+// one camera: the player's controller on foot, the car's camera while driving (input + pointer lock stay)
+const walkCam = player.controller;
+const seat = {
+    start: c => walkCam.start?.(c),
+    update: (c, dt) => {
+        dt = Math.min(dt, .1);
+        // cars left rolling settle a few seconds, then park (no cost)
+        for (const c2 of cars) if (c2 !== driving && c2.awake > 0) { c2.awake -= dt; c2.car.update(dt); }
+        if (driving) driveCamera(c, dt); else walkCam.update(c, dt);
+    },
+    destroy: () => walkCam.destroy?.(),
+};
+$('#play').onclick = () => {
+    document.body.classList.add('playing');
+    layer.camera = new Camera({ near: .1, far: 3000, controllers: [seat] });
+};
+const walkTick = demo.tick;
+demo.tick = dt => {
+    if (driving)
+    {
+        if (!document.body.classList.contains('playing')) return;
+        $('#prompt').value = `E  get out · V ${seatCam ? 'chase' : 'seat'} cam`;
+        $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
+        $('#cross').style.opacity = '0';
+        return;
+    }
+    walkTick(dt);
+    const f = player.mover.feet;
+    nearCar = cars.find(({ car, spec }) => { const d = car.toWorld(spec.exit); return Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.6; });
+    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = 'E  drive';
+};
+demo.draw = camera => {
+    renderer.begin(camera, SKY);
+    model.draw(renderer, identity);
+    drawStands();
+    drawCars();
+    if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); }
+    else if (driving) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); }
+    else player.draw(camera);
 };

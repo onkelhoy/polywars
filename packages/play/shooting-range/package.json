@@ -62,7 +62,8 @@
     "@polywar/weapons": "*",
     "@polywar/characters": "*",
     "@polywar/player": "*",
-    "@polywar/viewmodel": "*"
+    "@polywar/viewmodel": "*",
+    "@polywar/vehicle": "*"
   },
   "browserslist": [
     "defaults",

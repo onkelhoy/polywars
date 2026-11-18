@@ -25,5 +25,7 @@ export type RangeData = {
     carriers?: { name: string; min: Vec3; max: Vec3 }[];
     /** spotting scopes (fixed, steady) and binoculars (picked up, shaky) */
     optics?: { name: string; kind: "fixed" | "binoculars"; zoom: number; at: Vec3; eye: Vec3 | null }[];
+    /** parked vehicles: `kind` is the asset folder (assets/models/vehicles/<kind>), yaw 0 = nose -z, + turns left */
+    vehicles?: { name: string; kind: string; at: Vec3; yaw: number }[];
     spawn: Vec3;
 };

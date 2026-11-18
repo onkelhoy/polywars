@@ -4,7 +4,7 @@
 
 The .blend is never saved. Writes packages/play/shooting-range/asset/shooting-range/model.glb (via export.py) and range.json:
   { ground: [[x,y,z]*3, ...] triangles, solids: [{ min, max, surface, name }], stands: [{ at, yaw }],
-    targets: [{ name, distance, min, max }], spawn: [x,y,z] }   (game space: y up, the range runs down -z)
+    targets: [{ name, distance, min, max }], vehicles: [{ kind, at, yaw }], spawn: [x,y,z] }   (game space: y up, the range runs down -z)
 Roles come from object names (ROLES below): rename in Blender, export again.
 """
 import bpy, json, math, os, re, sys
@@ -48,9 +48,12 @@ ROLES = [
     ("Moving Target-guy", "target"),
     ("Target(Square)", "target"),
     ("stairs", "steps"),
+    ("Jeep", "vehicle"),
 ]
+# vehicle role prefix -> asset (assets/models/vehicles/<kind>); drawn and driven at runtime, not in the glb
+VEHICLES = {"Jeep": "willys-jeep"}
 # one box per object, whatever its parts
-LUMPS = ("Rock.", "Sandbag", "Jeep", "Crate", "Barrel", "Flag stone")
+LUMPS = ("Rock.", "Sandbag", "Crate", "Barrel", "Flag stone")
 # objects without a material get one (colour)
 PAINT = {"Single Target.001": (.30, .36, .20, 1), "Moving Target-guy": (.80, .70, .52, 1), "Single Target.008": (.27, .19, .06, 1)}
 # material name -> surface (bullet marks, case sounds)
@@ -194,7 +197,7 @@ def decimate():
 
 
 def points():
-    data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "grass": [], "spawn": None}
+    data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "grass": [], "vehicles": [], "spawn": None}
     for obj in sorted(bpy.context.scene.objects, key=lambda o: o.name):
         if obj.type != "MESH" or not obj.data.polygons:
             continue
@@ -208,6 +211,12 @@ def points():
             data["solids"] += [{"name": obj.name, "min": mn, "max": mx, "surface": surface(obj)} for mn, mx in steps(obj)]
             continue
         if r == "decor":
+            continue
+        if r == "vehicle":
+            # the camp's jeep mesh keeps the store's nose (-y); the vehicle's yaw 0 is nose +y (game -z), + turns left
+            kind = next(k for p, k in VEHICLES.items() if obj.name.startswith(p))
+            yaw = math.atan2(math.sin(M.to_euler().z + math.pi), math.cos(M.to_euler().z + math.pi))
+            data["vehicles"].append({"name": obj.name, "kind": kind, "at": game(M.translation), "yaw": round(yaw, 4)})
             continue
         if r == "grass":
             lo, hi = box(*pw.world_bbox(obj))
@@ -265,8 +274,8 @@ if __name__ == "__main__":
     with open(os.path.join(OUT, "range.json"), "w") as f:
         json.dump(data, f, separators=(",", ":"))
     print(f"range.json: {len(data['ground'])} ground tris, {len(data['solids'])} solids, {len(data['stands'])} stands, {len(data['targets'])} targets")
-    # grass zones are data only
-    for obj in [o for o in bpy.context.scene.objects if role(o.name) == "grass"]:
+    # grass zones and vehicles are data only
+    for obj in [o for o in bpy.context.scene.objects if role(o.name) in ("grass", "vehicle")]:
         bpy.data.objects.remove(obj)
     decimate()
     exporter.export(os.path.join(OUT, "model.glb"))

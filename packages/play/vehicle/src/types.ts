@@ -35,7 +35,8 @@ export type VehicleSetting = {
     spec: VehicleSpec;
     /** ground height at x / z */
     ground: (x: number, z: number) => number;
-    solids?: Solid[];
+    /** boxes to bump into / drive onto: a list, or the ones near x / z (e.g. a grid lookup like `@polywar/mover` colliders) */
+    solids?: Solid[] | ((x: number, z: number) => Solid[]);
     /** suspension travel, m. Default .3 */
     travel?: number;
     /** spring frequency, Hz: lower is softer. Default 1.3 */
@@ -56,8 +57,12 @@ export type VehicleSetting = {
     steer?: number;
     /** speed (m/s) where the lock is halved. Default 6 */
     steerFade?: number;
-    /** centre of mass height above the axles, m. Default .15 */
+    /** centre of mass height above the axles, m (low keeps it on its wheels). Default 0 */
     centre?: number;
+    /** anti-roll bar, share of the spring rate between an axle's wheels. Default 1.5 */
+    antiRoll?: number;
+    /** how much of the tyre force's lean it keeps: 1 real (tips easily), 0 none. Default .3 */
+    roll?: number;
 };
 
 export type DriveInput = {
