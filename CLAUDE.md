@@ -9,6 +9,7 @@ Full scale low poly war game on papit. Second goal: every system is a small, dec
 - `.claude/bugs.md`: known bugs + workarounds (create when first needed).
 
 ## How we work
+- We work in iterations: rough working version first, then the owner refines it to taste. Don't over-polish a first pass.
 - Always a summarised plan before work; owner confirms. "next task" runs until no tasks left (or the given count), one line status per task.
 - Feature branches by default, local merge to `main` allowed. Owner may say "do it on main": no branch, no PR.
 - "prepare PR": cleanup, remove done tasks from plan, tick backlog, open GitHub PR. Praise like "great job" = ask before cleaning up `plan.md`.

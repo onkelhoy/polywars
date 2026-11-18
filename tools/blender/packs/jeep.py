@@ -38,6 +38,74 @@ def split(obj, indices, name):
     return part
 
 
+GLASS = (.83, .83, .83)  # the palette swatch the panes use (headlights too: only faces up by the windshield)
+CLEAR = (.80, .88, .95, .14)
+STREAK = (1, 1, 1, .5)
+
+
+def glass(body, img):
+    """Windshield panes -> own object "Window" (named to draw after the other parts: glTF children go by name),
+    clear vertex colour + a few thin white diagonal streaks just in front of each pane."""
+    w, h = img.size
+    px = list(img.pixels)
+    me = body.data
+    uv = me.uv_layers.active.data
+    panes = []
+    for p in me.polygons:
+        u = sum(uv[l].uv.x for l in p.loop_indices) / p.loop_total
+        v = sum(uv[l].uv.y for l in p.loop_indices) / p.loop_total
+        k = ((int((v % 1) * h) % h) * w + int((u % 1) * w) % w) * 4
+        if all(abs(a - b) < .03 for a, b in zip(px[k:k + 3], GLASS)) and p.center.y < .6 and p.center.z > 1.0:
+            panes.append(p.index)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bm.faces.ensure_lookup_table()
+    gm = bmesh.new()
+    cols = []
+    big = set(sorted(panes, key=lambda i: -bm.faces[i].calc_area())[:4])
+    for i in panes:
+        f = bm.faces[i]
+        vs = [gm.verts.new(v.co) for v in f.verts]
+        gm.faces.new(vs)
+        cols.append(CLEAR)
+        if i not in big:
+            continue
+        # streaks: thin slanted strips across the pane, 2 mm out (both sides)
+        n = f.normal
+        lo, hi = pw.bbox(v.co for v in f.verts)
+        right = Vector((1, 0, 0))
+        upv = n.cross(right).normalized()
+        c = (lo + hi) / 2
+        width, height = (hi - lo).x, max((hi - lo).z, .05)
+        for k, (dx, ln) in enumerate(((-.25, .55), (.05, .35), (.3, .25))):
+            for side in (1, -1):
+                o = c + right * dx * width + n * .002 * side
+                a, b = o + (right * .18 + upv) * ln * height * .5, o - (right * .18 + upv) * ln * height * .5
+                t = right * .006
+                q = [gm.verts.new(x) for x in (a - t, a + t, b + t, b - t)]
+                gm.faces.new(q if side > 0 else q[::-1])
+                cols.append(STREAK)
+    bmesh.ops.delete(bm, geom=[bm.faces[i] for i in panes], context="FACES_ONLY")
+    bm.to_mesh(me)
+    bm.free()
+    gme = bpy.data.meshes.new("Window")
+    gm.to_mesh(gme)
+    gm.free()
+    col = gme.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
+    for poly, c in zip(gme.polygons, cols):
+        for l in poly.loop_indices:
+            col.data[l].color = c
+    gme.color_attributes.active_color = col
+    mat = bpy.data.materials.new("Glass")
+    mat.use_nodes = True
+    mat.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = .1
+    gme.materials.append(mat)
+    win = bpy.data.objects.new("Window", gme)
+    bpy.context.scene.collection.objects.link(win)
+    print("glass faces:", len(panes))
+    return win
+
+
 def pivot(obj, at):
     obj.data.transform(Matrix.Translation(-at))
     obj.location = at
@@ -126,9 +194,11 @@ def main():
             p.material_index = 0
             p.use_smooth = False
 
+    win = glass(body, img)
+
     root = bpy.data.objects.new("Jeep", None)
     bpy.context.scene.collection.objects.link(root)
-    for o in [body, sw] + objs:
+    for o in [body, sw, win] + objs:
         o.parent = root
 
     os.makedirs(OUT, exist_ok=True)
