@@ -237,6 +237,24 @@ export function grip(skin: SkinLike, arm: BodyArm, radius: number, trigger?: { a
     }
 }
 
+/** a flat hand on a wall: fingers straight out of the palm, spread a little, the thumb out to the side. Call `skin.update()` after. */
+export function flat(skin: SkinLike, arm: BodyArm) {
+    const { head, dir: d, palm: p, rotation } = arm.rest;
+    const side = d.clone.cross(p).multiply(arm.thumb);
+    for (const f of arm.fingers)
+    {
+        const spread = f.name === "thumb" ? .7 : f.name === "index" ? .12 : -.12;
+        const to = d.clone.add(side.clone.multiply(spread)).normalize().multiply(f.length).add(f.base);
+        const pole = f.base.clone.add(d.clone.multiply(f.length * .5)).add(p.clone.multiply(-.05));
+        for (const [bone, at] of [[f.tip, to], [f.pole, pole]] as const)
+        {
+            const local = rotation.unrotate(at.clone.subtract(head));
+            bone.offset.set([local[0] - arm.hand.length * bone.attach, local[1], local[2]]);
+        }
+        skin.setIK(f.ik, 1);
+    }
+}
+
 /** lets go: the arm and fingers back to the clip (FK) */
 export function release(skin: SkinLike, arm: BodyArm) {
     skin.setIK(arm.forearm.name, 0);

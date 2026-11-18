@@ -3,15 +3,16 @@
 ## Long term goal: browser editor
 A full editor in the browser, no download: place assets (scene.json, see World: scene + instancing), pose / animate on the rig, gun hand clips, materials / palette. Grows from the pieces we have (viewport, gallery, gizmo, weapon / hand editor), each a papit-ready package. Blender stays the authoring tool until then.
 
+## Scope / zero (needs planning)
+- Default scope hides iron sights, tilting it shoots high; zero steps (10/25/50/100 m) by key, max per gun. Current idea is wrong, replan.
+
 ## Rig bake + hands (proposed)
 Rig bake done (`export.py --bake`, runtime IK via `Skeleton.addIK` + `HUMANOID.controls`). Next: hands. Numbers kept from the original list.
 3. Hand poses as clips: owner poses in model.blend (`hand.grip.pistol`, `hand.grip.wrist`, `hand.grip.fore`, `hand.mag`, `hand.flat`, `hand.open`, `hand.trigger`), exported as clips. Runtime blends them on the hand's bones only (bone mask), per hand, with a weight. Replaces the runtime finger IK curl in `grip()`.
 4. Better holding: weapon.json `hands` per gun picks the pose per hand + placement (with the hand editor, see Playable character). Trigger finger blends `hand.trigger` on fire.
 5. Mag switch: support hand follows the reload cues: fore -> gun's mag (point from the gun glb) on `mag-out`, mag parented to the hand (`hand.mag` pose) -> pouch (body socket) and a new mag back -> `mag-in` -> fore. Bolt / slide cues: hand to the handle. Times from weapon.json `animation` cues. One hand path per action type (box mag, stripper clip, single rounds / tube, bolt / slide), fitted from the gun's points, shared by all guns of that type.
 5b. Per gun hand clips (optional): owner links the base rig into the gun blend and animates hold / cycle / reload with the gun. map-gun bakes per clip (same names as the gun clips): wrist position + rotation in gun space (-> arm IK target, follows the gun when aimed / lowered / recoiling) + finger local rotations (FK onto the real rig); the linked rig is not exported. Replaces the shared path / pose for that gun.
-6. Brace hand: not aiming and close to a wall / fence (side + forward casts at hip–chest height), the free hand (support hand: gun lowered / tucked / one-handed) blends off the gun onto it: IK to hit point + normal. Wall (wide flat hit): `hand.flat`, fingers spread. Fence / rail (thin bar, `bar` tag on the geometry or from the hit): `hand.grip` round it. Spring in / out, hysteresis, drops when it would overreach. Tells the player how close they are (the fps layer hides it).
-6b. Aim at a wall: aiming with the barrel blocked pushes the body back softly until it fits (up to ~.4 m); no room behind = tuck as today. Walking forward into it while aiming is blocked. Over a fence the casts pass, so you can stand close and aim.
-6c. Close-up dim: the nearer the face is to a surface (same casts), the darker / slightly desaturated the screen edges (one uniform in a post pass, cheap). Never fully dark.
+6. Brace hand + 6b aim at a wall: moved to plan.md.
 7. FPS viewmodel: same hand clips; finger IK only if the fps close-up needs more (decide after 3).
 8. Later, optional: foot planting on uneven ground (leg IK to a ground cast, near the camera only).
 
@@ -81,6 +82,11 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - [ ] gun per case picked on purpose (now: the first 15 of the loadout, in order)
 - [ ] distance-marker numbers and the target face are textures: game-mesh draws one colour per face, so they are lost (model them, or textured draw). `Target(Square)` image points to a missing file in ~/Downloads
 - [ ] booths are one mesh each: 973 face boxes; simpler collision if split into boxes in Blender
+- [ ] long range lane: 200..800 m (every 100), big zoom scope on a raised stand
+- [ ] weapons gate / armory room with every gun on racks; WW2 French / British / US military feel
+- [ ] proper trees (owner models), a tiny world round the range from the terrain packages (no ocean)
+- [ ] surroundings from our own packages (grass, world / terrain): generate a small patch with background mountains, export to Blender and save; grass / trees placed by weight paint in the blend (controllable)
+- [ ] the road down the range drivable (with the jeep)
 
 ## World
 - Save / load a generated world (skip generation): bake to a file / model, later pass over the network.
@@ -88,3 +94,17 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - Per gun hand frames (axis / palm / radius / finger targets) in weapon.json `hands`, set from the hand editor (H).
 - Real textures in the renderer (owner OK): `game-mesh` draws base colour x COLOR_0 only, export bakes images into vertex colours (one colour per face). Bake writes sRGB pixels into Blender's linear colour slot: everything a bit pale (all models alike).
 - New store characters (`tools/blender/packs/store_soldiers.py`, unrigged FBX -> base rig by landmarks + bone heat): allied has a few harness strap spikes at the sides (weighted on a voxel copy, bone heat fails on its mesh); landmarks eyeballed from renders.
+
+## Cleanup
+- [ ] Vec3 -> papit vector (271 uses in `packages/*/*/src`): plain tuple only for JSON data (weapon.json hands / points, Hold, HandsFile, aim tune; rename e.g. `Point3`); params take `VectorValue`; math + returns `Vector3` (viewmodel `point` / `direction`, obstruction, player, feel). Papit report: `Vector` has no `toJSON` (stringifies as `{"0":..}`); with one, the tuple type goes too.
+
+## Vehicles
+- [ ] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
+
+## Sky + weather
+- [ ] Time of day: sun / moon move with the real local clock (13:00 is 13:00), time controllable (speed / set). Night fall, sun light colour + ambient follow it.
+- [ ] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature.
+- [ ] Light fog (distance + height), first in the shooting range.
+
+## Weapon editor
+- [ ] Better hold editing: see the fingers on the gun, control the grip per hand (pose / curl / wrist turn), not only sliders for the gun position. Ties into the hand editor (H) and hand pose clips.

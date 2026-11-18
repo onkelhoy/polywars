@@ -150,6 +150,8 @@ export class ViewModel {
     obstruct(o: { yaw: number; back: number; tuck: number }) {
         this.blocked.target[0] = o.yaw; this.blocked.target[1] = o.back; this.blocked.target[2] = o.tuck;
     }
+    /** 0..1 how much it's across the chest at a sprint / down for a reload */
+    get away() { return Math.max(this.sprinting, this.lowered); }
     /** 0..1 how tucked (no aiming) */
     get tucked() { return Math.min(1, Math.abs(this.blocked.value[2])); }
     /** camera space grip / muzzle of the unpushed pose */

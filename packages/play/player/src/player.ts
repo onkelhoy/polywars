@@ -1,16 +1,17 @@
 import type { Camera, CameraController, Layer3D } from "@papit/game-engine";
 import { upload, type GPUMesh } from "@papit/game-mesh";
 import { Matrix4 } from "@papit/matrix";
+import { Vector3 } from "@papit/vector";
 import { Bullets, zeroAngle } from "@polywar/ballistics";
 import { Attachments, Character, type Move } from "@polywar/characters";
 import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
-import { direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
+import { Brace, direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS, cycleCues, type Action, type Cue } from "@polywar/weapons";
 import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile } from "@polywar/armory";
-import { Arms, armsPoseOf, type ArmsPose } from "./arms";
-import { bend, bodyArm, FORE_HAND, grip, holdRotation, PISTOL_GRIP, reach, release, turnFrame, WRIST_GRIP, type BodyArm, type HandFrame, type SkinLike } from "./body-arms";
+import { ARMS, armsPoseOf, type ArmsPose } from "./arms";
+import { bend, bodyArm, flat, FORE_HAND, grip, handRotation, holdRotation, PISTOL_GRIP, reach, release, turnFrame, WRIST_GRIP, type BodyArm, type HandFrame, type SkinLike } from "./body-arms";
 import type { HandsFile } from "./weapon-editor";
 import { Feel } from "./feel";
 import { bonePoint, holdOf, scopeMountFor, scopeMountOf } from "./holds";
@@ -24,6 +25,9 @@ const LIMIT = Math.PI / 2 - .02;
 /** lean: metres the eye goes out, radians the view rolls */
 const LEAN = .32, LEAN_ROLL = .2;
 
+/** most the body backs off a wall while aiming, m */
+const BACK_OFF = .4;
+
 /**
  * A playable character in first person: walks on the host's ground (`@polywar/mover`), looks with the mouse,
  * carries guns (`@polywar/weapons`) held by a `ViewModel` with arms, fires real bullets (`@polywar/ballistics`)
@@ -36,6 +40,11 @@ const LEAN = .32, LEAN_ROLL = .2;
  */
 export class Player {
     private obstruction: Obstruction;
+    /** aiming into a wall: m backed off so far, and room behind to back off (this frame) */
+    private backed = 0;
+    private room = false;
+    /** the free (support) hand on a wall / rail */
+    private brace: Brace;
     readonly mover: Mover;
     readonly bullets: Bullets;
     readonly impacts: Impacts;
@@ -56,7 +65,6 @@ export class Player {
     spread = 0;
     /** draw the body under the view */
     showBody = true;
-    private arms: Arms;
     private gl: WebGL2RenderingContext;
     private eye: number;
     private bodyTime = 0;
@@ -91,7 +99,7 @@ export class Player {
         };
         this.vm = new ViewModel({ grip: [0, 0, 0], muzzle: [0, 0, -1], sight: [0, 0, 0], hip: [.15, -.2, -.3], eye: .2 });
         this.obstruction = new Obstruction({ cast: setting.cast });
-        this.arms = new Arms(this.gl);
+        this.brace = new Brace({ cast: setting.cast });
         this.armory = new Armory(setting.assets ?? "/assets");
         this.feel = new Feel({ world: setting.world, mixer: setting.mixer, ground: setting.ground, cast: setting.cast, surface: setting.surface, assets: setting.assets ?? "/assets" });
         this.ready = this.load();
@@ -167,7 +175,7 @@ export class Player {
 
     /**
      * Swaps the body (a `character.json` url). Bodies with `arm.L` / `arm.R` parts (upper arm, forearm, hand) hold
-     * the gun with their own arms (IK), others get the drawn box arms.
+     * the gun with their own arms (IK), others show the gun alone.
      */
     async setCharacter(url: string) {
         const character = await Character.load(url);
@@ -203,7 +211,7 @@ export class Player {
 
     /** the hand pose of a carried gun (hand editor, weapon.json `hands`) */
     handsOf(index: number): HandsFile {
-        const c = this.carried[index], pose = c.arms ?? armsPoseOf(this.arms.look), h = c.hands ?? c.hold;
+        const c = this.carried[index], pose = c.arms ?? armsPoseOf(ARMS), h = c.hands ?? c.hold;
         return { grip: [...h.grip], fore: h.fore && [...h.fore], hip: [...c.hold.hip], hipAngle: [...(c.hold.hipAngle ?? [0, 0, 0])], turn: c.turn && [[...c.turn[0]], [...c.turn[1]]], shoulder: [[...pose.shoulder[0]], [...pose.shoulder[1]]], elbow: [[...pose.elbow[0]], [...pose.elbow[1]]] };
     }
     setHands(index: number, h: HandsFile) {
@@ -230,7 +238,7 @@ export class Player {
         const w = this.bodyMatrix().multiply(this.body!.skeletonMatrix).multiply([b.head[0], b.head[1], b.head[2], 1]) as unknown as number[];
         return point(invertRigid(mat4(), cam), [w[0], w[1], w[2]]);
     }
-    get armsLook() { return this.arms.look; }
+    get armsLook() { return ARMS; }
     get held() { return this.carried[this.current]; }
     get gun() { return this.held?.gun; }
 
@@ -388,7 +396,25 @@ export class Player {
         const l = Math.max(1, Math.hypot(ahead, side));
         const v = (this.setting.speed ?? 4.2) * (sprint ? this.setting.run ?? 2 : 1) * (1 - (gun?.aimed ?? 0) * .45);
         const y = this.yaw, fx = -Math.sin(y), fz = -Math.cos(y), rx = Math.cos(y), rz = -Math.sin(y);
-        this.mover.update(dt, { x: (fx * ahead + rx * side) / l * v, z: (fz * ahead + rz * side) / l * v, jump: !!k(" ") });
+        let wx = (fx * ahead + rx * side) / l * v, wz = (fz * ahead + rz * side) / l * v;
+        // aiming into a wall: no walking into it, the body backs off softly until the barrel fits (up to BACK_OFF);
+        // no room behind, it tucks as usual
+        const into = this.obstruction.value.into, aimingIn = !!gun && aiming && !sprint && into > 0;
+        this.room = false;
+        if (aimingIn)
+        {
+            const ahead2 = wx * fx + wz * fz;
+            if (ahead2 > 0) { wx -= fx * ahead2; wz -= fz * ahead2; }
+            const f = this.mover.feet, from: Vec3 = [f[0], f[1] + 1.1, f[2]];
+            this.room = this.backed < BACK_OFF && !this.setting.cast(from, [from[0] - fx * .45, from[1], from[2] - fz * .45]);
+            if (this.room)
+            {
+                const speed = Math.min(1.6, into * 8);
+                wx -= fx * speed; wz -= fz * speed; this.backed += speed * dt;
+            }
+        }
+        else if (!aiming) this.backed = 0;
+        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") });
         const m = this.mover;
 
         // the gun
@@ -417,8 +443,15 @@ export class Player {
         const strafe = m.velocity[0] * rx + m.velocity[2] * rz;
         this.vm.update(dt, { yaw: turnYaw, pitch: turnPitch, speed: m.speed, strafe, grounded: m.grounded, landed: m.landed, aimed: gun?.aimed ?? 0, reload: gun && gun.reloading > 0 ? gun.progress : -1, sprint });
         // the barrel against the world (from last frame's camera)
-        if (gun) { const f = this.vm.free; this.vm.obstruct(this.obstruction.update(camera.worldMatrix, f.grip, f.muzzle, this.pitch)); }
+        if (gun) { const f = this.vm.free, o = this.obstruction.update(camera.worldMatrix, f.grip, f.muzzle, this.pitch); this.vm.obstruct(this.room && o.tuck ? { yaw: 0, back: o.back, tuck: 0 } : o); }
         else this.vm.obstruct({ yaw: 0, back: 0, tuck: 0 });
+        // the support hand lets go of the gun onto a wall / rail: not aimed and tucked, sprinting / reloading or one handed
+        {
+            const hands = this.held && (this.held.hands ?? this.held.hold);
+            const free = !!this.rigArms && this.bodyHolds && (gun?.aimed ?? 0) < .1 && (!hands?.fore || this.vm.tucked > .5 || this.vm.away > .5);
+            const shoulder: Vec3 = [m.feet[0] - rx * .18, m.feet[1] + this.eye - .2, m.feet[2] - rz * .18];
+            this.brace.update(dt, shoulder, [fx, 0, fz], [-rx, 0, -rz], free);
+        }
 
         camera.zoom = 1 + (scoped ? 0 : (gun?.aimed ?? 0) * .25);
         const out = this.lean * LEAN;
@@ -516,7 +549,27 @@ export class Player {
         // pistols and pistol grip guns (smgs) by their grip, rifles by the stock's wrist; the index on the trigger
         const trigger = carried.weapon?.points?.trigger ?? bonePoint(carried.model, "trigger");
         hand(0, hands.grip, carried.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP, trigger);
-        if (hands.fore) hand(1, hands.fore, FORE_HAND);
+        const b = this.brace.value;
+        if (b.weight > .01)
+        {
+            // the support hand from the gun (or hanging) onto the wall / rail
+            const arm = this.rigArms![1], n = b.normal;
+            const palm = along([-n[0], -n[1], -n[2]]);
+            // wall: fingers up it; rail: along it (thumb forward), palm on it
+            const onIt = b.bar ? holdRotation(arm, along([n[2], 0, -n[0]]), palm) : handRotation(arm, along([0, 1, 0]), palm);
+            const wall = local(b.point.clone.add(n.clone.multiply(.01)) as unknown as Vec3);
+            let target = new Vector3(wall[0], wall[1], wall[2]), rotation = onIt;
+            if (hands.fore)
+            {
+                const f = turnFrame(FORE_HAND, turn[1][0] * r, -turn[1][1] * r);
+                target = new Vector3(...at(hands.fore)).lerp(target, b.weight);
+                rotation = holdRotation(arm, dir(f.axis), dir(f.palm)).slerp(onIt, b.weight);
+            }
+            reach(skin, arm, target, rotation, pole(1));
+            if (b.weight > .5) { if (b.bar) grip(skin, arm, .02); else flat(skin, arm); }
+            else if (hands.fore) grip(skin, arm, FORE_HAND.radius);
+        }
+        else if (hands.fore) hand(1, hands.fore, FORE_HAND);
         else release(skin, this.rigArms![1]);
         skin.update();
     }
@@ -576,7 +629,6 @@ export class Player {
         carried.model.draw(r, world);
         if (carried.scopeModel && carried.scopeAt) carried.scopeModel.draw(r, world.clone.multiply(carried.scopeAt));
         if (carried.scopeMesh) r.draw(carried.scopeMesh, world);
-        const hands = carried.hands ? { grip: point(this.vm.matrix, carried.hands.grip), fore: carried.hands.fore && point(this.vm.matrix, carried.hands.fore) } : this.vm.hands;
         const skin = this.body?.skin as unknown as SkinLike | undefined;
         if (this.body && this.showBody && skin && this.rigArms && this.posed)
         {
@@ -584,7 +636,6 @@ export class Player {
             collapse(skin, this.onlyArms);
             this.body.draw(r, this.bodyMatrix());
         }
-        else this.arms.draw(r, cam, hands, this.vm.lag, carried.arms);
         r.reset();
         if (showGlass) scope!.overlay(this.vm.matrix, this.near, aspect, showScope ? light : 0);
     }
@@ -592,7 +643,6 @@ export class Player {
     destroy() {
         this.input?.destroy();
         this.impacts.destroy();
-        this.arms.destroy();
         for (const c of this.carried) { c.model.destroy(); c.scope?.destroy(); c.scopeMesh?.destroy(); c.scopeModel?.destroy(); }
         this.body?.destroy();
         this.feel.destroy();

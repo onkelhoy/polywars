@@ -1,3 +1,4 @@
+import { Vector3 } from "@papit/vector";
 import { point, type Vec3 } from "./math";
 
 /** first hit on the segment from -> to (world), or null (same shape as `@polywar/ballistics` Cast) */
@@ -18,7 +19,8 @@ export type ObstructionSetting = {
 };
 
 /** what the geometry does to the gun: turn aside (yaw, left +), slide back (m), tuck (+1 up, -1 down, 0 none) */
-export type Obstructed = { yaw: number; back: number; tuck: number };
+export type Obstructed = { yaw: number; back: number; tuck: number; into?: number };
+/** how far the straight barrel goes into the hit (m), 0 clear */
 
 /**
  * The barrel against the world: casts from the grip to past the muzzle. Touching something it turns aside
@@ -26,7 +28,7 @@ export type Obstructed = { yaw: number; back: number; tuck: number };
  * `deflect` clears (a wall), it tucks: up for a low thing / looking up, down else. Camera space in, a target out.
  */
 export class Obstruction {
-    readonly value: Obstructed = { yaw: 0, back: 0, tuck: 0 };
+    readonly value: Required<Obstructed> = { yaw: 0, back: 0, tuck: 0, into: 0 };
     private s: Required<ObstructionSetting>;
 
     constructor(setting: ObstructionSetting) {
@@ -36,18 +38,17 @@ export class Obstruction {
     /** `camera` world matrix; `grip` / `muzzle` camera space (the unobstructed pose); `pitch` view pitch (up +) */
     update(camera: ArrayLike<number>, grip: Vec3, muzzle: Vec3, pitch: number): Obstructed {
         const s = this.s, v = this.value;
-        const d: Vec3 = [muzzle[0] - grip[0], muzzle[1] - grip[1], muzzle[2] - grip[2]];
-        const len = Math.hypot(...d) || 1, L = len + s.margin;
-        const u: Vec3 = [d[0] / len, d[1] / len, d[2] / len];
+        const d = new Vector3(muzzle[0], muzzle[1], muzzle[2]).subtract(grip);
+        const L = (d.magnitude || 1) + s.margin, u = d.normalize();
         const from = point(camera, grip);
         // the barrel turned round the camera's up by `a` (left +)
         const cast = (a: number) => {
             const c = Math.cos(a), sn = Math.sin(a);
-            const r: Vec3 = [u[0] * c + u[2] * sn, u[1], -u[0] * sn + u[2] * c];
-            return s.cast(from, point(camera, [grip[0] + r[0] * L, grip[1] + r[1] * L, grip[2] + r[2] * L]));
+            const r = new Vector3(u[0] * c + u[2] * sn, u[1], -u[0] * sn + u[2] * c).multiply(L).add(grip);
+            return s.cast(from, point(camera, r));
         };
         const hit = cast(0);
-        if (!hit) { v.yaw = 0; v.back = 0; v.tuck = 0; return v; }
+        if (!hit) { v.yaw = 0; v.back = 0; v.tuck = 0; v.into = 0; return v; }
 
         // the normal in camera space: its x says which way it pushes (right +)
         const n = hit.normal, m = camera;
@@ -55,6 +56,7 @@ export class Obstruction {
         const sides = Math.abs(nx) > .15 ? [nx > 0 ? -1 : 1] : [v.yaw < 0 ? -1 : 1, v.yaw < 0 ? 1 : -1];
         const limit = v.tuck ? s.release : s.deflect;
         const into = Math.max(0, L - hit.t * L);
+        v.into = into;
         for (let k = 1; k <= s.steps; k++)
         {
             const a = s.deflect * k / s.steps;
