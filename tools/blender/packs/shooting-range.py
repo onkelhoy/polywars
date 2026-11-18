@@ -19,6 +19,7 @@ OUT = os.path.join(pw.ROOT, "packages/play/shooting-range/asset/shooting-range")
 # object name (prefix) -> role. ground: walkable height; stand: a gun case (a gun floats over it); target: scored
 # steps: walkable stairs (a box per step); anything else is solid
 ROLES = [
+    ("Grass.", "grass"),
     ("Ground", "ground"),
     ("Berm", "ground"),
     ("Bunker earth bank", "ground"),
@@ -193,7 +194,7 @@ def decimate():
 
 
 def points():
-    data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "spawn": None}
+    data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "grass": [], "spawn": None}
     for obj in sorted(bpy.context.scene.objects, key=lambda o: o.name):
         if obj.type != "MESH" or not obj.data.polygons:
             continue
@@ -208,6 +209,10 @@ def points():
             continue
         if r == "decor":
             continue
+        if r == "grass":
+            lo, hi = box(*pw.world_bbox(obj))
+            data["grass"].append({"kind": obj.get("grass", obj.name.split(".")[1]), "min": [lo[0], lo[2]], "max": [hi[0], hi[2]]})
+            continue
         lo, hi = pw.world_bbox(obj)
         if r == "button":
             data["buttons"].append({"name": obj.name, "lane": int(obj.get("lane", 0)), "dir": -1 if ".near." in obj.name else 1, "min": box(lo, hi)[0], "max": box(lo, hi)[1]})
@@ -219,6 +224,8 @@ def points():
             continue
         if r == "carrier":
             data["carriers"].append({"name": obj.name, "min": box(lo, hi)[0], "max": box(lo, hi)[1]})
+            if obj.get("stops"):
+                data["stops"] = [int(v) for v in obj["stops"]]
         if r == "stand":
             top = (lo + hi) / 2
             top.z = hi.z
@@ -242,6 +249,9 @@ def points():
     xs = sorted(s["at"][0] for s in data["stands"]) or [0]
     z = max((s["at"][2] for s in data["stands"]), default=0)
     data["spawn"] = [round(xs[len(xs) // 2], 3), 0, round(z - 1.5, 3)]
+    sp = bpy.data.objects.get("Spawn")
+    if sp:
+        data["spawn"] = game(sp.matrix_world.translation)
     data["stands"].sort(key=lambda s: s["at"][0])
     return data
 
@@ -255,5 +265,8 @@ if __name__ == "__main__":
     with open(os.path.join(OUT, "range.json"), "w") as f:
         json.dump(data, f, separators=(",", ":"))
     print(f"range.json: {len(data['ground'])} ground tris, {len(data['solids'])} solids, {len(data['stands'])} stands, {len(data['targets'])} targets")
+    # grass zones are data only
+    for obj in [o for o in bpy.context.scene.objects if role(o.name) == "grass"]:
+        bpy.data.objects.remove(obj)
     decimate()
     exporter.export(os.path.join(OUT, "model.glb"))

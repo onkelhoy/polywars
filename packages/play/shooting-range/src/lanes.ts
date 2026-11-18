@@ -1,7 +1,7 @@
 import { Vector3, type VectorValue } from "@papit/vector";
 import type { RangeData, Vec3 } from "./types";
 
-/** where a lane's carrier stops, m from the firing line */
+/** where a lane's carrier stops, m from the firing line (range.json `stops` wins) */
 export const STOPS = [10, 25, 50, 75, 100];
 
 /** a lane: its carrier + paper target slide down the rails between the stops */
@@ -9,7 +9,7 @@ export type Lane = {
     lane: number;
     /** the names that ride (carrier, target) */
     names: string[];
-    /** the stop it goes to (index in `STOPS`) */
+    /** the stop it goes to (index in `Lanes.stops`) */
     stop: number;
     /** how far it has slid from the first stop, m (down the range = -z) */
     offset: number;
@@ -26,8 +26,10 @@ const SPEED = 6;
  */
 export class Lanes {
     readonly lanes: Lane[] = [];
+    readonly stops: number[];
 
     constructor(readonly data: RangeData) {
+        this.stops = data.stops ?? STOPS;
         for (const c of data.carriers ?? [])
         {
             const n = Number(c.name.match(/\.L(\d+)$/)?.[1] ?? 0);
@@ -42,8 +44,8 @@ export class Lanes {
     press(lane: number, dir: -1 | 1) {
         const l = this.of(lane);
         if (!l) return undefined;
-        l.stop = Math.max(0, Math.min(STOPS.length - 1, l.stop + dir));
-        return STOPS[l.stop];
+        l.stop = Math.max(0, Math.min(this.stops.length - 1, l.stop + dir));
+        return this.stops[l.stop];
     }
 
     /** slides the carriers; per lane that moved, the step (m along z, game space) */
@@ -51,7 +53,7 @@ export class Lanes {
         const out: { lane: Lane; dz: number }[] = [];
         for (const l of this.lanes)
         {
-            const want = STOPS[l.stop] - STOPS[0], d = want - l.offset;
+            const want = this.stops[l.stop] - this.stops[0], d = want - l.offset;
             if (Math.abs(d) < 1e-4) continue;
             const step = Math.sign(d) * Math.min(Math.abs(d), SPEED * dt);
             l.offset += step;

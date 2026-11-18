@@ -36,7 +36,11 @@ ROAD_W = 6.0
 GAP = ROAD_W / 2 + 4.5                # road centre -> field edge (a safety berm between)
 A = -(GAP + FIELD_W / 2)              # field centres (x)
 B = GAP + FIELD_W / 2
-STOPS = [10, 25, 50, 75, 100]
+STOPS = [5, 10, 15, 20, 25]        # the hall's hanging targets
+HALL = 27.0                           # the covered hall runs this far down field A
+HALL_H = 3.4
+ARMORY = (-12.0, -24.0, -3.2)         # armory under ground behind bunker A: y from, y to, floor z
+OPEN_A = [50, 75, 100]                # fixed frames past the hall
 FAR = [100, 200, 300, 400, 500, 600, 700]
 
 mat = P.mat
@@ -58,6 +62,11 @@ M.update({
     "bark": mat("Bark", (.25, .17, .10), 1),
     "leaves": mat("Leaves", (.19, .31, .11), 1),
     "rock": mat("Rock", (.42, .41, .38), 1),
+    "lamp": mat("Lamp glow", (1.0, .88, .55), .3),
+    "lamp_shade": mat("Lamp shade", (.18, .2, .17), .5, .5),
+    "barrier_red": mat("Barrier red", (.7, .06, .04), .6),
+    "wire": mat("Barbed wire", (.12, .12, .12), .5, .8),
+    "horn": mat("Horn grey", (.35, .37, .34), .4, .6),
 })
 
 
@@ -106,8 +115,8 @@ def hills(x, y):
 def ground(c):
     """flat for the camp, fields and road; rising into soft hills beyond the outer berms"""
     edge = GAP + FIELD_W + 6
-    xs = sorted(set([-200, -140, -100, -75, -60, -edge - 8, -edge, edge, edge + 8, 60, 75, 100, 140, 200] + list(range(-int(edge) + 4, int(edge), 8))))
-    ys = sorted(set([-160, -120, -90, -70] + list(range(-60, 900, 20)) + [920, 960]))
+    xs = [-200, -140, -100, -75, -60, -edge - 8, -edge, edge, edge + 8, 60, 75, 100, 140, 200] + list(range(-int(edge) + 4, int(edge), 8))
+    ys = [-160, -120, -90, -70] + list(range(-60, 900, 20)) + [920, 960]
     bm = bmesh.new()
     def z(x, y):
         out = max(0, abs(x) - edge)
@@ -117,24 +126,32 @@ def ground(c):
         if y > 840:
             h = max(h, min(1, (y - 840) / 60) * 14)
         return h
+    # the armory (under ground behind bunker A) and its stairwell: no ground over them
+    hx0, hx1, hy0, hy1 = A - 6, A + 6, ARMORY[1], -5.4
+    xs = sorted(set(xs + [hx0, hx1]))
+    ys = sorted(set(ys + [hy0, hy1]))
     grid = [[bm.verts.new((x, y, z(x, y))) for x in xs] for y in ys]
     for j in range(len(ys) - 1):
         for i in range(len(xs) - 1):
+            cx, cy = (xs[i] + xs[i + 1]) / 2, (ys[j] + ys[j + 1]) / 2
+            if hx0 < cx < hx1 and hy0 < cy < hy1:
+                continue
             f = bm.faces.new((grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]))
             f.material_index = 0
     return P.obj_from(bm, "Ground", [M["field"]], c)
 
 
-def strip(name, x0, x1, y0, y1, z, material, c, step=20):
-    """a flat strip over the ground (road, mown field)"""
+def strip(name, x0, x1, y0, y1, z, material, c, step=20, sink=.25):
+    """a flat strip raised `z` over the ground, its edges dipping `sink` into it (no flicker, no floating edge)"""
     bm = bmesh.new()
     prev = None
     y = y0
     while True:
-        a, b = bm.verts.new((x0, y, z)), bm.verts.new((x1, y, z))
+        row = [bm.verts.new((x0 - sink, y, -.06)), bm.verts.new((x0, y, z)), bm.verts.new((x1, y, z)), bm.verts.new((x1 + sink, y, -.06))]
         if prev:
-            bm.faces.new((prev[0], prev[1], b, a))
-        prev = (a, b)
+            for k in range(3):
+                bm.faces.new((prev[k], prev[k + 1], row[k + 1], row[k]))
+        prev = row
         if y >= y1:
             break
         y = min(y1, y + step)
@@ -171,17 +188,13 @@ def berm(name, a, b, height, base, c, top=1.2):
 def land():
     c = col("Ground")
     ground(c)
-    # the fields mown in stripes, the road gravel
-    for cx, length in ((A, 112), (B, 830)):
-        for k in range(LANES):
-            x0 = cx - FIELD_W / 2 + k * LANE_W
-            strip(f"Ground field {cx:.0f} {k}", x0, x0 + LANE_W, 4, length, .01, M["mown" if k % 2 else "mown2"], c)
-    strip("Ground road", -ROAD_W / 2, ROAD_W / 2, -60, 830, .02, M["road"], c)
-    strip("Ground square", -8, 8, -35, -18, .015, M["road"], c, 17)
+    # the gravel road and the square (raised a little, edges in the ground)
+    strip("Ground road", -ROAD_W / 2, ROAD_W / 2, -86, 830, .06, M["road"], c)
+    strip("Ground square", -8, 8, -35, -18, .07, M["road"], c, 17)
     b = col("Berms")
     # safety berms both sides of the road, outer berms, backstops
     for s in (-1, 1):
-        berm(f"Berm road {s}", (s * (ROAD_W / 2 + 2.2), 8), (s * (ROAD_W / 2 + 2.2), 826), 2.6, 4.2, b)
+        berm(f"Berm road {s}", (s * (ROAD_W / 2 + 2.2), 8 if s > 0 else HALL + 1), (s * (ROAD_W / 2 + 2.2), 826), 2.6, 4.2, b)
         berm(f"Berm outer {s}", (s * (GAP + FIELD_W + 2.5), 2), (s * (GAP + FIELD_W + 2.5), 832), 3.4, 6, b)
     berm("Berm backstop A", (A - FIELD_W / 2 - 1, 116), (A + FIELD_W / 2 + 1, 116), 5.5, 8, b, 1.6)
     berm("Berm backstop B", (B - FIELD_W / 2 - 1, 836), (B + FIELD_W / 2 + 1, 836), 9, 12, b, 2)
@@ -205,10 +218,130 @@ def firing_point(cx, field):
         x = cx - FIELD_W / 2 + k * LANE_W
         parts.append(box("divider", (x - .03, front - 1.6, 0), (x + .03, front, 2.0), M["wood"], c))
     join(f"Booths {field}", parts)
-    for k in range(LANES):
-        x = cx - FIELD_W / 2 + (k + .5) * LANE_W
-        crate = box(f"Stand.{field}{k + 1}", (x + .6, front - 2.3, 0), (x + 1.4, front - 1.8, .45), M["crate"], c, .02)
-        crate["lane"] = k + 1
+    return c
+
+
+def hall():
+    """field A's covered range: the firing room (back wall + door), side walls and a roof running HALL m down the
+    lanes, the far end open; earth banked against the outside walls; ceiling tracks per lane, lamps between them"""
+    c = col("Hall A")
+    w, t, h = FIELD_W / 2 + .6, .5, HALL_H
+    y0 = -5.4
+    bm = bmesh.new()
+    P.cube(bm, (A - w, y0, -.1), (A + w, 0, 0))                     # firing room floor
+    P.cube(bm, (A - w, y0, 0), (A - w + t, HALL, h))                 # side walls
+    P.cube(bm, (A + w - t, y0, 0), (A + w, HALL, h))
+    door = 1.4
+    P.cube(bm, (A - w, y0, 0), (A - door / 2, y0 + t, h))            # back wall with the door to the stairs
+    P.cube(bm, (A + door / 2, y0, 0), (A + w, y0 + t, h))
+    P.cube(bm, (A - door / 2, y0, 2.3), (A + door / 2, y0 + t, h))
+    P.cube(bm, (A - w - .3, y0 - .3, h), (A + w + .3, HALL + .4, h + .35), 1)   # roof slab
+    # baffles: deep beams across under the roof every 6 m (a bullet can't leave upward)
+    for y in range(6, int(HALL), 6):
+        P.cube(bm, (A - w + t, y, h - .6), (A + w - t, y + .25, h), 1)
+    bm.normal_update()
+    for f in bm.faces:
+        cx, cy, cz = f.calc_center_median()
+        if abs(cx - A) < w - t + .01 and y0 + t - .01 < cy and cz < h + .01 and f.normal.z < .5:
+            f.material_index = 2
+    P.obj_from(bm, "Hall A", [M["concrete"], M["concrete_dark"], M["inside"]], c)
+    # the lanes' floor under the roof: packed gravel (the field's grass starts past the open end)
+    bm = bmesh.new()
+    P.cube(bm, (A - w + t, 0, -.05), (A + w - t, HALL, .04))
+    P.obj_from(bm, "Hall floor A", M["road"], c)
+    # counter + booths at the firing line
+    parts = [box("counter", (A - FIELD_W / 2, -.55, .98), (A + FIELD_W / 2, 0, 1.05), M["wood"], c)]
+    for k in range(1, LANES):
+        x = A - FIELD_W / 2 + k * LANE_W
+        parts.append(box("divider", (x - .03, -1.6, 0), (x + .03, 0, 2.0), M["wood"], c))
+    join("Booths A", parts)
+    # tracks along each lane under the roof, a lamp between lanes every 6 m
+    tracks = []
+    for n in range(LANES):
+        x = A - FIELD_W / 2 + (n + .5) * LANE_W
+        tracks.append(box("track", (x - .05, -.3, h - .16), (x + .05, HALL - .5, h - .06), M["steel"], c))
+        for y in range(3, int(HALL), 6):
+            tracks.append(box("hanger", (x - .02, y, h - .06), (x + .02, y + .04, h), M["steel"], c))
+    join("Rail.tracks A", tracks)
+    lamps = []
+    for k in range(LANES + 1):
+        x = A - FIELD_W / 2 + k * LANE_W
+        for y in [-3.5] + list(range(2, int(HALL), 6)):
+            lamps.append(box("cord", (x - .01, y - .01, h - .6), (x + .01, y + .01, h), M["steel"], c))
+            bm = bmesh.new()
+            bmesh.ops.create_cone(bm, cap_ends=False, segments=8, radius1=.22, radius2=.05, depth=.18)
+            bmesh.ops.translate(bm, vec=(x, y, h - .69), verts=bm.verts)
+            lamps.append(P.obj_from(bm, "shade", M["lamp_shade"], c))
+            lamps.append(box("bulb", (x - .06, y - .06, h - .82), (x + .06, y + .06, h - .74), M["lamp"], c))
+    join("Lamps A", lamps)
+    # earth banked against the outside walls, a turf mound on the roof
+    b = col("Berms")
+    for s in (-1, 1):
+        berm(f"Berm hall {s}", (A + s * (w + 1.6), y0 + 1), (A + s * (w + 1.6), HALL), h + .3, 4.6, b, .8)
+    roof = berm("Hall roof earth", (A - w, (HALL + y0) / 2), (A + w, (HALL + y0) / 2), .7, HALL - y0, c, HALL - y0 - 4)
+    roof.location.z = h + .35
+    return c
+
+
+def armory():
+    """under ground behind bunker A: stairs down from the firing room's door, a room with gun racks along the walls
+    (each rack = a gun stand), lamps; a concrete roof at ground level with earth over it"""
+    c = col("Armory")
+    y_from, y_to, fz = ARMORY
+    w, t = 6.0, .4
+    y0 = -5.4
+    bm = bmesh.new()
+    # stairwell walls (open to the sky, a low concrete curb round it)
+    for s in (-1, 1):
+        P.cube(bm, (A + s * 1.0 - t / 2, y_from, fz), (A + s * 1.0 + t / 2, y0, .5))
+    # the room
+    P.cube(bm, (A - w, y_to, fz - .1), (A + w, y_from, fz), 0)                  # floor
+    P.cube(bm, (A - w, y_to, fz), (A - w + t, y_from, 0))
+    P.cube(bm, (A + w - t, y_to, fz), (A + w, y_from, 0))
+    P.cube(bm, (A - w, y_to, fz), (A + w, y_to + t, 0))
+    P.cube(bm, (A - w, y_from - t, fz), (A - 1.2, y_from, 0))
+    P.cube(bm, (A + 1.2, y_from - t, fz), (A + w, y_from, 0))
+    P.cube(bm, (A - w, y_to, 0), (A + w, y_from, .3), 1)                         # roof slab
+    bm.normal_update()
+    for f in bm.faces:
+        cx, cy, cz = f.calc_center_median()
+        if cz < 0 and abs(cx - A) < w - t + .01 and y_to + t - .01 < cy < y_from - t + .01:
+            f.material_index = 2
+    P.obj_from(bm, "Armory walls", [M["concrete"], M["concrete_dark"], M["inside"]], c)
+    # the floor the player walks on (ground): room + stairwell landing
+    bm = bmesh.new()
+    P.cube(bm, (A - w + t, y_to + t, fz - .02), (A + w - t, y_from, fz))
+    P.cube(bm, (A - .8, y_from, fz - .02), (A + .8, y0, fz))             # under the stairs too: the steps stand on it
+    P.obj_from(bm, "Ground armory", M["concrete_dark"], c)
+    # stairs: from the floor up to the door sill (steps, the exporter slices them per tread)
+    bm = bmesh.new()
+    n = 13
+    run = (y0 - y_from) / n
+    for k in range(n):
+        P.cube(bm, (A - .8, y_from + k * run, fz), (A + .8, y_from + (k + 1) * run, fz + (k + 1) * (-fz / n)))
+    P.obj_from(bm, "stairs armory", M["concrete"], c)
+    # gun racks along the side walls: a frame with a shelf; the gun floats over it (Stand.<n>)
+    k = 0
+    for s in (-1, 1):
+        for i in range(7):
+            y = y_to + 1.2 + i * 1.5
+            x = A + s * (w - t - .35)
+            rack = [box("shelf", (x - .3, y - .6, fz + .8), (x + .3, y + .6, fz + .86), M["crate"], c),
+                    box("back", (x + s * .25 - .03, y - .6, fz), (x + s * .25 + .03, y + .6, fz + 1.9), M["crate"], c),
+                    box("leg", (x - .3, y - .6, fz), (x - .24, y - .54, fz + .8), M["crate"], c),
+                    box("leg", (x + .24, y + .54, fz), (x + .3, y + .6, fz + .8), M["crate"], c)]
+            k += 1
+            o = join(f"Stand.{k}", rack)
+    # a table in the middle, crates, lamps
+    box("Armory table", (A - 1.0, y_to + 3, fz), (A + 1.0, y_to + 7, fz + .85), M["wood"], c)
+    for i, y in enumerate((y_to + 2.5, y_to + 8.5)):
+        lamp = [box("cord", (A - .01, y - .01, -.6), (A + .01, y + .01, 0), M["steel"], c),
+                box("bulb", (A - .07, y - .07, -.72), (A + .07, y + .07, -.6), M["lamp"], c)]
+        join(f"Armory lamp {i}", lamp)
+    # earth over the roof
+    b = col("Berms")
+    roof = berm("Armory roof earth", (A - w - .5, (y_to + y_from) / 2), (A + w + .5, (y_to + y_from) / 2), .6, y_from - y_to + 1.5, c, y_from - y_to - 1)
+    roof.location.z = .3
     return c
 
 
@@ -236,19 +369,30 @@ def lanes_a():
     c = col("Lanes A")
     for n in range(1, LANES + 1):
         x = A - FIELD_W / 2 + (n - .5) * LANE_W
-        # a flush steel strip in a concrete curb: reads as a slot in the grass, not a railway
-        box(f"Rail.L{n}", (x - .06, STOPS[0] - 1.5, 0), (x + .06, STOPS[-1] + 1.5, .03), M["rail"], c)
-        y = STOPS[0]
-        cart = [box("cart", (x - .35, y - .25, .02), (x + .35, y + .25, .16), M["olive"], c, .02),
-                box("mast", (x - .03, y - .03, .16), (x + .03, y + .03, .95), M["steel"], c)]
-        join(f"Carrier.L{n}", cart)
-        paper_target(f"Lane Target.L{n}", x, y - .05, .95, .7, c, posts=False)
+        # a trolley on the ceiling track, two cables down to a clip bar, the paper hangs from it
+        y, h = STOPS[0], HALL_H
+        cart = [box("trolley", (x - .12, y - .15, h - .3), (x + .12, y + .15, h - .16), M["olive"], c, .015),
+                box("cable", (x - .29, y - .006, 1.72), (x - .27, y + .006, h - .3), M["steel"], c),
+                box("cable", (x + .27, y - .006, 1.72), (x + .29, y + .006, h - .3), M["steel"], c),
+                box("clip", (x - .38, y - .02, 1.68), (x + .38, y + .02, 1.74), M["steel"], c)]
+        o = join(f"Carrier.L{n}", cart)
+        o["stops"] = STOPS
+        paper_target(f"Lane Target.L{n}", x, y, 1.0, .68, c, posts=False)
         # the buttons on the counter, left of the lane
         top = 1.05
         for name, dx, m in ((f"Button.near.L{n}", -.75, "green"), (f"Button.far.L{n}", -.55, "orange")):
             b = box(name, (A - FIELD_W / 2 + (n - 1) * LANE_W + 1.0 + dx - .06, -.35, top), (A - FIELD_W / 2 + (n - 1) * LANE_W + 1.0 + dx + .06, -.23, top + .04), M[m], c)
             b["lane"] = n
         base = box(f"Button base L{n}", (A - FIELD_W / 2 + (n - 1) * LANE_W + .12, -.4, top), (A - FIELD_W / 2 + (n - 1) * LANE_W + .62, -.18, top + .01), M["olive"], c)
+
+
+def targets_a():
+    """past the hall's open end: fixed frames at 50 / 75 / 100 m, staggered so they don't hide each other"""
+    c = col("Targets A")
+    for n in range(1, LANES + 1):
+        d = OPEN_A[(n - 1) % 3]
+        x = A - FIELD_W / 2 + (n - .5) * LANE_W
+        paper_target(f"Target.{d}.A{n}", x, d, .9, .8 + d / 200, c)
 
 
 def targets_b():
@@ -301,7 +445,7 @@ def marker(d, x, c, tag):
 
 def markers():
     c = col("Markers")
-    for d in STOPS:
+    for d in OPEN_A:
         marker(d, A - FIELD_W / 2 + .4, c, "A")
     for d in FAR + [800]:
         marker(d, B + FIELD_W / 2 - .4, c, "B")
@@ -386,17 +530,18 @@ def camp():
         for o in flag_objs:
             o.matrix_world = Matrix.Translation(-off) @ o.matrix_world
         place(flag_objs, Vector((0, -27, 0)), 0, c, "Flag")
-    # tents: two rows either side of the square, doors to the road
+    # tents: two rows facing each other across a camp street (doors to the street), both sides of the road;
+    # the tent's door is its +y end
     for s in (-1, 1):
         for k in range(4):
-            place(tent_objs, Vector((s * (17 + k * 5.4), -48 + (k % 2) * .4, 0)), math.pi / 2 * -s + math.pi / 2 + rng.uniform(-.04, .04), c, f"Tent {s} {k}")
-        for k in range(3):
-            place(tent_objs, Vector((s * (19.5 + k * 5.4), -60, 0)), math.pi / 2 * -s + math.pi / 2 + rng.uniform(-.04, .04), c, f"Tent b {s} {k}")
+            x = s * (16 + k * 5.2)
+            place(tent_objs, Vector((x, -45, 0)), math.pi + rng.uniform(-.03, .03), c, f"Tent n {s} {k}")
+            place(tent_objs, Vector((x, -57, 0)), rng.uniform(-.03, .03), c, f"Tent s {s} {k}")
     # sandbag walls: the camp gate on the road, round the square's corners
     walls = [o for o in (bags.objects if bags else []) if "wall" in o.name.lower()]
     if walls:
         w = centred([walls[0]])[0]
-        for at, yaw in (((-5.5, -66), 0), ((5.5, -66), 0), ((-13, -14), math.pi / 2), ((13, -14), math.pi / 2), ((-9, -42), 0), ((9, -42), 0)):
+        for at, yaw in (((-5.8, -80), 0), ((5.8, -80), 0), ((-11, -33), math.pi / 2), ((11, -33), math.pi / 2)):
             place([w], Vector((at[0], at[1], 0)), yaw, c, "Sandbag gate")
     for x in list(c.objects):
         pass
@@ -503,12 +648,174 @@ def scopes_and_glasses():
         o["zoom"] = 7
 
 
+def horn(at, yaw, c, name):
+    """an air raid siren: a drum with two flared horns"""
+    x, y, z = at
+    parts = []
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=10, radius1=.22, radius2=.22, depth=.35)
+    bmesh.ops.translate(bm, vec=(x, y, z + .17), verts=bm.verts)
+    parts.append(P.obj_from(bm, "drum", M["horn"], c))
+    for s in (-1, 1):
+        # a flared bell pointing out along x (narrow end at the drum)
+        bm = bmesh.new()
+        bmesh.ops.create_cone(bm, cap_ends=False, segments=10, radius1=.09, radius2=.26, depth=.5)
+        bmesh.ops.rotate(bm, verts=bm.verts, matrix=Matrix.Rotation(s * math.pi / 2, 3, "Y"))
+        bmesh.ops.translate(bm, vec=(s * .45, 0, 0), verts=bm.verts)
+        bmesh.ops.rotate(bm, verts=bm.verts, matrix=Matrix.Rotation(yaw, 3, "Z"))
+        bmesh.ops.translate(bm, vec=(x, y, z + .17), verts=bm.verts)
+        parts.append(P.obj_from(bm, "bell", M["horn"], c))
+    o = join(name, parts)
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    return o
+
+
+def guard_tower(at, yaw, c, name, legs=6.0, siren=False):
+    """four timber legs with cross braces, a cabin with half walls and a hip roof, a ladder"""
+    x, y = at
+    r, top = 1.4, legs
+    parts = []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            parts.append(box("leg", (x + sx * r - .1, y + sy * r - .1, 0), (x + sx * r + .1, y + sy * r + .1, top + 2.4), M["wood"], c))
+    for z in (top * .35, top * .7):
+        for s in (-1, 1):
+            parts.append(box("brace", (x - r, y + s * r - .05, z - .07), (x + r, y + s * r + .05, z + .07), M["wood"], c))
+            parts.append(box("brace", (x + s * r - .05, y - r, z - .07), (x + s * r + .05, y + r, z + .07), M["wood"], c))
+    parts.append(box("floor", (x - r - .3, y - r - .3, top), (x + r + .3, y + r + .3, top + .15), M["wood"], c))
+    for s in (-1, 1):
+        parts.append(box("wall", (x - r - .3, y + s * (r + .25) - .05, top + .15), (x + r + .3, y + s * (r + .25) + .05, top + 1.15), M["wood"], c))
+        parts.append(box("wall", (x + s * (r + .25) - .05, y - r - .3, top + .15), (x + s * (r + .25) + .05, y + r + .3, top + 1.15), M["wood"], c))
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=4, radius1=(r + .9) * 1.41, radius2=.05, depth=1.1)
+    bmesh.ops.rotate(bm, verts=bm.verts, matrix=Matrix.Rotation(math.pi / 4, 3, "Z"))
+    bmesh.ops.translate(bm, vec=(x, y, top + 2.4 + .55), verts=bm.verts)
+    parts.append(P.obj_from(bm, "roof", M["canvas_dark"], c))
+    # ladder on the camp side
+    for s in (-1, 1):
+        parts.append(box("rail", (x + s * .25 - .03, y - r - .45, 0), (x + s * .25 + .03, y - r - .39, top + .9), M["wood"], c))
+    for k in range(int(top / .35)):
+        z = .3 + k * .35
+        parts.append(box("rung", (x - .25, y - r - .45, z), (x + .25, y - r - .39, z + .04), M["wood"], c))
+    o = join(name, parts)
+    o.rotation_euler.z = yaw
+    if siren:
+        horn((x, y, top + 2.4 + 1.1), 0, c, f"{name} siren")
+    return o
+
+
+def shooting_tower(c):
+    """a raised firing platform at field B's side: concrete legs, sandbagged edge, a roof, stairs up the back"""
+    x, y, top = B + FIELD_W / 2 + 6, -2.0, 5.0
+    w, d = 3.6, 3.2
+    parts = []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            parts.append(box("pier", (x + sx * (w / 2 - .25) - .25, y + sy * (d / 2 - .25) - .25, 0), (x + sx * (w / 2 - .25) + .25, y + sy * (d / 2 - .25) + .25, top), M["concrete"], c))
+    parts.append(box("deck", (x - w / 2, y - d / 2, top), (x + w / 2, y + d / 2, top + .25), M["concrete"], c))
+    for sx in (-1, 1):
+        parts.append(box("post", (x + sx * (w / 2 - .1) - .08, y + d / 2 - .25, top + .25), (x + sx * (w / 2 - .1) + .08, y + d / 2 - .09, top + 2.6), M["wood"], c))
+        parts.append(box("post", (x + sx * (w / 2 - .1) - .08, y - d / 2 + .09, top + .25), (x + sx * (w / 2 - .1) + .08, y - d / 2 + .25, top + 2.6), M["wood"], c))
+    parts.append(box("roof", (x - w / 2 - .3, y - d / 2 - .3, top + 2.6), (x + w / 2 + .3, y + d / 2 + .5, top + 2.75), M["wood"], c))
+    join("Shooting tower", parts)
+    P.bag_wall("Sandbag tower front", c, w - .2, 4, Vector((x, y + d / 2 - .2, top + .25)))
+    for s in (-1, 1):
+        P.bag_wall(f"Sandbag tower side {s}", c, d - .6, 3, Vector((x + s * (w / 2 - .2), y, top + .25)), yaw=math.pi / 2)
+    # stairs up from behind (steps): along -y
+    bm = bmesh.new()
+    n = 20
+    run = .3
+    for k in range(n):
+        y1 = y - d / 2 - (n - k) * run
+        P.cube(bm, (x - .6, y1, 0), (x + .6, y1 + run, (k + 1) * top / n + .25 * (k + 1) / n))
+    P.obj_from(bm, "stairs tower", M["concrete"], c)
+    sc = [box("leg", (x - .04, y + .6, top + .25), (x + .04, y + .68, top + 1.35), M["steel"], c),
+          box("head", (x - .06, y + .52, top + 1.35), (x + .06, y + .76, top + 1.42), M["steel"], c)]
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=12, radius1=.05, radius2=.065, depth=.6)
+    tube = P.obj_from(bm, "tube", M["olive"], c)
+    tube.rotation_euler = (math.pi / 2, 0, 0)
+    tube.location = (x, y + .7, top + 1.5)
+    sc.append(tube)
+    o = join("Scope.fixed.3", sc)
+    o["eye"] = [x, y + .36, top + 1.5]
+    o["zoom"] = 30
+
+
+def towers():
+    c = col("Towers")
+    shooting_tower(c)
+    for k, (x, y) in enumerate(((-46, -88), (46, -88), (-46, -8), (46, -8))):
+        guard_tower((x, y), math.pi / 4 * (1 if x > 0 else -1), c, f"Guard tower {k}", siren=k in (0, 3))
+    # sirens on poles: the square and the end of the hall
+    for k, (x, y) in enumerate(((7, -36), (A + FIELD_W / 2 + 2.5, HALL + 2))):
+        box(f"Siren pole {k}", (x - .08, y - .08, 0), (x + .08, y + .08, 6), M["wood"], c)
+        horn((x, y, 6), 0, c, f"Siren {k}")
+
+
+def fences():
+    """barbed wire round the camp (posts every 3 m, three strands, a coil along the bottom), a gate with a striped
+    barrier where the road comes in, a low rail fence round the flag square"""
+    c = col("Fences")
+    x0, x1, y0, y1 = -48.0, 48.0, -90.0, -6.0
+    gate = 4.0
+    runs = [((x0, y0), (-gate, y0)), ((gate, y0), (x1, y0)), ((x1, y0), (x1, y1)), ((x0, y0), (x0, y1))]
+    for i, (a, b) in enumerate(runs):
+        a, b = Vector(a), Vector(b)
+        n = max(1, int((b - a).length / 3))
+        parts = []
+        for k in range(n + 1):
+            p = a.lerp(b, k / n)
+            parts.append(box("post", (p.x - .06, p.y - .06, 0), (p.x + .06, p.y + .06, 1.6), M["wood"], c))
+        horiz = abs(b.x - a.x) > abs(b.y - a.y)
+        for z in (.45, .9, 1.4):
+            lo, hi = (min(a.x, b.x), min(a.y, b.y)), (max(a.x, b.x), max(a.y, b.y))
+            parts.append(box("wire", (lo[0] - (0 if horiz else .01), lo[1] - (.01 if horiz else 0), z), (hi[0] + (0 if horiz else .01), hi[1] + (.01 if horiz else 0), z + .02), M["wire"], c))
+        # a coil: zigzag loops low along it
+        m = int((b - a).length / .5)
+        for k in range(m):
+            p = a.lerp(b, (k + .5) / m)
+            off = .18 if k % 2 else -.18
+            q = p + (Vector((0, off)) if horiz else Vector((off, 0)))
+            parts.append(box("coil", (q.x - .02, q.y - .02, .05 + (k % 3) * .08), (q.x + .02, q.y + .02, .4 + (k % 3) * .08), M["wire"], c))
+        join(f"Fence wire {i}", parts)
+    # the gate: two posts, a red / white striped pole
+    gp = [box("gate post", (-gate - .15, y0 - .15, 0), (-gate + .15, y0 + .15, 1.2), M["concrete"], c),
+          box("gate post", (gate - .15, y0 - .15, 0), (gate + .15, y0 + .15, 1.0), M["concrete"], c)]
+    for k in range(8):
+        xa = -gate + k * (2 * gate / 8)
+        gp.append(box("bar", (xa, y0 - .05, 1.0), (xa + 2 * gate / 8, y0 + .05, 1.1), M["barrier_red" if k % 2 == 0 else "white"], c))
+    join("Gate barrier", gp)
+    # rail fence round the flag square
+    rf = []
+    for (a, b) in (((-8, -35), (8, -35)), ((-8, -18), (-2.5, -18)), ((2.5, -18), (8, -18)), ((-8, -35), (-8, -18)), ((8, -35), (8, -18))):
+        a, b = Vector(a), Vector(b)
+        n = max(1, int((b - a).length / 2.5))
+        for k in range(n + 1):
+            p = a.lerp(b, k / n)
+            rf.append(box("post", (p.x - .05, p.y - .05, 0), (p.x + .05, p.y + .05, .7), M["white"], c))
+        lo, hi = (min(a.x, b.x), min(a.y, b.y)), (max(a.x, b.x), max(a.y, b.y))
+        rf.append(box("rail", (lo[0] - .03, lo[1] - .03, .55), (hi[0] + .03, hi[1] + .03, .6), M["white"], c))
+    join("Fence square", rf)
+
+
+OUR_NATURE = os.path.expanduser("~/Developer/games/polywar/assets/models/nature")
+TREES = ["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "PineTree_1", "PineTree_2", "PineTree_3", "BirchTree_1", "BirchTree_2"]
+BUSHES = ["Bush_1", "Bush_2"]
+
+
 def trees():
+    """our own low poly trees and bushes (assets/models/nature, the lighter lod2), round the fields and the camp"""
     c = col("Nature")
-    protos = []
-    for name in ("CommonTree_1", "CommonTree_3", "Rock_Medium_1", "Rock_Medium_2"):
+    protos = {}
+    for name in TREES + BUSHES:
+        path = os.path.join(OUR_NATURE, f"{name}.lod2.glb")
+        if not os.path.exists(path):
+            path = os.path.join(OUR_NATURE, f"{name}.glb")
+        if not os.path.exists(path):
+            continue
         before = set(bpy.data.objects)
-        bpy.ops.import_scene.gltf(filepath=os.path.join(NATURE, name + ".gltf"))
+        bpy.ops.import_scene.gltf(filepath=path)
         new = [o for o in bpy.data.objects if o not in before]
         for o in new:
             if o.type != "MESH":
@@ -516,40 +823,62 @@ def trees():
                     mw = ch.matrix_world.copy(); ch.parent = None; ch.matrix_world = mw
         for o in [o for o in new if o.type != "MESH"]:
             bpy.data.objects.remove(o)
-        m = [o for o in new if o.name in bpy.data.objects and o.type == "MESH"]
-        for o in m:
-            o.data.materials.clear()
-            if "Tree" in name:
-                o.data.materials.append(M["bark"]); o.data.materials.append(M["leaves"])
-                hi = max(v.co.z for v in o.data.vertices)
-                for p in o.data.polygons:
-                    p.material_index = 1 if p.center.z > hi * .35 else 0
-            else:
-                o.data.materials.append(M["rock"])
-            protos.append((name, o))
+        meshes = [o for o in new if o.name in bpy.data.objects]
+        if not meshes:
+            continue
+        protos[name] = join(f"proto {name}", meshes) if len(meshes) > 1 else meshes[0]
+        protos[name].matrix_world = Matrix.Identity(4)
+    trees_ = [protos[n] for n in TREES if n in protos]
+    bushes = [protos[n] for n in BUSHES if n in protos]
     edge = GAP + FIELD_W + 7
-    for k in range(140):
-        name, src = rng.choice([p for p in protos if "Tree" in p[0]])
-        side = rng.choice((-1, 1))
-        x = side * rng.uniform(edge, edge + 60)
-        y = rng.uniform(-120, 880)
-        o = bpy.data.objects.new(f"Tree.{k}", src.data)
+    def put(src, name, x, y, sc):
+        o = bpy.data.objects.new(name, src.data)
         o.location = (x, y, 0)
         o.rotation_euler.z = rng.uniform(0, 6.3)
-        o.scale = [rng.uniform(.8, 1.5)] * 3
+        o.scale = [sc] * 3
         c.objects.link(o)
-    # a few trees and rocks round the camp
-    for k in range(18):
-        name, src = rng.choice(protos)
-        x = rng.choice((-1, 1)) * rng.uniform(26, 45)
-        y = rng.uniform(-75, -20)
-        o = bpy.data.objects.new(f"{'Tree' if 'Tree' in name else 'Rock'}.c{k}", src.data)
-        o.location = (x, y, 0)
-        o.rotation_euler.z = rng.uniform(0, 6.3)
-        o.scale = [rng.uniform(.4, .9) if "Rock" in name else rng.uniform(.9, 1.3)] * 3
-        c.objects.link(o)
-    for _, o in protos:
-        bpy.data.objects.remove(o)
+    for k in range(170):
+        x = rng.choice((-1, 1)) * rng.uniform(edge, edge + 70)
+        put(rng.choice(trees_), f"Tree.{k}", x, rng.uniform(-140, 900), rng.uniform(.9, 1.5))
+    for k in range(40):
+        x = rng.choice((-1, 1)) * rng.uniform(edge - 2, edge + 20)
+        put(rng.choice(bushes), f"Tree.bush{k}", x, rng.uniform(-80, 850), rng.uniform(.8, 1.3))
+    # inside the wire: a few trees between tents and along the fence
+    for k in range(14):
+        x = rng.choice((-1, 1)) * rng.uniform(36, 45)
+        put(rng.choice(trees_), f"Tree.c{k}", x, rng.uniform(-86, -12), rng.uniform(.8, 1.2))
+    for p in protos.values():
+        bpy.data.objects.remove(p)
+
+
+def grass_zones():
+    """where the grass package grows what (exported as rectangles, not drawn): tall on the fields and round the
+    bunkers, short where people walk (camp streets, round the square), none under tents / buildings / roads"""
+    c = col("Grass zones")
+    def zone(kind, x0, y0, x1, y1, k):
+        o = box(f"Grass.{kind}.{k}", (min(x0, x1), min(y0, y1), .1), (max(x0, x1), max(y0, y1), .11), M["turf"], c)
+        o.hide_render = True
+        o["grass"] = kind
+    k = 0
+    # tall: field A past the hall, field B, a band round the bunkers, outside the tent rows
+    for args in ((A - FIELD_W / 2, HALL + 1, A + FIELD_W / 2, 112), (B - FIELD_W / 2, 3, B + FIELD_W / 2, 830),
+                 (A - FIELD_W / 2 - 6, -8, A - FIELD_W / 2 - 1, HALL), (A + FIELD_W / 2 + 1, -8, A + FIELD_W / 2 + 4, HALL),
+                 (B - FIELD_W / 2 - 4, -8, B + FIELD_W / 2 + 4, -5)):
+        zone("tall", *args, k); k += 1
+    for s in (-1, 1):
+        zone("tall", s * 13, -70, s * 40, -61, k); k += 1     # behind the south row
+        zone("tall", s * 13, -41, s * 40, -37, k); k += 1     # behind the north row
+        zone("short", s * 13, -52, s * 40, -50, k); k += 1    # the camp street between the rows
+        zone("short", s * 4, -36, s * 12, -14, k); k += 1     # round the square
+    # none: tents, the hall, bunker B, the armory, road, square
+    for s in (-1, 1):
+        for row in (-45, -57):
+            for i in range(4):
+                x = s * (16 + i * 5.2)
+                zone("none", x - 2.2, row - 3.2, x + 2.2, row + 3.2, k); k += 1
+    for args in ((A - FIELD_W / 2 - 1, -6, A + FIELD_W / 2 + 1, HALL), (B - FIELD_W / 2 - 1, -6, B + FIELD_W / 2 + 1, 1),
+                 (A - 6.5, ARMORY[1] - .5, A + 6.5, -5), (-ROAD_W / 2 - .3, -90, ROAD_W / 2 + .3, 830), (-8, -35, 8, -18)):
+        zone("none", *args, k); k += 1
 
 
 def ground_heights():
@@ -569,16 +898,25 @@ if __name__ == "__main__":
     for c in list(bpy.data.collections):
         bpy.data.collections.remove(c)
     land()
-    firing_point(A, "A")
+    hall()
+    armory()
     firing_point(B, "B")
     lanes_a()
+    targets_a()
     targets_b()
     markers()
     camp()
     vehicles()
     crates()
     scopes_and_glasses()
+    towers()
+    fences()
     trees()
+    grass_zones()
+    # where the player starts: in the hall's firing room, behind the middle lane
+    sp = bpy.data.objects.new("Spawn", None)
+    sp.location = (A, -2.6, 0)
+    bpy.context.scene.collection.objects.link(sp)
     ground_heights()
     bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
     bpy.ops.wm.save_as_mainfile(filepath=OUT)

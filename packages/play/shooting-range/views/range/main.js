@@ -160,7 +160,7 @@ demo.tick = () => {
     button = buttonAt(range.data, [w[12], w[13], w[14]], [-w[8], -w[9], -w[10]]);
     const lane = button && range.lanes.of(button.lane);
     nearOptic = (range.data.optics ?? []).find(o => (o.kind === 'fixed' || !binoculars) && Math.hypot(o.at[0] - f[0], o.at[2] - f[2]) < 1.4);
-    $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${[10, 25, 50, 75, 100][lane?.stop ?? 0]} m)`
+    $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`
         : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars' : 'F  step back')
         : nearOptic ? (nearOptic.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars')
         : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';

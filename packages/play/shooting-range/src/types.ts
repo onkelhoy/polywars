@@ -17,6 +17,10 @@ export type RangeData = {
     targets: Target[];
     /** desk buttons: move lane `lane`'s carrier nearer (-1) / further (+1) */
     buttons?: { name: string; lane: number; dir: -1 | 1; min: Vec3; max: Vec3 }[];
+    /** where the lane carriers stop, m from the firing line (default 10 / 25 / 50 / 75 / 100) */
+    stops?: number[];
+    /** where the grass grows what: rectangles (x / z), `none` wins over `short` over `tall` */
+    grass?: { kind: "tall" | "short" | "none"; min: [number, number]; max: [number, number] }[];
     /** lane carriers (a paper target rides on each) */
     carriers?: { name: string; min: Vec3; max: Vec3 }[];
     /** spotting scopes (fixed, steady) and binoculars (picked up, shaky) */
