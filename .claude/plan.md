@@ -26,3 +26,8 @@ Gun obstruction: barrel reacts to geometry (deflect on a pole, tuck at a wall). 
 3. ViewModel: springs for deflect / back / tuck, applied round the grip after the pose (like recoil). Tucked blocks ADS (aimed forced to 0).
 4. Player: run obstruction each frame with `setting.cast`; firing unchanged (muzzle + bore already follow the gun).
 5. Test: shooting range walls / stands (solid boxes) via its cast; no new view.
+
+## Drivable jeep (confirmed, not started)
+1. `tools/blender/packs/jeep.py`: store FBX `~/Developer/3d/store/Vehicles/willys-jeep-low-poly/source/willys jeep Blend.fbx` (one mesh, 4888 faces, palette png) → split 4 wheels + steering wheel, scale to 3.4 m, export `assets/models/vehicles/willys-jeep/model.glb` + `vehicle.json` (wheels pos/radius, seat, eye, mass, top speed).
+2. `npm run create` → `@polywar/vehicle` (packages/play/): papit `rigidbody` box chassis, per-wheel raycast spring/damper (soft, bouncy), tyre grip long/lat, engine/brake/handbrake, speed-scaled steering; wheel spin/steer/travel; `views/drive` bumpy test ground.
+3. Range: parked `Jeep*` in camp.blend → vehicles; E enter/exit, W/S, A/D, Space handbrake, chase cam, V seat cam; chassis vs range solids.
