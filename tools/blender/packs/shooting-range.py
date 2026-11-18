@@ -30,6 +30,7 @@ ROLES = [
     ("Flag Flag cloth", "decor"),
     ("Flag Flag gravel", "decor"),
     ("Tent", "decor"),
+    ("Armory lamp", "decor"),
     ("Rock.c", "solid"),
     ("Road", "decor"),
     ("Rail.", "decor"),
@@ -59,7 +60,7 @@ PAINT = {"Single Target.001": (.30, .36, .20, 1), "Moving Target-guy": (.80, .70
 # material name -> surface (bullet marks, case sounds)
 SURFACES = [("concrete", "stone"), ("wood", "wood"), ("metal", "metal"), ("target", "wood")]
 # hollow parts get a box per face (the booths: two sides + a table as one piece); others a box per loose part
-HOLLOW = {"Single Target.012"}
+HOLLOW = {"Single Target.012", "Armory walls", "Bunker B"}
 # gun cases are dense: kept at this share of their faces
 DECIMATE = {"Object_5": .12, "Object_4": .5, "Gorebox": .4}
 
