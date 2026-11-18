@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-`main` has everything: weapons assets, aim, gun feel, SSAO, shooting range, weapon editor, soldiers with body arms, recoil (one push, `control`), rigged Kar98k (`cycle` / `shoot` clips, wood / metal), muzzle flash on the bore. Open: `feature/jeep` (off `feature/range`; drivable jeep, now `.claude/plan.jeep.md` tasks 6-8 next), `feature/range` (range rework 1-7 done, untested in browser), `feature/arms-grip` task 5 (grab animation: owner designs), gun obstruction in-game check.
+Everything is on `main` (all branches merged + deleted). Next: jeep task 7 (`.claude/plan.jeep.md`). Needs in-game check: range rework, gun obstruction, jeep 1-6, lights + glow, grass on the range. Open: arms-grip task 5 (grab animation: owner designs).
 
 ## Tasks (done, needs in-game check: shooting range rework, `feature/range`)
 Owner's `~/Developer/3d/shooting-range/model.blend` -> script -> `model.v2.blend` (owner fixes by hand after). Low poly, flat colours, natural, WW2 military. Long range stays.
