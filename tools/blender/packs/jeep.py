@@ -52,6 +52,12 @@ def main():
     body = bpy.data.objects["jeep"]
     body.name = body.data.name = "Body"
     pw.bake(body, body.matrix_world.copy())
+    me = body.data  # FBX brings white vertex colours and spare UV maps: the palette UV only
+    for c in list(me.color_attributes):
+        me.color_attributes.remove(c)
+    uv = me.uv_layers.active.name
+    for l in [l for l in me.uv_layers if l.name != uv]:
+        me.uv_layers.remove(l)
 
     parts = pw.loose_parts(body.data)
     boxes = [pw.world_bbox(body, p) for p in parts]
