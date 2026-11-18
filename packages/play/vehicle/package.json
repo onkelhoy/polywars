@@ -48,7 +48,10 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/rigidbody": "*"
+    "@papit/rigidbody": "*",
+    "@papit/vector": "*",
+    "@papit/quaternion": "*",
+    "@papit/matrix": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",
@@ -56,8 +59,9 @@
     "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@papit/game-mesh": "*",
-    "@papit/matrix": "*",
-    "@papit/game-engine": "*"
+    "@papit/game-engine": "*",
+    "@polywar/vehicle-audio": "*",
+    "@papit/audio": "*"
   },
   "browserslist": [
     "defaults",

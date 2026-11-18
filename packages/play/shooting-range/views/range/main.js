@@ -11,6 +11,7 @@ const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange, buttonAt } from '@polywar/shooting-range';
 import { Vehicle } from '@polywar/vehicle';
+import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 
@@ -181,19 +182,19 @@ const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;
     const spec = await (await fetch(base + 'vehicle.json')).json();
     const car = new Vehicle({ spec, ground: range.ground, solids: range.colliders }, v.at, v.yaw);
-    return { car, spec, model: await Model.load(gl, base + spec.model), awake: 0 };
+    return { car, spec, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
 let driving, seatCam = false, nearCar;
 window.cars = cars;
 const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
 const carMatrix = Matrix4.create();
-const forward = c => { const f = c.toWorld([0, 0, -1], [0, 0, 0], 0); return Math.atan2(-f[0], -f[2]); };
+const forward = c => { const f = c.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
 // the player stands in the driven car: two cylinders per car for the mover (front / back half)
 const baseColliders = range.colliders;
 range.colliders = (x, z) => {
     const list = baseColliders(x, z);
     const extra = cars.filter(c => c !== driving).flatMap(({ car }) => {
-        const p = car.body.position, f = car.toWorld([0, 0, -1], [0, 0, 0], 0);
+        const p = car.body.position, f = car.toWorld([0, 0, -1], undefined, 0);
         if (Math.hypot(p.x - x, p.z - z) > 6) return [];
         return [-.85, .85].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: .85, bottom: p.y - 1, top: p.y + .6 }));
     });
@@ -211,6 +212,7 @@ function drawCars() {
 }
 function enter(c) {
     driving = c;
+    c.engine ??= new EngineSound({ mixer: player.feel.mixer });
     chase.yaw = forward(c.car);
     const p = c.car.body.position;
     chase.pos = [p.x + Math.sin(chase.yaw) * 7, p.y + 2.5, p.z + Math.cos(chase.yaw) * 7];
@@ -238,7 +240,7 @@ function driveCamera(camera, dt) {
         chase.look[0] = Math.max(-2.2, Math.min(2.2, chase.look[0] - dx * .0022));
         chase.look[1] = Math.max(-1.2, Math.min(1.2, chase.look[1] - dy * .0022));
         eye = car.toWorld(spec.eye);
-        const f = car.toWorld([0, 0, -1], [0, 0, 0], 0);
+        const f = car.toWorld([0, 0, -1], undefined, 0);
         yaw = forward(car) + chase.look[0];
         pitch = Math.asin(Math.max(-1, Math.min(1, f[1]))) + chase.look[1];
     }
@@ -256,6 +258,8 @@ function driveCamera(camera, dt) {
     }
     camera.position.set(eye);
     camera.rotation.set([pitch, yaw, 0]);
+    const cp = Math.cos(pitch);
+    player.feel.mixer.setListener({ x: eye[0], y: eye[1], z: eye[2] }, { x: -Math.sin(yaw) * cp, y: Math.sin(pitch), z: -Math.cos(yaw) * cp });
 }
 // one camera: the player's controller on foot, the car's camera while driving (input + pointer lock stay)
 const walkCam = player.controller;
@@ -264,7 +268,17 @@ const seat = {
     update: (c, dt) => {
         dt = Math.min(dt, .1);
         // cars left rolling settle a few seconds, then park (no cost)
-        for (const c2 of cars) if (c2 !== driving && c2.awake > 0) { c2.awake -= dt; c2.car.update(dt); }
+        for (const c2 of cars)
+        {
+            if (c2 !== driving && c2.awake > 0) { c2.awake -= dt; c2.car.update(dt); }
+            // the engine runs while driven and a few seconds after (idling), then stops
+            if (c2.engine)
+            {
+                const p = c2.car.body.position;
+                c2.engine.update({ rpm: c2.car.rpm, load: c2.car.power, slip: c2.car.slip, position: [p.x, p.y, p.z] });
+                if (c2 !== driving && c2.awake <= 0) { c2.engine.stop(.8); c2.engine = undefined; }
+            }
+        }
         if (driving) driveCamera(c, dt); else walkCam.update(c, dt);
     },
     destroy: () => walkCam.destroy?.(),

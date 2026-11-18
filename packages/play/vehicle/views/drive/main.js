@@ -4,6 +4,8 @@ import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Matrix4 } from '@papit/matrix';
 import { Vehicle } from '@polywar/vehicle';
 import { Camera } from '@papit/game-engine';
+import { AudioMixer } from '@papit/audio';
+import { EngineSound } from '@polywar/vehicle-audio';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -30,7 +32,7 @@ const mesh = upload(gl, b.build()), identity = Matrix4.create();
 
 const model = await Model.load(gl, base + spec.model);
 const tune = { frequency: 1.3, damping: .3, grip: 1.1, boost: 1 };
-const yaw = () => { const f = car.toWorld([0, 0, -1], [0, 0, 0], 0); return Math.atan2(-f[0], -f[2]); };
+const yaw = () => { const f = car.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
 let car = new Vehicle({ spec, ground, solids, ...tune });
 for (const k of Object.keys(tune)) $('#' + k).oninput = e => {
     tune[k] = +e.target.value; e.target.nextElementSibling.textContent = e.target.value;
@@ -39,6 +41,11 @@ for (const k of Object.keys(tune)) $('#' + k).oninput = e => {
 Object.keys(tune).forEach(k => $('#' + k).oninput({ target: $('#' + k) }));
 
 demo.vehicle = () => car;
+
+// ---- sound: starts on the first key (audio needs a gesture) ----
+const mixer = new AudioMixer();
+let engine;
+addEventListener('keydown', () => { mixer.unlock(); engine ??= new EngineSound({ mixer }); });
 
 // ---- input ----
 const keys = new Set();
@@ -75,6 +82,10 @@ const chase = {
         }
         const d = [to[0] - eye[0], to[1] - eye[1], to[2] - eye[2]];
         camera.position.set(eye);
+        const f = [to[0] - eye[0], to[1] - eye[1], to[2] - eye[2]], l = Math.hypot(...f) || 1;
+        mixer.setListener({ x: eye[0], y: eye[1], z: eye[2] }, { x: f[0] / l, y: f[1] / l, z: f[2] / l });
+        const p = car.body.position;
+        engine?.update({ rpm: car.rpm, load: car.power, slip: car.slip, position: [p.x, p.y, p.z] });
         camera.rotation.set([Math.atan2(d[1], Math.hypot(d[0], d[2])), Math.atan2(-d[0], -d[2]), 0]);
     },
 };

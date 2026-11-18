@@ -3,7 +3,7 @@ Rough first pass each; owner refines after.
 
 1. [x] Glass: clear panes + a few thin white streaks (own see-through part). Streaks only if the renderer can't blend.
 2. [x] Gears: automatic 3-speed (rpm, ratios, short power cut per shift, engine braking). Top speed 105 km/h default (real Willys MB), `boost` setting for 150+.
-3. Engine sound: generated loop, pitch / volume follow rpm, dip + rise on shifts, idle at a stop, handbrake skid. papit `audio` (3D).
+3. [x] Engine sound: generated loop, pitch / volume follow rpm, dip + rise on shifts, idle at a stop, handbrake skid. papit `audio` (3D).
 4. Car collisions: all vehicles in one shared world (jeeps hit each other), bullets hit jeeps. Tents later.
 5. Dust: dirt / gravel puffs behind the wheels, more with speed + slip, coloured by the ground.
 6. Driver seated: character sitting at the seat, hands on the rim by IK; each hand follows about one turn, then lets go and grabs again further round.

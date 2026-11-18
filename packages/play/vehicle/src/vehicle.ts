@@ -1,7 +1,12 @@
 import { Box, Hull, RigidBody, World, raycast } from "@papit/rigidbody";
-import type { DriveInput, Solid, Vec3, VehicleSetting, VehicleSpec, WheelState } from "./types";
+import { Vector3 } from "@papit/vector";
+import { Quaternion } from "@papit/quaternion";
+import type { DriveInput, Point, Solid, VehicleSetting, VehicleSpec, WheelState } from "./types";
 
-type M16 = { [i: number]: number };
+import type { Matrix4 } from "@papit/matrix";
+
+/** wheel / steering node moves are written by hand: no allocation per frame (Matrix4 ops make new matrices) */
+type M16 = Matrix4 | Float32Array | Float64Array;
 const G = 9.81;
 /** cancel rates (1/s): how fast sideways / locked wheel speed is taken out, before the grip limit */
 const LATERAL = 18, LOCK = 18;
@@ -29,6 +34,12 @@ export class Vehicle {
     power = 0;
     /** seconds left of the current shift (power cut, then eased back in) */
     shifting = 0;
+    /** how much the tyres slide, 0..1 (skid sound, dust): sliding wheels on the ground x speed */
+    get slip() {
+        const n = this.wheels.filter(w => w.grounded && w.slipping).length;
+        const v = this.body.velocity;
+        return n / this.wheels.length * Math.min(1, Math.hypot(v.x, v.z) / 6);
+    }
     /** called on every gear change (sound, a camera nudge) */
     onshift?: (gear: number, up: boolean) => void;
 
@@ -37,15 +48,29 @@ export class Vehicle {
     private near = new Map<Solid, RigidBody>();
     private solids: RigidBody[] = [];
     /** centre of mass, model space */
-    private com: Vec3;
-    private corners: Vec3[];
+    private com: Vector3;
+    private corners: Vector3[];
+    // scratch (the step loop allocates nothing)
+    private up = new Vector3(0, 0, 0);
+    private nose = new Vector3(0, 0, 0);
+    private mount = new Vector3(0, 0, 0);
+    private dir = new Vector3(0, 0, 0);
+    private r = new Vector3(0, 0, 0);
+    private rt = new Vector3(0, 0, 0);
+    private pv = new Vector3(0, 0, 0);
+    private fwd = new Vector3(0, 0, 0);
+    private side = new Vector3(0, 0, 0);
+    private force = new Vector3(0, 0, 0);
+    private corner = new Vector3(0, 0, 0);
+    private local = new Vector3(0, 0, 0);
+    private turn = new Quaternion([0, 0, 0, 1]);
     private k: number;
     private c: number;
     private sag: number;
     private lock: number;
     private left = 0;
 
-    constructor(setting: VehicleSetting, at: Vec3 = [0, 0, 0], yaw = 0) {
+    constructor(setting: VehicleSetting, at: Point = [0, 0, 0], yaw = 0) {
         this.s = {
             travel: .3, frequency: 1.3, damping: .3, grip: 1.1, slide: .35, accel: 3.5, brake: 8, reverse: 5,
             steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: .3, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
@@ -62,26 +87,26 @@ export class Vehicle {
         const lo = [0, 1, 2].map(i => Math.min(...ws.map(p => p[i])));
         const hi = [0, 1, 2].map(i => Math.max(...ws.map(p => p[i])));
         const axle = lo[1];
-        this.com = [(lo[0] + hi[0]) / 2, axle + this.s.centre, (lo[2] + hi[2]) / 2];
+        this.com = new Vector3((lo[0] + hi[0]) / 2, axle + this.s.centre, (lo[2] + hi[2]) / 2);
         const r = Math.max(...spec.wheels.map(w => w.radius));
         const box = spec.body ?? {
-            min: [lo[0] - .1, axle - .05, lo[2] - r - .45] as Vec3,
-            max: [hi[0] + .1, axle + .75, hi[2] + r + .35] as Vec3,
+            min: [lo[0] - .1, axle - .05, lo[2] - r - .45],
+            max: [hi[0] + .1, axle + .75, hi[2] + r + .35],
         };
         this.corners = [];
         for (const x of [box.min[0], box.max[0]]) for (const y of [box.min[1], box.max[1]]) for (const z of [box.min[2], box.max[2]])
-            this.corners.push([x - this.com[0], y - this.com[1], z - this.com[2]]);
+            this.corners.push(new Vector3(x, y, z).subtract(this.com));
 
         this.world = new World({ gravity: { x: 0, y: -G, z: 0 }, allowSleep: false });
         this.body = new RigidBody({
-            shape: new Hull(this.corners.map(([x, y, z]) => ({ x, y, z }))), mass: spec.mass,
+            shape: new Hull(this.corners.map(c => ({ x: c.x, y: c.y, z: c.z }))), mass: spec.mass,
             friction: .6, linearDamping: .02, angularDamping: .3,
         });
         this.world.add(this.body);
 
         this.wheels = spec.wheels.map(spec => ({
             spec, grounded: false, length: this.sag, spin: 0, omega: 0, load: 0, slipping: false,
-            contact: [0, 0, 0], normal: [0, 1, 0],
+            contact: new Vector3(0, 0, 0), normal: new Vector3(0, 1, 0),
         }));
         this.place(at[0], at[2], yaw);
     }
@@ -135,21 +160,16 @@ export class Vehicle {
     }
 
     /** model space -> world, into out (a point; w = 0 for a direction) */
-    toWorld(p: Vec3, out: Vec3 = [0, 0, 0], w = 1): Vec3 {
-        const x = p[0] - this.com[0] * w, y = p[1] - this.com[1] * w, z = p[2] - this.com[2] * w;
-        this.rotate(x, y, z, out);
-        if (w) { out[0] += this.body.position.x; out[1] += this.body.position.y; out[2] += this.body.position.z; }
+    toWorld(p: Point, out = new Vector3(0, 0, 0), w = 1): Vector3 {
+        out[0] = p[0] - this.com[0] * w; out[1] = p[1] - this.com[1] * w; out[2] = p[2] - this.com[2] * w;
+        this.body.rotation.rotate(out);
+        if (w) out.add(this.body.position);
         return out;
     }
 
     /** model matrix (column major 4x4) */
     matrix<T extends M16>(out: T): T {
-        const b = this.body;
-        rotation(b.rotation, out);
-        const o = this.rotate(-this.com[0], -this.com[1], -this.com[2], [0, 0, 0]);
-        out[12] = b.position.x + o[0]; out[13] = b.position.y + o[1]; out[14] = b.position.z + o[2]; out[15] = 1;
-        out[3] = out[7] = out[11] = 0;
-        return out;
+        return this.body.rotation.writeMatrix(out, this.toWorld([0, 0, 0], this.local));
     }
 
     /** wheel `i` node move (model space, for `Model.move`): suspension travel, steer, spin round its rest centre */
@@ -161,7 +181,7 @@ export class Vehicle {
         out[0] = cy; out[1] = 0; out[2] = -sy; out[3] = 0;
         out[4] = sy * sx; out[5] = cx; out[6] = cy * sx; out[7] = 0;
         out[8] = sy * cx; out[9] = -sx; out[10] = cy * cx; out[11] = 0;
-        return pivot(out, p, [0, this.sag - w.length, 0]);
+        return pivot(out, p, this.sag - w.length);
     }
 
     /** steering wheel node move (model space); undefined without one in the spec */
@@ -169,8 +189,8 @@ export class Vehicle {
         const sw = this.spec.steeringWheel;
         if (!sw) return undefined;
         const angle = -this.steering / this.lock * (sw.turns ?? 1.5) * Math.PI;
-        axisAngle(sw.axis, angle, out);
-        return pivot(out, sw.position, [0, 0, 0]);
+        this.turn.setAxisAngle(sw.axis[0], sw.axis[1], sw.axis[2], angle).writeMatrix(out);
+        return pivot(out, sw.position, 0);
     }
 
     // ---- physics ----
@@ -178,10 +198,9 @@ export class Vehicle {
     private forces(dt: number, input: DriveInput) {
         const b = this.body, s = this.s, spec = this.spec;
         const quarter = spec.mass / this.wheels.length;
-        const up = this.rotate(0, 1, 0, [0, 0, 0]);
-        const nose = this.rotate(0, 0, -1, [0, 0, 0]);
+        const q = b.rotation, up = q.rotate(set(this.up, 0, 1, 0)), nose = q.rotate(set(this.nose, 0, 0, -1));
         const v = b.velocity;
-        this.speed = v.x * nose[0] + v.y * nose[1] + v.z * nose[2];
+        this.speed = nose.dot(v);
 
         // steering: lock shrinks with speed, eases to the target
         const target = clamp(input.steer, -1, 1) * this.lock / (1 + Math.abs(this.speed) / s.steerFade);
@@ -218,12 +237,11 @@ export class Vehicle {
         const brake = braking ? spec.mass * s.brake / this.wheels.length : 0;
         const rearZ = Math.max(...this.wheels.map(w => w.spec.position[2]));
 
-        const mount: Vec3 = [0, 0, 0], dir: Vec3 = [-up[0], -up[1], -up[2]];
-        const r: Vec3 = [0, 0, 0], pv: Vec3 = [0, 0, 0], fwd: Vec3 = [0, 0, 0], side: Vec3 = [0, 0, 0];
+        const { mount, r, rt, pv, fwd, side, force } = this, dir = set(this.dir, -up[0], -up[1], -up[2]);
         for (const w of this.wheels)
         {
             const ws = w.spec, p = ws.position;
-            this.toWorld([p[0], p[1] + this.sag, p[2]], mount);
+            this.toWorld(set(this.local, p[0], p[1] + this.sag, p[2]), mount);
             const reach = s.travel + ws.radius;
             const hit = this.cast(mount, dir, reach, w.normal);
             const locked = !!input.handbrake && p[2] >= rearZ - .01;
@@ -237,12 +255,12 @@ export class Vehicle {
             }
             w.grounded = true;
             w.length = Math.max(0, hit - ws.radius);
-            for (let i = 0; i < 3; i++) w.contact[i] = mount[i] + dir[i] * hit;
-            r[0] = w.contact[0] - b.position.x; r[1] = w.contact[1] - b.position.y; r[2] = w.contact[2] - b.position.z;
+            w.contact.set(mount); w.contact.add(set(r, dir[0] * hit, dir[1] * hit, dir[2] * hit));
+            r.set(w.contact); r.subtract(b.position);
             pointVelocity(b, r, pv);
 
             // spring + damper along the body's up, a hard stop at the end of travel
-            const vUp = dot(pv, up);
+            const vUp = pv.dot(up);
             let load = this.k * (2 * this.sag - w.length) - this.c * vUp;
             // anti-roll bar: the axle's other wheel more compressed pushes this one down less / more
             const other = this.wheels.find(o => o !== w && Math.abs(o.spec.position[2] - p[2]) < .05);
@@ -253,13 +271,11 @@ export class Vehicle {
 
             // tyre frame on the ground
             const yaw = ws.steer ? -this.steering : 0;
-            this.rotate(-Math.sin(yaw), 0, -Math.cos(yaw), fwd);
-            const n = w.normal, fn = dot(fwd, n);
-            for (let i = 0; i < 3; i++) fwd[i] -= n[i] * fn;
-            normalize(fwd);
-            cross(fwd, n, side);
-            normalize(side);
-            const vLong = dot(pv, fwd), vLat = dot(pv, side);
+            q.rotate(set(fwd, -Math.sin(yaw), 0, -Math.cos(yaw)));
+            const n = w.normal, fn = fwd.dot(n);
+            fwd.subtract(n[0] * fn, n[1] * fn, n[2] * fn).normalize();
+            side.set(fwd); side.cross(n).normalize();
+            const vLong = pv.dot(fwd), vLat = pv.dot(side);
 
             const limit = s.grip * load;
             let fLat = -vLat * quarter * LATERAL;
@@ -274,25 +290,25 @@ export class Vehicle {
 
             w.omega = locked ? 0 : vLong / ws.radius;
             w.spin -= w.omega * dt;
-            this.push(r, [up[0] * load, up[1] * load, up[2] * load]);
+            this.push(r, set(force, up[0] * load, up[1] * load, up[2] * load));
             // tyre forces act part way up to the centre of mass height: less roll / trip (arcade, `roll`)
-            const lift = -dot(r, up) * (1 - s.roll);
-            const rt: Vec3 = [r[0] + up[0] * lift, r[1] + up[1] * lift, r[2] + up[2] * lift];
-            this.push(rt, [fwd[0] * fLong + side[0] * fLat, fwd[1] * fLong + side[1] * fLat, fwd[2] * fLong + side[2] * fLat]);
+            const lift = -r.dot(up) * (1 - s.roll);
+            set(rt, r[0] + up[0] * lift, r[1] + up[1] * lift, r[2] + up[2] * lift);
+            this.push(rt, set(force, fwd[0] * fLong + side[0] * fLat, fwd[1] * fLong + side[1] * fLat, fwd[2] * fLong + side[2] * fLat));
         }
 
         // chassis corners in the ground: a stiff spring + friction (the ground is a height function, no body)
-        const corner: Vec3 = [0, 0, 0];
+        const corner = this.corner;
         const kc = spec.mass * 300, cc = 2 * Math.sqrt(kc * spec.mass) * .3;
         for (const c of this.corners)
         {
-            this.toWorld([c[0] + this.com[0], c[1] + this.com[1], c[2] + this.com[2]], corner);
+            this.toWorld(set(this.local, c[0] + this.com[0], c[1] + this.com[1], c[2] + this.com[2]), corner);
             const depth = this.s.ground(corner[0], corner[2]) - corner[1];
             if (depth <= 0) continue;
-            r[0] = corner[0] - b.position.x; r[1] = corner[1] - b.position.y; r[2] = corner[2] - b.position.z;
+            r.set(corner); r.subtract(b.position);
             pointVelocity(b, r, pv);
-            const fy = Math.max(0, kc * depth - cc * pv[1]);
-            this.push(r, [-pv[0] * spec.mass * .5 * Math.min(1, fy / (spec.mass * G)), fy, -pv[2] * spec.mass * .5 * Math.min(1, fy / (spec.mass * G))]);
+            const fy = Math.max(0, kc * depth - cc * pv[1]), rub = spec.mass * .5 * Math.min(1, fy / (spec.mass * G));
+            this.push(r, set(force, -pv[0] * rub, fy, -pv[2] * rub));
         }
 
         // air drag
@@ -308,7 +324,7 @@ export class Vehicle {
     }
 
     /** distance to the ground / a solid along dir (unit) within reach, or null; normal into `normal` */
-    private cast(from: Vec3, dir: Vec3, reach: number, normal: Vec3): number | null {
+    private cast(from: Vector3, dir: Vector3, reach: number, normal: Vector3): number | null {
         let best: number | null = null;
         const ground = this.s.ground;
         const f = (t: number) => from[1] + dir[1] * t - ground(from[0] + dir[0] * t, from[2] + dir[2] * t);
@@ -336,71 +352,39 @@ export class Vehicle {
             const x = from[0] + dir[0] * best, z = from[2] + dir[2] * best, e = .1;
             normal[0] = (ground(x - e, z) - ground(x + e, z)) / (2 * e); normal[1] = 1;
             normal[2] = (ground(x, z - e) - ground(x, z + e)) / (2 * e);
-            normalize(normal);
+            normal.normalize();
         }
         if (this.solids.length)
         {
-            const hit = raycast(this.solids, { x: from[0], y: from[1], z: from[2] }, { x: dir[0], y: dir[1], z: dir[2] }, reach);
+            const hit = raycast(this.solids, from, dir, reach);
             if (hit && (best === null || hit.t < best) && hit.normal.y > .3)
             {
                 best = hit.t;
-                normal[0] = hit.normal.x; normal[1] = hit.normal.y; normal[2] = hit.normal.z;
+                normal.set(hit.normal);
             }
         }
         return best;
     }
 
     /** force F at offset r from the centre of mass */
-    private push(r: Vec3, F: Vec3) {
-        this.body.applyForce({ x: F[0], y: F[1], z: F[2] });
+    private push(r: Vector3, F: Vector3) {
+        this.body.applyForce(F);
         this.body.applyTorque({ x: r[1] * F[2] - r[2] * F[1], y: r[2] * F[0] - r[0] * F[2], z: r[0] * F[1] - r[1] * F[0] });
-    }
-
-    /** body local direction -> world */
-    private rotate(x: number, y: number, z: number, out: Vec3): Vec3 {
-        const q = this.body.rotation, qx = q[0], qy = q[1], qz = q[2], qw = q[3];
-        const tx = 2 * (qy * z - qz * y), ty = 2 * (qz * x - qx * z), tz = 2 * (qx * y - qy * x);
-        out[0] = x + qw * tx + qy * tz - qz * ty;
-        out[1] = y + qw * ty + qz * tx - qx * tz;
-        out[2] = z + qw * tz + qx * ty - qy * tx;
-        return out;
     }
 }
 
 function clamp(x: number, lo: number, hi: number) { return x < lo ? lo : x > hi ? hi : x; }
-function dot(a: ArrayLike<number>, b: ArrayLike<number>) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
-function cross(a: Vec3, b: Vec3, out: Vec3) {
-    out[0] = a[1] * b[2] - a[2] * b[1]; out[1] = a[2] * b[0] - a[0] * b[2]; out[2] = a[0] * b[1] - a[1] * b[0];
-    return out;
+/** fill a scratch vector (no allocation, unlike `new Vector3`) */
+function set(v: Vector3, x: number, y: number, z: number) { v[0] = x; v[1] = y; v[2] = z; return v; }
+/** velocity of the body at offset r (v + w x r), into out */
+function pointVelocity(b: RigidBody, r: Vector3, out: Vector3) {
+    out.set(b.angularVelocity); out.cross(r);
+    return out.add(b.velocity);
 }
-function normalize(v: Vec3) {
-    const l = Math.hypot(v[0], v[1], v[2]) || 1;
-    v[0] /= l; v[1] /= l; v[2] /= l;
-    return v;
-}
-function pointVelocity(b: RigidBody, r: Vec3, out: Vec3) {
-    const v = b.velocity, w = b.angularVelocity;
-    out[0] = v.x + w.y * r[2] - w.z * r[1];
-    out[1] = v.y + w.z * r[0] - w.x * r[2];
-    out[2] = v.z + w.x * r[1] - w.y * r[0];
-    return out;
-}
-/** rotation part of a quaternion into a column major 4x4 */
-function rotation(q: ArrayLike<number>, out: M16) {
-    const x = q[0], y = q[1], z = q[2], w = q[3];
-    out[0] = 1 - 2 * (y * y + z * z); out[1] = 2 * (x * y + z * w); out[2] = 2 * (x * z - y * w);
-    out[4] = 2 * (x * y - z * w); out[5] = 1 - 2 * (x * x + z * z); out[6] = 2 * (y * z + x * w);
-    out[8] = 2 * (x * z + y * w); out[9] = 2 * (y * z - x * w); out[10] = 1 - 2 * (x * x + y * y);
-}
-function axisAngle(a: Vec3, angle: number, out: M16) {
-    const l = Math.hypot(a[0], a[1], a[2]) || 1, s = Math.sin(angle / 2) / l;
-    rotation([a[0] * s, a[1] * s, a[2] * s, Math.cos(angle / 2)], out);
-    out[3] = out[7] = out[11] = 0;
-}
-/** out (rotation set) becomes T(p + shift) * R * T(-p) */
-function pivot<T extends M16>(out: T, p: Vec3, shift: Vec3): T {
+/** out (rotation set, a node move) becomes T(p + up * lift) * R * T(-p) */
+function pivot<T extends M16>(out: T, p: Point, lift: number): T {
     for (let i = 0; i < 3; i++)
-        out[12 + i] = p[i] + shift[i] - (out[i] * p[0] + out[4 + i] * p[1] + out[8 + i] * p[2]);
+        out[12 + i] = p[i] + (i === 1 ? lift : 0) - (out[i] * p[0] + out[4 + i] * p[1] + out[8 + i] * p[2]);
     out[15] = 1;
     return out;
 }

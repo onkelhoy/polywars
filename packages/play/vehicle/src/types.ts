@@ -1,11 +1,14 @@
-export type Vec3 = [number, number, number];
+import type { Vector3 } from "@papit/vector";
+
+/** a point / direction as stored in json: [x, y, z] (math runs on `@papit/vector` Vector3) */
+export type Point = ArrayLike<number>;
 
 /** one wheel, model space (glTF: y up, nose -z, right +x), metres */
 export type WheelSpec = {
     /** glTF node drawn as this wheel (pivot at its centre) */
     node?: string;
     /** centre at rest (car standing loaded on flat ground) */
-    position: Vec3;
+    position: Point;
     radius: number;
     width?: number;
     steer?: boolean;
@@ -21,15 +24,15 @@ export type VehicleSpec = {
     topSpeed: number;
     wheels: WheelSpec[];
     /** model space box the chassis collides as; default from the wheels */
-    body?: { min: Vec3; max: Vec3 };
-    steeringWheel?: { node: string; position: Vec3; axis: Vec3; turns?: number };
-    seat?: Vec3;
-    eye?: Vec3;
-    exit?: Vec3;
+    body?: { min: Point; max: Point };
+    steeringWheel?: { node: string; position: Point; axis: Point; turns?: number };
+    seat?: Point;
+    eye?: Point;
+    exit?: Point;
 };
 
 /** a static axis aligned box the chassis bumps into and wheels drive onto (same shape as `@polywar/mover` boxes) */
-export type Solid = { min: Vec3; max: Vec3 };
+export type Solid = { min: Point; max: Point };
 
 export type VehicleSetting = {
     spec: VehicleSpec;
@@ -97,6 +100,6 @@ export type WheelState = {
     load: number;
     /** sliding (grip used up) */
     slipping: boolean;
-    contact: Vec3;
-    normal: Vec3;
+    contact: Vector3;
+    normal: Vector3;
 };

@@ -63,7 +63,9 @@
     "@polywar/characters": "*",
     "@polywar/player": "*",
     "@polywar/viewmodel": "*",
-    "@polywar/vehicle": "*"
+    "@polywar/vehicle": "*",
+    "@polywar/vehicle-audio": "*",
+    "@papit/audio": "*"
   },
   "browserslist": [
     "defaults",
