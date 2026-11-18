@@ -250,7 +250,7 @@ def points():
             # one box, shrunk a little (rocks are round, bank walls straight)
             c, h = (lo + hi) / 2, (hi - lo) / 2 * (.8 if obj.name.startswith("Rock") else 1)
             lo, hi = c - h, c + h
-        for plo, phi in (face_boxes(obj) if r == "target" else [(lo, hi)] if lump else [(lo, hi)] if (hi - lo).length < 3 else part_boxes(obj)):
+        for plo, phi in ([(lo, hi)] if lump else [(lo, hi)] if (hi - lo).length < 3 else part_boxes(obj)):
             if (phi - plo).length >= .05:
                 mn, mx = box(plo, phi)
                 data["solids"].append({"name": obj.name, "min": mn, "max": mx, "surface": kind})
