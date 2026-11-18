@@ -74,21 +74,18 @@ def role(name):
     return hits[0][1] if hits else "solid"
 
 
-def steps(obj, width=.3):
-    """boxes from the floor up to each tread: the stairs sliced along their longer side"""
-    lo, hi = pw.world_bbox(obj)
-    M, axis = obj.matrix_world, 0 if hi.x - lo.x > hi.y - lo.y else 1
-    tops = [(M @ p.center, (M.to_3x3() @ p.normal).normalized()) for p in obj.data.polygons]
-    tops = [c for c, n in tops if n.z > .9]
-    out, a = [], lo[axis]
-    while a < hi[axis] - 1e-3:
-        b = min(a + width, hi[axis])
-        h = max((c.z for c in tops if a - 1e-3 <= c[axis] <= b + 1e-3), default=None)
-        if h and h > lo.z + .01:
-            plo, phi = lo.copy(), hi.copy()
-            plo[axis], phi[axis], phi.z = a, b, h
-            out.append(box(plo, phi))
-        a = b
+def steps(obj):
+    """a box per tread (face pointing up): from the stairs' floor up to the tread, over the tread's whole extent (no gaps)"""
+    lo = pw.world_bbox(obj)[0]
+    M, R, out = obj.matrix_world, obj.matrix_world.to_3x3(), []
+    for p in obj.data.polygons:
+        if (R @ p.normal).normalized().z <= .9:
+            continue
+        plo, phi = pw.bbox(M @ obj.data.vertices[i].co for i in p.vertices)
+        if phi.z <= lo.z + .01:
+            continue
+        plo.z = lo.z
+        out.append(box(plo, phi))
     return out
 
 
