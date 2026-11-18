@@ -29,6 +29,17 @@ export class ShootingRange {
         this.stands = data.stands;
         this.spawn = data.spawn;
         for (const t of this.targets) this.targetOf.set(t.name, t);
+        for (const tri of data.ground)
+        {
+            const xs = tri.map(p => p[0]), zs = tri.map(p => p[2]);
+            for (let i = Math.floor(Math.min(...xs) / CELL); i <= Math.floor(Math.max(...xs) / CELL); i++)
+                for (let j = Math.floor(Math.min(...zs) / CELL); j <= Math.floor(Math.max(...zs) / CELL); j++)
+                {
+                    const k = key(i, j);
+                    if (!this.groundGrid.has(k)) this.groundGrid.set(k, []);
+                    this.groundGrid.get(k)!.push(tri);
+                }
+        }
         for (const s of this.solids)
             for (let i = Math.floor(s.min[0] / CELL); i <= Math.floor(s.max[0] / CELL); i++)
                 for (let j = Math.floor(s.min[2] / CELL); j <= Math.floor(s.max[2] / CELL); j++)
@@ -39,10 +50,13 @@ export class ShootingRange {
                 }
     }
 
+    /** ground triangles per cell (the ground is a big mesh) */
+    private groundGrid = new Map<number, [Vec3, Vec3, Vec3][]>();
+
     /** the ground's height at x / z (highest triangle there), 0 off it */
     ground = (x: number, z: number) => {
         let best = -Infinity;
-        for (const [a, b, c] of this.data.ground)
+        for (const [a, b, c] of this.groundGrid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? [])
         {
             const d = (b[2] - c[2]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[2] - c[2]);
             if (Math.abs(d) < 1e-9) continue;

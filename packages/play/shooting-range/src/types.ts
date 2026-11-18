@@ -15,5 +15,11 @@ export type RangeData = {
     solids: Omit<Solid, "kind">[];
     stands: Stand[];
     targets: Target[];
+    /** desk buttons: move lane `lane`'s carrier nearer (-1) / further (+1) */
+    buttons?: { name: string; lane: number; dir: -1 | 1; min: Vec3; max: Vec3 }[];
+    /** lane carriers (a paper target rides on each) */
+    carriers?: { name: string; min: Vec3; max: Vec3 }[];
+    /** spotting scopes (fixed, steady) and binoculars (picked up, shaky) */
+    optics?: { name: string; kind: "fixed" | "binoculars"; zoom: number; at: Vec3; eye: Vec3 | null }[];
     spawn: Vec3;
 };

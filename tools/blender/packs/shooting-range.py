@@ -1,6 +1,6 @@
-"""The shooting range (owner's ~/Developer/3d/shooting-range/model.blend) -> @polywar/shooting-range asset.
+"""The shooting range (owner's ~/Developer/3d/shooting-range/model.v2.blend, made by range-v2.py from model.blend) -> @polywar/shooting-range asset.
 
-  blender -b --disable-autoexec ~/Developer/3d/shooting-range/model.blend -P tools/blender/packs/shooting-range.py
+  blender -b --disable-autoexec ~/Developer/3d/shooting-range/model.v2.blend -P tools/blender/packs/shooting-range.py
 
 The .blend is never saved. Writes packages/play/shooting-range/asset/shooting-range/model.glb (via export.py) and range.json:
   { ground: [[x,y,z]*3, ...] triangles, solids: [{ min, max, surface, name }], stands: [{ at, yaw }],
@@ -19,6 +19,16 @@ OUT = os.path.join(pw.ROOT, "packages/play/shooting-range/asset/shooting-range")
 # object name (prefix) -> role. ground: walkable height; stand: a gun case (a gun floats over it); target: scored
 # steps: walkable stairs (a box per step); anything else is solid
 ROLES = [
+    ("Ground", "ground"),
+    ("Road", "decor"),
+    ("Rail.", "decor"),
+    ("Tree.", "decor"),
+    ("Lane Target.", "target"),
+    ("Carrier.", "carrier"),
+    ("Button.near.", "button"),
+    ("Button.far.", "button"),
+    ("Scope.fixed.", "optic"),
+    ("Binoculars.", "optic"),
     ("Single Target.001", "ground"),
     ("Single Target.012", "solid"),
     ("Single Target", "solid"),
@@ -28,6 +38,8 @@ ROLES = [
     ("Target(Square)", "target"),
     ("stairs", "steps"),
 ]
+# one box per object, whatever its parts
+LUMPS = ("Rock.", "Sandbag.bank.")
 # objects without a material get one (colour)
 PAINT = {"Single Target.001": (.30, .36, .20, 1), "Moving Target-guy": (.80, .70, .52, 1), "Single Target.008": (.27, .19, .06, 1)}
 # material name -> surface (bullet marks, case sounds)
@@ -62,6 +74,21 @@ def steps(obj, width=.3):
             plo[axis], phi[axis], phi.z = a, b, h
             out.append(box(plo, phi))
         a = b
+    return out
+
+
+def face_boxes(obj, thin=.03):
+    """a thin world box per face: flat things (targets) hit only where they are, not in the gaps"""
+    M, me, out = obj.matrix_world, obj.data, []
+    for p in me.polygons:
+        if p.area < 1e-4:
+            continue
+        lo, hi = pw.bbox(M @ me.vertices[i].co for i in p.vertices)
+        for k in range(3):
+            if hi[k] - lo[k] < thin:
+                c = (hi[k] + lo[k]) / 2
+                lo[k], hi[k] = c - thin / 2, c + thin / 2
+        out.append((lo, hi))
     return out
 
 
@@ -156,7 +183,7 @@ def decimate():
 
 
 def points():
-    data = {"ground": [], "solids": [], "stands": [], "targets": [], "spawn": None}
+    data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "spawn": None}
     for obj in sorted(bpy.context.scene.objects, key=lambda o: o.name):
         if obj.type != "MESH" or not obj.data.polygons:
             continue
@@ -169,18 +196,35 @@ def points():
         if r == "steps":
             data["solids"] += [{"name": obj.name, "min": mn, "max": mx, "surface": surface(obj)} for mn, mx in steps(obj)]
             continue
+        if r == "decor":
+            continue
         lo, hi = pw.world_bbox(obj)
+        if r == "button":
+            data["buttons"].append({"name": obj.name, "lane": int(obj.get("lane", 0)), "dir": -1 if ".near." in obj.name else 1, "min": box(lo, hi)[0], "max": box(lo, hi)[1]})
+            continue
+        if r == "optic":
+            eye = obj.get("eye")
+            data["optics"].append({"name": obj.name, "kind": "fixed" if obj.name.startswith("Scope.") else "binoculars", "zoom": float(obj.get("zoom", 7)),
+                                   "at": game((lo + hi) / 2), "eye": game(Vector(eye)) if eye else None})
+            continue
+        if r == "carrier":
+            data["carriers"].append({"name": obj.name, "min": box(lo, hi)[0], "max": box(lo, hi)[1]})
         if r == "stand":
             top = (lo + hi) / 2
             top.z = hi.z
             data["stands"].append({"name": obj.name, "at": game(top), "yaw": 0})
         if r == "target":
             mn, mx = box(lo, hi)
-            data["targets"].append({"name": obj.name, "distance": round(-(mn[2] + mx[2]) / 2), "min": mn, "max": mx})
+            data["targets"].append({"name": obj.name, "distance": round(-(mn[2] + mx[2]) / 2 + 1), "min": mn, "max": mx})
         # one box for small things, one per loose part for big ones (walls, rails); hollow parts (a booth: two
         # sides + a table) one thin box per face, so the gap between stays open
         kind = "flesh" if "guy" in obj.name.lower() else surface(obj)
-        for plo, phi in ([(lo, hi)] if (hi - lo).length < 3 else part_boxes(obj)):
+        lump = obj.name.startswith(LUMPS)
+        if lump:
+            # one box, shrunk a little (rocks are round, bank walls straight)
+            c, h = (lo + hi) / 2, (hi - lo) / 2 * (.8 if obj.name.startswith("Rock") else 1)
+            lo, hi = c - h, c + h
+        for plo, phi in (face_boxes(obj) if r == "target" else [(lo, hi)] if lump else [(lo, hi)] if (hi - lo).length < 3 else part_boxes(obj)):
             if (phi - plo).length >= .05:
                 mn, mx = box(plo, phi)
                 data["solids"].append({"name": obj.name, "min": mn, "max": mx, "surface": kind})
