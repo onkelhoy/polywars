@@ -202,7 +202,7 @@ const carMatrix = Matrix4.create();
 const forward = c => { const f = c.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
 // the player stands in the driven car: two cylinders per car for the mover (front / back half)
 const baseColliders = range.colliders;
-range.colliders = (x, z) => {
+const withCars = (x, z) => {
     const list = baseColliders(x, z);
     const extra = cars.filter(c => c !== driving).flatMap(({ car }) => {
         const p = car.body.position, f = car.toWorld([0, 0, -1], undefined, 0);
@@ -211,7 +211,8 @@ range.colliders = (x, z) => {
     });
     return extra.length ? list.concat(extra) : list;
 };
-player.mover.setting && (player.mover.setting.colliders = range.colliders);
+// the mover's colliders only (range.colliders stays boxes: surface / bullets use it)
+player.mover.setting.colliders = withCars;
 function drawCars() {
     for (const { car, spec, model: m } of cars)
     {
