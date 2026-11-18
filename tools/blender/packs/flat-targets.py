@@ -35,7 +35,9 @@ def bands(o):
                         seen.add(h.index); stack.append(h)
         rs = [math.hypot(v.co.x - c.x, v.co.z - c.z) for g in part for v in g.verts]
         out.append((min(rs), max(rs)))
-    outer = max(math.hypot(v.co.x - c.x, v.co.z - c.z) for v in me.vertices)
+    # half the board's width (the max radius would be a square board's corner)
+    xs = [v.co.x for v in me.vertices]
+    outer = (max(xs) - min(xs)) / 2
     bm.free()
     return c, sorted(out), outer
 
