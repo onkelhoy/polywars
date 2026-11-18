@@ -47,7 +47,7 @@ export class Impacts {
     private maxParticles: number;
     private streaks: { head: Vec3; tail: Vec3; width: number; colour: Colour }[] = [];
     private dynamic: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; data: Float32Array };
-    private marks: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; count: number; next: number; max: number };
+    private marks: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; count: number; next: number; max: number; data: Float32Array };
     private eye: Vec3 = [0, 0, 0];
 
     constructor(layer: Layer3D, setting: ImpactsSetting = {}) {
@@ -61,7 +61,7 @@ export class Impacts {
         });
         this.dynamic = { ...this.vao(1024 * 6 * FLOATS), data: new Float32Array(1024 * 6 * FLOATS) };
         const max = setting.marks ?? 600;
-        this.marks = { ...this.vao(max * MARK_VERTICES * FLOATS), count: 0, next: 0, max };
+        this.marks = { ...this.vao(max * MARK_VERTICES * FLOATS), count: 0, next: 0, max, data: new Float32Array(max * MARK_VERTICES * FLOATS) };
     }
 
     private vao(floats: number) {
@@ -265,8 +265,26 @@ export class Impacts {
         const gl = this.gl;
         gl.bindBuffer(gl.ARRAY_BUFFER, m.buffer);
         gl.bufferSubData(gl.ARRAY_BUFFER, m.next * MARK_VERTICES * FLOATS * 4, data);
+        m.data.set(data, m.next * MARK_VERTICES * FLOATS);
         m.next = (m.next + 1) % m.max;
         m.count = Math.min(m.count + 1, m.max);
+    }
+
+    /** moves the marks whose centre is in the box `min`..`max` by `delta` (marks on a moving target ride with it) */
+    shift(min: Vec3, max: Vec3, delta: Vec3) {
+        const m = this.marks, stride = MARK_VERTICES * FLOATS;
+        let moved = false;
+        for (let i = 0; i < m.count; i++)
+        {
+            const o = i * stride, c = [m.data[o], m.data[o + 1], m.data[o + 2]];
+            if (c.some((v, k) => v < min[k] - .02 || v > max[k] + .02)) continue;
+            for (let v = 0; v < MARK_VERTICES; v++) for (let k = 0; k < 3; k++) m.data[o + v * FLOATS + k] += delta[k];
+            moved = true;
+        }
+        if (!moved) return;
+        const gl = this.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, m.buffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, m.data.subarray(0, m.count * stride));
     }
 
     destroy() {

@@ -37,6 +37,8 @@ export class Model {
     private rest: { offset: number[]; rotation: number[] }[] = [];
     /** world matrix of the skeleton's non-joint ancestors (e.g. a scaled Armature node); `rig()` leaves it out */
     private skeleton = Matrix4.create();
+    /** named nodes drawn moved (model space, before their own matrix): `move(name, matrix)` */
+    private moved = new Map<number, Matrix4>();
 
     static async load(gl: WebGL2RenderingContext, url: string, options: ModelOptions = {}) {
         const [gltf, maps] = await Promise.all([loadGLTF(url), readMaps(url).catch(() => [])]);
@@ -217,11 +219,19 @@ export class Model {
         });
     }
 
+    /** draws the node named `name` (and its meshes) moved by `matrix` (model space), `undefined` puts it back */
+    move(name: string, matrix?: Matrix4) {
+        const index = this.gltf.nodes.findIndex(n => (n as { name?: string }).name === name);
+        if (index < 0) return;
+        if (matrix) this.moved.set(index, matrix); else this.moved.delete(index);
+    }
+
     draw(renderer: Renderer, matrix: Matrix4 = Matrix4.create(), options: DrawOptions = {}) {
         for (const item of this.items)
         {
             const meshIndex = this.gltf.nodes[item.node].mesh!;
-            const m = matrix.clone.multiply(item.skinned ? this.skeleton : item.world);
+            const moved = this.moved.get(item.node);
+            const m = (moved ? matrix.clone.multiply(moved) : matrix.clone).multiply(item.skinned ? this.skeleton : item.world);
             const o = item.skinned ? { ...options, joints: this.skin?.matrices ?? this.rig!.matrices } : options;
             this.gpu[meshIndex].forEach((gpu, i) => renderer.draw(gpu, m, { ...o, maps: this.textures[meshIndex]?.[i] }));
         }

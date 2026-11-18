@@ -1,4 +1,5 @@
 import { castBox, castGround, nearest, type Cast, type Hit } from "@polywar/ballistics";
+import { Lanes } from "./lanes";
 import type { RangeData, Solid, Stand, Target, Vec3 } from "./types";
 
 const CELL = 4;
@@ -25,6 +26,9 @@ export class ShootingRange {
 
     constructor(readonly data: RangeData, readonly model = "") {
         this.solids = data.solids.map(s => ({ kind: "box", ...s }));
+        this.lanes = new Lanes(data);
+        const riding = new Set(this.lanes.lanes.flatMap(l => l.names));
+        this.moving = this.solids.filter(s => riding.has(s.name));
         this.targets = data.targets;
         this.stands = data.stands;
         this.spawn = data.spawn;
@@ -41,13 +45,36 @@ export class ShootingRange {
                 }
         }
         for (const s of this.solids)
-            for (let i = Math.floor(s.min[0] / CELL); i <= Math.floor(s.max[0] / CELL); i++)
+            if (!riding.has(s.name)) for (let i = Math.floor(s.min[0] / CELL); i <= Math.floor(s.max[0] / CELL); i++)
                 for (let j = Math.floor(s.min[2] / CELL); j <= Math.floor(s.max[2] / CELL); j++)
                 {
                     const k = key(i, j);
                     if (!this.grid.has(k)) this.grid.set(k, []);
                     this.grid.get(k)!.push(s);
                 }
+    }
+
+    /** the lane targets (desk buttons slide them between the stops) */
+    readonly lanes: Lanes;
+    /** solids that ride on a lane carrier: not in the grid, always checked */
+    private moving: Solid[];
+
+    /**
+     * Slides the lane carriers, their solids and targets along. Per lane that moved: the lane (names to move in the
+     * drawn model, `offset` in total), the step `dz` (game z) and its target's box before the step (move marks in it).
+     */
+    slide(dt: number) {
+        return this.lanes.update(dt).map(({ lane, dz }) => {
+            const target = this.targetOf.get(`Lane Target.L${lane.lane}`);
+            const box = target && { min: [...target.min] as Vec3, max: [...target.max] as Vec3 };
+            for (const s of this.moving) if (lane.names.includes(s.name)) { s.min[2] += dz; s.max[2] += dz; }
+            if (target)
+            {
+                target.min[2] += dz; target.max[2] += dz;
+                target.distance = Math.round(-(target.min[2] + target.max[2]) / 2 + 1);
+            }
+            return { lane, dz, box };
+        });
     }
 
     /** ground triangles per cell (the ground is a big mesh) */
@@ -69,14 +96,18 @@ export class ShootingRange {
     };
 
     /** solids near x / z (the mover's `colliders`) */
-    colliders = (x: number, z: number): Solid[] => this.grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? [];
+    colliders = (x: number, z: number): Solid[] => {
+        const cell = this.grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? [];
+        const near = this.moving.filter(s => x > s.min[0] - CELL && x < s.max[0] + CELL && z > s.min[2] - CELL && z < s.max[2] + CELL);
+        return near.length ? cell.concat(near) : cell;
+    };
 
     /** solids whose cells the segment's box touches */
     private near(from: Vec3, to: Vec3) {
         const i0 = Math.floor(Math.min(from[0], to[0]) / CELL), i1 = Math.floor(Math.max(from[0], to[0]) / CELL);
         const j0 = Math.floor(Math.min(from[2], to[2]) / CELL), j1 = Math.floor(Math.max(from[2], to[2]) / CELL);
         if ((i1 - i0 + 1) * (j1 - j0 + 1) > 256) return this.solids;
-        const out = new Set<Solid>();
+        const out = new Set<Solid>(this.moving);
         for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) for (const s of this.grid.get(key(i, j)) ?? []) out.add(s);
         return out;
     }

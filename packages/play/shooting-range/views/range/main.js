@@ -8,7 +8,7 @@ import { CHARACTERS } from '@polywar/characters';
 const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
-import { ShootingRange } from '@polywar/shooting-range';
+import { ShootingRange, buttonAt } from '@polywar/shooting-range';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 
@@ -70,11 +70,26 @@ function drawStands() {
         m.draw(renderer, matrix);
     }
 }
-let near = -1;
+let near = -1, button;
 addEventListener('keydown', e => {
-    if (e.key.toLowerCase() !== 'f' || near < 0 || !document.body.classList.contains('playing')) return;
-    player.select(stands[near].gun);
+    if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
+    // a desk button looked at first: its lane's target to the next stop
+    if (button) range.lanes.press(button.lane, button.dir);
+    else if (near >= 0) player.select(stands[near].gun);
 });
+
+// ---- lane targets: slide, the drawn carrier + target and the marks on it come along ----
+let lastSlide = performance.now();
+function slideLanes() {
+    const now = performance.now(), dt = Math.min(.1, (now - lastSlide) / 1000);
+    lastSlide = now;
+    for (const { lane, dz, box } of range.slide(dt))
+    {
+        const at = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, -lane.offset, 1]);
+        for (const name of lane.names) model.move(name, at);
+        if (box) player.impacts.shift(box.min, box.max, [0, 0, dz]);
+    }
+}
 
 // ---- gun menu (Tab): every gun as a card with its side view, click to take it ----
 await renderer.ready;
@@ -120,9 +135,14 @@ demo.tick = () => {
     const gap = Math.tan(player.spread) / Math.tan(fov / 2) * layer.element.clientHeight / 2;
     $('#cross').style.setProperty('--gap', `${Math.max(4, gap).toFixed(1)}px`);
     $('#cross').style.opacity = String(1 - g.aimed);
+    slideLanes();
     const i = range.standNear(f[0], f[2]);
     near = i >= 0 && stands[i].gun >= 0 && stands[i].gun !== player.current ? i : -1;
-    $('#prompt').value = near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';
+    const w = camera.worldMatrix;
+    button = buttonAt(range.data, [w[12], w[13], w[14]], [-w[8], -w[9], -w[10]]);
+    const lane = button && range.lanes.of(button.lane);
+    $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${[10, 25, 50, 75, 100][lane?.stop ?? 0]} m)`
+        : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';
     $('#ammo').value = `${g.spec.name}\n${g.reloading > 0 ? 'reloading…' : `${g.rounds} / ${g.spec.magazine}`}${c.scope && g.aimed > .5 ? `\n${c.scope.zoom.toFixed(1)}×` : ''}`;
     $('#state').value = `shots ${player.shots} · hits ${player.hits}\n${lastHit}`;
 };
