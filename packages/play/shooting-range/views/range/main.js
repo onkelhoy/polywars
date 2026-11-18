@@ -4,6 +4,7 @@ import { Renderer, Model } from '@polywar/renderer';
 import { Matrix4 } from '@papit/matrix';
 import { GUNS } from '@polywar/weapons';
 import { Player, WeaponEditor } from '@polywar/player';
+import { Optic } from '@polywar/viewmodel';
 import { CHARACTERS } from '@polywar/characters';
 const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
@@ -73,9 +74,26 @@ function drawStands() {
 let near = -1, button;
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
-    // a desk button looked at first: its lane's target to the next stop
-    if (button) range.lanes.press(button.lane, button.dir);
+    // leaving an optic, a desk button looked at, an optic near, then a gun case
+    if (player.looking) { player.lookThrough(); $('#optic').className = ''; }
+    else if (button) range.lanes.press(button.lane, button.dir);
+    else if (nearOptic) useOptic(nearOptic);
     else if (near >= 0) player.select(stands[near].gun);
+});
+
+// ---- optics: binoculars on the desks (F takes them, G raises them: shaky), spotting scopes in the nests (F: steady) ----
+let nearOptic, binoculars = false;
+const hidden = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -1000, 0, 1]);
+function useOptic(o) {
+    if (o.kind === 'binoculars') { binoculars = true; model.move(o.name, hidden); return; }
+    player.lookThrough(new Optic({ zoom: o.zoom, handheld: false }), o.eye);
+    $('#optic').className = 'scope';
+}
+addEventListener('keydown', e => {
+    if (e.key.toLowerCase() !== 'g' || !binoculars || !document.body.classList.contains('playing')) return;
+    const on = !player.looking;
+    player.lookThrough(on ? new Optic({ zoom: 7, handheld: true }) : undefined);
+    $('#optic').className = on ? 'binoculars' : '';
 });
 
 // ---- lane targets: slide, the drawn carrier + target and the marks on it come along ----
@@ -141,7 +159,10 @@ demo.tick = () => {
     const w = camera.worldMatrix;
     button = buttonAt(range.data, [w[12], w[13], w[14]], [-w[8], -w[9], -w[10]]);
     const lane = button && range.lanes.of(button.lane);
+    nearOptic = (range.data.optics ?? []).find(o => (o.kind === 'fixed' || !binoculars) && Math.hypot(o.at[0] - f[0], o.at[2] - f[2]) < 1.4);
     $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${[10, 25, 50, 75, 100][lane?.stop ?? 0]} m)`
+        : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars' : 'F  step back')
+        : nearOptic ? (nearOptic.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars')
         : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';
     $('#ammo').value = `${g.spec.name}\n${g.reloading > 0 ? 'reloading…' : `${g.rounds} / ${g.spec.magazine}`}${c.scope && g.aimed > .5 ? `\n${c.scope.zoom.toFixed(1)}×` : ''}`;
     $('#state').value = `shots ${player.shots} · hits ${player.hits}\n${lastHit}`;

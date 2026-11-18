@@ -22,3 +22,11 @@ body:not(.playing) #hud { display: none; }
 #state { position: absolute; left: 24px; bottom: 20px; white-space: pre; opacity: .8; text-shadow: 0 0 3px #000; }
 pw-gun-menu { display: none; position: absolute; inset: 6% 10%; background: #111e; border-radius: 8px; z-index: 5; }
 pw-gun-menu.open { display: block; }
+/* looking through an optic: black outside the glass, soft edge */
+#optic { position: absolute; inset: 0; pointer-events: none; display: none; }
+#optic.binoculars { display: block; background:
+    radial-gradient(circle at 36% 50%, transparent 0 27vh, #000 31vh),
+    radial-gradient(circle at 64% 50%, transparent 0 27vh, #000 31vh); background-blend-mode: lighten; }
+#optic.scope { display: block; background: radial-gradient(circle at 50% 50%, transparent 0 34vh, #000 37vh); }
+#optic.scope::after { content: ""; position: absolute; left: 50%; top: 50%; width: 40vh; height: 40vh; transform: translate(-50%, -50%);
+    background: linear-gradient(#000a, #000a) center / 1px 100% no-repeat, linear-gradient(#000a, #000a) center / 100% 1px no-repeat; }

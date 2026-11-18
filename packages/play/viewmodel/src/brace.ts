@@ -8,7 +8,7 @@ export type BraceSetting = {
     near?: number;
     /** lets go past this (m) (default .7) */
     far?: number;
-    /** heights tried, m below the shoulder (default [.15, .35]) */
+    /** heights tried, m below the shoulder (default [-.05, .1]: about neck high) */
     heights?: number[];
     /** up / down probe for a bar, m (default .06) */
     bar?: number;
@@ -33,7 +33,7 @@ export class Brace {
     private on = false;
 
     constructor(setting: BraceSetting) {
-        this.s = { near: .55, far: .7, heights: [.15, .35], bar: .06, speed: 8, ...setting };
+        this.s = { near: .55, far: .7, heights: [-.05, .1], bar: .06, speed: 8, ...setting };
     }
 
     /** `shoulder` world; `forward` / `side` unit, flat (side = the free hand's side); `free` the hand may let go of the gun */

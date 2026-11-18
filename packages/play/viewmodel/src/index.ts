@@ -5,3 +5,4 @@ export * from "./scope";
 export * from "./types";
 export * from "./obstruction";
 export * from "./brace";
+export * from "./optic";

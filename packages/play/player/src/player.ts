@@ -7,7 +7,7 @@ import { Attachments, Character, type Move } from "@polywar/characters";
 import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
-import { Brace, direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
+import { Brace, Optic, direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS, cycleCues, type Action, type Cue } from "@polywar/weapons";
 import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile } from "@polywar/armory";
 import { ARMS, armsPoseOf, type ArmsPose } from "./arms";
@@ -40,6 +40,14 @@ const BACK_OFF = .4;
  */
 export class Player {
     private obstruction: Obstruction;
+    /** looking through binoculars / a spotting scope: the gun goes away, the view zooms and shakes */
+    private optic?: Optic;
+    /** a fixed optic's eye (world): the camera stays there, no walking */
+    private opticEye?: Vec3;
+    /** look through `optic` (binoculars: handheld; a spotting scope: with its `eye`), `undefined` to stop */
+    lookThrough(optic?: Optic, eye?: Vec3) { this.optic = optic; this.opticEye = optic && eye; }
+    get looking() { return !!this.optic; }
+
     /** aiming into a wall: m backed off so far, and room behind to back off (this frame) */
     private backed = 0;
     private room = false;
@@ -367,10 +375,12 @@ export class Player {
         const k = (...n: string[]) => input?.key(...n) ? 1 : 0;
         const gun = carried?.gun;
         if (pressed.has("alt")) this.toggled = !this.toggled;
-        const aiming = this.toggled || !!input?.buttons.has(2);
+        const optic = this.optic;
+        const aiming = !optic && (this.toggled || !!input?.buttons.has(2));
         const scoped = !!carried?.scope && (gun?.aimed ?? 0) > .5;
         // aimed down a scope, the mouse turns slower (by the zoom)
-        const sense = (this.setting.sensitivity ?? .0022) / (scoped ? carried!.scope!.zoom * .8 : 1 + (gun?.aimed ?? 0) * .3);
+        // through an optic the mouse is not slowed: real hands don't get steadier with zoom
+        const sense = (this.setting.sensitivity ?? .0022) / (optic ? 1 : scoped ? carried!.scope!.zoom * .8 : 1 + (gun?.aimed ?? 0) * .3);
         const turnYaw = -dx * sense, turnPitch = -dy * sense;
         this.yaw += turnYaw;
         this.pitch = Math.max(-LIMIT, Math.min(LIMIT, this.pitch + turnPitch));
@@ -414,7 +424,8 @@ export class Player {
             }
         }
         else if (!aiming) this.backed = 0;
-        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") });
+        if (this.opticEye) { wx = 0; wz = 0; }
+        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") && !this.opticEye });
         const m = this.mover;
 
         // the gun
@@ -424,7 +435,7 @@ export class Player {
             // break actions: C pulls the hammers back, X the safety
             if (pressed.has("c")) gun.cock();
             if (gun.barrels && pressed.has("x")) gun.toggleSafety();
-            const event = sprint ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
+            const event = sprint || optic ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
@@ -449,7 +460,8 @@ export class Player {
         {
             const hands = this.held && (this.held.hands ?? this.held.hold);
             const free = !!this.rigArms && this.bodyHolds && (gun?.aimed ?? 0) < .1 && (!hands?.fore || this.vm.tucked > .5 || this.vm.away > .5);
-            const shoulder: Vec3 = [m.feet[0] - rx * .18, m.feet[1] + this.eye - .2, m.feet[2] - rz * .18];
+            // the shoulder joint, a little under the eye: the hand goes on the wall about neck high
+            const shoulder: Vec3 = [m.feet[0] - rx * .18, m.feet[1] + this.eye - .12, m.feet[2] - rz * .18];
             this.brace.update(dt, shoulder, [fx, 0, fz], [-rx, 0, -rz], free);
         }
 
@@ -457,6 +469,13 @@ export class Player {
         const out = this.lean * LEAN;
         camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06, m.feet[2] + rz * out]);
         camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], -this.lean * LEAN_ROLL]);
+        if (optic)
+        {
+            const o = optic.update(dt, [turnPitch, turnYaw]);
+            camera.zoom = optic.zoom;
+            if (this.opticEye) camera.position.set(this.opticEye);
+            camera.rotation.set([this.pitch + o[0], this.yaw + o[1], 0]);
+        }
 
         const p = this.pitch, ya = this.yaw;
         this.feel.update(dt, [camera.position[0], camera.position[1], camera.position[2]], [-Math.sin(ya) * Math.cos(p), Math.sin(p), -Math.cos(ya) * Math.cos(p)]);
@@ -605,7 +624,7 @@ export class Player {
         this.impacts.draw(camera);
         r.reset();
         this.setting.worldDrawn?.();
-        if (!carried) return;
+        if (!carried || this.optic) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);

@@ -61,7 +61,8 @@
     "@papit/matrix": "*",
     "@polywar/weapons": "*",
     "@polywar/characters": "*",
-    "@polywar/player": "*"
+    "@polywar/player": "*",
+    "@polywar/viewmodel": "*"
   },
   "browserslist": [
     "defaults",
