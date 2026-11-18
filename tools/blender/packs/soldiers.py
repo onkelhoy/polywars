@@ -170,5 +170,6 @@ def to_base(old, body):
     return arm
 
 
-for slug, (src, names) in SOLDIERS.items():
-    build(slug, src, names)
+if __name__ == "__main__":
+    for slug, (src, names) in SOLDIERS.items():
+        build(slug, src, names)
