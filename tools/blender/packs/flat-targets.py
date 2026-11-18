@@ -1,90 +1,83 @@
-"""Rebuilds the round paper targets in camp.blend as flat discs: rings are coplanar faces (paper / ink by material) on a
-thin board, no stacked ring solids (z-fighting, many bullet boxes). Copies named `Target.50.A7.NNN` get their own
-names back (Target.<distance>.<n>) from the old range.json by position. Saves the .blend.
+"""Rebuilds the paper targets in camp.blend as classic square boards: a thin box, the front (facing the firing line,
+blender -y) UV'd 0..1 with the ring texture (assets/textures/range/target-rings.png, made here), the rest plain paper.
+The ring material is marked `texture` so export.py keeps it as a real texture (not baked to vertex colours).
+Keeps each target's centre and width. Saves the .blend.
 
-  blender -b ~/Developer/3d/shooting-range/camp.blend -P tools/blender/packs/flat-targets.py -- <old range.json>
+  blender -b ~/Developer/3d/shooting-range/camp.blend -P tools/blender/packs/flat-targets.py
 """
-import bpy, bmesh, json, math, sys
-from mathutils import Vector
+import bpy, bmesh, os, sys
+import numpy as np
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
+import pw
 
-SEG, THICK = 32, .02
-old = json.load(open(sys.argv[sys.argv.index("--") + 1]))["targets"] if "--" in sys.argv else []
-old = [t for t in old if " post" not in t["name"]]
+THICK, SIZE = .02, 512
+PNG = os.path.join(pw.ROOT, "assets/textures/range/target-rings.png")
+
+
+def rings():
+    """white paper, black centre disc with white rings in it, thin black rings outside (radius 1 = board half width)"""
+    y, x = np.mgrid[0:SIZE, 0:SIZE]
+    r = np.hypot(x - SIZE / 2 + .5, y - SIZE / 2 + .5) / (SIZE / 2)
+    ink = r < .5
+    for a in (.1, .2, .3, .4):
+        ink &= abs(r - a) > .008
+    for a in (.6, .7, .8, .9):
+        ink |= abs(r - a) < .007
+    c = np.where(ink, .06, .93)
+    px = np.stack([c, c, c * .97, np.ones_like(c)], -1).astype(np.float32)
+    img = bpy.data.images.get("target-rings") or bpy.data.images.new("target-rings", SIZE, SIZE)
+    img.pixels.foreach_set(px.ravel())
+    img.filepath_raw = PNG
+    img.file_format = "PNG"
+    img.save()
+    img.filepath = PNG
+    return img
+
+
+def face_material(img):
+    m = bpy.data.materials.get("Target face") or bpy.data.materials.new("Target face")
+    m.use_nodes = True
+    m["texture"] = True
+    nt = m.node_tree
+    bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+    tex = next((n for n in nt.nodes if n.type == "TEX_IMAGE"), None) or nt.nodes.new("ShaderNodeTexImage")
+    tex.image = img
+    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 1
+    return m
+
 
 def targets():
     return [o for o in bpy.data.objects if o.type == "MESH" and (o.name.startswith("Target.") or o.name.startswith("Lane Target."))
-            and " post" not in o.name and any(m and m.name == "Target ink" for m in o.data.materials)]
+            and " post" not in o.name and any(m and m.name in ("Target ink", "Target face") for m in o.data.materials)]
 
-def bands(o):
-    """ink annuli [(r0, r1)] in the board plane (xz), from the ink's loose parts; outer radius of the paper"""
-    me = o.data
-    c = sum((v.co for v in me.vertices), Vector()) / len(me.vertices)
-    ink = me.materials.find("Target ink")
-    bm = bmesh.new(); bm.from_mesh(me)
-    seen, out = set(), []
-    for f in bm.faces:
-        if f.index in seen or f.material_index != ink:
-            continue
-        stack, part = [f], []
-        seen.add(f.index)
-        while stack:
-            g = stack.pop(); part.append(g)
-            for e in g.edges:
-                for h in e.link_faces:
-                    if h.index not in seen and h.material_index == ink:
-                        seen.add(h.index); stack.append(h)
-        rs = [math.hypot(v.co.x - c.x, v.co.z - c.z) for g in part for v in g.verts]
-        out.append((min(rs), max(rs)))
-    # half the board's width (the max radius would be a square board's corner)
-    xs = [v.co.x for v in me.vertices]
-    outer = (max(xs) - min(xs)) / 2
-    bm.free()
-    return c, sorted(out), outer
 
-def rebuild(o):
-    c, ink, outer = bands(o)
+face = face_material(rings())
+paper = bpy.data.materials["Target paper"]
+for o in targets():
     me = o.data
-    mats = {m.name: i for i, m in enumerate(me.materials)}
-    radii = sorted({0.0, outer, *[r for b in ink for r in b]})
-    radii = [r for i, r in enumerate(radii) if i == 0 or r - radii[i - 1] > .003]
+    xs, ys, zs = ([v.co[k] for v in me.vertices] for k in range(3))
+    cx, cy, cz = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2, (min(zs) + max(zs)) / 2
+    h = (max(xs) - min(xs)) / 2
     bm = bmesh.new()
-    def ring(r, y):
-        return [bm.verts.new((c.x + r * math.cos(2 * math.pi * k / SEG), y, c.z + r * math.sin(2 * math.pi * k / SEG))) for k in range(SEG)]
-    for y, flip in ((c.y - THICK / 2, False), (c.y + THICK / 2, True)):
-        centre = bm.verts.new((c.x, y, c.z))
-        prev = None
-        for i in range(1, len(radii)):
-            mid = (radii[i - 1] + radii[i]) / 2
-            m = mats["Target ink"] if any(a - .002 <= mid <= b + .002 for a, b in ink) else mats["Target paper"]
-            cur = ring(radii[i], y)
-            for k in range(SEG):
-                q = [centre, cur[k], cur[(k + 1) % SEG]] if prev is None else [prev[k], cur[k], cur[(k + 1) % SEG], prev[(k + 1) % SEG]]
-                f = bm.faces.new(q[::-1] if flip else q); f.material_index = m
-            prev = cur
-        if flip: back = prev
-        else: front = prev
-    for k in range(SEG):
-        f = bm.faces.new([front[k], front[(k + 1) % SEG], back[(k + 1) % SEG], back[k]]); f.material_index = mats["Target paper"]
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    if o.data.users > 1:
-        o.data = o.data.copy()
-    bm.to_mesh(o.data); bm.free()
-
-done = set()
-for o in targets():
-    if o.data.name not in done or o.data.users == 1:
-        rebuild(o); done.add(o.data.name)
-
-# names back: the old target nearest in game x / z (blender x, -y)
-taken = {o.name for o in bpy.data.objects}
-for o in targets():
-    if not o.name.startswith("Target.50.A7."):
-        continue
-    w = o.matrix_world @ (sum((v.co for v in o.data.vertices), Vector()) / len(o.data.vertices))
-    best = min(old, key=lambda t: math.hypot((t["min"][0] + t["max"][0]) / 2 - w.x, (t["min"][2] + t["max"][2]) / 2 + w.y), default=None)
-    if best and best["name"] not in taken:
-        o.name = best["name"]; taken.add(best["name"])
-        print("renamed ->", o.name)
-    else:
-        print("kept", o.name)
+    bmesh.ops.create_cube(bm, size=1)
+    for v in bm.verts:
+        v.co.x, v.co.y, v.co.z = cx + v.co.x * 2 * h, cy + v.co.y * THICK, cz + v.co.z * 2 * h
+    uv = bm.loops.layers.uv.new("UVMap")
+    for f in bm.faces:
+        f.material_index = 0
+        if f.normal.y < -.9:
+            f.material_index = 1
+            for l in f.loops:
+                l[uv].uv = ((l.vert.co.x - cx) / (2 * h) + .5, (l.vert.co.z - cz) / (2 * h) + .5)
+    if me.users > 1:
+        o.data = me = me.copy()
+    me.materials.clear()
+    me.materials.append(paper)
+    me.materials.append(face)
+    while me.uv_layers:
+        me.uv_layers.remove(me.uv_layers[0])
+    bm.to_mesh(me)
+    bm.free()
+    print("board", o.name, round(2 * h * o.scale.x, 2))
 bpy.ops.wm.save_mainfile()

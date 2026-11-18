@@ -290,7 +290,12 @@ def points():
     z = max((s["at"][2] for s in data["stands"]), default=0)
     data["lights"] = lamp_lights()
     data["spawn"] = [round(xs[len(xs) // 2], 3), 0, round(z - 1.5, 3)]
-    sp = bpy.data.objects.get("Spawn")
+    # at the flag (beside its gravel, toward the range); without a flag the `Spawn` empty
+    pole = bpy.data.objects.get("Flag Flag pole")
+    if pole:
+        lo, hi = pw.world_bbox(pole)
+        data["spawn"] = game(Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2 + 3.5, 0)))
+    sp = None if pole else bpy.data.objects.get("Spawn")
     if sp:
         data["spawn"] = game(sp.matrix_world.translation)
     data["stands"].sort(key=lambda s: s["at"][0])

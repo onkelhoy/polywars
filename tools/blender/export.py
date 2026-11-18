@@ -12,7 +12,7 @@
   weights, every other vertex goes to the parent bone. game-mesh then animates them via the rig.
 - Actions on NLA tracks (or the active one) export as glTF animations.
 - Trailing holds (keys that no longer change anything) are cut off each action.
-- Image textures are baked into vertex colours (game-mesh draws base colour x COLOR_0 only).
+- Image textures are baked into vertex colours, except materials with a custom property `texture` (kept as images).
 - An armature also writes `<out>.rig.json` (glTF drops bone lengths and constraints):
   { bones: { name: { length, deform } }, ik: [{ bone, chain, target, pole, weight }],
     copyRotation: [{ bone, target, weight }] }. Weights are the rest values (actions may key them).
@@ -90,7 +90,8 @@ def textures_to_vertex_colours():
             continue
         images = {}
         for i, mat in enumerate(me.materials):
-            if mat and mat.node_tree:
+            # materials marked `texture` keep their image (exported as a real texture)
+            if mat and mat.node_tree and not mat.get("texture"):
                 for n in mat.node_tree.nodes:
                     if n.type == "TEX_IMAGE" and n.image and n.image.size[0]:
                         images[i] = n.image
@@ -298,7 +299,8 @@ def export(out, bake=False):
         filepath=out, export_format="GLB", export_yup=True, export_apply=True,
         export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True,
         export_skins=True, export_def_bones=False, export_lights=False, export_cameras=False,
-        export_vertex_color="ACTIVE", export_image_format="NONE",
+        export_vertex_color="ACTIVE",
+        export_image_format="AUTO" if any(m.get("texture") for m in bpy.data.materials) else "NONE",
     )
     print("exported", os.path.relpath(out, pw.ROOT))
 
