@@ -61,7 +61,8 @@
     "@papit/game-mesh": "*",
     "@papit/game-engine": "*",
     "@polywar/vehicle-audio": "*",
-    "@papit/audio": "*"
+    "@papit/audio": "*",
+    "@polywar/impacts": "*"
   },
   "browserslist": [
     "defaults",

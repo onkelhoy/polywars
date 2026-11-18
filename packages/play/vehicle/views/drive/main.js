@@ -2,7 +2,8 @@ import '@polywar/viewport';
 import { Model, Renderer } from '@polywar/renderer';
 import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Matrix4 } from '@papit/matrix';
-import { Vehicle } from '@polywar/vehicle';
+import { Vehicle, Dust } from '@polywar/vehicle';
+import { Impacts } from '@polywar/impacts';
 import { Camera } from '@papit/game-engine';
 import { AudioMixer } from '@papit/audio';
 import { EngineSound } from '@polywar/vehicle-audio';
@@ -41,6 +42,8 @@ for (const k of Object.keys(tune)) $('#' + k).oninput = e => {
 Object.keys(tune).forEach(k => $('#' + k).oninput({ target: $('#' + k) }));
 
 demo.vehicle = () => car;
+const impacts = new Impacts(demo.layer);
+const dust = new Dust({ emit: (at, v, puff) => impacts.emit(at, v, puff) });
 
 // ---- sound: starts on the first key (audio needs a gesture) ----
 const mixer = new AudioMixer();
@@ -92,6 +95,8 @@ const chase = {
 demo.layer.camera = new Camera({ near: .1, far: 800, controllers: [chase] });
 demo.tick = dt => {
     car.update(dt, { throttle: axis('KeyW', 'KeyS'), steer: axis('KeyD', 'KeyA'), handbrake: keys.has('Space') });
+    dust.update(dt, car);
+    impacts.update(dt);
     const w = car.wheels.map(w => `${w.grounded ? (w.slipping ? 'slip' : 'grip') : 'air '} ${w.length.toFixed(2)}`).join('\n');
     $('#info').value = `${(car.speed * 3.6).toFixed(0)} km/h · gear ${car.gear} · ${car.rpm.toFixed(0)} rpm · steer ${(car.steering * 180 / Math.PI).toFixed(0)}°\n${w}`;
 };
@@ -102,4 +107,5 @@ demo.draw = camera => {
     const sw = car.steeringWheel(Matrix4.create());
     if (sw) model.move(spec.steeringWheel.node, sw);
     model.draw(renderer, car.matrix(M));
+    impacts.draw(camera);
 };

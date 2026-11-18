@@ -292,6 +292,14 @@ export class Impacts {
         for (const x of [this.dynamic, this.marks]) { gl.deleteVertexArray(x.vao); gl.deleteBuffer(x.buffer); }
     }
 
+    /**
+     * A soft puff (dust, smoke, spray) from anything: wheels, explosions. `size` m at birth, growing `grow` m/s,
+     * slowed by `drag` (1/s), `gravity` m/s² (negative rises).
+     */
+    emit(at: ArrayLike<number>, velocity: ArrayLike<number>, o: { life: number; size: number; grow?: number; colour: Colour; drag?: number; gravity?: number }) {
+        this.add({ p: [at[0], at[1], at[2]], v: [velocity[0], velocity[1], velocity[2]], age: 0, life: o.life, size: o.size, grow: o.grow ?? 0, colour: o.colour, glow: false, drag: o.drag ?? 2, gravity: o.gravity ?? 0 });
+    }
+
     private add(p: Particle) {
         if (this.particles.length >= this.maxParticles) this.particles.shift();
         this.particles.push(p);

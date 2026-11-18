@@ -10,7 +10,7 @@ const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { ShootingRange, buttonAt } from '@polywar/shooting-range';
-import { Vehicles } from '@polywar/vehicle';
+import { Vehicles, Dust } from '@polywar/vehicle';
 import { nearest } from '@polywar/ballistics';
 import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
@@ -190,6 +190,12 @@ const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     return { car, spec, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
 let driving, seatCam = false, nearCar;
+// dust behind the wheels, coloured by what the ground is made of; drawn by the player's impacts
+const DUST = { dirt: [.5, .42, .32], stone: [.6, .58, .54], wood: undefined, metal: undefined };
+const dust = new Dust({
+    emit: (at, v, puff) => player.impacts.emit(at, v, puff),
+    colour: (x, z) => { const s = range.surface([x, range.ground(x, z) + .05, z]); return s in DUST ? DUST[s] : DUST.dirt; },
+});
 window.cars = cars;
 const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
 const carMatrix = Matrix4.create();
@@ -278,6 +284,9 @@ const seat = {
             inputs.set(driving.car, { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' ') });
         }
         fleet.update(dt, inputs);
+        for (const c2 of cars) dust.update(dt, c2.car);
+        // the player isn't updated while driving: age the dust here
+        if (driving) player.impacts.update(dt);
         for (const c2 of cars)
         {
             if (c2 !== driving && c2.awake > 0) c2.awake -= dt;
