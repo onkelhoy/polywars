@@ -74,7 +74,29 @@ export class Player {
         return Matrix4.create(Array.from(w)).multiply(local);
     }
     /** the gun put down (before an optic): which one, its world matrix while it falls, where it rests */
-    down?: { index: number; matrix: Matrix4; y: number; rest: number; fall: number; base: number };
+    down?: { index: number; matrix: Matrix4; y: number; rest: number; fall: number; base: number; fixed?: boolean };
+    /**
+     * Lays the held gun (or keeps the stowed one) on `at` (world matrix of the spot: y up, top of the surface),
+     * on its side, barrel along +x. Call each frame to carry it (a car seat); `takeBack` / `pickUp` as usual.
+     */
+    stow(at: Matrix4) {
+        const c = this.down ? this.carried[this.down.index] : this.held;
+        if (!c) return;
+        if (!this.down) { c.gun.cancel(); this.down = { index: this.current, matrix: Matrix4.create(), y: 0, rest: 0, fall: 0, base: 0, fixed: true }; }
+        const size = c.model.size, centre = c.model.center;
+        const m = at.clone.multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, size[0] / 2, 0, 1]))
+            .multiply(Matrix4.rotationY(Math.PI / 2)).multiply(Matrix4.rotationZ(Math.PI / 2))
+            .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
+        this.down.matrix.set(m);
+        this.down.rest = m[13]; this.down.y = 0; this.down.base = m[13];
+    }
+    /** the put-down gun's grip (world): where the hand takes it */
+    downGrip(): Hand | undefined {
+        const d = this.down;
+        if (!d) return;
+        const c = this.carried[d.index], f = c.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP;
+        return { at: point(d.matrix, (c.hands ?? c.hold).grip), axis: direction(d.matrix, f.axis), palm: direction(d.matrix, f.palm) };
+    }
     /**
      * Puts the held gun down in front: on a desk / wall ledge if one is there (casts down from chest high), else the
      * ground. Laid on its side across the view; drops to the spot and stays (state kept on the carried gun).
@@ -622,12 +644,12 @@ export class Player {
         // picking up: at the bottom of the bend the gun is in the hands, then back up
         if (this.picking && this.focus.settled) { this.takeBack(); this.picking = false; this.focus.stop(); }
         // the put-down gun drops onto its spot
-        if (this.down && this.down.y > this.down.rest)
+        if (this.down && !this.down.fixed && this.down.y > this.down.rest)
         {
             const d = this.down;
             d.fall += 9.81 * dt; d.y = Math.max(d.rest, d.y - d.fall * dt);
         }
-        if (this.down) this.down.matrix[13] = this.down.base + this.down.y;
+        if (this.down && !this.down.fixed) this.down.matrix[13] = this.down.base + this.down.y;
         const p = this.pitch, ya = this.yaw;
         this.feel.update(dt, [camera.position[0], camera.position[1], camera.position[2]], [-Math.sin(ya) * Math.cos(p), Math.sin(p), -Math.cos(ya) * Math.cos(p)]);
         this.bullets.update(dt);
@@ -764,19 +786,13 @@ export class Player {
         {
             this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.rigArms) { if (carried && !this.down) this.reachGun(skin, camera.worldMatrix, carried); else this.rigArms.forEach(a => release(skin, a)); }
+            if (skin && this.rigArms) { if (carried && !this.down) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); skin.update(); } }
             this.posed = skin ? skin.matrices.slice() : undefined;
             if (skin) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
         }
         this.feel.draw(r);
-        if (this.down)
-        {
-            const c = this.carried[this.down.index];
-            c.model.draw(r, this.down.matrix);
-            if (c.scopeModel && c.scopeAt) c.scopeModel.draw(r, this.down.matrix.clone.multiply(c.scopeAt));
-            if (c.scopeMesh) r.draw(c.scopeMesh, this.down.matrix);
-        }
+        this.drawDown();
         const held = this.held;
         if (held) this.impacts.follow(point(camera.worldMatrix, point(this.vm.matrix, held.hold.muzzle)), direction(camera.worldMatrix, this.vm.muzzle.direction));
         this.impacts.draw(camera);
@@ -817,12 +833,43 @@ export class Player {
         if (showGlass) scope!.overlay(this.vm.matrix, this.near, aspect, showScope ? light : 0);
     }
 
+    private drawDown() {
+        if (!this.down) return;
+        const r = this.renderer, c = this.carried[this.down.index];
+        c.model.draw(r, this.down.matrix);
+        if (c.scopeModel && c.scopeAt) c.scopeModel.draw(r, this.down.matrix.clone.multiply(c.scopeAt));
+        if (c.scopeMesh) r.draw(c.scopeMesh, this.down.matrix);
+    }
+
+    /**
+     * The right hand toward the put-down gun's grip by `weight` (0..1), from where the arm is now (`from`: world
+     * hand, else hanging). `body`: the body's world matrix. Rough: no finger timing, grips from half way.
+     */
+    private reachDown(skin: SkinLike, body: Matrix4, weight: number, from?: Hand) {
+        const g = this.downGrip();
+        if (!g || !this.rigArms || weight <= .01) return;
+        const toSkin = body.clone.multiply(this.body!.skeletonMatrix).inverse();
+        const local = (p: Vec3): Vec3 => { const q = toSkin.clone.multiply([p[0], p[1], p[2], 1]) as unknown as number[]; return [q[0], q[1], q[2]]; };
+        const along = (d: Vec3): Vec3 => { const a = local([0, 0, 0]), b = local(d); return [b[0] - a[0], b[1] - a[1], b[2] - a[2]]; };
+        const arm = this.rigArms[0];
+        let target = new Vector3(...local(g.at)), rotation = holdRotation(arm, along(g.axis), along(g.palm));
+        if (from)
+        {
+            target = new Vector3(...local(from.at)).lerp(target, weight);
+            rotation = holdRotation(arm, along(from.axis), along(from.palm)).slerp(rotation, weight);
+        }
+        // elbow out to the right of the body, down
+        const right = direction(body, [-1, 0, 0]);
+        reach(skin, arm, target, rotation, along([right[0], right[1] - 1, right[2]]));
+        grip(skin, arm, weight > .5 ? .016 : .04);
+    }
+
     /**
      * Draws the body seated (driving): hips on `seat` (world matrix, -z forward), feet / knees / hands to world
      * targets (`hands` [right, left]: rim point, tangent, palm direction). `firstPerson` hides the head.
      * Draw after the world (same `renderer.begin`).
      */
-    drawSeated(camera: Camera, seat: Matrix4, pose: { feet: [Vec3, Vec3]; knees: [Vec3, Vec3]; hands: [Hand, Hand]; elbows: [Vec3, Vec3] }, firstPerson: boolean) {
+    drawSeated(camera: Camera, seat: Matrix4, pose: { feet: [Vec3, Vec3]; knees: [Vec3, Vec3]; hands: [Hand, Hand]; elbows: [Vec3, Vec3]; take?: number }, firstPerson: boolean) {
         const body = this.body, c = this.character;
         if (!body || !c) return;
         const s = c.json.scale ?? 1;
@@ -855,10 +902,13 @@ export class Player {
                 reach(skin, arm, local(h.at), holdRotation(arm, along(h.axis), along(h.palm)), along(pose.elbows[i]));
                 grip(skin, arm, .016);
             });
+            // taking the gun off the passenger seat: the right hand leaves the rim for its grip
+            if (pose.take) this.reachDown(skin, m, pose.take, pose.hands[0]);
             skin.update();
             if (firstPerson) collapse(skin, this.headOnly);
         }
         body.draw(this.renderer, m);
+        this.drawDown();
         this.impacts.draw(camera);
         this.renderer.reset();
     }

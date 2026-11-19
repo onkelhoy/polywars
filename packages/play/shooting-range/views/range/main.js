@@ -309,10 +309,22 @@ function drawDriver(camera) {
     const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
     const seatM = car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1], s[2], 1]));
     const rim = hands ? hands.hands().map(h => { const p = car.toWorld(h.at); return { at: [p[0], p[1], p[2]], axis: dir(h.axis), palm: dir(h.palm) }; }) : [];
-    player.drawSeated(camera, seatM, { feet: FEET.map(at), knees: KNEES.map(at), elbows: ELBOWS.map(dir), hands: rim }, seatCam);
+    stowGun();
+    player.drawSeated(camera, seatM, { feet: FEET.map(at), knees: KNEES.map(at), elbows: ELBOWS.map(dir), hands: rim, take: smooth(taking) }, seatCam);
+}
+// the gun rides on the passenger seat (spec.passenger, else the seat mirrored); E leans over and takes it, then out
+let taking = -1;
+const TAKE = .6, smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+const passenger = spec => spec.passenger ?? [-spec.seat[0], spec.seat[1] - .08, spec.seat[2]];
+function stowGun() {
+    if (!driving || !player.down?.fixed) return;
+    const p = passenger(driving.spec);
+    player.stow(driving.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])));
 }
 function enter(c) {
     driving = c;
+    taking = -1;
+    if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); }
     c.hands?.reset(c.car.wheelTurn);
     c.engine ??= new EngineSound({ mixer: player.feel.mixer });
     chase.yaw = forward(c.car);
@@ -329,7 +341,8 @@ function leave() {
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
-    if (driving) leave(); else if (nearCar) enter(nearCar);
+    if (driving) { if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
+    else if (nearCar) enter(nearCar);
 });
 function driveCamera(camera, dt) {
     const { car, spec } = driving, input = player.input;
@@ -343,6 +356,17 @@ function driveCamera(camera, dt) {
         const f = car.toWorld([0, 0, -1], undefined, 0);
         yaw = forward(car) + chase.look[0];
         pitch = Math.asin(Math.max(-1, Math.min(1, f[1]))) + chase.look[1];
+        // taking the gun: the eye leans over toward the passenger seat, looking down at it
+        const k = smooth(taking * 1.4);
+        if (k > 0)
+        {
+            const g = car.toWorld(passenger(spec)), lean = car.toWorld([spec.eye[0] * .3 + passenger(spec)[0] * .3, spec.eye[1] - .2, spec.eye[2] + .05]);
+            for (let i = 0; i < 3; i++) eye[i] += (lean[i] - eye[i]) * k;
+            const to = [g[0] - eye[0], g[1] - eye[1], g[2] - eye[2]];
+            let dy = Math.atan2(-to[0], -to[2]) - yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+            yaw += dy * k;
+            pitch += (Math.atan2(to[1], Math.hypot(to[0], to[2])) - pitch) * k;
+        }
     }
     else
     {
@@ -376,6 +400,7 @@ const seat = {
         }
         fleet.update(dt, inputs);
         driving?.hands?.update(dt, driving.car.wheelTurn);
+        if (driving && taking >= 0 && (taking += dt / TAKE) >= 1) { taking = -1; player.takeBack(); leave(); }
         for (const c2 of cars) dust.update(dt, c2.car);
         // the player isn't updated while driving: age the dust here
         if (driving) player.impacts.update(dt);

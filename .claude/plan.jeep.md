@@ -1,7 +1,7 @@
 # Jeep, iteration 2 (confirmed, `feature/jeep`)
 Rough first pass each; owner refines after.
 
-7. Gun on the passenger seat: getting in puts it there; getting out you lean over and take it (hand to the gun's grip).
+7. Done (needs check): gun on the passenger seat (`player.stow`, `downGrip`; E leans over, right hand reaches to the grip, then out). On-foot pick up now reaches too.
 
 ## Notes (for a fresh context)
 - Owner tests 1-5 in the browser (sound unheard so far; dust looked streaky over the bank in the range: maybe SSAO).
