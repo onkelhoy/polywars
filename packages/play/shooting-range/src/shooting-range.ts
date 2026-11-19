@@ -9,6 +9,9 @@ const key = (i: number, j: number) => i * 65536 + j;
  * The shooting range as data: ground height, solid boxes (mover colliders, a grid lookup) and a bullet `cast`
  * (ground + every box, hits carry the surface and the scored target). Drawing the model is the host's: `model` is its url.
  */
+/** targets this far out (m) and beyond are steel */
+const STEEL_FROM = 200;
+
 export class ShootingRange {
     readonly solids: Solid[];
     readonly targets: Target[];
@@ -33,6 +36,8 @@ export class ShootingRange {
         this.stands = data.stands;
         this.spawn = data.spawn;
         for (const t of this.targets) this.targetOf.set(t.name, t);
+        // long range targets are steel plates: hits ring and spark
+        for (const sd of this.solids) { const t = this.targetOf.get(sd.name); if (t && t.distance >= STEEL_FROM) sd.surface = "metal"; }
         for (const tri of data.ground)
         {
             const xs = tri.map(p => p[0]), zs = tri.map(p => p[2]);

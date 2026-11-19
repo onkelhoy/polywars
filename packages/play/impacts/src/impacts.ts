@@ -8,7 +8,7 @@ export const SURFACES: Record<string, SurfaceLook> = {
     default: dirt,
     ground: dirt,
     wood: { bits: 8, bitColour: [.55, .4, .22], bitSpeed: 3.5, bitLife: .8, puff: 2, puffColour: [.5, .42, .3], puffSize: .2, mark: .03, markColour: [.06, .04, .02], rimColour: [.7, .55, .35] },
-    metal: { bits: 14, bitColour: [1, .7, .25], bitSpeed: 7, bitLife: .3, sparks: true, puff: 1, puffColour: [.5, .5, .5], puffSize: .12, mark: .025, markColour: [.12, .12, .12], rimColour: [.75, .75, .75] },
+    metal: { bits: 28, bitColour: [1, .75, .3], bitSpeed: 11, bitLife: .45, sparks: true, puff: 1, puffColour: [.5, .5, .5], puffSize: .12, mark: .025, markColour: [.12, .12, .12], rimColour: [.75, .75, .75] },
     stone: { bits: 9, bitColour: [.45, .44, .42], bitSpeed: 5, bitLife: .6, puff: 3, puffColour: [.6, .58, .55], puffSize: .3, mark: .035, markColour: [.18, .18, .18], rimColour: [.6, .6, .6] },
     flesh: { bits: 10, bitColour: [.4, .02, .02], bitSpeed: 2.5, bitLife: .5, puff: 3, puffColour: [.5, .05, .05], puffSize: .25, mark: .04, markColour: [.18, .01, .01], rimColour: [.3, .02, .02] },
     water: { bits: 14, bitColour: [.8, .85, .9], bitSpeed: 4, bitLife: .6, puff: 2, puffColour: [.85, .9, .95], puffSize: .3, mark: 0, markColour: [0, 0, 0], rimColour: [0, 0, 0] },
@@ -82,9 +82,11 @@ export class Impacts {
         const look = this.surfaces[surface] ?? this.surfaces.default;
         const d = Math.hypot(point[0] - this.eye[0], point[1] - this.eye[1], point[2] - this.eye[2]);
         if (look.mark > 0) this.mark(point, normal, look.mark * (.8 + Math.random() * .4), look.markColour, look.rimColour);
-        if (d > this.far) return;
+        // sparks show far out (steel plates seen through a scope), bigger with distance; other bits stay near
+        const far = look.sparks ? this.far * 6 : this.far, grow = look.sparks ? Math.max(1, d / 40) : 1;
+        if (d > far) return;
         // fewer bits further off: nobody sees them
-        const near = Math.max(.25, 1 - d / this.far);
+        const near = Math.max(look.sparks ? .6 : .25, 1 - d / far);
         // bounce off the normal, a little along the bullet's reflection
         let n = normal;
         if (direction)
@@ -96,7 +98,7 @@ export class Impacts {
         for (let i = 0, c = Math.round(look.bits * near); i < c; i++)
         {
             const v = cone(n, .9, look.bitSpeed * (.4 + Math.random() * .8));
-            this.add({ p: [...point], v, age: 0, life: look.bitLife * (.5 + Math.random()), size: look.sparks ? .012 : .02 + Math.random() * .02, grow: 0, colour: look.bitColour, glow: !!look.sparks, drag: look.sparks ? .5 : 1, gravity: look.sparks ? 6 : 9.81 });
+            this.add({ p: [...point], v, age: 0, life: look.bitLife * (.5 + Math.random()), size: look.sparks ? .012 * grow : .02 + Math.random() * .02, grow: 0, colour: look.bitColour, glow: !!look.sparks, drag: look.sparks ? .5 : 1, gravity: look.sparks ? 6 : 9.81 });
         }
         for (let i = 0, c = Math.round(look.puff * near); i < c; i++)
         {
