@@ -4410,46 +4410,13 @@
       {
        "name": "game",
        "assets": [
-        {
-         "name": "arena-motif.mp3",
-         "file": "/assets/audio/songs/game/arena-motif.mp3",
-         "size": 2127035
-        },
-        {
-         "name": "battle-pulse.mp3",
-         "file": "/assets/audio/songs/game/battle-pulse.mp3",
-         "size": 1764175
-        },
-        {
-         "name": "guardians-watch.mp3",
-         "file": "/assets/audio/songs/game/guardians-watch.mp3",
-         "size": 3592701
-        },
-        {
-         "name": "nimble-pulse.mp3",
-         "file": "/assets/audio/songs/game/nimble-pulse.mp3",
-         "size": 1906556
-        },
-        {
-         "name": "pirates-pulse.mp3",
-         "file": "/assets/audio/songs/game/pirates-pulse.mp3",
-         "size": 3289522
-        }
+        
        ]
       },
       {
        "name": "menu",
        "assets": [
-        {
-         "name": "fill-the-cup.mp3",
-         "file": "/assets/audio/songs/menu/fill-the-cup.mp3",
-         "size": 2796950
-        },
-        {
-         "name": "let-the-fiddler-leap.mp3",
-         "file": "/assets/audio/songs/menu/let-the-fiddler-leap.mp3",
-         "size": 2342745
-        }
+        
        ]
       }
      ]
