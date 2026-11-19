@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Everything is on `main`. Next: `.claude/plan.optics.md` 4-6 and jeep 7-8 (`.claude/plan.jeep.md`; jeep 8 = optics 1). Needs in-game check: range rework, gun obstruction, jeep 1-6, lights + glow, grass on the range, doors, optics fixes. Open: arms-grip task 5 (grab animation: owner designs).
+Everything is on `main`. Next: jeep 7 (`.claude/plan.jeep.md`). Optics 1-6 done (`.claude/plan.optics.md`). Needs in-game check: range rework, gun obstruction, jeep 1-6, lights + glow, grass on the range, doors, optics fixes. Open: arms-grip task 5 (grab animation: owner designs).
 
 ## Tasks (done, needs in-game check: shooting range rework, `feature/range`)
 Owner's `~/Developer/3d/shooting-range/model.blend` -> script -> `model.v2.blend` (owner fixes by hand after). Low poly, flat colours, natural, WW2 military. Long range stays.

@@ -4,9 +4,9 @@ Rough first pass each; owner refines after. Shares pieces with jeep 7 / 8 (`.cla
 1. [x] Camera focus (= jeep 8): reusable "look at this" mode; camera eases to a point / target, mouse nudges a little, springs back.
 2. [x] Put the gun down: before a spotting scope / binoculars (two hands), the rifle goes to the nearest wall / desk edge / ground; placed with a rigidbody, frozen once it settles, state kept. Pistols: holster later.
 3. [x] Spotting scope: bend to the eyepiece (camera focus), the scope body + surroundings stay visible, the round view blends in as the eye reaches it. Wheel zoom (done: 2-25x).
-4. Binoculars same feel: raised with the hands, eyepiece view blends in, wheel zoom.
-5. Take the gun back: walk / look at it, F, bend down, hand to the grip (same as jeep 7).
-6. Sparks: shooting metal (cans, steel) throws sparks (`@polywar/impacts`), maybe metal cans as targets.
+4. [x] Binoculars same feel: raised with the hands, eyepiece view blends in, wheel zoom.
+5. [x] Take the gun back: walk / look at it, F, bend down, hand to the grip (same as jeep 7).
+6. [x] Sparks: shooting metal (cans, steel) throws sparks (`@polywar/impacts`), maybe metal cans as targets.
 
 ## Bug (fixed, check in game)
 - Shooting a jeep crashed: `fleet.cast` now skips a chassis the ray starts inside (zero normal -> NaN).
@@ -18,3 +18,9 @@ Rough first pass each; owner refines after. Shares pieces with jeep 7 / 8 (`.cla
 
 ## Done this session (needs in-game check)
 Doors (hall A box per face, mover top-of-drop fix), near plane 1 m while zoomed, bigger see-through scope / binocular overlay, wheel zoom, binocular prompt.
+
+## 4-6 notes (rough, check in game)
+- Binoculars: G raises the desk binoculars (moved to the hands, `player.binocularsAt`), view blends in over the last 30% of .5 s.
+- Take back: F bends the eye to the gun (focus .45 s), the gun is in the hands at the bottom. No hand IK to the grip yet.
+- Sparks: targets >= 200 m are steel (`STEEL_FROM` in shooting-range.ts); metal sparks to 900 m, bigger with distance. No ring sound yet. Cans not added.
+- Grass: `falloff` setting (range 120 m, falloff 3, `assets/grass/range.json`), tufts after SSAO, grass in the gun scope.
