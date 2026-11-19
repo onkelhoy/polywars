@@ -156,6 +156,15 @@ addEventListener('keydown', e => {
     $('#optic').className = on ? 'binoculars' : '';
 });
 
+// the mouse wheel zooms binoculars / spotting scopes (2x .. 25x)
+let optic;
+const look = player.lookThrough.bind(player);
+player.lookThrough = (o, eye) => { optic = o; look(o, eye); };
+addEventListener('wheel', e => {
+    if (!optic) return;
+    optic.setting.zoom = Math.max(2, Math.min(25, optic.setting.zoom * Math.exp(-e.deltaY * .002)));
+}, { passive: true });
+
 // ---- lane targets: slide, the drawn carrier + target and the marks on it come along ----
 let lastSlide = performance.now();
 function slideLanes() {
@@ -221,8 +230,9 @@ demo.tick = () => {
     const lane = button && range.lanes.of(button.lane);
     nearOptic = (range.data.optics ?? []).find(o => (o.kind === 'fixed' || !binoculars) && Math.hypot(o.at[0] - f[0], o.at[2] - f[2]) < 1.4);
     $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`
-        : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars' : 'F  step back')
+        : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars · wheel zoom' : 'F  step back · wheel zoom')
         : nearOptic ? (nearOptic.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars')
+        : binoculars ? 'G  look through the binoculars'
         : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';
     $('#ammo').value = `${g.spec.name}\n${g.reloading > 0 ? 'reloading…' : `${g.rounds} / ${g.spec.magazine}`}${c.scope && g.aimed > .5 ? `\n${c.scope.zoom.toFixed(1)}×` : ''}`;
     $('#state').value = `shots ${player.shots} · hits ${player.hits}\n${lastHit}`;

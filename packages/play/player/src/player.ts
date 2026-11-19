@@ -42,6 +42,7 @@ export class Player {
     private obstruction: Obstruction;
     /** looking through binoculars / a spotting scope: the gun goes away, the view zooms and shakes */
     private optic?: Optic;
+    private baseNear?: number;
     /** a fixed optic's eye (world): the camera stays there, no walking */
     private opticEye?: Vec3;
     /** look through `optic` (binoculars: handheld; a spotting scope: with its `eye`), `undefined` to stop */
@@ -515,6 +516,9 @@ export class Player {
         const out = this.lean * LEAN;
         camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06, m.feet[2] + rz * out]);
         camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], -this.lean * LEAN_ROLL]);
+        // zoomed in, everything looked at is far: a further near plane keeps the depth precise (no flicker at 800 m)
+        this.baseNear ??= camera.near;
+        camera.near = optic ? 1 : this.baseNear;
         if (optic)
         {
             const o = optic.update(dt, [turnPitch, turnYaw]);
@@ -680,7 +684,7 @@ export class Player {
         const showScope = showGlass && light > 0 && !!this.setting.scene;
         if (showScope)
         {
-            const view = scope!.begin(camera.worldMatrix, this.vm.matrix, this.near, .1, camera.far);
+            const view = scope!.begin(camera.worldMatrix, this.vm.matrix, this.near, 1, camera.far);
             r.begin(view, [.6, .7, .8, 1]);
             this.setting.scene!(view);
             this.impacts.draw(view);
