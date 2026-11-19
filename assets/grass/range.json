@@ -1,7 +1,12 @@
 {
   "quality": "medium",
   "style": "pixel",
-  "settings": {},
+  "settings": {
+    "distance": 120,
+    "lod": 0,
+    "falloff": 3,
+    "maxTufts": 400000
+  },
   "look": {},
   "size": [
     0.2,

@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
-import { TUFT, chunkCount, pack, place, plantChunk, type ChunkTufts, type Placed } from "./place";
+import { TUFT, chunkCount, densityShare, pack, place, plantChunk, type ChunkTufts, type Placed } from "./place";
 import { GrassMaterial } from "@polywar/grass-material";
 import { decode, encode, isCode } from "./code";
 import { DEFAULTS, look, resolve, type Resolved } from "./presets";
@@ -74,7 +74,7 @@ export class Grass {
         const q = this.o.q, b = before.q;
         this.material.set(look(this.o));
         if (q.source !== b.source || q.planes !== b.planes || this.o.mesh !== before.mesh) this.buildGeometry();
-        if (this.planting && (q.density !== b.density || q.distance !== b.distance || q.maxTufts !== b.maxTufts || this.o.chunk !== before.chunk || this.o.sizeJitter !== before.sizeJitter)) this.plant(this.planting);
+        if (this.planting && (q.density !== b.density || q.distance !== b.distance || q.maxTufts !== b.maxTufts || q.falloff !== b.falloff || q.lod !== b.lod || this.o.chunk !== before.chunk || this.o.sizeJitter !== before.sizeJitter)) this.plant(this.planting);
     }
 
     /** Grow grass over an area. Replaces what was planted. With a `window` nothing grows until `follow`. */
@@ -114,23 +114,32 @@ export class Grass {
             const dx = Math.max(0, Math.abs(pl.area.x + (i + .5) * chunk - x) - chunk / 2), dz = Math.max(0, Math.abs(pl.area.z + (j + .5) * chunk - z) - chunk / 2);
             if (dx * dx + dz * dz <= r * r) inside.push([i, j]);
         }
-        // density so a full window (the chunks really kept) stays under the cap
-        const density = Math.min(this.o.q.density, this.o.q.maxTufts / Math.max(1, inside.length * chunk * chunk));
+        // with a falloff each chunk is planted at its share (stepped in 1/8ths so moving rarely replants); the
+        // density is lowered so a full window (the chunks really kept) stays under the cap
+        const q = this.o.q, falloff = q.falloff ?? 0;
+        const shareOf = ([i, j]: [number, number]) => {
+            if (!falloff) return 1;
+            const d = Math.max(0, Math.hypot(pl.area.x + (i + .5) * chunk - x, pl.area.z + (j + .5) * chunk - z) - chunk * Math.SQRT1_2);
+            return Math.max(1 / 64, Math.ceil(densityShare(d, q.distance, q.lod, falloff) * 8) / 8);
+        };
+        const shares = inside.map(shareOf);
+        const area = shares.reduce((a, sh) => a + sh * chunk * chunk, 0);
+        const density = Math.min(q.density, q.maxTufts / Math.max(1, area));
         const keep: ChunkTufts[] = [], wanted = new Set<string>();
         let missing = false;
-        for (const [i, j] of inside)
+        inside.forEach(([i, j], n) =>
         {
-            const k = `${i}:${j}`;
+            const share = shares[n], k = `${i}:${j}:${share}:${density.toFixed(3)}`;
             wanted.add(k);
             let c = this.cache.get(k);
-            if (!c && budget > 0) { this.cache.set(k, c = plantChunk(pl, density, chunk, i, j, this.o.sizeJitter)); budget--; }
+            if (!c && budget > 0) { this.cache.set(k, c = { ...plantChunk(pl, density * share, chunk, i, j, this.o.sizeJitter), share }); budget--; }
             if (c) keep.push(c);
             else missing = true;
-        }
+        });
         // not done: try again next call (the old window stays drawn)
         if (missing) { this.shown = ""; return; }
-        // forget chunks well outside
-        for (const [k, c] of this.cache) if (!wanted.has(k) && Math.hypot(pl.area.x + (c.i + .5) * chunk - x, pl.area.z + (c.j + .5) * chunk - z) > r * 1.5 + chunk) this.cache.delete(k);
+        // forget the rest (other shares, out of the window)
+        for (const k of this.cache.keys()) if (!wanted.has(k)) this.cache.delete(k);
         this.upload(pack(pl, chunk, keep, density, density < this.o.q.density));
     }
 
@@ -165,7 +174,7 @@ export class Grass {
         {
             const d = Math.max(0, Math.hypot(c.x - eye.x, c.y - eye.y, c.z - eye.z) - c.radius);
             if (d > q.distance || !visible(planes, c.x, c.y, c.z, c.radius + o.size[1] * 2)) continue;
-            const n = Math.ceil(c.count * (1 - (1 - q.lod) * d / q.distance));
+            const n = Math.ceil(c.count * Math.min(1, densityShare(d, q.distance, q.lod, q.falloff) / c.share));
             gl.vertexAttribPointer(4, 4, gl.FLOAT, false, TUFT * 4, c.offset * TUFT * 4);
             gl.vertexAttribPointer(5, 4, gl.FLOAT, false, TUFT * 4, c.offset * TUFT * 4 + 16);
             if (geo.indexed !== undefined) gl.drawElementsInstanced(gl.TRIANGLES, geo.count, geo.indexed, 0, n);

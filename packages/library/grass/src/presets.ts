@@ -3,9 +3,9 @@ import type { GrassOptions, Quality, QualitySettings, Style, StyleSettings } fro
 
 /** Quality presets. A game picks one from its global setting (phone = low) and may override fields. */
 export const QUALITY: Record<Quality, QualitySettings> = {
-    low: { density: 18, maxTufts: 20_000, distance: 23, lod: .25, sizeScale: 1.9, source: "sprite", planes: 2, clouds: false, pushers: 8, softBands: 0, noiseSize: 64 },
-    medium: { density: 47, maxTufts: 60_000, distance: 42, lod: .35, sizeScale: 1.55, source: "sprite", planes: 2, clouds: true, pushers: 16, softBands: .2, noiseSize: 128 },
-    high: { density: 83, maxTufts: 160_000, distance: 65, lod: .45, sizeScale: 1.4, source: "sprite", planes: 3, clouds: true, pushers: 64, softBands: .25, noiseSize: 256 },
+    low: { density: 18, maxTufts: 20_000, distance: 23, lod: .25, falloff: 0, sizeScale: 1.9, source: "sprite", planes: 2, clouds: false, pushers: 8, softBands: 0, noiseSize: 64 },
+    medium: { density: 47, maxTufts: 60_000, distance: 42, lod: .35, falloff: 0, sizeScale: 1.55, source: "sprite", planes: 2, clouds: true, pushers: 16, softBands: .2, noiseSize: 128 },
+    high: { density: 83, maxTufts: 160_000, distance: 65, lod: .45, falloff: 0, sizeScale: 1.4, source: "sprite", planes: 3, clouds: true, pushers: 64, softBands: .25, noiseSize: 256 },
 };
 
 export const STYLE: Record<Style, StyleSettings> = {

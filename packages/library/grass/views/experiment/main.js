@@ -27,7 +27,7 @@ const plant = () => {
 
 // ---- tweaks: [path, min, max, step]; settings.* / look.* read back from the presets ----
 const numbers = [
-    ['settings.density', 2, 160, 1], ['settings.distance', 5, 200, 1], ['settings.lod', 0, 1, .05], ['settings.sizeScale', .5, 3, .05],
+    ['settings.density', 2, 160, 1], ['settings.distance', 5, 200, 1], ['settings.lod', 0, 1, .05], ['settings.falloff', 0, 6, .1], ['settings.sizeScale', .5, 3, .05],
     ['look.stepped'], ['look.framerate', 1, 30, 1], ['look.bands', 0, 6, 1], ['settings.softBands', 0, 1, .05], ['settings.clouds'],
     ['bladeShare', 0, 1, .05], ['variation', 0, .5, .01], ['patches.0.threshold', 0, 1, .01], ['patches.0.softness', 0, .3, .01], ['patches.0.scale', .002, .1, .001],
     ['patches.1.threshold', 0, 1, .01], ['patches.1.softness', 0, .3, .01], ['patches.1.scale', .002, .1, .001],

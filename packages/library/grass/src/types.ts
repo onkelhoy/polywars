@@ -23,6 +23,11 @@ export type QualitySettings = {
     distance: number;
     /** fraction of tufts still drawn at `distance` (chunks draw a prefix of their shuffled tufts) */
     lod: number;
+    /**
+     * Density over distance: 0 = linear down to `lod`; above 0 it eases, share = lod + (1 - lod)·(1 - d / distance)^falloff
+     * (2..4: lush round you, sparse far out). Window planting plants each chunk at its share, so near stays full density.
+     */
+    falloff?: number;
     /** tufts get bigger when density drops, so the cover stays */
     sizeScale: number;
     source: Source;

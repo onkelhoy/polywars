@@ -4,10 +4,10 @@ import type { Planting } from "./types";
 /** floats per tuft: x y z scale, then cover: height dry flowers _ */
 export const TUFT = 8;
 
-export type Chunk = { x: number; z: number; /** first tuft in the buffer */ offset: number; count: number; /** bounding radius */ radius: number; y: number };
+export type Chunk = { x: number; z: number; /** share of the full density it was planted at */ share: number; /** first tuft in the buffer */ offset: number; count: number; /** bounding radius */ radius: number; y: number };
 export type Placed = { data: Float32Array; chunks: Chunk[]; count: number; /** density used, per m² (lower than asked when capped) */ density: number; /** true when `max` thinned it */ capped: boolean };
 /** one chunk's tufts, shuffled (any prefix is an even thinning) */
-export type ChunkTufts = { i: number; j: number; data: number[]; count: number };
+export type ChunkTufts = { i: number; j: number; data: number[]; count: number; share?: number };
 
 /** chunks across the area */
 export function chunkCount(planting: Planting, chunk: number) {
@@ -61,7 +61,7 @@ export function pack(planting: Planting, chunk: number, chunks: ChunkTufts[], de
         let y = 0;
         for (let k = 0; k < c.count; k++) y += c.data[k * TUFT + 1];
         const x0 = planting.area.x + c.i * chunk, z0 = planting.area.z + c.j * chunk;
-        list.push({ x: x0 + chunk / 2, z: z0 + chunk / 2, y: y / c.count, radius: chunk * Math.SQRT1_2, offset, count: c.count });
+        list.push({ x: x0 + chunk / 2, z: z0 + chunk / 2, share: c.share ?? 1, y: y / c.count, radius: chunk * Math.SQRT1_2, offset, count: c.count });
         offset += c.count;
     }
     return { data, chunks: list, count, density, capped };
@@ -86,4 +86,10 @@ export function place(planting: Planting, density: number, chunk: number, max: n
     let left = max;
     for (const c of chunks) { const keep = Math.max(0, Math.min(c.count, left)); c.data.length = keep * TUFT; c.count = keep; left -= keep; }
     return pack(planting, chunk, chunks, used, capped);
+}
+
+/** share of the full density at `d` metres (see `QualitySettings.falloff`) */
+export function densityShare(d: number, distance: number, lod: number, falloff = 0) {
+    const t = Math.max(0, Math.min(1, d / Math.max(1e-3, distance)));
+    return falloff > 0 ? lod + (1 - lod) * Math.pow(1 - t, falloff) : 1 - (1 - lod) * t;
 }
