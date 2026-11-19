@@ -76,18 +76,18 @@ Gun animation map: `animation` property in each gun's weapon.json (format in `.c
 
 ## Shooting range (`@polywar/shooting-range`)
 Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view `range`. Ideas from the owner:
-- [ ] button to move the targets nearer / further (moving targets on the rails)
-- [ ] binoculars ("kikare") on the roof to look down the range
-- [ ] lamps
+- [x] button to move the targets nearer / further (moving targets on the rails)
+- [x] binoculars ("kikare") on the roof to look down the range
+- [x] lamps
 - [ ] gun per case picked on purpose (now: the first 15 of the loadout, in order)
 - [ ] distance-marker numbers and the target face are textures: game-mesh draws one colour per face, so they are lost (model them, or textured draw). `Target(Square)` image points to a missing file in ~/Downloads
 - [ ] booths are one mesh each: 973 face boxes; simpler collision if split into boxes in Blender
-- [ ] long range lane: 200..800 m (every 100), big zoom scope on a raised stand
+- [x] long range lane: 200..800 m (every 100), big zoom scope on a raised stand
 - [ ] weapons gate / armory room with every gun on racks; WW2 French / British / US military feel
 - [ ] proper trees (owner models), a tiny world round the range from the terrain packages (no ocean)
 - [ ] surroundings from our own packages (grass, world / terrain): generate a small patch with background mountains, export to Blender and save; grass / trees placed by weight paint in the blend (controllable)
 - [ ] the road down the range drivable (with the jeep)
-- [ ] grass from our grass package by range.json `grass` zones: tall on the fields + round the bunkers, short on the camp street / round the square, none under tents, buildings, roads
+- [x] grass from our grass package by range.json `grass` zones: tall on the fields + round the bunkers, short on the camp street / round the square, none under tents, buildings, roads
 - [ ] mover: more than one floor per spot (now the highest ground triangle wins; the armory works only because the ground has a hole over it)
 - [ ] flag: textured draw for the papit logo (now baked to face colours)
 - [ ] tents / trees collision (decor now)
@@ -103,7 +103,7 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - [ ] Vec3 -> papit vector (271 uses in `packages/*/*/src`): plain tuple only for JSON data (weapon.json hands / points, Hold, HandsFile, aim tune; rename e.g. `Point3`); params take `VectorValue`; math + returns `Vector3` (viewmodel `point` / `direction`, obstruction, player, feel). Papit report: `Vector` has no `toJSON` (stringifies as `{"0":..}`); with one, the tuple type goes too.
 
 ## Vehicles
-- [ ] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
+- [x] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
 
 ## Sky + weather
 - [ ] Time of day: sun / moon move with the real local clock (13:00 is 13:00), time controllable (speed / set). Night fall, sun light colour + ambient follow it.
@@ -112,3 +112,7 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 
 ## Weapon editor
 - [ ] Better hold editing: see the fingers on the gun, control the grip per hand (pose / curl / wrist turn), not only sliders for the gun position. Ties into the hand editor (H) and hand pose clips.
+
+## Optics / gun handling (follow ups)
+- [ ] Put-down gun: real rigidbody drop (now a straight fall), hand IK to the grip on take back.
+- [ ] Steel plates: ring sound on hit; metal cans as targets.
