@@ -34,8 +34,9 @@ float cloudLight(vec3 p) {
     float a = texture(noiseTex, hit - cloudTime * cloudSpeed * rotate2(d, cloudDiverge)).a;
     float b = texture(noiseTex, hit * .8 - cloudTime * cloudSpeed * rotate2(d, -cloudDiverge) * .89 * PI / 3.0).a;
     float v = clamp(a * b + cloudThreshold, 0.0, 1.0);
-    v = (v - .5) * cloudContrast + .5;
-    return clamp(v + cloudThreshold, cloudMin, 1.0);
+    v = (v - .5) * cloudContrast + .5 + cloudThreshold;
+    // a hard edged shadow (sun or shade, a thin soft rim): no smooth gradient for the toon bands to step
+    return mix(cloudMin, 1.0, smoothstep(.47, .53, v));
 }
 
 // hard bands, optionally softened around each threshold

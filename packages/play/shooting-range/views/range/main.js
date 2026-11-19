@@ -76,7 +76,13 @@ function drawGrass(camera) {
     grass.follow(e[0] ?? e.x, e[2] ?? e.z);
     const t = performance.now() / 1000;
     grass.drawGround(camera, renderer.light, t);
-    grass.draw(camera, renderer.light, t);
+    renderer.reset();
+}
+// the tufts: after the SSAO pass (no AO on grass; depth is back on the canvas), and in the gun scope's picture
+function drawTufts(camera) {
+    const e = camera.worldPosition;
+    if (!e) return;
+    grass.draw(camera, renderer.light, performance.now() / 1000);
     renderer.reset();
 }
 window.grass = grass;
@@ -88,9 +94,9 @@ window.fleet = fleet;
 let lastHit = '';
 const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: shots, surface: range.surface,
-    scene: () => { model.draw(renderer, identity); drawStands(); },
+    scene: view => { model.draw(renderer, identity); drawStands(); drawGrass(view); drawTufts(view); },
     character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
-    worldDrawn: () => demo.endOcclusion(),
+    worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); },
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
     guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? Object.keys(GUNS),
 }, {
@@ -413,7 +419,7 @@ demo.draw = camera => {
     drawCars();
     glow.draw(camera, renderer.lights);
     renderer.reset();
-    if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); }
-    else if (driving) { drawDriver(camera); demo.endOcclusion(); }
+    if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); drawTufts(camera); }
+    else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); }
     else player.draw(camera);
 };
