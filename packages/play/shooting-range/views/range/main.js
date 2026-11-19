@@ -43,9 +43,9 @@ if (new URLSearchParams(location.search).has('night'))
 // ---- grass (@polywar/grass) by range.json zones: none wins over short over tall; planted round the camera ----
 const zones = range.data.grass ?? [];
 const inZone = (kind, x, z) => zones.some(g => g.kind === kind && x >= g.min[0] && x <= g.max[0] && z >= g.min[1] && z <= g.max[1]);
-const GROW = { tall: { density: 1, height: 1, dry: .3, flowers: .15 }, short: { density: .7, height: .4, dry: .2, flowers: .05 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
-// the grass view's look (defaults); dense near, thinning out (lod: share left at the far end) to a ragged edge ~120 m out
-const grass = new Grass(layer, { settings: { density: 110, distance: 120, lod: .12, maxTufts: 500_000 } });
+const GROW = { tall: { density: 1, height: 1, dry: 0, flowers: 0 }, short: { density: .7, height: .4, dry: 0, flowers: 0 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
+// the look: exactly the grass view's (saved from it: assets/grass/range.json)
+const grass = new Grass(layer, await (await fetch('/assets/grass/range.json')).json());
 // everywhere on the ground (hills, banks too), tall by default; not under solids (buildings, sandbags, floors)
 const covered = (x, z) => { const y = range.ground(x, z); return range.colliders(x, z).some(b => x >= b.min[0] && x <= b.max[0] && z >= b.min[2] && z <= b.max[2] && b.max[1] > y - .1 && b.min[1] < y + 1); };
 {

@@ -1,0 +1,84 @@
+{
+  "quality": "medium",
+  "style": "pixel",
+  "settings": {},
+  "look": {},
+  "size": [
+    0.2,
+    0.3
+  ],
+  "sizeJitter": 0.3,
+  "color": "#5d9a3a",
+  "shape": "mixed",
+  "bladeShare": 0.35,
+  "variation": 0.12,
+  "patches": [
+    {
+      "color": "#7bb045",
+      "scale": 0.02,
+      "threshold": 0.58,
+      "softness": 0.08
+    },
+    {
+      "color": "#4a7d33",
+      "scale": 0.015,
+      "threshold": 0.62,
+      "softness": 0.08
+    }
+  ],
+  "accents": [
+    {
+      "chance": 0.004,
+      "color": "#e8d36a",
+      "height": 0.12,
+      "scale": 1.2
+    },
+    {
+      "chance": 0.02,
+      "color": "#8fc456",
+      "height": 0.05,
+      "scale": 1
+    }
+  ],
+  "dry": "#c4ad62",
+  "flowers": 0.1,
+  "wind": {
+    "direction": [
+      0,
+      1
+    ],
+    "speed": 0.025,
+    "scale": 0.07,
+    "threshold": 0.365,
+    "diverge": 10,
+    "angle": 60,
+    "perspective": 0.3
+  },
+  "sway": {
+    "speed": 0.1,
+    "angle": 10
+  },
+  "push": {
+    "angle": 45,
+    "exponent": 1
+  },
+  "clouds": {
+    "scale": 40,
+    "speed": 0.05,
+    "direction": [
+      1,
+      0.3
+    ],
+    "height": 30,
+    "contrast": 2,
+    "threshold": 0.1,
+    "min": 0.45,
+    "diverge": 12
+  },
+  "lighting": {
+    "wrap": 0,
+    "steepness": 1
+  },
+  "chunk": 16,
+  "debug": ""
+}
