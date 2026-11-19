@@ -90,17 +90,20 @@ export class Mover {
     /** ground slope (rise per metre, downhill direction) from the `ground` around x / z */
     private gradient(x: number, z: number) {
         const e = .25, g = this.setting.ground;
-        const gx = (g(x + e, z) - g(x - e, z)) / (2 * e), gz = (g(x, z + e) - g(x, z - e)) / (2 * e);
-        return { gx, gz, steep: Math.hypot(gx, gz) };
+        const a = g(x + e, z), b = g(x - e, z), c = g(x, z + e), d = g(x, z - e);
+        const gx = (a - b) / (2 * e), gz = (c - d) / (2 * e);
+        return { gx, gz, steep: Math.hypot(gx, gz), top: Math.max(a, b, c, d) };
     }
 
     private step(dt: number, input: MoveInput, jump: boolean) {
         const s = this.setting, v = this.velocity, f = this.feet;
-        const { gx, gz, steep } = this.gradient(f[0], f[2]);
+        const { gx, gz, steep, top } = this.gradient(f[0], f[2]);
         const n = Math.hypot(gx, 1, gz);
         this.normal[0] = -gx / n; this.normal[1] = 1 / n; this.normal[2] = -gz / n;
-        const onFloor = this.grounded && this.floor(f[0], f[2]) > s.ground(f[0], f[2]) + 1e-3;
-        this.sliding = this.grounded && !onFloor && steep > this.maxSlope;
+        // on a box top, or above the ground (at a box's edge over a pit): not on the slope
+        const onFloor = this.grounded && (this.floor(f[0], f[2]) > s.ground(f[0], f[2]) + 1e-3 || f[1] > s.ground(f[0], f[2]) + .1);
+        // at the top edge of a drop (nothing round higher than the feet) it's not a slope to slide down
+        this.sliding = this.grounded && !onFloor && steep > this.maxSlope && top > f[1] + .05;
 
         let wx = input.x, wz = input.z;
         if (this.sliding)
@@ -129,7 +132,7 @@ export class Mover {
         if (this.grounded && !this.sliding)
         {
             const ahead = this.gradient(x, z), rise = s.ground(x, z) - f[1];
-            if (ahead.steep > this.maxSlope && rise > 0 && this.floor(x, z) <= s.ground(x, z) + 1e-3)
+            if (ahead.steep > this.maxSlope && rise > .02 && this.floor(x, z) <= s.ground(x, z) + 1e-3)
             {
                 const dx = -ahead.gx / ahead.steep, dz = -ahead.gz / ahead.steep, into = v[0] * dx + v[2] * dz;
                 if (into < 0) { v[0] -= into * dx; v[2] -= into * dz; }

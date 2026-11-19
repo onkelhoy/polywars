@@ -105,9 +105,8 @@ def face_boxes(obj, thin=.03):
 
 
 def part_boxes(obj, fill=.6, thin=.03):
-    """world boxes per loose part; HOLLOW objects: the part's box when it fills it (`fill` of its volume), else a box per face"""
-    if obj.name not in HOLLOW:
-        return [pw.world_bbox(obj, part) for part in pw.loose_parts(obj.data)]
+    """world boxes per loose part: the part's box when it's small or fills it (`fill` of its volume), else a box per face
+    (hollow buildings: halls, bunkers, rooms stay walkable). HOLLOW objects: every part tested, small ones too"""
     M, me, out = obj.matrix_world, obj.data, []
     for part in pw.loose_parts(me):
         verts = set(part)
@@ -119,6 +118,9 @@ def part_boxes(obj, fill=.6, thin=.03):
             vs = [M @ me.vertices[i].co for i in p.vertices]
             vol += sum(vs[0].dot(vs[i].cross(vs[i + 1])) for i in range(1, len(vs) - 1)) / 6
         size = hi - lo
+        if obj.name not in HOLLOW and size.length < 2.5:
+            out.append((lo, hi))
+            continue
         if abs(vol) >= fill * max(size.x * size.y * size.z, 1e-9):
             out.append((lo, hi))
             continue
