@@ -28,6 +28,7 @@ export class Grass {
     private cache = new Map<string, ChunkTufts>();
     private shown = "";
     private center?: [number, number];
+    private windowDensity?: number;
 
     readonly gl: WebGL2RenderingContext;
 
@@ -82,6 +83,7 @@ export class Grass {
         this.planting = planting;
         this.cache.clear();
         this.shown = "";
+        this.windowDensity = undefined;
         if (planting.window)
         {
             this.placed = undefined;
@@ -123,23 +125,33 @@ export class Grass {
             return Math.max(1 / 64, Math.ceil(densityShare(d, q.distance, q.lod, falloff) * 8) / 8);
         };
         const shares = inside.map(shareOf);
-        const area = shares.reduce((a, sh) => a + sh * chunk * chunk, 0);
-        const density = Math.min(q.density, q.maxTufts / Math.max(1, area));
+        // one density per planting (from the first full window), so chunks never replant with a new layout
+        this.windowDensity ??= Math.min(q.density, q.maxTufts / Math.max(1, shares.reduce((a, sh) => a + sh * chunk * chunk, 0)));
+        const density = this.windowDensity;
         const keep: ChunkTufts[] = [], wanted = new Set<string>();
         let missing = false;
         inside.forEach(([i, j], n) =>
         {
-            const share = shares[n], k = `${i}:${j}:${share}:${density.toFixed(3)}`;
+            // planted once at full density (shuffled, same every time): a share is a prefix, so moving only adds / drops tufts
+            const share = shares[n], k = `${i}:${j}`;
             wanted.add(k);
+            // the cache keeps a prefix (`share` of the full count); a closer chunk replants (same tufts) and keeps more
             let c = this.cache.get(k);
-            if (!c && budget > 0) { this.cache.set(k, c = { ...plantChunk(pl, density * share, chunk, i, j, this.o.sizeJitter), share }); budget--; }
-            if (c) keep.push(c);
-            else missing = true;
+            if ((!c || (c.share ?? 1) < share) && budget > 0)
+            {
+                const full = plantChunk(pl, density, chunk, i, j, this.o.sizeJitter), count = Math.ceil(full.count * share);
+                this.cache.set(k, c = { i, j, share, count, data: full.data.slice(0, count * TUFT), total: full.count } as ChunkTufts);
+                budget--;
+            }
+            if (!c) { missing = true; return; }
+            if ((c.share ?? 1) < share) missing = true;
+            const total = (c as ChunkTufts & { total: number }).total, count = Math.min(c.count, Math.ceil(total * share));
+            keep.push({ i, j, count, share: count / Math.max(1, total), data: count === c.count ? c.data : c.data.slice(0, count * TUFT) });
         });
         // not done: try again next call (the old window stays drawn)
         if (missing) { this.shown = ""; return; }
-        // forget the rest (other shares, out of the window)
-        for (const k of this.cache.keys()) if (!wanted.has(k)) this.cache.delete(k);
+        // forget chunks well outside
+        for (const [k, c] of this.cache) if (!wanted.has(k) && Math.hypot(pl.area.x + (c.i + .5) * chunk - x, pl.area.z + (c.j + .5) * chunk - z) > r * 1.5 + chunk) this.cache.delete(k);
         this.upload(pack(pl, chunk, keep, density, density < this.o.q.density));
     }
 
