@@ -77,7 +77,7 @@ export class Player {
     down?: { index: number; matrix: Matrix4; y: number; rest: number; fall: number; base: number; fixed?: boolean };
     /**
      * Lays the held gun (or keeps the stowed one) on `at` (world matrix of the spot: y up, top of the surface),
-     * on its side, barrel along +x. Call each frame to carry it (a car seat); `takeBack` / `pickUp` as usual.
+     * on its side, barrel along -z (the spot's forward). Call each frame to carry it (a car seat); `takeBack` / `pickUp` as usual.
      */
     stow(at: Matrix4) {
         const c = this.down ? this.carried[this.down.index] : this.held;
@@ -85,7 +85,7 @@ export class Player {
         if (!this.down) { c.gun.cancel(); this.down = { index: this.current, matrix: Matrix4.create(), y: 0, rest: 0, fall: 0, base: 0, fixed: true }; }
         const size = c.model.size, centre = c.model.center;
         const m = at.clone.multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, size[0] / 2, 0, 1]))
-            .multiply(Matrix4.rotationY(Math.PI / 2)).multiply(Matrix4.rotationZ(Math.PI / 2))
+            .multiply(Matrix4.rotationZ(Math.PI / 2))
             .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
         this.down.matrix.set(m);
         this.down.rest = m[13]; this.down.y = 0; this.down.base = m[13];
@@ -833,7 +833,8 @@ export class Player {
         if (showGlass) scope!.overlay(this.vm.matrix, this.near, aspect, showScope ? light : 0);
     }
 
-    private drawDown() {
+    /** the put-down / stowed gun: in the world pass (before `renderer.reset`); `draw` does it on foot */
+    drawDown() {
         if (!this.down) return;
         const r = this.renderer, c = this.carried[this.down.index];
         c.model.draw(r, this.down.matrix);
@@ -908,7 +909,6 @@ export class Player {
             if (firstPerson) collapse(skin, this.headOnly);
         }
         body.draw(this.renderer, m);
-        this.drawDown();
         this.impacts.draw(camera);
         this.renderer.reset();
     }

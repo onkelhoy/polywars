@@ -309,11 +309,10 @@ function drawDriver(camera) {
     const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
     const seatM = car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1], s[2], 1]));
     const rim = hands ? hands.hands().map(h => { const p = car.toWorld(h.at); return { at: [p[0], p[1], p[2]], axis: dir(h.axis), palm: dir(h.palm) }; }) : [];
-    stowGun();
     player.drawSeated(camera, seatM, { feet: FEET.map(at), knees: KNEES.map(at), elbows: ELBOWS.map(dir), hands: rim, take: smooth(taking) }, seatCam);
 }
 // the gun rides on the passenger seat (spec.passenger, else the seat mirrored); E leans over and takes it, then out
-let taking = -1;
+let taking = -1, placing = false;
 const TAKE = .6, smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 const passenger = spec => spec.passenger ?? [-spec.seat[0], spec.seat[1] - .08, spec.seat[2]];
 function stowGun() {
@@ -323,8 +322,8 @@ function stowGun() {
 }
 function enter(c) {
     driving = c;
-    taking = -1;
-    if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); }
+    taking = -1; placing = false;
+    if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
     c.engine ??= new EngineSound({ mixer: player.feel.mixer });
     chase.yaw = forward(c.car);
@@ -341,7 +340,7 @@ function leave() {
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
-    if (driving) { if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
+    if (driving) { if (placing) return; if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
     else if (nearCar) enter(nearCar);
 });
 function driveCamera(camera, dt) {
@@ -400,7 +399,8 @@ const seat = {
         }
         fleet.update(dt, inputs);
         driving?.hands?.update(dt, driving.car.wheelTurn);
-        if (driving && taking >= 0 && (taking += dt / TAKE) >= 1) { taking = -1; player.takeBack(); leave(); }
+        if (driving && placing && (taking -= dt / TAKE) <= 0) { taking = -1; placing = false; }
+        else if (driving && !placing && taking >= 0 && (taking += dt / TAKE) >= 1) { taking = -1; player.takeBack(); leave(); }
         for (const c2 of cars) dust.update(dt, c2.car);
         // the player isn't updated while driving: age the dust here
         if (driving) player.impacts.update(dt);
@@ -444,6 +444,7 @@ demo.draw = camera => {
     drawStands();
     drawGrass(camera);
     drawCars();
+    if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();
     if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); drawTufts(camera); }
