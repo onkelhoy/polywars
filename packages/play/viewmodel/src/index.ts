@@ -6,3 +6,4 @@ export * from "./types";
 export * from "./obstruction";
 export * from "./brace";
 export * from "./optic";
+export * from "./focus";

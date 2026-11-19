@@ -7,7 +7,7 @@ import { Attachments, Character, type Move } from "@polywar/characters";
 import { Impacts } from "@polywar/impacts";
 import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
-import { Brace, Optic, direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
+import { Brace, Focus, Optic, direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS, cycleCues, type Action, type Cue } from "@polywar/weapons";
 import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile } from "@polywar/armory";
 import { ARMS, armsPoseOf, type ArmsPose } from "./arms";
@@ -46,8 +46,50 @@ export class Player {
     /** a fixed optic's eye (world): the camera stays there, no walking */
     private opticEye?: Vec3;
     /** look through `optic` (binoculars: handheld; a spotting scope: with its `eye`), `undefined` to stop */
-    lookThrough(optic?: Optic, eye?: Vec3) { this.optic = optic; this.opticEye = optic && eye; }
-    get looking() { return !!this.optic; }
+    lookThrough(optic?: Optic, eye?: Vec3) {
+        // two hands on the optic: the gun goes down first
+        if (optic && !this.down) this.putDown();
+        if (optic && eye) { this.optic = optic; this.opticEye = eye; this.focus.start({ eye, time: .7, nudge: 0 }); return; }
+        // a fixed optic: step back first, the optic stays on until the eye has left it
+        if (!optic && this.opticEye) { this.focus.stop(); return; }
+        this.optic = optic; this.opticEye = undefined;
+    }
+    get looking() { return !!this.optic && (!this.opticEye || this.focus.active); }
+    /** the gun put down (before an optic): which one, its world matrix while it falls, where it rests */
+    down?: { index: number; matrix: Matrix4; y: number; rest: number; fall: number; base: number };
+    /**
+     * Puts the held gun down in front: on a desk / wall ledge if one is there (casts down from chest high), else the
+     * ground. Laid on its side across the view; drops to the spot and stays (state kept on the carried gun).
+     */
+    putDown() {
+        const c = this.held, f = this.mover.feet;
+        if (!c || this.down) return;
+        c.gun.cancel();
+        const y = this.yaw, fx = -Math.sin(y), fz = -Math.cos(y), size = c.model.size, centre = c.model.center;
+        let spot: Vec3 = [f[0] + fx * .5, this.setting.ground(f[0] + fx * .5, f[2] + fz * .5), f[2] + fz * .5];
+        for (const reach of [.45, .6, .3])
+        {
+            const x = f[0] + fx * reach, z = f[2] + fz * reach, top = f[1] + 1.3;
+            const hit = this.setting.cast([x, top, z], [x, f[1] - 1, z]);
+            if (hit && hit.point[1] > f[1] + .4) { spot = [hit.point[0], hit.point[1], hit.point[2]]; break; }
+            if (hit && reach === .45) spot = [hit.point[0], hit.point[1], hit.point[2]];
+        }
+        // lying on its side (model x up), the barrel across to the left
+        const rest = spot[1] + size[0] / 2;
+        const turn = Matrix4.rotationY(y + Math.PI / 2).multiply(Matrix4.rotationZ(Math.PI / 2));
+        const m = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, spot[0], 0, spot[2], 1]).multiply(turn)
+            .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
+        this.down = { index: this.current, matrix: m, y: f[1] + 1, rest, fall: 0, base: m[13] };
+    }
+    /** the gun back in the hands (from the ground / desk) */
+    takeBack() { if (this.down) { this.current = this.down.index; this.down = undefined; this.vm.set(this.held!.hold); } }
+    /** the put-down gun's place (world), for prompts */
+    get downAt(): Vec3 | undefined { const m = this.down?.matrix; return m ? [m[12], this.down!.rest, m[14]] : undefined; }
+
+    /** "look at this": `focus.start({ eye, look })`, `focus.stop()` */
+    readonly focus = new Focus();
+    /** 0..1 how far the view is through the optic (a fixed one blends in as the eye reaches it): for the overlay */
+    opticBlend = 0;
 
     /** aiming into a wall: m backed off so far, and room behind to back off (this frame) */
     private backed = 0;
@@ -348,6 +390,7 @@ export class Player {
 
     select(index: number) {
         if (!this.carried[index]) return;
+        if (this.down) { if (index === this.down.index) return this.takeBack(); this.down = undefined; }
         this.held?.gun.cancel();
         this.current = index;
         this.vm.set(this.carried[index].hold);
@@ -417,14 +460,15 @@ export class Player {
         const gun = carried?.gun;
         if (pressed.has("alt")) this.toggled = !this.toggled;
         const optic = this.optic;
-        const aiming = !optic && (this.toggled || !!input?.buttons.has(2));
+        const aiming = !optic && !this.down && (this.toggled || !!input?.buttons.has(2));
         const scoped = !!carried?.scope && (gun?.aimed ?? 0) > .5;
         // aimed down a scope, the mouse turns slower (by the zoom)
         // through an optic the mouse is not slowed: real hands don't get steadier with zoom
         const sense = (this.setting.sensitivity ?? .0022) / (optic ? 1 : scoped ? carried!.scope!.zoom * .8 : 1 + (gun?.aimed ?? 0) * .3);
         const turnYaw = -dx * sense, turnPitch = -dy * sense;
-        this.yaw += turnYaw;
-        this.pitch = Math.max(-LIMIT, Math.min(LIMIT, this.pitch + turnPitch));
+        const pinned = this.focus.active && !!this.focus.target?.look;
+        if (!pinned) this.yaw += turnYaw;
+        if (!pinned) this.pitch = Math.max(-LIMIT, Math.min(LIMIT, this.pitch + turnPitch));
         // the climb of recoil stays until pulled down, eases off slowly
         this.climb *= Math.exp(-dt * 1.5);
 
@@ -471,8 +515,9 @@ export class Player {
             }
         }
         else if (!aiming) this.backed = 0;
-        if (this.opticEye) { wx = 0; wz = 0; }
-        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") && !this.opticEye });
+        const still = !!this.opticEye || this.focus.active;
+        if (still) { wx = 0; wz = 0; }
+        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") && !still });
         const m = this.mover;
 
         // the gun
@@ -482,7 +527,7 @@ export class Player {
             // break actions: C pulls the hammers back, X the safety
             if (pressed.has("c")) gun.cock();
             if (gun.barrels && pressed.has("x")) gun.toggleSafety();
-            const event = sprint || optic ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
+            const event = sprint || optic || this.down ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
@@ -518,15 +563,32 @@ export class Player {
         camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], -this.lean * LEAN_ROLL]);
         // zoomed in, everything looked at is far: a further near plane keeps the depth precise (no flicker at 800 m)
         this.baseNear ??= camera.near;
-        camera.near = optic ? 1 : this.baseNear;
-        if (optic)
+        // focus: the camera eases to its eye (a fixed optic's eyepiece too), mouse nudges, springs back
+        if (this.focus.showing || this.focus.active)
         {
-            const o = optic.update(dt, [turnPitch, turnYaw]);
-            camera.zoom = optic.zoom;
-            if (this.opticEye) camera.position.set(this.opticEye);
-            camera.rotation.set([this.pitch + o[0], this.yaw + o[1], 0]);
+            const r = camera.rotation, f = this.focus.update(dt, [turnPitch, turnYaw], { position: [camera.position[0], camera.position[1], camera.position[2]], pitch: r[0], yaw: r[1] });
+            camera.position.set(f.position);
+            camera.rotation.set([f.pitch, f.yaw, r[2] * (1 - this.focus.amount)]);
+        }
+        // a fixed optic once the eye has left it: done
+        if (this.opticEye && !this.focus.showing) { this.optic = undefined; this.opticEye = undefined; }
+        // the optic's view blends in over the last part of the reach
+        this.opticBlend = !this.optic ? 0 : this.opticEye ? smoothstep(.6, 1, this.focus.amount) : 1;
+        camera.near = this.opticBlend > .5 ? 1 : this.baseNear;
+        if (this.optic && this.opticBlend > 0)
+        {
+            const o = this.optic.update(dt, [turnPitch, turnYaw]), b = this.opticBlend;
+            camera.zoom = camera.zoom + (this.optic.zoom - camera.zoom) * b;
+            camera.rotation.set([this.pitch + o[0] * b, this.yaw + o[1] * b, 0]);
         }
 
+        // the put-down gun drops onto its spot
+        if (this.down && this.down.y > this.down.rest)
+        {
+            const d = this.down;
+            d.fall += 9.81 * dt; d.y = Math.max(d.rest, d.y - d.fall * dt);
+        }
+        if (this.down) this.down.matrix[13] = this.down.base + this.down.y;
         const p = this.pitch, ya = this.yaw;
         this.feel.update(dt, [camera.position[0], camera.position[1], camera.position[2]], [-Math.sin(ya) * Math.cos(p), Math.sin(p), -Math.cos(ya) * Math.cos(p)]);
         this.bullets.update(dt);
@@ -663,18 +725,25 @@ export class Player {
         {
             this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.rigArms) { if (carried) this.reachGun(skin, camera.worldMatrix, carried); else this.rigArms.forEach(a => release(skin, a)); }
+            if (skin && this.rigArms) { if (carried && !this.down) this.reachGun(skin, camera.worldMatrix, carried); else this.rigArms.forEach(a => release(skin, a)); }
             this.posed = skin ? skin.matrices.slice() : undefined;
             if (skin) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
         }
         this.feel.draw(r);
+        if (this.down)
+        {
+            const c = this.carried[this.down.index];
+            c.model.draw(r, this.down.matrix);
+            if (c.scopeModel && c.scopeAt) c.scopeModel.draw(r, this.down.matrix.clone.multiply(c.scopeAt));
+            if (c.scopeMesh) r.draw(c.scopeMesh, this.down.matrix);
+        }
         const held = this.held;
         if (held) this.impacts.follow(point(camera.worldMatrix, point(this.vm.matrix, held.hold.muzzle)), direction(camera.worldMatrix, this.vm.muzzle.direction));
         this.impacts.draw(camera);
         r.reset();
         this.setting.worldDrawn?.();
-        if (!carried || this.optic) return;
+        if (!carried || this.optic || this.down) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);

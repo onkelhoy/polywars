@@ -132,10 +132,13 @@ function drawStands() {
     }
 }
 let near = -1, button;
+// the put-down gun within reach (F takes it back)
+const gunNear = () => { const d = player.downAt, f = player.mover.feet; return !!d && Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.5; };
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
     // leaving an optic, a desk button looked at, an optic near, then a gun case
-    if (player.looking) { player.lookThrough(); $('#optic').className = ''; }
+    if (player.looking) { player.lookThrough(); if ($('#optic').className !== 'scope') $('#optic').className = ''; }
+    else if (gunNear()) player.takeBack();
     else if (button) range.lanes.press(button.lane, button.dir);
     else if (nearOptic) useOptic(nearOptic);
     else if (near >= 0) player.select(stands[near].gun);
@@ -223,6 +226,9 @@ demo.tick = () => {
     $('#cross').style.setProperty('--gap', `${Math.max(4, gap).toFixed(1)}px`);
     $('#cross').style.opacity = String(1 - g.aimed);
     slideLanes();
+    // the spotting scope's ring blends in as the eye reaches the eyepiece
+    $('#optic').style.opacity = String(player.opticBlend);
+    if ($('#optic').className === 'scope' && !player.opticBlend && !player.looking) $('#optic').className = '';
     const i = range.standNear(f[0], f[2]);
     near = i >= 0 && stands[i].gun >= 0 && stands[i].gun !== player.current ? i : -1;
     const w = camera.worldMatrix;
@@ -231,6 +237,7 @@ demo.tick = () => {
     nearOptic = (range.data.optics ?? []).find(o => (o.kind === 'fixed' || !binoculars) && Math.hypot(o.at[0] - f[0], o.at[2] - f[2]) < 1.4);
     $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`
         : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars · wheel zoom' : 'F  step back · wheel zoom')
+        : gunNear() ? `F  take ${player.carried[player.down.index].gun.spec.name} back`
         : nearOptic ? (nearOptic.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars')
         : binoculars ? 'G  look through the binoculars'
         : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';
