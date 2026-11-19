@@ -268,7 +268,7 @@ const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     const hands = spec.steeringWheel && new SteeringHands(spec.steeringWheel);
     return { car, spec, hands, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
-let driving, seatCam = false, nearCar;
+let driving, seatCam = true, nearCar;
 // dust behind the wheels, coloured by what the ground is made of; drawn by the player's impacts
 const DUST = { dirt: [.5, .42, .32], stone: [.6, .58, .54], wood: undefined, metal: undefined };
 const dust = new Dust({
