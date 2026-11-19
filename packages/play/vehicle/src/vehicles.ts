@@ -57,7 +57,14 @@ export class Vehicles {
         const length = d.magnitude;
         if (!length) return null;
         d.divide(length);
-        const hit = raycast(this.list.map(c => c.body), { x: from[0], y: from[1], z: from[2] }, d, length);
+        // a ray starting inside a chassis (driver, gun casts) hits at 0 with no normal: skip that car
+        const bodies = this.list.map(c => c.body), origin = { x: from[0], y: from[1], z: from[2] };
+        let hit = raycast(bodies, origin, d, length);
+        while (hit && (hit.t <= 0 || !hit.normal.magnitude))
+        {
+            bodies.splice(bodies.indexOf(hit.body), 1);
+            hit = bodies.length ? raycast(bodies, origin, d, length) : null;
+        }
         if (!hit) return null;
         const vehicle = this.list.find(c => c.body === hit.body)!;
         return { t: hit.t / length, point: new Vector3(hit.point), normal: new Vector3(hit.normal), surface: "metal", vehicle };
