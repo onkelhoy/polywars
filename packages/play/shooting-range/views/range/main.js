@@ -143,7 +143,7 @@ const gunNear = () => { const d = player.downAt, f = player.mover.feet; return !
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
     // leaving an optic, a desk button looked at, an optic near, then a gun case
-    if (player.looking) { player.lookThrough(); if ($('#optic').className !== 'scope') $('#optic').className = ''; }
+    if (player.looking) player.lookThrough();
     else if (gunNear()) player.takeBack();
     else if (button) range.lanes.press(button.lane, button.dir);
     else if (nearOptic) useOptic(nearOptic);
@@ -151,10 +151,10 @@ addEventListener('keydown', e => {
 });
 
 // ---- optics: binoculars on the desks (F takes them, G raises them: shaky), spotting scopes in the nests (F: steady) ----
-let nearOptic, binoculars = false;
+let nearOptic, binoculars = false, binocularNode, binocularFrom;
 const hidden = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -1000, 0, 1]);
 function useOptic(o) {
-    if (o.kind === 'binoculars') { binoculars = true; model.move(o.name, hidden); return; }
+    if (o.kind === 'binoculars') { binoculars = true; binocularNode = o.name; binocularFrom = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -o.at[0], -o.at[1], -o.at[2], 1]); model.move(o.name, hidden); return; }
     player.lookThrough(new Optic({ zoom: o.zoom, handheld: false }), o.eye);
     $('#optic').className = 'scope';
 }
@@ -162,7 +162,7 @@ addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'g' || !binoculars || !document.body.classList.contains('playing')) return;
     const on = !player.looking;
     player.lookThrough(on ? new Optic({ zoom: 7, handheld: true }) : undefined);
-    $('#optic').className = on ? 'binoculars' : '';
+    if (on) $('#optic').className = 'binoculars';
 });
 
 // the mouse wheel zooms binoculars / spotting scopes (2x .. 25x)
@@ -234,7 +234,7 @@ demo.tick = () => {
     slideLanes();
     // the spotting scope's ring blends in as the eye reaches the eyepiece
     $('#optic').style.opacity = String(player.opticBlend);
-    if ($('#optic').className === 'scope' && !player.opticBlend && !player.looking) $('#optic').className = '';
+    if (!player.opticBlend && !player.looking) $('#optic').className = '';
     const i = range.standNear(f[0], f[2]);
     near = i >= 0 && stands[i].gun >= 0 && stands[i].gun !== player.current ? i : -1;
     const w = camera.worldMatrix;
@@ -251,6 +251,8 @@ demo.tick = () => {
     $('#state').value = `shots ${player.shots} · hits ${player.hits}\n${lastHit}`;
 };
 demo.draw = camera => {
+    // binoculars in the hands while raised (hidden otherwise)
+    if (binocularNode) { const m = player.binocularsAt(camera); model.move(binocularNode, m ? m.multiply(binocularFrom) : hidden); }
     renderer.begin(camera, SKY);
     model.draw(renderer, identity);
     drawStands();

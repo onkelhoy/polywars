@@ -52,9 +52,27 @@ export class Player {
         if (optic && eye) { this.optic = optic; this.opticEye = eye; this.focus.start({ eye, time: .7, nudge: 0 }); return; }
         // a fixed optic: step back first, the optic stays on until the eye has left it
         if (!optic && this.opticEye) { this.focus.stop(); return; }
-        this.optic = optic; this.opticEye = undefined;
+        // handheld (binoculars): raised with the hands, lowered the same way; the optic stays on until they are down
+        if (!optic && this.optic) { this.raising = false; return; }
+        this.optic = optic; this.opticEye = undefined; this.raising = !!optic;
     }
-    get looking() { return !!this.optic && (!this.opticEye || this.focus.active); }
+    get looking() { return !!this.optic && (this.opticEye ? this.focus.active : this.raising); }
+    /** binoculars: true while raised / raising */
+    private raising = false;
+    /** 0..1 how far handheld binoculars are raised (the host draws them: `binocularsAt`) */
+    raise = 0;
+    /**
+     * Where held binoculars are (world matrix, model: eyepieces at the origin, looking -z), or undefined when not up.
+     * Down at the chest at 0, at the eyes at 1.
+     */
+    binocularsAt(camera: Camera): Matrix4 | undefined {
+        if (!this.optic || this.opticEye || this.raise <= 0) return;
+        const t = smoothstep(0, 1, this.raise), w = camera.worldMatrix;
+        // camera space: from low and forward to just in front of the eyes
+        const local = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -.35 * (1 - t) - .01, -.42 + .36 * t, 1])
+            .multiply(Matrix4.rotationX(-.6 * (1 - t)));
+        return Matrix4.create(Array.from(w)).multiply(local);
+    }
     /** the gun put down (before an optic): which one, its world matrix while it falls, where it rests */
     down?: { index: number; matrix: Matrix4; y: number; rest: number; fall: number; base: number };
     /**
@@ -573,7 +591,14 @@ export class Player {
         // a fixed optic once the eye has left it: done
         if (this.opticEye && !this.focus.showing) { this.optic = undefined; this.opticEye = undefined; }
         // the optic's view blends in over the last part of the reach
-        this.opticBlend = !this.optic ? 0 : this.opticEye ? smoothstep(.6, 1, this.focus.amount) : 1;
+        // binoculars: raised over .5 s; the view blends in over the last part, gone once lowered
+        if (this.optic && !this.opticEye)
+        {
+            this.raise = Math.max(0, Math.min(1, this.raise + (this.raising ? dt : -dt) / .5));
+            if (!this.raising && this.raise === 0) this.optic = undefined;
+        }
+        else this.raise = 0;
+        this.opticBlend = !this.optic ? 0 : this.opticEye ? smoothstep(.6, 1, this.focus.amount) : smoothstep(.7, 1, this.raise);
         camera.near = this.opticBlend > .5 ? 1 : this.baseNear;
         if (this.optic && this.opticBlend > 0)
         {
