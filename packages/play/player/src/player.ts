@@ -99,6 +99,18 @@ export class Player {
             .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
         this.down = { index: this.current, matrix: m, y: f[1] + 1, rest, fall: 0, base: m[13] };
     }
+    /** bending down to the put-down gun (`pickUp`) */
+    private picking = false;
+    /** Take the put-down gun back: the eye bends down to it (focus), the gun comes up at the bottom. */
+    pickUp() {
+        const at = this.downAt, f = this.mover.feet;
+        if (!at || this.picking) return;
+        // the eye a little back from the gun and over it, looking at it
+        const dx = f[0] - at[0], dz = f[2] - at[2], l = Math.hypot(dx, dz) || 1;
+        const eye: Vec3 = [at[0] + dx / l * .45, Math.max(at[1] + .55, f[1] + .9), at[2] + dz / l * .45];
+        this.picking = true;
+        this.focus.start({ eye, look: at, time: .45, nudge: .05 });
+    }
     /** the gun back in the hands (from the ground / desk) */
     takeBack() { if (this.down) { this.current = this.down.index; this.down = undefined; this.vm.set(this.held!.hold); } }
     /** the put-down gun's place (world), for prompts */
@@ -607,6 +619,8 @@ export class Player {
             camera.rotation.set([this.pitch + o[0] * b, this.yaw + o[1] * b, 0]);
         }
 
+        // picking up: at the bottom of the bend the gun is in the hands, then back up
+        if (this.picking && this.focus.settled) { this.takeBack(); this.picking = false; this.focus.stop(); }
         // the put-down gun drops onto its spot
         if (this.down && this.down.y > this.down.rest)
         {

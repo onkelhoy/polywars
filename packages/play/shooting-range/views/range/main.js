@@ -144,7 +144,7 @@ addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
     // leaving an optic, a desk button looked at, an optic near, then a gun case
     if (player.looking) player.lookThrough();
-    else if (gunNear()) player.takeBack();
+    else if (gunNear()) player.pickUp();
     else if (button) range.lanes.press(button.lane, button.dir);
     else if (nearOptic) useOptic(nearOptic);
     else if (near >= 0) player.select(stands[near].gun);
