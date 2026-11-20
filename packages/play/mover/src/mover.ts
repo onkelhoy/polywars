@@ -56,6 +56,8 @@ export class Mover {
     /** a push from outside (an explosion, a hit), m/s */
     push(x: number, y: number, z: number) {
         this.velocity[0] += x; this.velocity[1] += y; this.velocity[2] += z;
+        // a hard push takes the feet away for a moment: little grip, it slides / flies
+        this.staggered = Math.max(this.staggered, Math.min(1.5, Math.hypot(x, y, z) * .12));
         if (y > 0) this.grounded = false;
     }
 
@@ -95,7 +97,11 @@ export class Mover {
         return { gx, gz, steep: Math.hypot(gx, gz), top: Math.max(a, b, c, d) };
     }
 
+    /** s left with no grip after a push */
+    staggered = 0;
+
     private step(dt: number, input: MoveInput, jump: boolean) {
+        this.staggered = Math.max(0, this.staggered - dt);
         const s = this.setting, v = this.velocity, f = this.feet;
         const { gx, gz, steep, top } = this.gradient(f[0], f[2]);
         const n = Math.hypot(gx, 1, gz);
@@ -118,7 +124,7 @@ export class Mover {
         }
         else
         {
-            const ease = 1 - Math.exp(-dt * (this.grounded ? s.grip : s.air));
+            const ease = 1 - Math.exp(-dt * (this.grounded ? s.grip : s.air) * (this.staggered > 0 ? .12 : 1));
             v[0] += (wx - v[0]) * ease; v[2] += (wz - v[2]) * ease;
         }
 

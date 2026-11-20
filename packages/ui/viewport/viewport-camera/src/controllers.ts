@@ -268,6 +268,8 @@ export type WalkSetting = Omit<MoverSetting, "ground"> & {
     lookScale?: () => number;
     /** live 0..1: the head follows the look on a soft spring (overshoots a touch, dazed), 0 = direct */
     lookSpring?: () => number;
+    /** live multiplier on walk speed (dazed, hurt, carrying), default 1 */
+    moveScale?: () => number;
     /** the player let go of the view (Esc): the host switches back */
     exit?: () => void;
     /** on screen controls (stick walks, analog; `jump`, `run` buttons) */
@@ -340,7 +342,7 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
             const t = setting.touch, stick = t?.stick;
             const ahead = k("w", "arrowup") - k("s", "arrowdown") - (stick?.y ?? 0), side = k("d", "arrowright") - k("a", "arrowleft") + (stick?.x ?? 0);
             // keys: full speed any way; the stick is analog (a light push walks slowly)
-            const l = Math.max(Math.hypot(ahead, side), 1), v = speed * (k("shift") || held(t, "run") ? run : 1);
+            const l = Math.max(Math.hypot(ahead, side), 1), v = speed * (k("shift") || held(t, "run") ? run : 1) * (setting.moveScale?.() ?? 1);
             const fx = -Math.sin(r.y), fz = -Math.cos(r.y), rx = Math.cos(r.y), rz = -Math.sin(r.y);
             const m = controller.mover;
             m.update(dt, { x: (fx * ahead + rx * side) / l * v, z: (fz * ahead + rz * side) / l * v, jump: !!(k(" ") || held(t, "jump")) });

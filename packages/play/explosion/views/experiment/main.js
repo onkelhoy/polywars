@@ -28,10 +28,10 @@ explosion.onmark = (x, z, r) => grass.clear(x, z, r);
 let world, things, force, eye = [0, 0, 0];
 const daze = new Daze(demo.layer);
 // you (the camera) as a target: dazed and deafened by how hard it hits
-const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(v, _s, hit) { const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a); demo.walker?.mover.push(v[0], v[1], v[2]); } };
+const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(v, _s, hit) { const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a); const k = 1 + 6 * a; demo.walker?.mover.push(v[0] * k, v[1] * k + a * 3, v[2] * k); } };
 
 // play: walk round (P), dazed you turn slowly (the look slows with the daze)
-demo.walking = { ground: () => 0, lookScale: () => 1 - .85 * daze.amount, lookSpring: () => daze.amount * .5 };
+demo.walking = { ground: () => 0, lookScale: () => 1 - .85 * daze.amount, lookSpring: () => daze.amount * .5, moveScale: () => 1 - .7 * daze.amount };
 $('#play').onclick = () => { mixer.unlock(); demo.mode = 'walk'; };
 addEventListener('keydown', e => { if (e.code === 'KeyP' && demo.mode !== 'walk') { mixer.unlock(); demo.mode = 'walk'; } });
 const log = [];
