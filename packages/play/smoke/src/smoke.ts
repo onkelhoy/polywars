@@ -5,8 +5,8 @@ import type { BurstOptions, CloudKind, CloudOptions, Colour, Emitter, Layer, Pre
 // puff fields (one Float32Array, STRIDE per puff)
 const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8, R1 = 9, GROW = 10, DRAG = 11, LIFT = 12,
     SWIRL = 13, STRETCH = 14, CR = 15, CG = 16, CB = 17, BRIGHT = 18, DIM = 19, SHRINK = 20, GROUND = 21, SEED = 22,
-    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30, TOP = 31, SKY = 32, DETAIL = 33;
-const STRIDE = 34;
+    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30, TOP = 31, SKY = 32, DETAIL = 33, CX = 34, CY = 35, CZ = 36;
+const STRIDE = 37;
 // puff instance: x y z radius | stretch xyz seed | r g b bright | angle, bottom squash, top squash, sky shade
 const PUFF = 16;
 // tube instance: a xyz radius | b xyz radius | r g b bright
@@ -15,10 +15,11 @@ const TUBE = 12;
 const SHADE = `
 uniform vec3 sun, shade, skyShade;
 uniform float highlight;
-vec3 toon(vec3 p, vec3 base, float bright, float sky) {
+vec3 toon(vec3 p, vec3 base, float bright, float sky, vec3 centre) {
     vec3 shade = mix(shade, skyShade, sky);
     if (sky > .5) {
-        vec3 m = normalize(cross(dFdx(p), dFdy(p)));
+        // the facet's normal leans to the way out of its big mass: lobes on one mass light as one body
+        vec3 m = normalize(normalize(cross(dFdx(p), dFdy(p))) * .4 + normalize(p - centre) * .6);
         float k = smoothstep(-.25, .8, dot(m, sun));
         return mix(base * shade, mix(base, vec3(1.0), highlight * .6 * bright), k);
     }
@@ -35,9 +36,10 @@ precision highp float;
 in vec3 vWorld;
 in vec4 vTone;
 in float vSky;
+in vec3 vCentre;
 out vec4 outColor;
 ${SHADE}
-void main() { outColor = vec4(toon(vWorld, vTone.rgb, vTone.a, vSky), 1.0); }`;
+void main() { outColor = vec4(toon(vWorld, vTone.rgb, vTone.a, vSky, vCentre), 1.0); }`;
 
 const PUFF_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
@@ -49,6 +51,7 @@ uniform mat4 view, projection;
 out vec3 vWorld;
 out vec4 vTone;
 out float vSky;
+out vec3 vCentre;
 void main() {
     // turned about its own random axis
     float seed = motion.w;
@@ -59,7 +62,9 @@ void main() {
     // squashed flat underneath (cloud bases)
     p.y *= p.y < 0.0 ? spin.y : spin.z;
     // stretched along its way
-    float l = min(length(motion.xyz), 3.0);
+    // clouds: motion is the centre of the lobe's mass (no stretch)
+    float l = spin.w > .5 ? 0.0 : min(length(motion.xyz), 3.0);
+    vCentre = motion.xyz;
     if (l > 1e-4) { vec3 d = normalize(motion.xyz); p += d * dot(p, d) * l; }
     vWorld = puff.xyz + p;
     vTone = tone;
@@ -77,6 +82,7 @@ uniform float thickness;
 out vec3 vWorld;
 out vec4 vTone;
 out float vSky;
+out vec3 vCentre;
 void main() {
     vec3 axis = b.xyz - a.xyz;
     vec3 d = normalize(axis);
@@ -85,6 +91,7 @@ void main() {
     vWorld = mix(a.xyz, b.xyz, t) + (u * ring.x + v * ring.y) * r;
     vTone = tone;
     vSky = 0.0;
+    vCentre = vWorld;
     gl_Position = projection * view * vec4(vWorld, 1.0);
 }`;
 
@@ -223,6 +230,7 @@ export class Smoke {
         const top = kind === "overcast" ? .6 - density * .2 : kind === "bank" ? .85 : 1;
         const layer: Layer = { count: 1, speed: [0, 0], life: [Infinity, Infinity], size: [1, 1], grow: 100, drag: 0, swirl: 0, stretch: 0, colour, bright: 1 - grey * .6, dim: Infinity, ground: false, jitter: 0, spin: 0, link: false };
         const d = this.data;
+        let centre = [0, 0, 0];
         const put = (x: number, y: number, z: number, r: number, flat = 1, squash = top) => {
             const slot = this.spawn(layer, [at[0] + x, at[1] + y, at[2] + z], 1);
             if (slot < 0) return;
@@ -232,22 +240,24 @@ export class Smoke {
             d[o + FLAT] = Math.max(.08, Math.min(flat, y / r));
             d[o + TOP] = squash;
             d[o + SKY] = 1;
-            d[o + DETAIL] = 1;
+            d[o + DETAIL] = 0;
+            d[o + CX] = at[0] + centre[0]; d[o + CY] = at[1] + centre[1]; d[o + CZ] = at[2] + centre[2];
         };
         for (const m of masses)
         {
             // a core fills it
-            put(m[0], m[1], m[2], m[3] * .92);
+            centre = [m[0], m[1] - m[3] * .2, m[2]];
+            put(m[0], m[1], m[2], m[3] * .95);
             // lobes evenly over the upper surface (fibonacci sphere), none under, none buried in a neighbour
-            const n = Math.round(6 + 14 * m[3] / size);
+            const n = Math.round(4 + 7 * m[3] / size);
             for (let i = 0; i < n; i++)
             {
                 const y = 1 - (i + .5) / n * 2, ring = Math.sqrt(1 - y * y), a = i * 2.39996 + m[0];
                 const u = [Math.cos(a) * ring, y, Math.sin(a) * ring];
                 if (u[1] < -.3) continue;
-                const p = [m[0] + u[0] * m[3] * .8, m[1] + u[1] * m[3] * .8, m[2] + u[2] * m[3] * .8];
+                const p = [m[0] + u[0] * m[3] * .62, m[1] + u[1] * m[3] * .62, m[2] + u[2] * m[3] * .62];
                 if (masses.some(q => q !== m && Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < q[3] * .85)) continue;
-                put(p[0], p[1], p[2], m[3] * (.46 + Math.random() * .16) * (1 - Math.max(0, u[1]) * .15));
+                put(p[0], p[1], p[2], m[3] * (.55 + Math.random() * .12));
             }
         }
     }
@@ -386,6 +396,7 @@ export class Smoke {
             d[o + PX] = x + (mx + w[0] * drag) * dt;
             d[o + PY] = y + (my + w[1] * drag) * dt;
             d[o + PZ] = z + (mz + w[2] * drag) * dt;
+            if (d[o + SKY]) { d[o + CX] += d[o + PX] - x; d[o + CY] += d[o + PY] - y; d[o + CZ] += d[o + PZ] - z; }
             if (d[o + GROUND])
             {
                 const floor = this.ground(d[o + PX], d[o + PZ]) + this.radius(o) * .2;
@@ -411,7 +422,8 @@ export class Smoke {
             const detail = d[o + DETAIL] < 0 ? this.look.detail : d[o + DETAIL];
             const P = detail ? this.round : this.puffs, k = (detail ? n1++ : n++) * PUFF, st = d[o + STRETCH], wk = .3 + t;
             P[k] = d[o + PX]; P[k + 1] = d[o + PY]; P[k + 2] = d[o + PZ]; P[k + 3] = radius;
-            P[k + 4] = (d[o + VX] + w[0] * wk) * st; P[k + 5] = (d[o + VY] + w[1] * wk) * st; P[k + 6] = (d[o + VZ] + w[2] * wk) * st; P[k + 7] = d[o + SEED];
+            if (d[o + SKY]) { P[k + 4] = d[o + CX]; P[k + 5] = d[o + CY]; P[k + 6] = d[o + CZ]; }
+            else { P[k + 4] = (d[o + VX] + w[0] * wk) * st; P[k + 5] = (d[o + VY] + w[1] * wk) * st; P[k + 6] = (d[o + VZ] + w[2] * wk) * st; } P[k + 7] = d[o + SEED];
             P[k + 8] = d[o + CR]; P[k + 9] = d[o + CG]; P[k + 10] = d[o + CB];
             P[k + 11] = d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], t));
             P[k + 12] = d[o + SPIN] ? d[o + SEED] + age * (.4 + (d[o + SEED] % 1) * .6) * d[o + SPIN] : 0;
