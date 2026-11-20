@@ -51,6 +51,28 @@ const mixer = new AudioMixer(), audio = new ExplosionAudio({ mixer });
 audio.load();
 addEventListener('pointerdown', () => mixer.unlock());
 let heard = '';
+
+// a background loop made here (a beat, a bass, a little tune) on the music bus: it goes through the muffle like everything else
+const loop = () => {
+    const c = mixer.context, rate = c.sampleRate, beat = .5, bars = 8, n = Math.round(rate * beat * bars), b = c.createBuffer(1, n, rate), x = b.getChannelData(0);
+    const tune = [0, 3, 7, 10, 7, 3, 5, 2], bass = [0, 0, -4, -4, -2, -2, -5, -5];
+    for (let i = 0; i < n; i++)
+    {
+        const t = i / rate, k = Math.floor(t / beat), u = t - k * beat, h = (t % (beat / 2));
+        let v = Math.sin(2 * Math.PI * (50 + 80 * Math.exp(-u * 30)) * u) * Math.exp(-u * 8) * .8;           // kick
+        v += (Math.random() * 2 - 1) * Math.exp(-h * 60) * .12;                                              // hat
+        v += Math.sign(Math.sin(2 * Math.PI * 55 * 2 ** (bass[k] / 12) * t)) * .1 * Math.exp(-u * 2);          // bass
+        v += Math.sin(2 * Math.PI * 440 * 2 ** (tune[k] / 12) * t) * .18 * Math.exp(-u * 4);                   // tune
+        x[i] = v * .6;
+    }
+    const s = c.createBufferSource();
+    s.buffer = b; s.loop = true;
+    s.connect(mixer.bus('music').gain);
+    s.start();
+    return s;
+};
+let music;
+$('#music').onchange = () => { mixer.unlock(); if ($('#music').checked) music ??= loop(); else { music?.stop(); music = undefined; } };
 explosion.onexplode = b => {
     log.length = 0;
     force.blast(b.position, b.power);
