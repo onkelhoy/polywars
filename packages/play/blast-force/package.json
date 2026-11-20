@@ -61,7 +61,9 @@
     "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@papit/game-mesh": "*",
-    "@papit/matrix": "*"
+    "@papit/matrix": "*",
+    "@polywar/explosion-audio": "*",
+    "@papit/audio": "*"
   },
   "browserslist": [
     "defaults",

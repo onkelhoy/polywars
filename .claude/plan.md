@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-On `feature/smoke`: smoke 1-3 built, needs look. Next: smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
+On `feature/explosion` (off `feature/smoke`): explosion 1-6 built, needs look. Then smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 Range rework (`feature/range` tasks: ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off), jeep 1-8 (7: gun on passenger seat, hand reach), lights + glow, doors, jeep crash fix (`fleet.cast` skips a chassis the ray starts inside), optics 1-6, grass on the range (falloff, no SSAO on tufts, grass in the gun scope).
@@ -23,3 +23,14 @@ Look (pass 3): low poly. Puffs = flat shaded icosahedrons (20 or 80 faces), toon
 4. Jeep dust uses it.
 Clouds: `smoke.cloud(at, size, { kind, density, height, lean })`: skeleton masses per kind, a core + few big overlapping 20 face lobes on each mass's upper surface, lit with the normal leaned to their mass centre (one body), flat bottom line, no sheet, no spin, no tubes. Soft facet ramp white -> `look.skyShade` (blends lobes into one body). Marching cubes mesh tried: owner rejected (giant blobs). `smoke.sky(at, { count, cover })` scatters a mix. Explosion work moved to backlog (own package).
 Later: fog on far smoke / clouds, weather package drives `sky` cover with noise.
+
+## Explosion (confirmed, `feature/explosion`)
+Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything.
+1-6. Done, needs look:
+- Split: clouds -> `@polywar/clouds` (`smoke.place` still puffs); smoke got `field` (inflow / updraft / spin) and layer `tangent`.
+- `@polywar/explosion`: flash, fireball, spikes, shock bubble (edge lines) + dashed ground rings, kicked dust, swirling surge, suck back, mushroom (~200 kg+), volcano rock + trails (~5 t+); `glare(eye)`, `lights`, `ShockFront`.
+- `@polywar/blast-force`: front pushes targets (rigidbody adapter `bodyTargets`, `worldCover`), `wind(at)` gust.
+- Player: `hit`, `shake`, `deaf`, `blastTarget`.
+- `@polywar/explosion-audio`: sfx-gen sets small/big × near-open/walls/indoor, far, distant + ring; late by distance.
+- Views: explosion `experiment` (power, distance, slow), blast-force `experiment` (crates, jeep, dummies, wall, sound), explosion-audio `experiment` (ear out to 40 km).
+Not wired into the game yet (no game map uses explosions).

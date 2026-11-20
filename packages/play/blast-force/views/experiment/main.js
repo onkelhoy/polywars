@@ -5,6 +5,8 @@ import { Matrix4 } from '@papit/matrix';
 import { World, RigidBody, Plane, Box } from '@papit/rigidbody';
 import { Smoke } from '@polywar/smoke';
 import { Explosion, ShockFront } from '@polywar/explosion';
+import { AudioMixer } from '@papit/audio';
+import { ExplosionAudio } from '@polywar/explosion-audio';
 import { BlastForce, bodyTargets, worldCover } from '@polywar/blast-force';
 
 const $ = s => document.querySelector(s);
@@ -44,7 +46,10 @@ const power = () => 10 ** +$('#power').value;
 const show = () => { const p = power(); $('#kg').textContent = p < 10 ? `${p.toFixed(1)} kg` : `${Math.round(p)} kg`; };
 $('#power').oninput = show; show();
 $('#reset').onclick = reset;
-explosion.onexplode = b => force.blast(b.position, b.power);
+const mixer = new AudioMixer(), audio = new ExplosionAudio({ mixer });
+audio.load();
+addEventListener('pointerdown', () => mixer.unlock());
+explosion.onexplode = b => { force.blast(b.position, b.power); audio.play(b.position, b.power); };
 addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); log.length = 0; explosion.explode([0, 0, 0], { power: power() }); } });
 demo.look([-22, 9, 20], [0, 0, 0]);
 
@@ -58,6 +63,7 @@ demo.tick = dt => {
     const v = demo.camera?.viewMatrix;
     const eye = v && [-(v[0] * v[12] + v[1] * v[13] + v[2] * v[14]), -(v[4] * v[12] + v[5] * v[13] + v[6] * v[14]), -(v[8] * v[12] + v[9] * v[13] + v[10] * v[14])];
     $('#glare').style.opacity = eye ? explosion.glare(eye) * .9 : 0;
+    if (eye) audio.setListener(eye, [-v[2], -v[6], -v[10]]);
     $('#info').value = log.slice(0, 16).join('\n');
 };
 demo.draw = camera => {
