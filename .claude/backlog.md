@@ -106,6 +106,7 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - [x] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
 
 ## Sky + weather
+- [ ] World tones per time / weather (morning, cloudy, evening, night): warm sun + blue shadow base set in `DAYLIGHT` now.
 - [ ] Time of day: sun / moon move with the real local clock (13:00 is 13:00), time controllable (speed / set). Night fall, sun light colour + ambient follow it.
 - [ ] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature.
 - [ ] Light fog (distance + height), first in the shooting range.

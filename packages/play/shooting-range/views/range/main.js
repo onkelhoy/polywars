@@ -127,7 +127,7 @@ function drawStands() {
     const t = performance.now() / 1000;
     for (const s of stands)
     {
-        if (s.gun < 0 || s.gun === player.current && document.body.classList.contains('playing')) continue;
+        if (s.gun < 0 || player.loose.has(s.gun) || s.gun === player.current && document.body.classList.contains('playing')) continue;
         const m = player.carried[s.gun].model, c = m.center, a = Math.sin(t * .6 + s.at[0]) * .4 - Math.PI / 2;
         const cos = Math.cos(a), sin = Math.sin(a);
         // rotation about y, then lift so the gun floats a hand over the lid
@@ -139,7 +139,8 @@ function drawStands() {
 }
 let near = -1, button;
 // the put-down gun within reach (F takes it back)
-const gunNear = () => { const d = player.downAt, f = player.mover.feet; return !!d && Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.5; };
+// a loose gun within reach (F takes it: a held one is put down first)
+const gunNear = () => player.nearLoose() >= 0;
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
     // leaving an optic, a desk button looked at, an optic near, then a gun case
@@ -243,7 +244,7 @@ demo.tick = () => {
     nearOptic = (range.data.optics ?? []).find(o => (o.kind === 'fixed' || !binoculars) && Math.hypot(o.at[0] - f[0], o.at[2] - f[2]) < 1.4);
     $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`
         : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars · wheel zoom' : 'F  step back · wheel zoom')
-        : gunNear() ? `F  take ${player.carried[player.down.index].gun.spec.name} back`
+        : gunNear() ? `F  take ${player.carried[player.nearLoose()].gun.spec.name}${player.down ? '' : ' (swap)'}`
         : nearOptic ? (nearOptic.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars')
         : binoculars ? 'G  look through the binoculars'
         : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';

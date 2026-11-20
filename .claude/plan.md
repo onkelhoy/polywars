@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Everything is on `main`. Next: jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
+Everything is on `main`. On `feature/gun-drop`: A (gun drop / swap) built, needs check. Next: B smoke (`@polywar/smoke`, then jeep dust). Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 Range rework (`feature/range` tasks: ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off), jeep 1-8 (7: gun on passenger seat, hand reach), lights + glow, doors, jeep crash fix (`fleet.cast` skips a chassis the ray starts inside), optics 1-6, grass on the range (falloff, no SSAO on tufts, grass in the gun scope).
@@ -16,3 +16,13 @@ Optics notes (rough first pass):
 ## Tasks (confirmed, `feature/arms-grip`)
 Done: 1-4b (body arms on the rig's IK + grip, 3 store soldiers, rig resync (`characters/base/model.blend` authoring rig, `export.py --bake`, runtime IK via `Skeleton.addIK`, soldiers fitted by `lib/base_rig.py`, brace hand, aim at a wall).
 5. Backlog: papit math cleanup (play), drop box arms, mag / bullet grab, pockets, first shot flyer.
+
+## Gun drop / swap (`feature/gun-drop`, built, needs check)
+- Loose guns are `@polywar/debris` pieces in the feel's world (every range box is in it): `player.loose`, `down` = the held one out of hands.
+- G `drop(camera)`: looked at top (1.8 m) -> laid on it, wall -> leant (butt on ground, muzzle up, 12 deg), else thrown.
+- F `pickUp()`: nearest loose gun; a held one is put down first (swap), bend + hand to grip, take.
+- Not done: stand guns still instant (select); no lean stability tuning.
+
+## B. Smoke (confirmed, next)
+1. `@polywar/smoke`: low poly puffs (icosahedrons, flat / toon), grow, rise, drift, shrink out; one instanced draw; config; view.
+2. Jeep dust uses it.
