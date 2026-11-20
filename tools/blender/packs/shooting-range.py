@@ -54,7 +54,7 @@ ROLES = [
 # vehicle role prefix -> asset (assets/models/vehicles/<kind>); drawn and driven at runtime, not in the glb
 VEHICLES = {"Jeep": "willys-jeep"}
 # one box per object, whatever its parts
-LUMPS = ("Rock.", "Sandbag", "Crate", "Barrel", "Flag stone")
+LUMPS = ("Rock.", "Sandbag", "Crate", "Barrel", "Flag stone", "Fence barbed", "Tank ", "Truck ", "Motorbike ", "Artillery ", "Fighter ", "Bomber")
 # objects without a material get one (colour)
 PAINT = {"Single Target.001": (.30, .36, .20, 1), "Moving Target-guy": (.80, .70, .52, 1), "Single Target.008": (.27, .19, .06, 1)}
 # material name -> surface (bullet marks, case sounds)
