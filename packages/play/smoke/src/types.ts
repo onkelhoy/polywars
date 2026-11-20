@@ -47,6 +47,8 @@ export type Layer = {
     shrink?: number;
     /** m/s roll round the burst's ring (vortex ring: up the middle, out over the top, down the outside); for explosion caps */
     roll?: number;
+    /** spin speed multiplier (default 1) */
+    spin?: number;
     /** joined to a parent puff by a low poly tube (default true) */
     link?: boolean;
     /** kept on / slid along the ground (default true) */

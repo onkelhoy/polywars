@@ -22,11 +22,20 @@ const centre = [0, 0, 0], fire = [-7, .1, 2];
 let campfire = smoke.emitter('campfire', fire);
 let exhaust = smoke.emitter('exhaust', [0, .4, 0]);
 
+// big clouds far out: the world feels small under them
+const clouds = () => {
+    smoke.cloud([-500, 220, -1900], 320, { lean: .6 });
+    smoke.cloud([700, 260, -2400], 420, { height: 1.6, lean: -.4 });
+    smoke.cloud([1500, 200, -1500], 260, { height: 1 });
+    smoke.cloud([-1600, 240, -2300], 360, { lean: .8 });
+};
+clouds();
+
 const scale = () => +$('#scale').value, colour = () => COLOURS[$('#colour').value];
 const blast = () => smoke.burst($('#kind').value, centre, { scale: scale(), colour: colour() });
 for (const button of document.querySelectorAll('[data-burst]'))
     button.onclick = () => smoke.burst(button.dataset.burst, centre, { scale: scale(), colour: colour() });
-$('#clear').onclick = () => { smoke.clear(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
+$('#clear').onclick = () => { smoke.clear(); clouds(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
 addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); blast(); } });
 
 const far = () => demo.look([-55, 6, 80], [0, 22, 0]), near = () => demo.look([-14, 4, 20], [0, 3, 0]);

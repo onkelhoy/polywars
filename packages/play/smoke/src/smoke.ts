@@ -5,10 +5,10 @@ import type { BurstOptions, Colour, Emitter, Layer, Preset, SmokeLook, SmokeSett
 // puff fields (one Float32Array, STRIDE per puff)
 const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8, R1 = 9, GROW = 10, DRAG = 11, LIFT = 12,
     SWIRL = 13, STRETCH = 14, CR = 15, CG = 16, CB = 17, BRIGHT = 18, DIM = 19, SHRINK = 20, GROUND = 21, SEED = 22,
-    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28;
-const STRIDE = 29;
-// puff instance: x y z radius | stretch xyz seed | r g b bright | angle
-const PUFF = 13;
+    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30;
+const STRIDE = 31;
+// puff instance: x y z radius | stretch xyz seed | r g b bright | angle flat
+const PUFF = 14;
 // tube instance: a xyz radius | b xyz radius | r g b bright
 const TUBE = 12;
 
@@ -37,7 +37,7 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 puff;
 layout(location = 2) in vec4 motion;
 layout(location = 3) in vec4 tone;
-layout(location = 4) in float angle;
+layout(location = 4) in vec2 spin;
 uniform mat4 view, projection;
 out vec3 vWorld;
 out vec4 vTone;
@@ -45,9 +45,11 @@ void main() {
     // turned about its own random axis
     float seed = motion.w;
     vec3 axis = normalize(vec3(sin(seed * 12.9), cos(seed * 7.3), sin(seed * 3.1 + 1.0)));
-    float c = cos(angle), s = sin(angle);
+    float c = cos(spin.x), s = sin(spin.x);
     vec3 p = position * c + cross(axis, position) * s + axis * dot(axis, position) * (1.0 - c);
     p *= puff.w;
+    // squashed flat underneath (cloud bases)
+    if (p.y < 0.0) p.y *= spin.y;
     // stretched along its way
     float l = min(length(motion.xyz), 3.0);
     if (l > 1e-4) { vec3 d = normalize(motion.xyz); p += d * dot(p, d) * l; }
@@ -127,7 +129,7 @@ export class Smoke {
             this.tubeProgram = program;
             for (const n of names) this.uniforms.tube[n] = gl.getUniformLocation(program, n);
         });
-        this.meshes = [icosahedron(0), icosahedron(1)].map(g => this.mesh(g, 3, PUFF, [[1, 4, 0], [2, 4, 4], [3, 4, 8], [4, 1, 12]]));
+        this.meshes = [icosahedron(0), icosahedron(1)].map(g => this.mesh(g, 3, PUFF, [[1, 4, 0], [2, 4, 4], [3, 4, 8], [4, 2, 12]]));
         this.tube = this.mesh(tubeRing(6), 3, TUBE, [[1, 4, 0], [2, 4, 4], [3, 4, 8]]);
     }
 
@@ -193,6 +195,65 @@ export class Smoke {
         return e;
     }
 
+    /**
+     * A towering cumulus (low poly): a flat grey bottom, a body that climbs and leans, big white billows piled
+     * on top, small lumps round the edge. `size` m is the base radius; lives until `clear`, drifts with the wind.
+     */
+    cloud(at: ArrayLike<number>, size: number, options: { height?: number; lean?: number; colour?: Colour } = {}) {
+        const height = size * (options.height ?? 1.3), lean = size * (options.lean ?? .5);
+        const layer: Layer = { count: 1, speed: [0, 0], life: [Infinity, Infinity], size: [1, 1], grow: 100, drag: 0, swirl: 0, stretch: 0, colour: options.colour ?? WHITE, bright: 1, dim: Infinity, ground: false, jitter: 0, spin: .03 };
+        const placed: number[] = [], d = this.data;
+        const put = (x: number, y: number, z: number, r: number, flat = 1) => {
+            const slot = this.spawn(layer, [at[0] + x, at[1] + y, at[2] + z], 1);
+            if (slot < 0) return;
+            const o = slot * STRIDE;
+            d[o + R0] = d[o + R1] = r;
+            d[o + FLAT] = flat;
+            // join the nearest one placed before
+            let best = -1, near = Infinity;
+            for (const other of placed)
+            {
+                const q = other * STRIDE, k = (d[q + PX] - d[o + PX]) ** 2 + (d[q + PY] - d[o + PY]) ** 2 + (d[q + PZ] - d[o + PZ]) ** 2;
+                if (k < near) { near = k; best = other; }
+            }
+            if (best >= 0) d[o + PARENT] = d[best * STRIDE + ID];
+            placed.push(slot);
+        };
+        const r = () => Math.random();
+        // flat base: wide, squashed underneath
+        for (let i = 0; i < 16; i++)
+        {
+            const a = r() * Math.PI * 2, k = Math.sqrt(r()) * size * .85;
+            put(Math.cos(a) * k, size * .08, Math.sin(a) * k * .8, size * (.22 + r() * .14), .35);
+        }
+        // the body: rings of puffs round a spine that climbs and leans, widest low, narrowing, then the head
+        const steps = 7;
+        for (let s = 1; s <= steps; s++)
+        {
+            const t = s / steps, cx = lean * t * t, cy = height * t * .85;
+            const width = size * (.62 - .25 * t + .2 * Math.sin(Math.PI * t));
+            const n = Math.round(4 + width / size * 6);
+            for (let i = 0; i < n; i++)
+            {
+                const a = i / n * Math.PI * 2 + r(), k = width * (.35 + r() * .35);
+                put(cx + Math.cos(a) * k, cy + (r() - .5) * size * .15, Math.sin(a) * k * .85, width * (.6 + r() * .25));
+            }
+        }
+        // the head: big billows piled on top
+        for (let i = 0; i < 9; i++)
+        {
+            const a = r() * Math.PI * 2, k = r() * size * .45;
+            put(lean + Math.cos(a) * k, height * (.85 + r() * .2), Math.sin(a) * k * .8, size * (.32 + r() * .18));
+        }
+        // small lumps over the surface: the cauliflower edge
+        for (const slot of placed.slice(16))
+        {
+            if (r() > .3) continue;
+            const o = slot * STRIDE, u = random3(), rr = d[o + R0];
+            put(d[o + PX] - at[0] + u[0] * rr * .85, d[o + PY] - at[1] + Math.abs(u[1]) * rr * .85, d[o + PZ] - at[2] + u[2] * rr * .85, rr * (.38 + r() * .18));
+        }
+    }
+
     /** drop every puff and emitter */
     clear() {
         this.live = 0;
@@ -244,6 +305,8 @@ export class Smoke {
         d[o + OX] = at[0]; d[o + OZ] = at[2];
         d[o + GROUP] = layer.roll ? group : 0;
         d[o + ROLL] = (layer.roll ?? 0) * scale;
+        d[o + SPIN] = layer.spin ?? 1;
+        d[o + FLAT] = 1;
         this.slots.set(id, slot);
         return slot;
     }
@@ -337,7 +400,8 @@ export class Smoke {
             P[k + 4] = (d[o + VX] + w[0] * wk) * st; P[k + 5] = (d[o + VY] + w[1] * wk) * st; P[k + 6] = (d[o + VZ] + w[2] * wk) * st; P[k + 7] = d[o + SEED];
             P[k + 8] = d[o + CR]; P[k + 9] = d[o + CG]; P[k + 10] = d[o + CB];
             P[k + 11] = d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], t));
-            P[k + 12] = d[o + SEED] + age * (.4 + (d[o + SEED] % 1) * .6);
+            P[k + 12] = d[o + SEED] + age * (.4 + (d[o + SEED] % 1) * .6) * d[o + SPIN];
+            P[k + 13] = d[o + FLAT];
         }
         if (!n) return;
         // tubes: puff to parent while both show and they are close

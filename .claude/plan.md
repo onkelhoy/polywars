@@ -21,4 +21,5 @@ Done: 1-4b (body arms on the rig's IK + grip, 3 store soldiers, rig resync (`cha
 Look (pass 3): low poly. Puffs = flat shaded icosahedrons (20 or 80 faces), toon band per face (white top, body, cool shade), slow spin, no outlines. Filler = low poly 6 sided tubes from each puff to its parent (burst: nearest earlier puff, emitter: the one before) while close; ends stay lone balls. Motion: curl noise (Bridson) at puff scale growing with age, vortex roll on explosion caps, wind drag grows with age / height, shrink out.
 1-3. Done: `@polywar/smoke` (packages/play/smoke): `burst`, `emitter`, `spawn`; `look` live (sun, wind, shade, highlight, detail, thickness, reach, swirl); presets `explosion` (flat base, stem, cap ~50 m, spikes), `blast`, `campfire`, `exhaust`, `dust`, `puff`; view `views/experiment`.
 4. Jeep dust uses it.
-Later: clouds (low poly heaps), shockwave ring, fog on far smoke.
+Clouds: `smoke.cloud(at, size, { height, lean })` low poly cumulus (flat squashed base, leaning body, billow head, edge lumps), 4 in the view 1.5-2.4 km out.
+Later: shockwave ring, fog on far smoke.
