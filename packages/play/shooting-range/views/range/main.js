@@ -121,7 +121,8 @@ await player.ready;
 tuner = new WeaponEditor(player, document.body, { active: () => document.body.classList.contains('playing') });
 
 // ---- a gun over each case: turning slowly, muzzle along the case; F takes it ----
-const stands = range.stands.map((s, i) => ({ ...s, gun: i < player.carried.length ? i : -1 }));
+// the cases are empty now: every gun lies in the booths
+const stands = range.stands.map(s => ({ ...s, gun: -1 }));
 const matrix = Matrix4.create();
 function drawStands() {
     const t = performance.now() / 1000;
@@ -136,6 +137,27 @@ function drawStands() {
             at[0] - (cos * c[0] + sin * c[2]), at[1] - c[1], at[2] - (-sin * c[0] + cos * c[2]), 1]);
         m.draw(renderer, matrix);
     }
+}
+// ---- every gun out in the booths: one on each desk, the rest leant on the booth walls (F takes one) ----
+{
+    const booths = range.data.solids.filter(s => s.name.startsWith('Booths'));
+    const desks = booths.filter(s => s.max[1] - s.min[1] < .2), walls = booths.filter(s => s.max[0] - s.min[0] < .1);
+    const lay = [], lean = [];
+    for (const d of desks)
+    {
+        const xs = [d.min[0], ...walls.filter(w => w.min[0] > d.min[0] && w.max[0] < d.max[0]).map(w => (w.min[0] + w.max[0]) / 2), d.max[0]].sort((a, b) => a - b);
+        for (let i = 0; i + 1 < xs.length; i++) lay.push([(xs[i] + xs[i + 1]) / 2, d.max[1], (d.min[2] + d.max[2]) / 2]);
+        // each wall inside the desk's span: both faces, a few along it behind the desk
+        for (const w of walls) if (w.min[0] > d.min[0] && w.max[0] < d.max[0])
+            for (const z of [.85, 1.15, 1.45]) for (const side of [-1, 1])
+                lean.push({ at: [side < 0 ? w.min[0] : w.max[0], .9, z], n: [side, 0, 0] });
+    }
+    const loose = player.carried.map((_, i) => i).filter(i => i !== player.current);
+    loose.forEach((g, k) => {
+        if (k < lay.length) player.lay(g, lay[k], 0);
+        else if (k - lay.length < lean.length) { const l = lean[k - lay.length]; player.leanOn(g, l.at, l.n); }
+    });
+    // stands stay empty (their guns are out in the booths)
 }
 let near = -1, button;
 // the put-down gun within reach (F takes it back)

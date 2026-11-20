@@ -136,10 +136,25 @@ export class Player {
         const w = camera.worldMatrix, eye: Vec3 = [w[12], w[13], w[14]], look: Vec3 = [-w[8], -w[9], -w[10]];
         const hit = this.setting.cast(eye, [eye[0] + look[0] * 1.8, eye[1] + look[1] * 1.8, eye[2] + look[2] * 1.8]);
         const n = hit?.normal;
-        if (hit && n && n[1] > .7) return this.letGo(this.current, this.lying(this.current, hit.point, this.yaw, .05));
-        if (hit && n && Math.abs(n[1]) < .4)
+        if (hit && n && n[1] > .7) return this.lay(this.current, hit.point, this.yaw);
+        if (hit && n && Math.abs(n[1]) < .4) return this.leanOn(this.current, hit.point, n);
+        // thrown from the hands: forward and up, tumbling
+        const m = Matrix4.create(Array.from(this.vm.world(w)));
+        const r = () => Math.random() - .5;
+        this.letGo(this.current, m, [look[0] * 4.5, look[1] * 4.5 + 1.8, look[2] * 4.5], [r() * 6, r() * 6, r() * 10]);
+    }
+
+    /** gun `index` out of the hands, laid on its side on `spot` (a table / box top / the ground), barrel across `yaw` */
+    lay(index: number, spot: Vec3, yaw: number) { this.letGo(index, this.lying(index, spot, yaw, .05)); }
+
+    /**
+     * Gun `index` out of the hands, leant on a wall: `at` a point on it, `n` its normal (out of the wall). Butt on
+     * the ground a little out, muzzle up, tipped 12 degrees onto the wall.
+     */
+    leanOn(index: number, at: Vec3, n: Vec3) {
+        const c = this.carried[index], hit = { point: at };
         {
-            // upright: model -z (muzzle) up, tipped 12 degrees onto the wall; model x along the wall
+            // upright: model -z (muzzle) up, tipped onto the wall; model x along the wall
             const h = Math.hypot(n[0], n[2]) || 1, nx = n[0] / h, nz = n[2] / h, t = 12 * Math.PI / 180;
             const up: Vec3 = [-nx * Math.sin(t), Math.cos(t), -nz * Math.sin(t)];
             const side: Vec3 = [-nz, 0, nx];
@@ -147,16 +162,12 @@ export class Player {
             const size = c.model.size, centre = c.model.center, len = size[2];
             // the butt on the ground a little out from the wall, the centre half a gun up the tilt
             const bx = hit.point[0] + nx * (.06 + Math.sin(t) * len), bz = hit.point[2] + nz * (.06 + Math.sin(t) * len);
-            const at: Vec3 = [bx + up[0] * len / 2, this.setting.ground(bx, bz) + up[1] * len / 2 + .02, bz + up[2] * len / 2];
+            const top: Vec3 = [bx + up[0] * len / 2, this.setting.ground(bx, bz) + up[1] * len / 2 + .02, bz + up[2] * len / 2];
             const m = Matrix4.create([side[0], side[1], side[2], 0, y[0], y[1], y[2], 0, -up[0], -up[1], -up[2], 0, 0, 0, 0, 1]);
             const o = point(m, centre);
-            m[12] = at[0] - o[0]; m[13] = at[1] - o[1]; m[14] = at[2] - o[2];
-            return this.letGo(this.current, m);
+            m[12] = top[0] - o[0]; m[13] = top[1] - o[1]; m[14] = top[2] - o[2];
+            this.letGo(index, m);
         }
-        // thrown from the hands: forward and up, tumbling
-        const m = Matrix4.create(Array.from(this.vm.world(w)));
-        const r = () => Math.random() - .5;
-        this.letGo(this.current, m, [look[0] * 4.5, look[1] * 4.5 + 1.8, look[2] * 4.5], [r() * 6, r() * 6, r() * 10]);
     }
 
     /** bending down to a loose gun (`pickUp`): which one, -1 none */
