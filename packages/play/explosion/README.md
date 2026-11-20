@@ -85,7 +85,7 @@ audio.ring(player.deaf);                              // ears after a close one
 
 ```ts
 const daze = new Daze(layer);                       // vision: last frames smear over, blurred, doubled, clears in 2-10 s
-const a = Math.min(1, hit.pressure / 60);           // from the player's blast hit
+const a = shellShock(hit.pressure);                 // 0 under ~15 kPa (far, behind a wall), full from ~70
 daze.hit(a); audio.stun(a);                         // ears: near silence -> muffled -> clear, a ring fades in past the muffle
 daze.update(dt); daze.draw();                       // last thing each frame
 ```

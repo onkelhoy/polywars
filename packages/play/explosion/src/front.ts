@@ -47,3 +47,12 @@ export class ShockFront {
         return t;
     }
 }
+
+/**
+ * How shell shocked a blast leaves you, 0..1, from the kPa that reached you (after cover): nothing under ~15 kPa
+ * (far, or behind a wall), full from ~70 (close). Feed `Daze.hit` and `ExplosionAudio.stun`.
+ */
+export function shellShock(pressure: number) {
+    const t = Math.min(1, Math.max(0, (pressure - 15) / 55));
+    return t * t * (3 - 2 * t);
+}

@@ -6,7 +6,7 @@ import { Smoke } from '@polywar/smoke';
 import { World, RigidBody, Plane, Box } from '@papit/rigidbody';
 import { Grass } from '@polywar/grass';
 import { AudioMixer } from '@papit/audio';
-import { Explosion, ShockFront, BlastForce, ExplosionAudio, Daze, bodyTargets, worldCover } from '@polywar/explosion';
+import { Explosion, ShockFront, shellShock, BlastForce, ExplosionAudio, Daze, bodyTargets, worldCover } from '@polywar/explosion';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -28,7 +28,7 @@ explosion.onmark = (x, z, r) => grass.clear(x, z, r);
 let world, things, force, eye = [0, 0, 0];
 const daze = new Daze(demo.layer);
 // you (the camera) as a target: dazed and deafened by how hard it hits
-const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(_v, _s, hit) { const a = Math.min(1, hit.pressure / 20); daze.hit(a); audio.stun(a); } };
+const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(_v, _s, hit) { const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a); } };
 const log = [];
 const reset = () => {
     world = new World();

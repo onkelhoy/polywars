@@ -93,8 +93,9 @@ export class ExplosionAudio {
         const silent = .5 + 1.5 * amount, ringUp = 1 + 1.5 * amount, back = 3 + 6 * amount, start = now + silent;
         const hold = (p: AudioParam) => { p.cancelScheduledValues(now); p.setValueAtTime(p.value, now); };
         hold(gain.gain); hold(filter.frequency); hold(ring.gain);
-        gain.gain.setTargetAtTime(Math.max(0, 1 - amount * 1.4) * .02, now, .03);
-        filter.frequency.setTargetAtTime(200, now, .03);
+        // the bang itself still gets through, then the ears shut
+        gain.gain.setTargetAtTime(Math.max(0, 1 - amount * 1.4) * .02, now + .12, .03);
+        filter.frequency.setTargetAtTime(200, now + .12, .03);
         ring.gain.setTargetAtTime(.09 * amount, now + silent * .4, ringUp / 3);
         // the world comes back: slow at first (an exponential approach)
         gain.gain.setTargetAtTime(1, start + ringUp * .5, back / 3);
