@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-On `feature/explosion` (off `feature/smoke`): explosion 1-6 built, needs look. Then smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
+On `feature/explosion` (off `feature/smoke`): explosion built, needs look. Next: knockdown (see Explosion). Then smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 Range rework (`feature/range` tasks: ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off), jeep 1-8 (7: gun on passenger seat, hand reach), lights + glow, doors, jeep crash fix (`fleet.cast` skips a chassis the ray starts inside), optics 1-6, grass on the range (falloff, no SSAO on tufts, grass in the gun scope).
@@ -25,13 +25,6 @@ Clouds: `smoke.cloud(at, size, { kind, density, height, lean })`: skeleton masse
 Later: fog on far smoke / clouds, weather package drives `sky` cover with noise.
 
 ## Explosion (confirmed, `feature/explosion`)
-Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything.
-1-6. Done, needs look:
-- Split: clouds -> `@polywar/clouds` (`smoke.place` still puffs); smoke got `field` (inflow / updraft / spin) and layer `tangent`.
-- `@polywar/explosion`: flash, fireball, spikes, shock bubble (edge lines) + dashed ground rings, kicked dust, swirling surge, suck back, mushroom (~200 kg+), volcano rock + trails (~5 t+); `glare(eye)`, `lights`, `ShockFront`.
-- Force (in explosion): front pushes targets (rigidbody adapter `bodyTargets`, `worldCover`), `wind(at)` gust.
-- Player: `hit`, `shake`, `deaf`, `blastTarget`.
-- Sound (in explosion): sfx-gen sets small/big × near-open/walls/indoor, far, distant + ring; late by distance.
-- View: explosion `experiment` (everything: power, ear distance, slow, look, pushed things, sound).
-7. Merge force + sound into explosion. 8. More trail (rock from ~250 kg). 9. Black streaks. 10. Player shell shock (blur, silence -> muffled -> clear, ring).
-Not wired into the game yet (no game map uses explosions).
+Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything. All in `@polywar/explosion` (look, force, sound, daze); clouds split to `@polywar/clouds`.
+Done, needs look: flash, fireball, white spikes, shock shell (smooth edge line ground/top + light bend), solid ground ring, kicked dust, swirling surge (clean ring, tumbles in), suck back (middle only), mushroom, rock + trails, dark grit lines, scorch marks (`onmark` -> `grass.clear`), smoke eaten by noise + dithered fade. Force: `BlastForce` + `bodyTargets` / `worldCover`. Sound: `ExplosionAudio` (near/far/distant), `stun` (silence -> live ring in -> world back muffled). `Daze` (smear), `shellShock(kPa)` 15..70. Walk: `lookScale`, `lookSpring`, `moveScale`; mover push staggers. View `experiment` has it all + play (P).
+Next (needs a plan + confirm): knockdown when shell shocked: fall to the ground, hands placed on the ground (arm IK), forced look at things while getting back up (if alive), gun knocked out of the hands (lands as a pickup). Then wire explosions into the game (player hit -> daze, stun, knockdown).
