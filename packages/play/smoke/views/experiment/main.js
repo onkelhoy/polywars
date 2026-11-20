@@ -8,7 +8,7 @@ const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
 await demo.ready;
 const gl = demo.gl, renderer = new Renderer(demo.layer), smoke = new Smoke(demo.layer);
-const COLOURS = { dust: DUST, white: WHITE, grey: GREY, dark: [.36, .35, .36] };
+const COLOURS = { preset: undefined, dust: DUST, white: WHITE, grey: GREY, dark: [.36, .35, .36] };
 const SKY = [.55, .72, .88, 1];
 
 // a field with a few things for scale (1 m crates, 2 m posts, a house)
@@ -22,29 +22,24 @@ const centre = [0, 0, 0], fire = [-7, .1, 2];
 let campfire = smoke.emitter('campfire', fire);
 let exhaust = smoke.emitter('exhaust', [0, .4, 0]);
 
-// clouds far out, big
-const clouds = () => {
-    smoke.cloud([-300, 120, -700], 120);
-    smoke.cloud([250, 150, -800], 160);
-    smoke.cloud([600, 100, -400], 90);
-};
-clouds();
-
 const scale = () => +$('#scale').value, colour = () => COLOURS[$('#colour').value];
-const blast = () => smoke.burst('blast', centre, { scale: scale(), colour: colour() });
+const blast = () => smoke.burst($('#kind').value, centre, { scale: scale(), colour: colour() });
 for (const button of document.querySelectorAll('[data-burst]'))
-    button.onclick = () => smoke.burst(button.dataset.burst, centre, { scale: scale(), colour: button.dataset.burst === 'blast' ? colour() : undefined });
-$('#clear').onclick = () => { smoke.clear(); clouds(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
+    button.onclick = () => smoke.burst(button.dataset.burst, centre, { scale: scale(), colour: colour() });
+$('#clear').onclick = () => { smoke.clear(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
 addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); blast(); } });
 
-demo.look([-14, 4, 20], [0, 3, 0]);
+const far = () => demo.look([-55, 6, 80], [0, 22, 0]), near = () => demo.look([-14, 4, 20], [0, 3, 0]);
+$('#near').onclick = near; $('#far').onclick = far;
+far();
 let wait = .5, time = 0, last = [0, .4, 0];
 demo.tick = dt => {
     time += dt * smoke.speed;
     smoke.speed = +$('#speed').value;
     smoke.look.wind = [+$('#wind').value, 0, 0];
-    smoke.look.outline = +$('#outline').value;
-    smoke.look.band = +$('#band').value;
+    smoke.look.highlight = +$('#highlight').value;
+    smoke.look.threshold = +$('#threshold').value;
+    smoke.look.resolution = +$('#resolution').value;
     const a = +$('#sun').value * Math.PI / 180;
     smoke.look.sun = [Math.cos(a) * .5, .8, Math.sin(a) * .5];
     campfire.rate = $('#fire').checked ? 1 : 0;
@@ -56,7 +51,7 @@ demo.tick = dt => {
     exhaust.rate = $('#exhaust').checked ? 1 : 0;
     last = p;
 
-    if ($('#repeat').checked && (wait -= dt * smoke.speed) <= 0) { wait = 3.2; blast(); }
+    if ($('#repeat').checked && (wait -= dt * smoke.speed) <= 0) { wait = $('#kind').value === 'explosion' ? 7 : 3.2; blast(); }
     smoke.update(dt);
     $('#info').value = `${smoke.count} puffs`;
 };

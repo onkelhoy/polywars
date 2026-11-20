@@ -33,7 +33,7 @@ export type Layer = {
     drag?: number;
     /** m/s² up (buoyancy); negative sinks (default 0) */
     lift?: number;
-    /** m/s of swirl from the flow field (default .5) */
+    /** m/s of swirl from the flow field, grows with age: the roll in (default .5) */
     swirl?: number;
     /** puff stretch along its speed: extra length per m/s (default .05) */
     stretch?: number;
@@ -43,10 +43,8 @@ export type Layer = {
     bright?: number;
     /** life fraction by which the bright top is gone (default .5) */
     dim?: number;
-    /** life fraction it starts shrinking (default .7) */
+    /** life fraction it starts shrinking (default .6) */
     shrink?: number;
-    /** life fraction its edges start getting eaten (default .55) */
-    erode?: number;
     /** kept on / slid along the ground (default true) */
     ground?: boolean;
     /** random size / speed jitter 0..1 (default .3) */
@@ -70,12 +68,14 @@ export type SmokeLook = {
     sun: Vec3;
     /** wind m/s */
     wind: Vec3;
-    /** dark outline width, fraction of the puff (0 = none) */
-    outline: number;
     /** shadow side colour multiplier (cool shadows) */
     shade: Colour;
-    /** lit part size: how far the lit circle sits toward the sun (higher = less lit, thinner crescent) */
-    band: number;
+    /** how white the lit top goes, 0..1 */
+    highlight: number;
+    /** where puffs merge: lower = fatter blobs, more filler (0..1) */
+    threshold: number;
+    /** smoke buffer size vs the screen (default .5) */
+    resolution: number;
 };
 
 export type BurstOptions = {
