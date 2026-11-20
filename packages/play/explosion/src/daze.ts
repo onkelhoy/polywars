@@ -16,15 +16,15 @@ uniform float amount, time;
 out vec4 outColor;
 void main() {
     // the frames before smear over this one: blurred, doubled, swaying
-    float r = amount * .012;
-    vec2 sway = vec2(sin(time * 1.7), cos(time * 1.3)) * amount * .012;
+    float r = amount * .03;
+    vec2 sway = vec2(sin(time * 1.7), cos(time * 1.3)) * amount * .02;
     vec3 c = vec3(0.0);
     for (int i = 0; i < 8; i++) {
         float a = float(i) * .785;
         c += texture(last, vUv + sway + vec2(cos(a), sin(a)) * r).rgb;
     }
     c /= 8.0;
-    outColor = vec4(c, amount * .82);
+    outColor = vec4(c, min(.95, amount * 1.6));
 }`;
 
 /**
@@ -54,7 +54,7 @@ export class Daze {
     /** 0..1 how dazed now */
     get amount() {
         const t = this.age / this.length;
-        return t >= 1 ? 0 : this.strength * (1 - t) ** 1.5;
+        return t >= 1 ? 0 : this.strength * (1 - t);
     }
 
     /** a blast hit: `amount` 0..1 (by pressure); lasts 2 to 10 s */

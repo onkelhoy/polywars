@@ -28,7 +28,7 @@ explosion.onmark = (x, z, r) => grass.clear(x, z, r);
 let world, things, force, eye = [0, 0, 0];
 const daze = new Daze(demo.layer);
 // you (the camera) as a target: dazed and deafened by how hard it hits
-const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(_v, _s, hit) { const a = Math.min(1, hit.pressure / 60); daze.hit(a); audio.stun(a); } };
+const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(_v, _s, hit) { const a = Math.min(1, hit.pressure / 20); daze.hit(a); audio.stun(a); } };
 const log = [];
 const reset = () => {
     world = new World();

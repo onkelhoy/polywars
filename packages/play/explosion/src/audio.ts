@@ -93,24 +93,24 @@ export class ExplosionAudio {
             this.stunned = { filter, gain };
         }
         const { filter, gain } = this.stunned, now = context.currentTime;
-        const silent = .2 + 1.2 * amount, muffled = 1 + 3 * amount, clear = 2 + 6 * amount;
+        // dead silent, then everything fades back in muffled and opens up; the ring rises with it and dies away
+        const silent = .6 + 2 * amount, back = 3 + 7 * amount, deep = Math.max(.02, 1 - amount * 1.6);
         for (const p of [gain.gain, filter.frequency]) p.cancelScheduledValues(now);
         gain.gain.setValueAtTime(gain.gain.value, now);
-        gain.gain.linearRampToValueAtTime(1 - .95 * amount, now + .02);
-        gain.gain.setValueAtTime(1 - .95 * amount, now + silent);
-        gain.gain.linearRampToValueAtTime(1 - .45 * amount, now + silent + muffled);
-        gain.gain.linearRampToValueAtTime(1, now + silent + muffled + clear);
-        filter.frequency.setValueAtTime(filter.frequency.value, now);
-        filter.frequency.exponentialRampToValueAtTime(200 + 600 * (1 - amount), now + .02);
-        filter.frequency.setValueAtTime(200 + 600 * (1 - amount), now + silent);
-        filter.frequency.exponentialRampToValueAtTime(1500, now + silent + muffled);
-        filter.frequency.exponentialRampToValueAtTime(20000, now + silent + muffled + clear);
-        // the ring comes late, as the muffle opens up
+        gain.gain.linearRampToValueAtTime(1 - (1 - deep) * .999, now + .06);
+        gain.gain.setValueAtTime(1 - (1 - deep) * .999, now + silent);
+        gain.gain.linearRampToValueAtTime(.35 + .65 * deep, now + silent + back * .4);
+        gain.gain.linearRampToValueAtTime(1, now + silent + back);
+        filter.frequency.setValueAtTime(Math.max(100, filter.frequency.value), now);
+        filter.frequency.exponentialRampToValueAtTime(150, now + .06);
+        filter.frequency.setValueAtTime(150, now + silent);
+        filter.frequency.exponentialRampToValueAtTime(900, now + silent + back * .5);
+        filter.frequency.exponentialRampToValueAtTime(20000, now + silent + back);
         const file = this.files?.ring?.[0];
         if (file)
         {
             this.ringing?.stop();
-            const voice = this.mixer.play(`explosions/${file}`, { bus: "stun-ring", volume: .45 * amount, when: now + silent + muffled * .7 });
+            const voice = this.mixer.play(`explosions/${file}`, { bus: "stun-ring", volume: .5 * amount, when: now + silent * .6, fadeIn: back * .3 });
             this.ringing = voice;
         }
     }
