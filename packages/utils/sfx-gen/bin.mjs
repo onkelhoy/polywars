@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-// Writes the generated weapon sounds into assets/audio/effects/weapons/<model>/ (+ sounds.json) and brass/.
+// Writes the generated weapon sounds into assets/audio/effects/weapons/<model>/ (+ sounds.json) and brass/, explosions into assets/audio/effects/explosions/.
 // A set whose sounds.json exists is left alone (hand edits win): --force regenerates, --only=kar98k,m1911 picks sets.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { gunSet, brassSet, voice, wav, RATE } from "@polywar/sfx-gen";
+import { gunSet, brassSet, explosionSet, voice, wav, RATE } from "@polywar/sfx-gen";
 import { GUNS, CALIBERS } from "@polywar/weapons";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-const out = path.join(root, "assets/audio/effects/weapons");
+let out = path.join(root, "assets/audio/effects/weapons");
 const args = process.argv.slice(2), force = args.includes("--force");
 const only = args.find(a => a.startsWith("--only="))?.slice(7).split(",");
 
@@ -43,3 +43,5 @@ for (const spec of Object.values(GUNS))
     write(name, gunSet(name, voice(spec.kind, action, spec.caliber, CALIBERS[spec.caliber].speed)));
 }
 write("brass", brassSet());
+out = path.join(root, "assets/audio/effects");
+write("explosions", explosionSet());

@@ -1,0 +1,48 @@
+{
+    "rate": 32000,
+    "sounds": {
+        "small-near-open": [
+            "small-near-open-1.wav",
+            "small-near-open-2.wav"
+        ],
+        "small-near-walls": [
+            "small-near-walls-1.wav",
+            "small-near-walls-2.wav"
+        ],
+        "small-near-indoor": [
+            "small-near-indoor-1.wav",
+            "small-near-indoor-2.wav"
+        ],
+        "small-far": [
+            "small-far-1.wav",
+            "small-far-2.wav"
+        ],
+        "small-distant": [
+            "small-distant-1.wav",
+            "small-distant-2.wav"
+        ],
+        "big-near-open": [
+            "big-near-open-1.wav",
+            "big-near-open-2.wav"
+        ],
+        "big-near-walls": [
+            "big-near-walls-1.wav",
+            "big-near-walls-2.wav"
+        ],
+        "big-near-indoor": [
+            "big-near-indoor-1.wav",
+            "big-near-indoor-2.wav"
+        ],
+        "big-far": [
+            "big-far-1.wav",
+            "big-far-2.wav"
+        ],
+        "big-distant": [
+            "big-distant-1.wav",
+            "big-distant-2.wav"
+        ],
+        "ring": [
+            "ring-1.wav"
+        ]
+    }
+}

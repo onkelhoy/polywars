@@ -26,7 +26,7 @@ npm run sfx -- --force            # redo sets that already have a sounds.json (h
 npm run sfx -- --only=kar98k,brass
 ```
 
-Per gun (`weapon.json` `sounds`, default the model folder): `shot-open`, `shot-walls`, `shot-indoor` (2 variants) and the parts `dry`, `bolt-open`, `bolt-close`, `mag-out`, `mag-in`, `round-in`, `clip-in`, `slide`. `brass/`: `dirt`, `stone`, `wood`, `metal` (3 variants). `sounds.json` lists the files per name: replace or add files and list them, a set with a `sounds.json` is kept.
+Per gun (`weapon.json` `sounds`, default the model folder): `shot-open`, `shot-walls`, `shot-indoor` (2 variants) and the parts `dry`, `bolt-open`, `bolt-close`, `mag-out`, `mag-in`, `round-in`, `clip-in`, `slide`. `brass/`: `dirt`, `stone`, `wood`, `metal` (3 variants). `assets/audio/effects/explosions/`: `small|big-near-open|near-walls|near-indoor|far|distant` (2 variants) and `ring` (ears). `sounds.json` lists the files per name: replace or add files and list them, a set with a `sounds.json` is kept.
 
 The synth is pure (no DOM, no node), so it runs in the browser too:
 
