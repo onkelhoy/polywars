@@ -63,6 +63,21 @@ void main() {
     outColor = vec4(c * vTone.rgb, 1.0);
 }`;
 
+const MARK_VERTEX = `#version 300 es
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 colour;
+uniform mat4 view, projection;
+out vec3 vColour;
+void main() {
+    vColour = colour;
+    gl_Position = projection * view * vec4(position, 1.0);
+}`;
+const MARK_FRAGMENT = `#version 300 es
+precision highp float;
+in vec3 vColour;
+out vec4 outColor;
+void main() { outColor = vec4(vColour, 1.0); }`;
+
 const SHOCK_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 bary;
@@ -157,6 +172,15 @@ export class Explosion {
     speed = 1;
     /** live lights (flash, fireball) for the host's renderer */
     readonly lights: FlashLight[] = [];
+    /** a mark left on the ground: clear grass there (`grass.clear(x, z, radius)`), later dig */
+    onmark?: (x: number, z: number, radius: number) => void;
+    /** marks kept at most (oldest go) */
+    maxMarks = 200;
+    private marks: number[][] = [];
+    private markProgram?: { program: WebGLProgram; u: Record<string, WebGLUniformLocation | null> };
+    private markBuffer: WebGLBuffer;
+    private markVao: WebGLVertexArrayObject;
+    private markCount = 0;
     /** every blast as it goes off (wire sound, force here) */
     onexplode?: (blast: Blast) => void;
     readonly blasts: Live[] = [];
@@ -196,6 +220,18 @@ export class Explosion {
             for (const n of ["view", "projection", "mode", "eye", "centre", "tip", "radius", "width", "alpha", "bend", "low", "top", "viewport", "scene", "bent"]) u[n] = gl.getUniformLocation(program, n);
             this.shock = { program, u };
         });
+        layer.createProgram(`pw-explosion-mark-${id}`, MARK_VERTEX, MARK_FRAGMENT).then(program => {
+            this.markProgram = { program, u: { view: gl.getUniformLocation(program, "view"), projection: gl.getUniformLocation(program, "projection") } };
+        });
+        this.markVao = gl.createVertexArray()!;
+        gl.bindVertexArray(this.markVao);
+        this.markBuffer = gl.createBuffer()!;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.markBuffer);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 24, 0);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
+        gl.bindVertexArray(null);
         this.ball = this.instanced(icosahedron(0), 1024);
         this.spikeMesh = this.instanced(spike(), 256);
         this.bubble = this.plain(icosahedronBary(3), [[0, 3, 0], [1, 3, 3]], 6);
@@ -272,8 +308,45 @@ export class Explosion {
             blast.spikes.push([u.x, u.y, u.z, rand(.6, 1.2), rand(.05, .09) * slow]);
         }
         this.blasts.push(blast);
+        this.mark(position, s);
         this.onexplode?.(blast);
         return blast;
+    }
+
+    /**
+     * A scorch on the ground: a ragged low poly burn (dark middle, a lighter churned rim, a few dark rays out),
+     * following the ground. Cheap: one buffer for all marks, rebuilt when one is added.
+     */
+    private mark(at: Vec3, s: number) {
+        const radius = 1.3 * s, n = 14, burn = this.look.char, soil = mix(this.look.dust, this.look.char, .55), tris: number[] = [];
+        const y = (x: number, z: number) => this.ground(x, z) + .02 + radius * .002;
+        const put = (x: number, z: number, c: Colour, lift = 0) => tris.push(x, y(x, z) + lift, z, c[0], c[1], c[2]);
+        const rim = Array.from({ length: n }, () => rand(.75, 1.15)), core = Array.from({ length: n }, () => rand(.45, .7));
+        for (let i = 0; i < n; i++)
+        {
+            const a = i / n * Math.PI * 2, b = (i + 1) / n * Math.PI * 2, j = (i + 1) % n;
+            const p = (k: number, angle: number) => [at[0] + Math.cos(angle) * radius * k, at[2] + Math.sin(angle) * radius * k];
+            const [ox, oz] = p(rim[i], a), [px, pz] = p(rim[j], b), [ix, iz] = p(core[i], a), [qx, qz] = p(core[j], b);
+            // churned rim ring
+            put(ox, oz, soil); put(px, pz, soil); put(qx, qz, soil, .001);
+            put(ox, oz, soil); put(qx, qz, soil, .001); put(ix, iz, soil, .001);
+            // burnt middle
+            put(at[0], at[2], burn, .002); put(ix, iz, burn, .002); put(qx, qz, burn, .002);
+            // a dark ray out now and then
+            if (Math.random() < .35)
+            {
+                const m = (a + b) / 2, [tx, tz] = p(rim[i] * rand(1.3, 1.8), m), w = .09;
+                const [lx, lz] = p(core[i] * .9, m - w), [rx, rz] = p(core[i] * .9, m + w);
+                put(lx, lz, burn, .003); put(tx, tz, burn, .003); put(rx, rz, burn, .003);
+            }
+        }
+        this.marks.push(tris);
+        while (this.marks.length > this.maxMarks) this.marks.shift();
+        const all = new Float32Array(this.marks.flat()), gl = this.gl;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.markBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, all, gl.DYNAMIC_DRAW);
+        this.markCount = all.length / 6;
+        this.onmark?.(at[0], at[2], radius * 1.15);
     }
 
     /** 0..1 how blinding the flashes are at `eye` now (a white overlay on the host's screen) */
@@ -300,6 +373,8 @@ export class Explosion {
         for (const c of this.chunks) c.trail?.stop();
         this.chunks.length = 0;
         this.grit.length = 0;
+        this.marks.length = 0;
+        this.markCount = 0;
         this.lights.length = 0;
     }
 
@@ -497,6 +572,18 @@ export class Explosion {
         gl.depthMask(true);
         gl.disable(gl.BLEND);
         gl.disable(gl.CULL_FACE);
+        if (this.markProgram && this.markCount)
+        {
+            // pulled toward the eye a little: no fighting with the ground
+            gl.enable(gl.POLYGON_OFFSET_FILL);
+            gl.polygonOffset(-2, -4);
+            gl.useProgram(this.markProgram.program);
+            gl.uniformMatrix4fv(this.markProgram.u.view, false, viewM);
+            gl.uniformMatrix4fv(this.markProgram.u.projection, false, projection);
+            gl.bindVertexArray(this.markVao);
+            gl.drawArrays(gl.TRIANGLES, 0, this.markCount);
+            gl.disable(gl.POLYGON_OFFSET_FILL);
+        }
         const { program, u } = this.hot;
         gl.useProgram(program);
         gl.uniformMatrix4fv(u.view, false, viewM);

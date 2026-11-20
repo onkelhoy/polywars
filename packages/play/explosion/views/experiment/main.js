@@ -4,6 +4,7 @@ import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Matrix4 } from '@papit/matrix';
 import { Smoke } from '@polywar/smoke';
 import { World, RigidBody, Plane, Box } from '@papit/rigidbody';
+import { Grass } from '@polywar/grass';
 import { AudioMixer } from '@papit/audio';
 import { Explosion, ShockFront, BlastForce, ExplosionAudio, Daze, bodyTargets, worldCover } from '@polywar/explosion';
 
@@ -19,6 +20,11 @@ for (const [x, z] of [[-18, -14], [30, -40], [-80, 60], [150, -120], [-300, -250
 const gl = demo.gl, mesh = upload(gl, b.build()), identity = Matrix4.create();
 
 // things that move: crates (20 kg), a jeep (1.5 t), dummies (80 kg, blue behind the jeep, red in the open), a wall with a crate behind it
+// grass round the blast: each blast leaves a scorch and clears the grass on it
+const grass = new Grass(demo.layer);
+const plantGrass = () => grass.plant({ area: { x: -80, z: -80, width: 160, depth: 160 }, seed: 1 });
+plantGrass();
+explosion.onmark = (x, z, r) => grass.clear(x, z, r);
 let world, things, force, eye = [0, 0, 0];
 const daze = new Daze(demo.layer);
 // you (the camera) as a target: dazed and deafened by how hard it hits
@@ -45,7 +51,7 @@ const reset = () => {
     });
 };
 reset();
-$('#reset').onclick = reset;
+$('#reset').onclick = () => { reset(); explosion.clear(); plantGrass(); };
 
 const mixer = new AudioMixer(), audio = new ExplosionAudio({ mixer });
 audio.load();
@@ -117,6 +123,7 @@ demo.draw = camera => {
     renderer.begin(camera, SKY);
     renderer.draw(mesh, identity);
     for (const t of things) renderer.draw(t.mesh, t.body.matrix(t.matrix));
+    if ($('#grass').checked) grass.draw(camera, renderer.light, demo.time);
     smoke.draw(camera);
     explosion.draw(camera);
     daze.draw();

@@ -111,4 +111,6 @@ export type Planting = {
     height?: (x: number, z: number) => number;
     grow?: (x: number, z: number) => GrassAt;
     window?: number;
+    /** bare circles: x z radius each (`grass.clear` adds to it) */
+    holes?: [number, number, number][];
 };

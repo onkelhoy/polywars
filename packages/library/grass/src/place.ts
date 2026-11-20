@@ -19,7 +19,7 @@ export function chunkCount(planting: Planting, chunk: number) {
  * so a chunk comes out the same whenever it is planted. Per tuft `TUFT` floats.
  */
 export function plantChunk(planting: Planting, density: number, chunk: number, i: number, j: number, jitter: number, max = Infinity): ChunkTufts {
-    const { area, seed = 1, mask, height, grow } = planting;
+    const { area, seed = 1, mask, height, grow, holes } = planting;
     const step = 1 / Math.sqrt(Math.max(density, 1e-3));
     const x0 = area.x + i * chunk, z0 = area.z + j * chunk;
     const x1 = Math.min(area.x + area.width, x0 + chunk), z1 = Math.min(area.z + area.depth, z0 + chunk);
@@ -32,6 +32,8 @@ export function plantChunk(planting: Planting, density: number, chunk: number, i
         // always 4 draws per cell, so the mask never shifts the other cells
         const x = x0 + (a + rng.next()) * step, z = z0 + (b + rng.next()) * step, chance = rng.next(), size = rng.next();
         if (x > x1 || z > z1) continue;
+        // cleared spots (blast marks, dug ground) stay bare
+        if (holes && holes.some(o => (x - o[0]) ** 2 + (z - o[1]) ** 2 < o[2] * o[2])) continue;
         let h = 1, dry = 0, flowers = 0;
         if (grow)
         {

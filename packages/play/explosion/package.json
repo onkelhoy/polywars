@@ -62,7 +62,8 @@
     "@polywar/renderer": "*",
     "@papit/game-mesh": "*",
     "@papit/matrix": "*",
-    "@papit/rigidbody": "*"
+    "@papit/rigidbody": "*",
+    "@polywar/grass": "*"
   },
   "browserslist": [
     "defaults",
