@@ -37,8 +37,11 @@ const SKY = [.62, .72, .84, 1];
 
 const range = await ShootingRange.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
-// the terrain is the painted grass floor (@polywar/grass ground); the model's own `Ground` mesh isn't drawn
-const NO_TERRAIN = { skip: ['Ground'] };
+// the terrain is the painted grass floor (@polywar/grass ground): the model's `Ground` and its earth (berms, earth
+// banks / roofs) aren't drawn, their triangles are painted like the ground
+// convention: a node with "earth" in its name is ground (painted like the terrain); Berm* until they're renamed
+const EARTH = name => name === 'Ground' || /earth/i.test(name) || name.startsWith('Berm');
+const NO_TERRAIN = { skip: model.gltf.nodes.map(n => n.name ?? '').filter(EARTH) };
 window.range = range;
 
 // ---- lamps: a point light per bulb (range.json `lights`); ?night dims the sun to see them ----
@@ -72,6 +75,8 @@ const covered = (x, z) => { const y = range.ground(x, z); return range.colliders
     // `Ground` isn't drawn). Tufts follow the zones.
     const floor = [];
     for (const t of range.data.ground) for (const p of t) floor.push(p[0], p[1], p[2]);
+    // berms, earth banks and earth roofs too: same painted ground as the terrain
+    floor.push(...model.trianglesOf(name => name !== 'Ground' && EARTH(name)));
     grass.setGround(new Float32Array(floor));
 }
 function drawGrass(camera) {

@@ -288,5 +288,8 @@ void main() {
     // pixel style snaps the colour lookups to a world texel grid
     vec3 p = vWorld;
     if (texel > 0.0) p.xz = (floor(vWorld.xz / texel) + .5) * texel;
-    outColor = shade(patchedColor(p.xz) * darken, vec3(0, 1, 0), p, vWorld);
+    // flat normal per triangle (banks, mounds, earth roofs light by their slope)
+    vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+    if (n.y < 0.0) n = -n;
+    outColor = shade(patchedColor(p.xz) * darken, n, p, vWorld);
 }`;
