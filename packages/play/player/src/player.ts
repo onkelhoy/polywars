@@ -503,6 +503,37 @@ export class Player {
 
     /** the camera of the last update (cues need it) */
     private camera?: Camera;
+    /** 0..1 camera shake, decays fast */
+    private shaking = 0;
+    /** stumble: view kick (pitch, roll), springs back */
+    private stumble = [0, 0];
+    private shakeTime = 0;
+    /** 0..1 ears ringing after a close blast (sound muffles by it), fades over seconds */
+    deaf = 0;
+
+    /** a blast reached the player: `velocity` m/s pushes the body, `pressure` kPa sets shake, stumble and ringing ears */
+    hit(velocity: ArrayLike<number>, pressure: number) {
+        this.mover.push(velocity[0], velocity[1], velocity[2]);
+        this.shake(Math.min(1, pressure / 40));
+        const k = Math.min(.5, pressure / 120), side = Math.random() < .5 ? -1 : 1;
+        this.stumble[0] += k * .5; this.stumble[1] += k * side;
+        this.deaf = Math.max(this.deaf, Math.min(1, (pressure - 8) / 50));
+    }
+
+    /** shake the view 0..1 (far blasts, a near shell) */
+    shake(amount: number) {
+        this.shaking = Math.min(1, Math.max(this.shaking, amount));
+    }
+
+    /** the player as a blast target (`@polywar/blast-force`) */
+    get blastTarget() {
+        const f = this.mover.feet, player = this;
+        return {
+            get position() { return { x: f[0], y: f[1] + 1, z: f[2] }; },
+            mass: 80, size: .45,
+            push(velocity: ArrayLike<number>, _spin: ArrayLike<number>, hit: { pressure: number }) { player.hit(velocity, hit.pressure); },
+        };
+    }
 
     update(camera: Camera, dt: number) {
         this.camera = camera;
@@ -612,7 +643,14 @@ export class Player {
         camera.zoom = 1 + (scoped ? 0 : (gun?.aimed ?? 0) * .25);
         const out = this.lean * LEAN;
         camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06, m.feet[2] + rz * out]);
-        camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], -this.lean * LEAN_ROLL]);
+        // blast: a hard shake that dies fast, a stumble that springs back, ears ring for a while
+        this.shakeTime += dt;
+        const sh = this.shaking ** 2 * .06, st = this.shakeTime * 40;
+        const shake = [Math.sin(st * 1.3) * sh + Math.sin(st * 2.9) * sh * .5, Math.sin(st * 1.7 + 1) * sh, Math.sin(st * .9 + 2) * sh * .6];
+        this.shaking *= Math.exp(-dt * 3);
+        this.stumble[0] *= Math.exp(-dt * 4); this.stumble[1] *= Math.exp(-dt * 4);
+        this.deaf = Math.max(0, this.deaf - dt * .12);
+        camera.rotation.set([this.pitch + this.climb + this.vm.view[0] + shake[0] + this.stumble[0], this.yaw + this.vm.view[1] + shake[1], -this.lean * LEAN_ROLL + shake[2] + this.stumble[1]]);
         // zoomed in, everything looked at is far: a further near plane keeps the depth precise (no flicker at 800 m)
         this.baseNear ??= camera.near;
         // focus: the camera eases to its eye (a fixed optic's eyepiece too), mouse nudges, springs back

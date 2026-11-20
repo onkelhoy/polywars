@@ -115,6 +115,8 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - [ ] Ground blast side heavy (ref Desktop/Screenshot 2026-11-20 at 22.50.17): big rolling masses out to the sides, low wisps trailing along the ground, a lighter lobe in front; less in the middle.
 - [ ] Massive blasts: debris / particles shot out like a volcano (arcs, trails of smoke).
 - [ ] Shock waves (ground ring, air ring).
+- [ ] Player ragdoll fall on a big push (now: mover push, shake, stumble, `deaf`).
+- [ ] Shake / stumble also through optics and focus (camera rotation set again there).
 - [ ] Ref GIF (dribbble 21023971, ground ring rushes out + brakes, core rolls up, wisps streak, tops go flat, shrink + crumble). Smoke presets `explosion` / `blast` are the first pass to move over.
 
 ## Weapon editor
