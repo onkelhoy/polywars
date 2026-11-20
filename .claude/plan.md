@@ -29,7 +29,9 @@ Done: 1-4b (body arms on the rig's IK + grip, 3 store soldiers, rig resync (`cha
 3. Marks ride on what they hit: `Hit.carrier` (cars set it), `Impacts` keeps them in its space. Lane targets keep `shift`.
 4. Sound scene: 16 rays at the muzzle + .9 m higher, a wall must block both; indoor needs a roof (2 of 3 up rays).
 5. `@polywar/fog` (materials/fog): distance + height fog in renderer, grass, terrain, water. Range: density .0009, falloff .015, base 0 (`renderer.light.fog*` live). View `views/fog`.
-7. `@polywar/shadows` (viewport/shadows): 512² map, 45 m round the player, strength .5, nearest = blocky. Renderer, grass, terrain receive; range model, stands, cars cast (grass doesn't). `shadows.*` live. View `views/shadows`.
+7. `@polywar/shadows` (viewport/shadows): 2 levels, 1024² each: near 12 m (2.3 cm texels), far 45 m (redrawn every 2nd frame), faded out 20 -> 45 m, strength .45. Renderer, grass, terrain receive; range model, stands, cars cast (grass doesn't). `shadows.*` live. View `views/shadows`.
+8. Parked cars hold every wheel (`DriveInput.parked`, idle input), a bump no longer rolls them.
+9. Jeep glass (`Window` node) drawn last, after the grass tufts (`Model.draw(.., parts)` only / skip): grass shows through it.
 Skipped: 6 ground map (RGB paint map for grass density / height / fog), backlog.
 
 ## B. Smoke (confirmed, next)

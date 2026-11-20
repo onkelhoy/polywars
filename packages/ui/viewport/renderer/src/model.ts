@@ -226,9 +226,16 @@ export class Model {
         if (matrix) this.moved.set(index, matrix); else this.moved.delete(index);
     }
 
-    draw(renderer: Renderer, matrix: Matrix4 = Matrix4.create(), options: DrawOptions = {}) {
+    /** `parts`: draw only the nodes named in `only`, or all but `skip` (glass after the see-through things behind it) */
+    draw(renderer: Renderer, matrix: Matrix4 = Matrix4.create(), options: DrawOptions = {}, parts?: { only?: string[]; skip?: string[] }) {
         for (const item of this.items)
         {
+            if (parts)
+            {
+                const name = (this.gltf.nodes[item.node] as { name?: string }).name ?? "";
+                if (parts.only && !parts.only.includes(name)) continue;
+                if (parts.skip?.includes(name)) continue;
+            }
             const meshIndex = this.gltf.nodes[item.node].mesh!;
             const moved = this.moved.get(item.node);
             const m = (moved ? matrix.clone.multiply(moved) : matrix.clone).multiply(item.skinned ? this.skeleton : item.world);

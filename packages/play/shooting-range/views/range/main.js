@@ -28,8 +28,8 @@ renderer.light.fogDensity = .0009;
 renderer.light.fogFalloff = .015;
 renderer.light.fogBase = 0;
 window.renderer = renderer;
-// toon sun shadows (@polywar/shadows): blocky, one flat shade, 45 m round the player; tune live: shadows.*
-const shadows = new Shadows(gl, { size: 512, radius: 45, strength: .5 });
+// toon sun shadows (@polywar/shadows): sharp near, coarser further, gone by 45 m; tune live: shadows.*
+const shadows = new Shadows(gl);
 renderer.light.shadow = shadows;
 window.shadows = shadows;
 renderer.light.fogColor = [.62, .72, .84];
@@ -105,7 +105,7 @@ const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: shots, surface: range.surface,
     scene: view => { model.draw(renderer, identity); drawStands(); drawGrass(view); drawTufts(view); },
     character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
-    worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); },
+    worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); drawGlass(); },
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
     guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? Object.keys(GUNS),
 }, {
@@ -323,14 +323,22 @@ const withCars = (x, z) => {
 };
 // the mover's colliders only (range.colliders stays boxes: surface / bullets use it)
 player.mover.setting.colliders = withCars;
+// the glass goes last (after the grass tufts): drawn earlier its depth would hide the grass behind it
+const GLASS = ['Window'];
 function drawCars() {
     for (const { car, spec, model: m } of cars)
     {
         car.wheels.forEach((w, i) => m.move(w.spec.node, car.wheel(i, Matrix4.create())));
         const sw = car.steeringWheel(Matrix4.create());
         if (sw) m.move(spec.steeringWheel.node, sw);
-        m.draw(renderer, car.matrix(carMatrix));
+        m.draw(renderer, car.matrix(carMatrix), {}, { skip: GLASS });
     }
+}
+function drawGlass() {
+    // after the SSAO pass / grass: blend + depth state back to the renderer's
+    renderer.begin(layer.camera, null);
+    for (const { car, model: m } of cars) m.draw(renderer, car.matrix(carMatrix), {}, { only: GLASS });
+    renderer.reset();
 }
 // the driver: hips on the seat, feet on the pedals, knees up, hands on the rim (car space offsets from the seat)
 const FEET = [[.17, -.42, -.62], [-.17, -.42, -.62]], KNEES = [[.22, .5, -1.2], [-.22, .5, -1.2]], ELBOWS = [[.8, -1, .3], [-.8, -1, .3]];
@@ -477,14 +485,12 @@ demo.draw = camera => {
     model.draw(renderer, identity);
     drawStands();
     drawGrass(camera);
-    // driving: tufts before the cars so they show through the windshield (they get SSAO then)
-    if (driving && document.body.classList.contains('playing')) drawTufts(camera);
     drawCars();
     if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();
-    if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); player.impacts.draw(camera); renderer.reset(); }
-    else if (driving) { drawDriver(camera); demo.endOcclusion(); }
+    if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); }
+    else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); }
     else player.draw(camera);
 };
 

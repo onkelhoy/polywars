@@ -12,7 +12,8 @@ export type VehiclesSetting = {
 /** what a bullet cast returns: `t` 0..1 along the segment (same shape as `@polywar/ballistics` Hit) */
 export type VehicleHit = { t: number; point: Vector3; normal: Vector3; surface: string; vehicle: Vehicle; carrier: Vehicle };
 
-const IDLE: DriveInput = { throttle: 0, steer: 0 };
+/** a car nobody drives: parking brake on, so a bump doesn't roll it away */
+const IDLE: DriveInput = { throttle: 0, steer: 0, parked: true };
 
 /**
  * Cars in one `@papit/rigidbody` world, so they hit each other (and the solids near any of them).
