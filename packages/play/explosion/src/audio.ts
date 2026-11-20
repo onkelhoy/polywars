@@ -70,7 +70,7 @@ export class ExplosionAudio {
 
     /**
      * Shell shock on the ears, `amount` 0..1 (a close blast): near silence first, then everything muffled,
-     * opening back up to normal over seconds while a ring fades in and out. A lowpass + gain after the mixer's master.
+     * opening back up to normal over seconds; a ring comes in towards the end. A lowpass + gain after the mixer's master.
      */
     stun(amount: number) {
         amount = Math.min(1, Math.max(0, amount));
@@ -105,12 +105,12 @@ export class ExplosionAudio {
         filter.frequency.setValueAtTime(200 + 600 * (1 - amount), now + silent);
         filter.frequency.exponentialRampToValueAtTime(1500, now + silent + muffled);
         filter.frequency.exponentialRampToValueAtTime(20000, now + silent + muffled + clear);
-        // the ring comes up as the silence lifts
+        // the ring comes late, as the muffle opens up
         const file = this.files?.ring?.[0];
         if (file)
         {
             this.ringing?.stop();
-            const voice = this.mixer.play(`explosions/${file}`, { bus: "stun-ring", volume: .45 * amount, when: now + silent * .5 });
+            const voice = this.mixer.play(`explosions/${file}`, { bus: "stun-ring", volume: .45 * amount, when: now + silent + muffled * .7 });
             this.ringing = voice;
         }
     }

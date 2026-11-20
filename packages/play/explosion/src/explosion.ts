@@ -67,7 +67,7 @@ const SHOCK_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 bary;
 uniform mat4 view, projection;
-uniform vec3 centre;
+uniform vec3 centre, tip, eye;
 uniform float radius, width;
 uniform int mode;
 out vec3 vWorld;
@@ -75,10 +75,17 @@ out float vSide;
 void main() {
     vec3 p;
     if (mode == 0) p = centre + position * radius;
+    // a thin line from centre (tail) to tip, turned to face the eye
+    else if (mode == 2) {
+        p = mix(centre, tip, position.x);
+        vec3 side = normalize(cross(tip - centre, eye - p));
+        p += side * position.y * width;
+        vSide = position.x;
+    }
     // ring: x z on the unit circle, side 0 at the front, 1 behind it
     else p = centre + vec3(position.x, 0.0, position.y) * (radius - position.z * width) + vec3(0.0, .06, 0.0);
     vWorld = p;
-    vSide = position.z;
+    if (mode != 2) vSide = position.z;
     gl_Position = projection * view * vec4(p, 1.0);
 }`;
 const SHOCK_FRAGMENT = `#version 300 es
@@ -115,6 +122,8 @@ void main() {
         outColor = vec4(mix(behind, vec3(1.0), line), a * alpha);
         return;
     }
+    // grit line: dark, clear at the tail
+    if (mode == 2) { outColor = vec4(.08, .07, .06, alpha * vSide); return; }
     // ring: a crisp bright front edge, a soft trail behind it
     float a = (1.0 - smoothstep(0.0, .3, vSide)) * .85 + (1.0 - vSide) * .2;
     outColor = vec4(1.0, 1.0, 1.0, a * alpha);
@@ -164,6 +173,7 @@ export class Explosion {
     private spikeMesh: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; vertices: number };
     private bubble: { vao: WebGLVertexArrayObject; vertices: number };
     private ringMesh: { vao: WebGLVertexArrayObject; vertices: number };
+    private lineMesh: { vao: WebGLVertexArrayObject; vertices: number };
     private balls = new Float32Array(1024 * HOT);
     private spikeData = new Float32Array(256 * HOT);
     private sun = new Float32Array(3);
@@ -183,13 +193,14 @@ export class Explosion {
         });
         layer.createProgram(`pw-explosion-shock-${id}`, SHOCK_VERTEX, SHOCK_FRAGMENT).then(program => {
             const u: Record<string, WebGLUniformLocation | null> = {};
-            for (const n of ["view", "projection", "mode", "eye", "centre", "radius", "width", "alpha", "bend", "low", "top", "viewport", "scene", "bent"]) u[n] = gl.getUniformLocation(program, n);
+            for (const n of ["view", "projection", "mode", "eye", "centre", "tip", "radius", "width", "alpha", "bend", "low", "top", "viewport", "scene", "bent"]) u[n] = gl.getUniformLocation(program, n);
             this.shock = { program, u };
         });
         this.ball = this.instanced(icosahedron(0), 1024);
         this.spikeMesh = this.instanced(spike(), 256);
         this.bubble = this.plain(icosahedronBary(3), [[0, 3, 0], [1, 3, 3]], 6);
         this.ringMesh = this.plain(ring(96), [[0, 3, 0], [1, 1, 3]], 4);
+        this.lineMesh = this.plain(new Float32Array([0, -1, 0, 1, -1, 0, 1, 1, 0, 0, -1, 0, 1, 1, 0, 0, 1, 0]), [[0, 3, 0]], 3);
     }
 
     private instanced(geometry: Float32Array, max: number) {
@@ -248,11 +259,11 @@ export class Explosion {
                 u.x * blast.fireball * 3 / slow, u.y * blast.fireball * (3 + 4 * blast.mushroom) / slow, u.z * blast.fireball * 3 / slow,
                 blast.fireLife * rand(.7, 1.3), Math.random() * 100]);
         }
-        // black streaks: grit and small stones, low and fast, arcing down
+        // dark lines: grit and small stones, low and fast, arcing down, fading out
         for (let i = 0, n = 14 + Math.round(10 * Math.random() + 6 * Math.min(1, lw / 3)); i < n; i++)
         {
             const a = Math.random() * Math.PI * 2, up = rand(.08, .8), v = rand(28, 70) * s ** .35;
-            this.grit.push([position[0], position[1] + .1 * s, position[2], Math.cos(a) * Math.cos(up) * v, Math.sin(up) * v, Math.sin(a) * Math.cos(up) * v, 0, rand(.25, .7) * slow]);
+            this.grit.push([position[0], position[1] + .1 * s, position[2], Math.cos(a) * Math.cos(up) * v, Math.sin(up) * v, Math.sin(a) * Math.cos(up) * v, 0, rand(.25, .7) * slow, .025 * Math.max(1, s ** .5)]);
         }
         // white spikes: thin, fast, gone in a blink
         for (let i = 0; i < 10 + Math.round(6 * Math.random()); i++)
@@ -476,15 +487,6 @@ export class Explosion {
                 S[k + 8] = sp[0] * len; S[k + 9] = sp[1] * len; S[k + 10] = sp[2] * len; S[k + 11] = 0;
             }
         }
-        for (const g of this.grit)
-        {
-            if (ns >= 256) break;
-            // a dark streak behind it along its way, thinning as it goes
-            const t = g[6] / g[7], k = ns++ * HOT, len = .045, w = .05 * (1 - t * .6);
-            S[k] = g[0] - g[3] * len; S[k + 1] = g[1] - g[4] * len; S[k + 2] = g[2] - g[5] * len; S[k + 3] = w;
-            S[k + 4] = .07; S[k + 5] = .06; S[k + 6] = .055; S[k + 7] = 2;
-            S[k + 8] = g[3] * len; S[k + 9] = g[4] * len; S[k + 10] = g[5] * len; S[k + 11] = 0;
-        }
         for (const c of this.chunks)
         {
             const shrink = c.landed ? 1 - smoothstep(2.5, 4, c.landed) : 1;
@@ -520,7 +522,7 @@ export class Explosion {
 
         // shock: a see through shell that bends what is behind it + ground rings
         const sh = this.shock, live = this.blasts.filter(b => b.front / b.scale < 24);
-        if (!live.length) return;
+        if (!live.length && !this.grit.length) return;
         const vp = gl.getParameter(gl.VIEWPORT) as Int32Array, bending = this.look.bend > 0 && live.some(b => b.front / b.scale < 9);
         if (bending)
         {
@@ -574,6 +576,21 @@ export class Explosion {
                 gl.uniform1f(sh.u.alpha, ringA);
                 gl.bindVertexArray(this.ringMesh.vao);
                 gl.drawArrays(gl.TRIANGLES, 0, this.ringMesh.vertices);
+            }
+        }
+        // grit: thin dark lines, the tail behind it along its way, fading out
+        if (this.grit.length)
+        {
+            gl.uniform1i(sh.u.mode, 2);
+            gl.bindVertexArray(this.lineMesh.vao);
+            for (const g of this.grit)
+            {
+                const t = g[6] / g[7], lag = Math.min(g[6], .1);
+                gl.uniform3f(sh.u.centre, g[0] - g[3] * lag, g[1] - g[4] * lag, g[2] - g[5] * lag);
+                gl.uniform3f(sh.u.tip, g[0], g[1], g[2]);
+                gl.uniform1f(sh.u.width, g[8]);
+                gl.uniform1f(sh.u.alpha, (1 - t) * .9);
+                gl.drawArrays(gl.TRIANGLES, 0, this.lineMesh.vertices);
             }
         }
         gl.depthMask(true);
