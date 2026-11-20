@@ -22,12 +22,20 @@ vec2 rotate2(vec2 v, float degrees) {
     return vec2(v.x * c - v.y * s, v.x * s + v.y * c);
 }
 
+// one noise texture, no visible tiling: two lookups turned and scaled apart (their tile grids never line up),
+// blended, the contrast the blend loses put back; a very slow third lookup shifts it over hundreds of metres
+float untiled(vec2 uv, int channel) {
+    vec4 n1 = texture(noiseTex, rotate2(uv, 37.0)), n2 = texture(noiseTex, rotate2(uv, -53.0) * 1.37 + .31);
+    float v = (channel == 1 ? n1.g + n2.g : n1.b + n2.b) * .5;
+    return (v - .5) * 1.6 + .5;
+}
 // grass colour with the noise patches on top
 vec3 patchedColor(vec2 xz) {
     vec3 c = grassColor;
     vec3 a = patchNoise[0], b = patchNoise[1];
-    c = mix(c, patchColor[0], smoothstep(a.y - a.z, a.y + a.z, texture(noiseTex, xz * a.x).g));
-    c = mix(c, patchColor[1], smoothstep(b.y - b.z, b.y + b.z, texture(noiseTex, xz * b.x).b));
+    float macro = (texture(noiseTex, rotate2(xz, 71.0) * a.x * .09).b - .5) * .35;
+    c = mix(c, patchColor[0], smoothstep(a.y - a.z, a.y + a.z, untiled(xz * a.x, 1) + macro));
+    c = mix(c, patchColor[1], smoothstep(b.y - b.z, b.y + b.z, untiled(xz * b.x, 2) - macro));
     return c;
 }
 
