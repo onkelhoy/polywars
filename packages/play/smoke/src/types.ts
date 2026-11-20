@@ -49,6 +49,8 @@ export type Layer = {
     shrink?: number;
     /** m/s roll round the burst's ring (vortex ring: up the middle, out over the top, down the outside); for explosion caps */
     roll?: number;
+    /** rad/s tumble about the horizontal axis across its way out; + rolls its top in toward the source (ground surges), - out (caps) */
+    tumble?: number;
     /** spin speed multiplier (default 1) */
     spin?: number;
     /** joined to a parent puff by a low poly tube (default true) */
@@ -94,6 +96,8 @@ export type SmokeLook = {
     eat: number;
     /** noise size: higher = smaller holes */
     grain: number;
+    /** life fraction it starts fading out (dithered) */
+    fade: number;
 };
 
 export type BurstOptions = {

@@ -5,8 +5,8 @@ import type { BurstOptions, Colour, Emitter, Field, FieldOptions, Layer, PlaceOp
 // puff fields (one Float32Array, STRIDE per puff)
 const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8, R1 = 9, GROW = 10, DRAG = 11, LIFT = 12,
     SWIRL = 13, STRETCH = 14, CR = 15, CG = 16, CB = 17, BRIGHT = 18, DIM = 19, SHRINK = 20, GROUND = 21, SEED = 22,
-    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30, TOP = 31, SKY = 32, DETAIL = 33, CX = 34, CY = 35, CZ = 36;
-const STRIDE = 37;
+    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30, TOP = 31, SKY = 32, DETAIL = 33, CX = 34, CY = 35, CZ = 36, TUMBLE = 37;
+const STRIDE = 38;
 // puff instance: x y z radius | stretch xyz seed | r g b bright | angle, bottom squash, top squash, sky shade | eaten 0..1
 const PUFF = 20;
 // tube instance: a xyz radius | b xyz radius | r g b bright | eaten 0..1
@@ -50,7 +50,13 @@ float noise(vec3 p) {
 }
 void main() {
     // eaten away by noise as it dies, holes grow till nothing is left
-    if (vEat.x > 0.0 && noise(vNoise) * .7 + noise(vNoise * 2.3) * .3 < vEat.x) discard;
+    if (vEat.x > 0.0) {
+        if (noise(vNoise) * .7 + noise(vNoise * 2.3) * .3 < vEat.x) discard;
+        // and fades: a 4x4 ordered dither (opaque, no sorting)
+        ivec2 q = ivec2(gl_FragCoord.xy) & 3;
+        int b[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+        if ((float(b[q.y * 4 + q.x]) + .5) / 16.0 < vEat.y) discard;
+    }
     outColor = vec4(toon(vWorld, vTone.rgb, vTone.a, vSky, vCentre), 1.0);
 }`;
 
@@ -70,9 +76,9 @@ out vec3 vCentre;
 out vec2 vEat;
 out vec3 vNoise;
 void main() {
-    // turned about its own random axis
+    // turned about its own random axis, or a given one (ground puffs tumble in toward the blast)
     float seed = motion.w;
-    vec3 axis = normalize(vec3(sin(seed * 12.9), cos(seed * 7.3), sin(seed * 3.1 + 1.0)));
+    vec3 axis = dot(eat.zw, eat.zw) > 0.0 ? normalize(vec3(eat.z, 0.0, eat.w)) : normalize(vec3(sin(seed * 12.9), cos(seed * 7.3), sin(seed * 3.1 + 1.0)));
     float c = cos(spin.x), s = sin(spin.x);
     vec3 p = position * c + cross(axis, position) * s + axis * dot(axis, position) * (1.0 - c);
     p *= puff.w;
@@ -132,7 +138,7 @@ const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, 
  */
 export class Smoke {
     readonly presets: Record<string, Preset>;
-    readonly look: SmokeLook = { sun: [.35, .85, .4], wind: [0, 0, 0], shade: [.78, .8, .87], skyShade: [.62, .72, .9], highlight: .8, detail: 0, thickness: .62, reach: 1.6, swirl: 1, eat: .45, grain: 2.2 };
+    readonly look: SmokeLook = { sun: [.35, .85, .4], wind: [0, 0, 0], shade: [.78, .8, .87], skyShade: [.62, .72, .9], highlight: .8, detail: 0, thickness: .62, reach: 1.6, swirl: 1, eat: .45, grain: 2.2, fade: .6 };
     /** time scale (slow motion for tuning) */
     speed = 1;
     private gl: WebGL2RenderingContext;
@@ -328,6 +334,7 @@ export class Smoke {
         d[o + GROUP] = layer.roll ? group : 0;
         d[o + ROLL] = (layer.roll ?? 0) * scale;
         d[o + SPIN] = layer.spin ?? 1;
+        d[o + TUMBLE] = (layer.tumble ?? 0) * (1 + (Math.random() * 2 - 1) * .4);
         d[o + FLAT] = 1;
         d[o + TOP] = 1;
         d[o + SKY] = 0;
@@ -421,7 +428,7 @@ export class Smoke {
             if (age < 0) continue;
             const t = age / d[o + LIFE];
             // eaten by noise from `look.eat` of its life (or its own shrink point if later), shrinking a little meanwhile
-            const from = Math.max(this.look.eat, d[o + SHRINK]), eat = d[o + SKY] ? 0 : smoothstep(from, 1, t) * 1.05;
+            const from = Math.max(this.look.eat, d[o + SHRINK]), eat = d[o + SKY] ? 0 : Math.max(1e-3, smoothstep(from, 1, t) * 1.05);
             const radius = this.radius(o) * (1 - smoothstep(from, 1, t) * .3);
             if (radius <= .001 || eat >= 1) continue;
             shown[i] = radius;
@@ -434,10 +441,19 @@ export class Smoke {
             P[k + 8] = d[o + CR]; P[k + 9] = d[o + CG]; P[k + 10] = d[o + CB];
             P[k + 11] = d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], t));
             P[k + 12] = d[o + SPIN] ? d[o + SEED] + age * (.4 + (d[o + SEED] % 1) * .6) * d[o + SPIN] : 0;
+            const tumble = d[o + TUMBLE];
+            if (tumble)
+            {
+                // about the horizontal axis across the way out: + rolls its top in toward the source
+                const rx = d[o + PX] - d[o + OX], rz = d[o + PZ] - d[o + OZ], l = Math.hypot(rx, rz) || 1;
+                P[k + 12] = d[o + SEED] + age * tumble;
+                P[k + 18] = -rz / l; P[k + 19] = rx / l;
+            }
+            else P[k + 18] = P[k + 19] = 0;
             P[k + 13] = d[o + FLAT];
             P[k + 14] = d[o + TOP];
             P[k + 15] = d[o + SKY];
-            P[k + 16] = eat;
+            P[k + 16] = eat; P[k + 17] = smoothstep(this.look.fade, 1, t);
         }
         if (!n && !n1) return;
         // tubes: puff to parent while both show and they are close
@@ -458,6 +474,7 @@ export class Smoke {
             T[k + 4] = d[q + PX]; T[k + 5] = d[q + PY]; T[k + 6] = d[q + PZ]; T[k + 7] = rb;
             T[k + 8] = (d[o + CR] + d[q + CR]) / 2; T[k + 9] = (d[o + CG] + d[q + CG]) / 2; T[k + 10] = (d[o + CB] + d[q + CB]) / 2;
             T[k + 12] = Math.max(eaten[i], eaten[parent]);
+            T[k + 13] = smoothstep(this.look.fade, 1, Math.max(d[o + AGE] / d[o + LIFE], d[q + AGE] / d[q + LIFE]));
             T[k + 11] = Math.min(d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], d[o + AGE] / d[o + LIFE])), d[q + BRIGHT] * (1 - smoothstep(0, d[q + DIM], d[q + AGE] / d[q + LIFE])));
         }
 

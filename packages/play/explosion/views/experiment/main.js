@@ -33,7 +33,10 @@ let wait = 1;
 demo.tick = dt => {
     smoke.speed = explosion.speed = +$('#speed').value;
     explosion.look.shock = +$('#shock').value;
-    explosion.look.lines = +$('#lines').value;
+    explosion.look.bend = +$('#bend').value;
+    explosion.look.lineLow = +$('#low').value;
+    explosion.look.lineTop = +$('#top').value;
+    smoke.look.fade = +$('#fade').value;
     smoke.look.eat = +$('#eat').value;
     smoke.look.grain = +$('#grain').value;
     if ($('#repeat').checked && (wait -= dt * explosion.speed) <= 0) { wait = 4 + 3 * Math.sqrt(Math.cbrt(power())); boom(); }

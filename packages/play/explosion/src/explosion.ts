@@ -71,40 +71,53 @@ uniform vec3 centre;
 uniform float radius, width;
 uniform int mode;
 out vec3 vWorld;
-out vec3 vBary;
+out float vSide;
 void main() {
     vec3 p;
     if (mode == 0) p = centre + position * radius;
-    // ring: x z on the unit circle, y = side (0 out, 1 in)
+    // ring: x z on the unit circle, side 0 at the front, 1 behind it
     else p = centre + vec3(position.x, 0.0, position.y) * (radius - position.z * width) + vec3(0.0, .06, 0.0);
     vWorld = p;
-    vBary = bary;
+    vSide = position.z;
     gl_Position = projection * view * vec4(p, 1.0);
 }`;
 const SHOCK_FRAGMENT = `#version 300 es
 precision highp float;
 precision highp int;
 in vec3 vWorld;
-in vec3 vBary;
+in float vSide;
+uniform mat4 view;
 uniform vec3 eye, centre;
-uniform float alpha, lines;
-uniform int mode;
+uniform float alpha, radius, bend, low, top;
+uniform vec4 viewport;
+uniform sampler2D scene;
+uniform int mode, bent;
 out vec4 outColor;
 void main() {
     if (mode == 0) {
         if (vWorld.y < centre.y) discard;
-        vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
-        float rim = 1.0 - abs(dot(n, normalize(eye - vWorld)));
-        // crisp white edges, strong on the rim
-        float e = min(min(vBary.x, vBary.y), vBary.z), w = fwidth(e);
-        float line = (1.0 - smoothstep(.025 - w, .025 + w, e)) * lines;
-        float a = .05 + pow(rim, 3.0) * .5 + line * (.2 + rim * .8);
-        outColor = vec4(mix(vec3(.82, .88, 1.0), vec3(1.0), max(line, rim)), min(1.0, a) * alpha);
+        // smooth (the sphere's normal, not the facets)
+        vec3 n = normalize(vWorld - centre);
+        float rim = 1.0 - abs(dot(n, normalize(eye - vWorld))), w = fwidth(rim);
+        // a white line on the edge: strongest at the ground (the air shoved along it), fading up, whitest again at the top
+        float e = clamp((vWorld.y - centre.y) / radius, 0.0, 1.0);
+        float where = low * (1.0 - smoothstep(0.0, .5, e)) + top * smoothstep(.45, 1.0, e);
+        float line = smoothstep(.86 - w, .97, rim) * where;
+        vec3 behind = vec3(1.0);
+        float a = line;
+        if (bent == 1) {
+            // light bends through the shell: what is behind shifts along the edge, most just inside it
+            vec3 vn = mat3(view) * n;
+            vec2 uv = (gl_FragCoord.xy - viewport.xy) / viewport.zw;
+            behind = texture(scene, uv - vn.xy * bend * rim * rim * (1.0 - rim * .5)).rgb * 1.04;
+            a = 1.0;
+        }
+        outColor = vec4(mix(behind, vec3(1.0), line), a * alpha);
         return;
     }
-    // ring: broken dashes, hard edged
-    float dash = step(fract(vBary.x * .37), .72);
-    outColor = vec4(1.0, 1.0, 1.0, alpha * dash);
+    // ring: a crisp bright front edge, a soft trail behind it
+    float a = (1.0 - smoothstep(0.0, .3, vSide)) * .85 + (1.0 - vSide) * .2;
+    outColor = vec4(1.0, 1.0, 1.0, a * alpha);
 }`;
 
 type Live = Blast & {
@@ -120,7 +133,7 @@ const mix = (a: Colour, b: Colour, t: number): Colour => [a[0] + (b[0] - a[0]) *
 
 /**
  * Fast, scary low poly explosions. `power` (kg TNT) sets the size, the speed and which stages run:
- * a very short flash, a fireball that pops and chars, a shock bubble with white edge lines + a ground ring
+ * a very short flash, a fireball that pops and chars, a shock shell that bends the light with a white edge line (ground, top) + a ground ring
  * that kicks dust as it passes, a ground surge thrown out and swirling (bigger puffs to the rim, a ring),
  * then the vacuum: the middle is sucked up into a column. Big ones grow a mushroom cap, massive ones throw
  * rock on arcs with smoke trails that thicken. Smoke goes to the host's `@polywar/smoke`.
@@ -128,7 +141,7 @@ const mix = (a: Colour, b: Colour, t: number): Colour => [a[0] + (b[0] - a[0]) *
  */
 export class Explosion {
     readonly look: ExplosionLook = {
-        sun: [.35, .85, .4], shock: 1, lines: 1,
+        sun: [.35, .85, .4], shock: 1, bend: .04, lineLow: 1, lineTop: .7,
         dust: [.74, .67, .5], smoke: [.52, .5, .48], char: [.24, .22, .21], rock: [.36, .31, .27],
     };
     /** time scale (slow motion for tuning) */
@@ -152,6 +165,7 @@ export class Explosion {
     private balls = new Float32Array(1024 * HOT);
     private spikeData = new Float32Array(256 * HOT);
     private sun = new Float32Array(3);
+    private screen?: { texture: WebGLTexture; w: number; h: number };
     private eye = new Float32Array(3);
 
     constructor(layer: Layer3D, setting: ExplosionSetting) {
@@ -167,12 +181,12 @@ export class Explosion {
         });
         layer.createProgram(`pw-explosion-shock-${id}`, SHOCK_VERTEX, SHOCK_FRAGMENT).then(program => {
             const u: Record<string, WebGLUniformLocation | null> = {};
-            for (const n of ["view", "projection", "mode", "eye", "centre", "radius", "width", "alpha", "lines"]) u[n] = gl.getUniformLocation(program, n);
+            for (const n of ["view", "projection", "mode", "eye", "centre", "radius", "width", "alpha", "bend", "low", "top", "viewport", "scene", "bent"]) u[n] = gl.getUniformLocation(program, n);
             this.shock = { program, u };
         });
         this.ball = this.instanced(icosahedron(0), 1024);
         this.spikeMesh = this.instanced(spike(), 256);
-        this.bubble = this.plain(icosahedronBary(2), [[0, 3, 0], [1, 3, 3]], 6);
+        this.bubble = this.plain(icosahedronBary(3), [[0, 3, 0], [1, 3, 3]], 6);
         this.ringMesh = this.plain(ring(96), [[0, 3, 0], [1, 1, 3]], 4);
     }
 
@@ -305,8 +319,8 @@ export class Explosion {
             const Rs = b.surge, drag = 2.6 / T, out = Rs * drag;
             // the surge: thrown out flat, swirling round, rolling; small and fast inside, big and late on the rim
             const layers: Layer[] = [
-                { count: 46, shape: "ring", radius: .3 * s, outward: [out * .45, out * .8], tangent: [out * .1, out * .22], speed: [0, .3 * s / T], spread: .3, life: [2.24 * T, 3.22 * T], size: [.25 * s, .9 * s], grow: 5 / T, drag, lift: .25 * s / T ** 2, swirl: .5 * s / T, roll: 1.2 * s / T, stretch: .05 * T / s, colour: b.dust, bright: 1, dim: .5 },
-                { count: 34, shape: "ring", radius: .5 * s, outward: [out * .85, out * 1.15], tangent: [out * .15, out * .28], speed: [0, .5 * s / T], spread: .3, life: [2.8 * T, 4.06 * T], delay: [0, .04 * T], size: [.3 * s, 1.9 * s], grow: 1.1 / T, drag, lift: .35 * s / T ** 2, swirl: .7 * s / T, roll: 1.6 * s / T, stretch: .04 * T / s, colour: mix(b.dust, L.smoke, .25), bright: 1, dim: .55 },
+                { count: 46, shape: "ring", radius: .3 * s, outward: [out * .78, out * .98], tangent: [out * .08, out * .16], jitter: .12, speed: [0, .3 * s / T], spread: .3, life: [2.24 * T, 3.22 * T], size: [.25 * s, .9 * s], grow: 5 / T, drag, lift: .25 * s / T ** 2, swirl: .5 * s / T, roll: 1.2 * s / T, tumble: 2.2 / T, stretch: .05 * T / s, colour: b.dust, bright: 1, dim: .5 },
+                { count: 34, shape: "ring", radius: .5 * s, outward: [out * .95, out * 1.12], tangent: [out * .1, out * .2], jitter: .12, speed: [0, .5 * s / T], spread: .3, life: [2.8 * T, 4.06 * T], delay: [0, .04 * T], size: [.3 * s, 1.9 * s], grow: 1.1 / T, drag, lift: .35 * s / T ** 2, swirl: .7 * s / T, roll: 1.6 * s / T, tumble: 1.6 / T, stretch: .04 * T / s, colour: mix(b.dust, L.smoke, .25), bright: 1, dim: .55 },
                 // low wisps streaking out first, ground hugging
                 { count: 20, link: false, shape: "ring", radius: .3 * s, outward: [out * 1.1, out * 1.5], tangent: [out * .1, out * .2], speed: [0, .1], spread: .2, life: [0.35 * T, 0.63 * T], size: [.08 * s, .22 * s], grow: 6 / T, drag: drag * 1.3, swirl: 0, stretch: .1 * T / s, shrink: .4, colour: b.dust, bright: .8, dim: .6 },
             ];
@@ -324,7 +338,7 @@ export class Explosion {
         if (once("suck", b.age > .85 * T))
         {
             const Rs = b.surge, H = s * (3 + 8 * m) * (1 + 2 * m);
-            smoke.field(at, { radius: Rs * 1.35, height: H, inward: Rs * .9 / T ** 2, up: Rs * (1.1 + 2 * m) / T ** 2, spin: Rs * .3 / T ** 2, life: 3.5 * T });
+            smoke.field(at, { radius: Rs * .5, height: H, inward: Rs * .6 / T ** 2, up: Rs * (1.1 + 2 * m) / T ** 2, spin: Rs * .3 / T ** 2, life: 3.5 * T });
             const v = H * 1.6 / T;
             smoke.burst({ layers: [
                 { count: Math.round(18 + 22 * m), shape: "sphere", radius: .3 * b.fireball, direction: [0, 1, 0], spread: .18, speed: [v * .4, v], life: [2.45 * T, 3.85 * T], delay: [0, .5 * T], size: [.35 * s, 1.2 * s * (1 + m)], grow: 2 / T, drag: 1.4 / T, lift: .4 * s / T ** 2, swirl: .6 * s / T, stretch: .02 * T / s, colour: mix(b.dust, L.smoke, .5), bright: .9, dim: .5 },
@@ -336,7 +350,7 @@ export class Explosion {
         {
             const r = b.fireball, H = s * 5 * (1 + 2 * m), drag = .8 / T, v = H * drag * 1.1;
             smoke.burst({ layers: [
-                { count: Math.round(40 + 80 * m), shape: "sphere", radius: r * .9, direction: [0, 1, 0], spread: .12, speed: [v * .85, v * 1.1], outward: [r * .2 / T, r * 1.2 / T], life: [4.2 * T, 5.6 * T], size: [r * .45, r * 1.1], grow: 1.4 / T, drag, lift: H * .04 / T ** 2, swirl: .8 * s / T, roll: r * 1.6 / T, stretch: .01 * T / s, colour: mix(L.char, L.smoke, .55), bright: 1, dim: .6 },
+                { count: Math.round(40 + 80 * m), shape: "sphere", radius: r * .9, direction: [0, 1, 0], spread: .12, speed: [v * .85, v * 1.1], outward: [r * .2 / T, r * 1.2 / T], life: [4.2 * T, 5.6 * T], size: [r * .45, r * 1.1], grow: 1.4 / T, drag, lift: H * .04 / T ** 2, swirl: .8 * s / T, roll: r * 1.6 / T, tumble: -1 / T, stretch: .01 * T / s, colour: mix(L.char, L.smoke, .55), bright: 1, dim: .6 },
                 { count: Math.round(30 * m), shape: "sphere", radius: r * .35, direction: [0, 1, 0], spread: .05, speed: [v * .2, v * .75], life: [3.5 * T, 4.9 * T], delay: [0, 1.2 * T], size: [r * .3, r * .6], grow: 1.4 / T, drag, lift: H * .03 / T ** 2, swirl: .5 * s / T, stretch: .01 * T / s, colour: mix(b.dust, L.smoke, .6), bright: .9, dim: .5 },
             ] }, at);
         }
@@ -478,25 +492,50 @@ export class Explosion {
             gl.drawArraysInstanced(gl.TRIANGLES, 0, this.spikeMesh.vertices, ns);
         }
 
-        // shock: see through bubble + ground rings
-        const sh = this.shock;
+        // shock: a see through shell that bends what is behind it + ground rings
+        const sh = this.shock, live = this.blasts.filter(b => b.front / b.scale < 24);
+        if (!live.length) return;
+        const vp = gl.getParameter(gl.VIEWPORT) as Int32Array, bending = this.look.bend > 0 && live.some(b => b.front / b.scale < 9);
+        if (bending)
+        {
+            // the frame so far, to look through
+            if (!this.screen || this.screen.w !== vp[2] || this.screen.h !== vp[3])
+            {
+                if (this.screen) gl.deleteTexture(this.screen.texture);
+                const texture = gl.createTexture()!;
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, vp[2], vp[3], 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                this.screen = { texture, w: vp[2], h: vp[3] };
+            }
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.screen.texture);
+            gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, vp[0], vp[1], vp[2], vp[3]);
+        }
         gl.useProgram(sh.program);
         gl.uniformMatrix4fv(sh.u.view, false, viewM);
         gl.uniformMatrix4fv(sh.u.projection, false, projection);
         gl.uniform3fv(sh.u.eye, this.eye);
-        gl.uniform1f(sh.u.lines, this.look.lines);
+        gl.uniform1f(sh.u.bend, this.look.bend);
+        gl.uniform1f(sh.u.low, this.look.lineLow);
+        gl.uniform1f(sh.u.top, this.look.lineTop);
+        gl.uniform4f(sh.u.viewport, vp[0], vp[1], vp[2], vp[3]);
+        gl.uniform1i(sh.u.scene, 0);
+        gl.uniform1i(sh.u.bent, bending ? 1 : 0);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.depthMask(false);
-        for (const b of this.blasts)
+        for (const b of live)
         {
             const z = b.front / b.scale, p = b.position;
             gl.uniform3f(sh.u.centre, p[0], this.ground(p[0], p[2]), p[2]);
+            gl.uniform1f(sh.u.radius, b.front);
             const bubble = (1 - smoothstep(1.5, 9, z)) * this.look.shock;
             if (bubble > .01)
             {
                 gl.uniform1i(sh.u.mode, 0);
-                gl.uniform1f(sh.u.radius, b.front);
                 gl.uniform1f(sh.u.alpha, bubble);
                 gl.bindVertexArray(this.bubble.vao);
                 gl.drawArrays(gl.TRIANGLES, 0, this.bubble.vertices);
@@ -505,15 +544,10 @@ export class Explosion {
             if (ringA > .01)
             {
                 gl.uniform1i(sh.u.mode, 1);
+                gl.uniform1f(sh.u.width, b.front * .06 + .15 * b.scale);
+                gl.uniform1f(sh.u.alpha, ringA);
                 gl.bindVertexArray(this.ringMesh.vao);
-                // the front, and a thinner one just behind it
-                for (const [k, w, a] of [[1, .05, .9], [.9, .025, .5]])
-                {
-                    gl.uniform1f(sh.u.radius, b.front * k);
-                    gl.uniform1f(sh.u.width, b.front * w + .1 * b.scale);
-                    gl.uniform1f(sh.u.alpha, ringA * a);
-                    gl.drawArrays(gl.TRIANGLES, 0, this.ringMesh.vertices);
-                }
+                gl.drawArrays(gl.TRIANGLES, 0, this.ringMesh.vertices);
             }
         }
         gl.depthMask(true);

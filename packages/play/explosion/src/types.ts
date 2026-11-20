@@ -49,8 +49,12 @@ export type ExplosionLook = {
     sun: Vec3;
     /** shock bubble + ring opacity (0 hides them) */
     shock: number;
-    /** white edge lines on the bubble, 0..1 */
-    lines: number;
+    /** how much the shell bends what is behind it (screen fraction, 0 off: no screen copy) */
+    bend: number;
+    /** the white edge line at the ground, 0..1 */
+    lineLow: number;
+    /** and at the top */
+    lineTop: number;
     /** smoke tones */
     dust: Colour;
     smoke: Colour;
