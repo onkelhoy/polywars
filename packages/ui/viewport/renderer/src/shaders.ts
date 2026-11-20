@@ -129,6 +129,8 @@ float vnoise(vec3 p) {
 }
 void main() {
     vec4 base = texturedColor(vColor * tint);
+    // textured cut-outs (fence mesh, leaves): see-through texels are gone, not blended
+    if (mapsOn.x > 0.5 && base.a < 0.5) discard;
     // grit: a few % brightness from world space noise, so it stays put when the camera moves
     if (grit > 0.0) base.rgb *= 1.0 + grit * ((vnoise(vWorld * 1.7) * .6 + vnoise(vWorld * 6.3) * .4) * 2.0 - 1.0);
     // canvases composite premultiplied alpha
