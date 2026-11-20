@@ -61,15 +61,12 @@ explosion.onexplode = b => {
 
 const power = () => 10 ** +$('#power').value;
 const show = () => { const p = power(); $('#kg').textContent = p < 10 ? `${p.toFixed(1)} kg` : p < 1000 ? `${Math.round(p)} kg` : `${(p / 1000).toFixed(1)} t`; };
-const view = () => { const s = Math.cbrt(power()), d = 10 ** +$('#distance').value + 6 * s; demo.look([-d * .8, 1.7 + d * .06, d * .6], [0, s * 3, 0]); };
 const boom = () => explosion.explode([0, 0, 0], { power: power() });
 $('#power').oninput = show; show();
 for (const button of document.querySelectorAll('[data-power]'))
-    button.onclick = () => { $('#power').value = Math.log10(+button.dataset.power); show(); view(); boom(); };
-$('#view').onclick = view;
-$('#distance').oninput = view;
+    button.onclick = () => { $('#power').value = Math.log10(+button.dataset.power); show(); boom(); };
 addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); boom(); } });
-view();
+demo.look([-60, 6, 45], [0, 8, 0]);
 
 let wait = 1;
 demo.tick = dt => {
