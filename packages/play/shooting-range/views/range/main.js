@@ -37,6 +37,8 @@ const SKY = [.62, .72, .84, 1];
 
 const range = await ShootingRange.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
+// the terrain is the painted grass floor (@polywar/grass ground); the model's own `Ground` mesh isn't drawn
+const NO_TERRAIN = { skip: ['Ground'] };
 window.range = range;
 
 // ---- lamps: a point light per bulb (range.json `lights`); ?night dims the sun to see them ----
@@ -66,10 +68,10 @@ const covered = (x, z) => { const y = range.ground(x, z); return range.colliders
         grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
         window: 130,
     });
-    // the painted grass ground (patches, spots) over all of the range's ground, lifted 2 cm (+ a depth offset in
-    // drawGround): skipping triangles showed the model's plain ground through in big triangles. Tufts follow the zones.
+    // the painted grass ground (patches, spots) over all of the range's ground: it IS the terrain (the model's
+    // `Ground` isn't drawn). Tufts follow the zones.
     const floor = [];
-    for (const t of range.data.ground) for (const p of t) floor.push(p[0], p[1] + .02, p[2]);
+    for (const t of range.data.ground) for (const p of t) floor.push(p[0], p[1], p[2]);
     grass.setGround(new Float32Array(floor));
 }
 function drawGrass(camera) {
@@ -96,7 +98,7 @@ window.fleet = fleet;
 let lastHit = '';
 const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: shots, surface: range.surface,
-    scene: view => { model.draw(renderer, identity); drawStands(); drawGrass(view); drawTufts(view); },
+    scene: view => { model.draw(renderer, identity, {}, NO_TERRAIN); drawStands(); drawGrass(view); drawTufts(view); },
     character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
     worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); drawGlass(); },
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
@@ -278,7 +280,7 @@ demo.draw = camera => {
     // binoculars in the hands while raised (hidden otherwise)
     if (binocularNode) { const m = player.binocularsAt(camera); model.move(binocularNode, m ? m.multiply(binocularFrom) : hidden); }
     renderer.begin(camera, SKY);
-    model.draw(renderer, identity);
+    model.draw(renderer, identity, {}, NO_TERRAIN);
     drawStands();
     if (document.body.classList.contains('playing')) player.draw(camera);
     else { player.impacts.draw(camera); renderer.reset(); }
@@ -473,9 +475,9 @@ demo.tick = dt => {
 };
 demo.draw = camera => {
     // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)
-    shadows.cast(camera, renderer.light.sunDirection, view => { renderer.begin(view, null); model.draw(renderer, identity); drawStands(); drawCars(); renderer.reset(); });
+    shadows.cast(camera, renderer.light.sunDirection, view => { renderer.begin(view, null); model.draw(renderer, identity, {}, NO_TERRAIN); drawStands(); drawCars(); renderer.reset(); });
     renderer.begin(camera, SKY);
-    model.draw(renderer, identity);
+    model.draw(renderer, identity, {}, NO_TERRAIN);
     drawStands();
     drawGrass(camera);
     drawCars();
