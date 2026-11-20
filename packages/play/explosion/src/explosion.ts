@@ -152,6 +152,8 @@ export class Explosion {
     onexplode?: (blast: Blast) => void;
     readonly blasts: Live[] = [];
     private chunks: Chunk[] = [];
+    /** black streaks: grit and small stones, x y z vx vy vz age life */
+    private grit: number[][] = [];
     private gl: WebGL2RenderingContext;
     private smoke: SmokeLike;
     private ground: (x: number, z: number) => number;
@@ -231,7 +233,7 @@ export class Explosion {
         const position: Vec3 = [at[0], at[1], at[2]];
         const blast: Live = {
             position, power, scale: s, slow, age: 0, front: 0,
-            mushroom: smoothstep(2.3, 4, lw), volcano: smoothstep(3.6, 5, lw),
+            mushroom: smoothstep(2.3, 4, lw), volcano: smoothstep(2.1, 5, lw),
             shock: new ShockFront(power), fire: [], spikes: [], dust: options.dust ?? this.look.dust, kicked: 0, stages: new Set(),
             fireball: 1.5 * s, fireLife: .16 * slow, surge: 7 * s ** .9,
         };
@@ -245,6 +247,12 @@ export class Explosion {
             blast.fire.push([position[0] + u.x * k, position[1] + u.y * k, position[2] + u.z * k, blast.fireball * rand(.4, .75),
                 u.x * blast.fireball * 3 / slow, u.y * blast.fireball * (3 + 4 * blast.mushroom) / slow, u.z * blast.fireball * 3 / slow,
                 blast.fireLife * rand(.7, 1.3), Math.random() * 100]);
+        }
+        // black streaks: grit and small stones, low and fast, arcing down
+        for (let i = 0, n = 14 + Math.round(10 * Math.random() + 6 * Math.min(1, lw / 3)); i < n; i++)
+        {
+            const a = Math.random() * Math.PI * 2, up = rand(.08, .8), v = rand(28, 70) * s ** .35;
+            this.grit.push([position[0], position[1] + .1 * s, position[2], Math.cos(a) * Math.cos(up) * v, Math.sin(up) * v, Math.sin(a) * Math.cos(up) * v, 0, rand(.25, .7) * slow]);
         }
         // white spikes: thin, fast, gone in a blink
         for (let i = 0; i < 10 + Math.round(6 * Math.random()); i++)
@@ -280,6 +288,7 @@ export class Explosion {
         this.blasts.length = 0;
         for (const c of this.chunks) c.trail?.stop();
         this.chunks.length = 0;
+        this.grit.length = 0;
         this.lights.length = 0;
     }
 
@@ -307,6 +316,14 @@ export class Explosion {
             if (b.age > 30 * b.slow && b.stages.has("suck")) this.blasts.splice(i, 1);
         }
         this.fly(dt);
+        for (let i = this.grit.length - 1; i >= 0; i--)
+        {
+            const g = this.grit[i];
+            if ((g[6] += dt) > g[7]) { this.grit.splice(i, 1); continue; }
+            g[4] -= GRAVITY * dt;
+            g[0] += g[3] * dt; g[1] += g[4] * dt; g[2] += g[5] * dt;
+            if (g[1] < this.ground(g[0], g[2])) g[7] = g[6];
+        }
     }
 
     /** runs each stage once, when its time comes */
@@ -358,7 +375,7 @@ export class Explosion {
         // volcano: rock thrown in a few jets, smoke trails behind
         if (b.volcano > 0 && once("rock", true))
         {
-            const jets = 3 + Math.round(Math.random() * 3 * b.volcano), per = Math.round(2 + 6 * b.volcano), reach = 9 * s;
+            const jets = 2 + Math.round(Math.random() * 4 * b.volcano), per = Math.round(1 + 7 * b.volcano), reach = 9 * s;
             for (let j = 0; j < jets; j++)
             {
                 const a = Math.random() * Math.PI * 2, up = rand(.75, 1.25);
@@ -368,7 +385,7 @@ export class Explosion {
                     const d = new Vector3(jet.x + rand(-.15, .15), jet.y + rand(-.1, .1), jet.z + rand(-.15, .15)).normalize();
                     const v = Math.sqrt(GRAVITY * reach) * rand(.6, 1.15), r = .2 * s ** .7 * rand(.5, 1.3);
                     const p: Vec3 = [at[0] + d.x * b.fireball * .3, at[1] + b.fireball * .3, at[2] + d.z * b.fireball * .3];
-                    const trail = smoke.emitter({ layers: [{ count: 14, direction: [0, 1, 0], spread: .3, speed: [0, .3], life: [4, 7], size: [r * 1.2, r * 5], grow: .5, drag: 1.5, lift: .25, swirl: .3, stretch: .02, colour: mix(L.char, L.smoke, .4), bright: .8, dim: .5 }] }, p);
+                    const trail = smoke.emitter({ layers: [{ count: 24, direction: [0, 1, 0], spread: .3, speed: [0, .3], life: [6, 10], size: [r * 1.5, r * 7], grow: .4, drag: 1.5, lift: .25, swirl: .3, stretch: .02, colour: mix(L.char, L.smoke, .4), bright: .8, dim: .5 }] }, p);
                     this.chunks.push({ p, v: [d.x * v, d.y * v, d.z * v], r, seed: Math.random() * 100, trail, landed: 0, spin: rand(4, 10) });
                 }
             }
@@ -458,6 +475,15 @@ export class Explosion {
                 S[k + 4] = S[k + 5] = S[k + 6] = 1; S[k + 7] = 2;
                 S[k + 8] = sp[0] * len; S[k + 9] = sp[1] * len; S[k + 10] = sp[2] * len; S[k + 11] = 0;
             }
+        }
+        for (const g of this.grit)
+        {
+            if (ns >= 256) break;
+            // a dark streak behind it along its way, thinning as it goes
+            const t = g[6] / g[7], k = ns++ * HOT, len = .045, w = .05 * (1 - t * .6);
+            S[k] = g[0] - g[3] * len; S[k + 1] = g[1] - g[4] * len; S[k + 2] = g[2] - g[5] * len; S[k + 3] = w;
+            S[k + 4] = .07; S[k + 5] = .06; S[k + 6] = .055; S[k + 7] = 2;
+            S[k + 8] = g[3] * len; S[k + 9] = g[4] * len; S[k + 10] = g[5] * len; S[k + 11] = 0;
         }
         for (const c of this.chunks)
         {
