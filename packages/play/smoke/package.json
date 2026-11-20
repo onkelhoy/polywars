@@ -50,8 +50,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@papit/game-engine": "*",
-    "@papit/marching-cubes": "*"
+    "@papit/game-engine": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

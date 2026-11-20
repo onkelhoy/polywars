@@ -1,5 +1,4 @@
 import type { Layer3D } from "@papit/game-engine";
-import { cloudMesh, skeleton } from "./cloud-mesh";
 import { PRESETS, WHITE } from "./presets";
 import type { BurstOptions, CloudKind, CloudOptions, Colour, Emitter, Layer, Preset, SmokeLook, SmokeSetting, Vec3, View } from "./types";
 
@@ -18,6 +17,11 @@ uniform vec3 sun, shade, skyShade;
 uniform float highlight;
 vec3 toon(vec3 p, vec3 base, float bright, float sky) {
     vec3 shade = mix(shade, skyShade, sky);
+    if (sky > .5) {
+        vec3 m = normalize(cross(dFdx(p), dFdy(p)));
+        float k = smoothstep(-.25, .8, dot(m, sun));
+        return mix(base * shade, mix(base, vec3(1.0), highlight * .6 * bright), k);
+    }
     // flat: one normal per face
     vec3 n = normalize(cross(dFdx(p), dFdy(p)));
     float l = dot(n, sun);
@@ -34,35 +38,6 @@ in float vSky;
 out vec4 outColor;
 ${SHADE}
 void main() { outColor = vec4(toon(vWorld, vTone.rgb, vTone.a, vSky), 1.0); }`;
-
-// clouds: one low poly mesh each, faceted, a soft ramp from white (sun side) into the sky tint, bluer low down
-const CLOUD_VERTEX = `#version 300 es
-layout(location = 0) in vec3 position;
-uniform mat4 view, projection;
-uniform vec3 offset;
-uniform float top;
-out vec3 vWorld;
-out float vHeight;
-void main() {
-    vWorld = position + offset;
-    vHeight = position.y / max(top, 1e-3);
-    gl_Position = projection * view * vec4(vWorld, 1.0);
-}`;
-const CLOUD_FRAGMENT = `#version 300 es
-precision highp float;
-in vec3 vWorld;
-in float vHeight;
-uniform vec3 sun, skyShade, colour;
-uniform float highlight, light;
-out vec4 outColor;
-void main() {
-    vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
-    float lit = smoothstep(-.15, .75, dot(n, sun));
-    vec3 shadow = colour * skyShade, bright = mix(colour, vec3(1.0), highlight * .6 * light);
-    vec3 c = mix(shadow, bright, lit);
-    c = mix(c, shadow, (1.0 - clamp(vHeight * 1.6, 0.0, 1.0)) * .35);
-    outColor = vec4(c, 1.0);
-}`;
 
 const PUFF_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
@@ -148,9 +123,6 @@ export class Smoke {
     private groups = 1;
     private slots = new Map<number, number>();
     private sun = new Float32Array(3);
-    private clouds: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; vertices: number; at: Vec3; colour: Colour; top: number; light: number }[] = [];
-    private cloudProgram?: WebGLProgram;
-    private cloudUniforms: Record<string, WebGLUniformLocation | null> = {};
 
     constructor(layer: Layer3D, setting: SmokeSetting = {}) {
         const gl = this.gl = layer.gl;
@@ -172,10 +144,6 @@ export class Smoke {
         });
         this.meshes = [icosahedron(0), icosahedron(1)].map(g => this.mesh(g, 3, PUFF, [[1, 4, 0], [2, 4, 4], [3, 4, 8], [4, 4, 12]]));
         this.tube = this.mesh(tubeRing(6), 3, TUBE, [[1, 4, 0], [2, 4, 4], [3, 4, 8]]);
-        layer.createProgram(`pw-smoke-cloud-${id}`, CLOUD_VERTEX, CLOUD_FRAGMENT).then(program => {
-            this.cloudProgram = program;
-            for (const n of ["view", "projection", "offset", "top", "sun", "skyShade", "colour", "highlight", "light"]) this.cloudUniforms[n] = gl.getUniformLocation(program, n);
-        });
     }
 
     private mesh(geometry: Float32Array, size: number, stride: number, attributes: number[][]) {
@@ -249,20 +217,39 @@ export class Smoke {
      */
     cloud(at: ArrayLike<number>, size: number, options: CloudOptions = {}) {
         const kind = options.kind ?? "cumulus", density = options.density ?? (kind === "overcast" ? .7 : .2);
+        const masses = skeleton(kind, size, options.height ?? 1, (options.lean ?? 0) * size);
         const grey = kind === "overcast" ? .45 + density * .45 : density * .3;
         const colour = options.colour ?? [WHITE[0] - grey * .3, WHITE[1] - grey * .29, WHITE[2] - grey * .25] as Colour;
-        const masses = skeleton(kind, size, options.height ?? 1, (options.lean ?? 0) * size);
-        const positions = cloudMesh(masses, options.cells ?? (kind === "fair" ? 10 : 16));
-        let top = 0;
-        for (let i = 1; i < positions.length; i += 3) top = Math.max(top, positions[i]);
-        const gl = this.gl, vao = gl.createVertexArray()!, buffer = gl.createBuffer()!;
-        gl.bindVertexArray(vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-        gl.bindVertexArray(null);
-        this.clouds.push({ vao, buffer, vertices: positions.length / 3, at: [at[0], at[1], at[2]], colour, top, light: 1 - grey * .6 });
+        const top = kind === "overcast" ? .6 - density * .2 : kind === "bank" ? .85 : 1;
+        const layer: Layer = { count: 1, speed: [0, 0], life: [Infinity, Infinity], size: [1, 1], grow: 100, drag: 0, swirl: 0, stretch: 0, colour, bright: 1 - grey * .6, dim: Infinity, ground: false, jitter: 0, spin: 0, link: false };
+        const d = this.data;
+        const put = (x: number, y: number, z: number, r: number, flat = 1, squash = top) => {
+            const slot = this.spawn(layer, [at[0] + x, at[1] + y, at[2] + z], 1);
+            if (slot < 0) return;
+            const o = slot * STRIDE;
+            d[o + R0] = d[o + R1] = r;
+            // nothing below the bottom line
+            d[o + FLAT] = Math.max(.08, Math.min(flat, y / r));
+            d[o + TOP] = squash;
+            d[o + SKY] = 1;
+            d[o + DETAIL] = 1;
+        };
+        for (const m of masses)
+        {
+            // a core fills it
+            put(m[0], m[1], m[2], m[3] * .92);
+            // lobes evenly over the upper surface (fibonacci sphere), none under, none buried in a neighbour
+            const n = Math.round(6 + 14 * m[3] / size);
+            for (let i = 0; i < n; i++)
+            {
+                const y = 1 - (i + .5) / n * 2, ring = Math.sqrt(1 - y * y), a = i * 2.39996 + m[0];
+                const u = [Math.cos(a) * ring, y, Math.sin(a) * ring];
+                if (u[1] < -.3) continue;
+                const p = [m[0] + u[0] * m[3] * .8, m[1] + u[1] * m[3] * .8, m[2] + u[2] * m[3] * .8];
+                if (masses.some(q => q !== m && Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < q[3] * .85)) continue;
+                put(p[0], p[1], p[2], m[3] * (.46 + Math.random() * .16) * (1 - Math.max(0, u[1]) * .15));
+            }
+        }
     }
 
     /** a sky of clouds: `count` scattered round `at` from `near` to `far` m out, kinds mixed by `cover` 0..1 (more = flatter, greyer) */
@@ -279,8 +266,6 @@ export class Smoke {
 
     /** drop every puff and emitter */
     clear() {
-        for (const c of this.clouds) { this.gl.deleteVertexArray(c.vao); this.gl.deleteBuffer(c.buffer); }
-        this.clouds.length = 0;
         this.live = 0;
         this.emitters.length = 0;
         this.slots.clear();
@@ -356,8 +341,6 @@ export class Smoke {
             });
 
         const d = this.data, w = this.look.wind, swirl = this.look.swirl;
-        // clouds drift with the wind (faster up high)
-        for (const c of this.clouds) for (let k = 0; k < 3; k++) c.at[k] += w[k] * 1.5 * dt;
         // vortex rings: each rolling burst's centre and ring radius
         const rings = new Map<number, number[]>();
         for (let i = 0; i < this.live; i++)
@@ -413,7 +396,6 @@ export class Smoke {
 
     draw(view: View) {
         const gl = this.gl;
-        this.drawClouds(view);
         if (!this.puffProgram || !this.tubeProgram) return;
         const d = this.data, T = this.tubes, w = this.look.wind, reach = this.look.reach;
         const shown = new Float32Array(this.live);
@@ -482,32 +464,6 @@ export class Smoke {
         if (n) pass(this.puffProgram, this.uniforms.puff, this.meshes[0], this.puffs, PUFF, n);
         if (n1) pass(this.puffProgram, this.uniforms.puff, this.meshes[1], this.round, PUFF, n1);
         if (m) pass(this.tubeProgram, this.uniforms.tube, this.tube, T, TUBE, m);
-        gl.bindVertexArray(null);
-    }
-
-    private drawClouds(view: View) {
-        const gl = this.gl, u = this.cloudUniforms;
-        if (!this.cloudProgram || !this.clouds.length) return;
-        const s = this.look.sun, l = Math.hypot(s[0], s[1], s[2]) || 1;
-        gl.useProgram(this.cloudProgram);
-        gl.uniformMatrix4fv(u.view, false, new Float32Array(view.viewMatrix as ArrayLike<number>));
-        gl.uniformMatrix4fv(u.projection, false, new Float32Array(view.projectionMatrix as ArrayLike<number>));
-        gl.uniform3f(u.sun, s[0] / l, s[1] / l, s[2] / l);
-        gl.uniform3fv(u.skyShade, this.look.skyShade);
-        gl.uniform1f(u.highlight, this.look.highlight);
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthMask(true);
-        gl.disable(gl.BLEND);
-        gl.disable(gl.CULL_FACE);
-        for (const c of this.clouds)
-        {
-            gl.uniform3fv(u.offset, c.at);
-            gl.uniform3fv(u.colour, c.colour);
-            gl.uniform1f(u.top, c.top);
-            gl.uniform1f(u.light, c.light);
-            gl.bindVertexArray(c.vao);
-            gl.drawArrays(gl.TRIANGLES, 0, c.vertices);
-        }
         gl.bindVertexArray(null);
     }
 
@@ -592,4 +548,33 @@ function cone(n: ArrayLike<number>, spread: number): Vec3 {
     const r = random3();
     const x = n[0] + r[0] * spread, y = n[1] + r[1] * spread, z = n[2] + r[2] * spread, l = Math.hypot(x, y, z) || 1;
     return [x / l, y / l, z / l];
+}
+
+/** the big masses a cloud is built on: [x, y, z, radius], y up from its bottom line */
+function skeleton(kind: CloudKind, size: number, height: number, lean: number): number[][] {
+    const r = () => Math.random(), S = size, out: number[][] = [];
+    const add = (x: number, y: number, z: number, radius: number) => out.push([x, y, z, radius * S]);
+    if (kind === "cumulus")
+    {
+        // a base row, shoulders, a body that climbs (and leans), a head
+        for (let i = 0; i < 4; i++) { const x = (i / 3 - .5) * 1.6 * S, mid = 1 - Math.abs(i / 3 - .5); add(x, (.24 + .08 * mid) * S, (r() - .5) * .3 * S, .4 + .12 * mid); }
+        add(-.6 * S, .62 * S, (r() - .5) * .3 * S, .36); add(.6 * S, .58 * S, (r() - .5) * .3 * S, .34);
+        add(lean * .3, .95 * S * height, 0, .52); add(lean * .65, 1.38 * S * height, (r() - .5) * .2 * S, .46);
+        for (let i = 0; i < 3; i++) add(lean + (i - 1) * .34 * S, (1.78 + (i === 1 ? .16 : 0)) * S * height, (r() - .5) * .3 * S, .34 + (i === 1 ? .06 : 0));
+    }
+    else if (kind === "fair")
+    {
+        add(0, .3 * S, 0, .5); add(-.45 * S, .2 * S, (r() - .5) * .3 * S, .34); add(.45 * S, .2 * S, (r() - .5) * .3 * S, .36);
+        if (r() < .5) add((r() - .5) * .4 * S, .55 * S, 0, .3);
+    }
+    else if (kind === "bank")
+    {
+        for (let i = 0; i < 7; i++) { const t = i / 6 - .5, mid = 1 - Math.abs(t) * 2; add(t * 3.2 * S, (.18 + .1 * mid) * S, (r() - .5) * .5 * S, .3 + .15 * mid); }
+        for (let i = 0; i < 2; i++) add((r() - .5) * 1.2 * S, .5 * S, (r() - .5) * .3 * S, .3);
+    }
+    else
+    {
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) add((i / 3 - .5) * 3 * S + (r() - .5) * .3 * S, (.16 + r() * .06) * S, (j / 2 - .5) * 2 * S, .42 + r() * .08);
+    }
+    return out;
 }

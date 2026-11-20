@@ -124,8 +124,6 @@ export type CloudOptions = {
     density?: number;
     /** tower height multiplier (cumulus, default 1) */
     height?: number;
-    /** grid cells along the longest side: fewer = chunkier facets (default 16, fair 10) */
-    cells?: number;
     /** head off to the side, fraction of size */
     lean?: number;
     colour?: Colour;
