@@ -264,6 +264,8 @@ export type WalkSetting = Omit<MoverSetting, "ground"> & {
     run?: number;
     /** radians per mouse pixel */
     sensitivity?: number;
+    /** live multiplier on the look (dazed, a heavy scope ...), read every frame (default 1) */
+    lookScale?: () => number;
     /** the player let go of the view (Esc): the host switches back */
     exit?: () => void;
     /** on screen controls (stick walks, analog; `jump`, `run` buttons) */
@@ -315,9 +317,9 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
         },
         update(camera: Camera, dt: number) {
             dt = Math.min(dt, .1);
-            const r = camera.rotation;
-            r.y -= dx * sensitivity;
-            r.x = clampPitch(r.x - dy * sensitivity);
+            const r = camera.rotation, look = sensitivity * (setting.lookScale?.() ?? 1);
+            r.y -= dx * look;
+            r.x = clampPitch(r.x - dy * look);
             dx = dy = 0;
             const keys = camera.engine!.input.keyboard;
             const k = (...names: string[]) => !typing() && names.some(n => keys.key(n)?.pressed) ? 1 : 0;

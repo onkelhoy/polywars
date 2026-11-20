@@ -28,7 +28,12 @@ explosion.onmark = (x, z, r) => grass.clear(x, z, r);
 let world, things, force, eye = [0, 0, 0];
 const daze = new Daze(demo.layer);
 // you (the camera) as a target: dazed and deafened by how hard it hits
-const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(_v, _s, hit) { const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a); } };
+const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(v, _s, hit) { const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a); demo.walker?.mover.push(v[0], v[1], v[2]); } };
+
+// play: walk round (P), dazed you turn slowly (the look slows with the daze)
+demo.walking = { ground: () => 0, lookScale: () => 1 - .85 * daze.amount };
+$('#play').onclick = () => { mixer.unlock(); demo.mode = 'walk'; };
+addEventListener('keydown', e => { if (e.code === 'KeyP' && demo.mode !== 'walk') { mixer.unlock(); demo.mode = 'walk'; } });
 const log = [];
 const reset = () => {
     world = new World();
@@ -93,7 +98,7 @@ const boom = () => explosion.explode([0, 0, 0], { power: power() });
 $('#power').oninput = show; show();
 for (const button of document.querySelectorAll('[data-power]'))
     button.onclick = () => { $('#power').value = Math.log10(+button.dataset.power); show(); boom(); };
-addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); boom(); } });
+addEventListener('keydown', e => { if (e.code === 'Space' && demo.mode !== 'walk' || e.code === 'KeyB') { e.preventDefault(); boom(); } });
 demo.look([-60, 6, 45], [0, 8, 0]);
 
 let wait = 1;
