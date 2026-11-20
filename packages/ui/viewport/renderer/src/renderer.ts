@@ -3,6 +3,8 @@ import type { Layer3D } from "@papit/game-engine";
 import type { GPUMesh } from "@papit/game-mesh";
 import { TEXTURED_UNIFORMS, bindMaps, type Maps } from "@polywar/textured";
 import { SHADERS } from "./shaders";
+import { bindFog } from "@polywar/fog";
+import { SHADOW_UNIFORMS, bindShadows, type ShadowSource } from "@polywar/shadows";
 
 export type Vec3 = [number, number, number];
 
@@ -24,7 +26,13 @@ export type Light = {
     lampRange: number;
     fogColor: Vec3;
     fogDensity: number;
+    /** height fog (`@polywar/fog`): thinning per metre up, 0 = plain distance fog */
+    fogFalloff?: number;
+    /** height fog: world height where it is `fogDensity` */
+    fogBase?: number;
     toon: number;
+    /** sun shadows (`@polywar/shadows`), none when unset */
+    shadow?: ShadowSource | null;
 };
 
 export const DAYLIGHT: Light = {
@@ -86,7 +94,7 @@ export const CARD_STRIDE = 16;
 type Program = { program: WebGLProgram; uniforms: Record<string, WebGLUniformLocation | null> };
 
 const NAMES = ["model", "view", "projection", "jointMatrices", "sunDirection", "sunColor", "sunStrength", "sky", "ground", "ambient",
-    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", "billboard", "fadePart", "lightPos", "lightColor", "lightCount", ...TEXTURED_UNIFORMS];
+    "lampPosition", "lampColor", "lampStrength", "lampRange", "fogColor", "fogDensity", "fogFalloff", "fogBase", "toon", "eye", "tint", "unlit", "mirrored", "wind", "fade", "time", "swayHeight", "bands", "soft", "grit", "gloss", "surfaced", "billboard", "fadePart", "lightPos", "lightColor", "lightCount", ...TEXTURED_UNIFORMS, ...SHADOW_UNIFORMS];
 
 let renderers = 0;
 
@@ -253,8 +261,8 @@ export class Renderer {
         gl.uniform3fv(p.uniforms.sunColor, l.sunColor);
         gl.uniform3fv(p.uniforms.sky, l.sky);
         gl.uniform3fv(p.uniforms.ground, l.ground);
-        gl.uniform3fv(p.uniforms.fogColor, l.fogColor);
-        gl.uniform1f(p.uniforms.fogDensity, l.fogDensity);
+        bindFog(gl, n => p.uniforms[n], l);
+        bindShadows(gl, n => p.uniforms[n], l.shadow);
         gl.uniform1f(p.uniforms.toon, l.toon);
         gl.uniform1f(p.uniforms.sunStrength, l.sunStrength);
         gl.uniform1f(p.uniforms.ambient, l.ambient);

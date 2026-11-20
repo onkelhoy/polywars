@@ -295,7 +295,7 @@ export class Player {
         this.impacts = new Impacts(layer);
         this.bullets = new Bullets(setting.cast);
         this.bullets.onhit = (b, hit) => {
-            this.impacts.hit(hit.point, hit.normal, hit.surface, b.direction);
+            this.impacts.hit(hit.point, hit.normal, hit.surface, b.direction, hit.carrier);
             if (hit.target !== undefined) this.hits++;
             this.events.hit?.(b, hit);
         };
@@ -893,9 +893,10 @@ export class Player {
         this.drawDown();
         const held = this.held;
         if (held) this.impacts.follow(point(camera.worldMatrix, point(this.vm.matrix, held.hold.muzzle)), direction(camera.worldMatrix, this.vm.muzzle.direction));
+        // after the host's last world pass (grass tufts): smoke and dust don't write depth, so later draws would paint over them
+        this.setting.worldDrawn?.();
         this.impacts.draw(camera);
         r.reset();
-        this.setting.worldDrawn?.();
         if (!carried || this.optic || this.down) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);

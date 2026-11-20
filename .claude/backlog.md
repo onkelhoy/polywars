@@ -117,3 +117,6 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 ## Optics / gun handling (follow ups)
 - [ ] Put-down gun: real rigidbody drop (now a straight fall), hand IK to the grip on take back.
 - [ ] Steel plates: ring sound on hit; metal cans as targets.
+
+## Ground map (idea, needs thought)
+One small painted RGB map over the world (PNG, not JPEG: channels bleed): R grass density (black none, grey thin), G grass height, B fog clearing (or wetness). Replaces the no-grass / short-grass rectangles. Check what the world generator already makes first. Paint view like the grass view.

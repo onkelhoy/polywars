@@ -50,6 +50,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@polywar/fog": "*",
     "@papit/game-engine": "*"
   },
   "devDependencies": {

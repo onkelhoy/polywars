@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Everything is on `main`. On `feature/gun-drop`: A (gun drop / swap) built, needs check. Next: B smoke (`@polywar/smoke`, then jeep dust). Open: arms-grip 5 (grab animation: owner designs).
+Everything is on `main`. On `feature/gun-drop`: A (gun drop / swap) built, needs check. FX fixes built, needs check. Next: B smoke (`@polywar/smoke`, then jeep dust). Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 Range rework (`feature/range` tasks: ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off), jeep 1-8 (7: gun on passenger seat, hand reach), lights + glow, doors, jeep crash fix (`fleet.cast` skips a chassis the ray starts inside), optics 1-6, grass on the range (falloff, no SSAO on tufts, grass in the gun scope).
@@ -22,6 +22,15 @@ Done: 1-4b (body arms on the rig's IK + grip, 3 store soldiers, rig resync (`cha
 - G `drop(camera)`: looked at top (1.8 m) -> laid on it, wall -> leant (butt on ground, muzzle up, 12 deg), else thrown.
 - F `pickUp()`: nearest loose gun; a held one is put down first (swap), bend + hand to grip, take.
 - Not done: stand guns still instant (select); no lean stability tuning.
+
+## FX fixes (`feature/fx-fixes`, off gun-drop, built, needs check)
+1. Depth: range camera near .1 -> .25 (seat .2). If lanes still flicker far out: try SSAO off (AO at distance), then reversed-Z.
+2. Smoke / impacts drawn after the grass tufts (and after SSAO).
+3. Marks ride on what they hit: `Hit.carrier` (cars set it), `Impacts` keeps them in its space. Lane targets keep `shift`.
+4. Sound scene: 16 rays at the muzzle + .9 m higher, a wall must block both; indoor needs a roof (2 of 3 up rays).
+5. `@polywar/fog` (materials/fog): distance + height fog in renderer, grass, terrain, water. Range: density .0009, falloff .015, base 0 (`renderer.light.fog*` live). View `views/fog`.
+7. `@polywar/shadows` (viewport/shadows): 512² map, 45 m round the player, strength .5, nearest = blocky. Renderer, grass, terrain receive; range model, stands, cars cast (grass doesn't). `shadows.*` live. View `views/shadows`.
+Skipped: 6 ground map (RGB paint map for grass density / height / fog), backlog.
 
 ## B. Smoke (confirmed, next)
 1. `@polywar/smoke`: low poly puffs (icosahedrons, flat / toon), grow, rise, drift, shrink out; one instanced draw; config; view.

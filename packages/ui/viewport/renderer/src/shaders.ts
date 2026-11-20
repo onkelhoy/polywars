@@ -1,4 +1,6 @@
 import { LIGHTS_GLSL } from "@polywar/light";
+import { FOG_GLSL } from "@polywar/fog";
+import { SHADOW_GLSL } from "@polywar/shadows";
 import { SKINNING_GLSL } from "@papit/game-mesh";
 import { TEXTURED_FRAGMENT_GLSL, TEXTURED_VERTEX_GLSL } from "@polywar/textured";
 
@@ -106,8 +108,10 @@ precision highp float;
 in vec3 vNormal;
 in vec4 vColor;
 in vec3 vWorld;
-uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye, lampPosition, lampColor;
-uniform float fogDensity, toon, ambient, sunStrength, lampStrength, lampRange;
+${FOG_GLSL}
+${SHADOW_GLSL}
+uniform vec3 sunDirection, sunColor, sky, ground, eye, lampPosition, lampColor;
+uniform float toon, ambient, sunStrength, lampStrength, lampRange;
 uniform vec4 tint;
 uniform bool unlit, mirrored;
 // surface (instanced props): soft toon bands, world space grit, gloss; all 0 = off
@@ -137,6 +141,8 @@ void main() {
     float lamp = max(dot(n, normalize(toLamp)), 0.0) * fall * fall;
     if (toon > 0.0) { sun = floor(sun * toon + 0.5) / toon; lamp = floor(lamp * toon + 0.5) / toon; }
     else if (bands > 0.0) { float x = sun * bands, f = floor(x), w = max(soft, .001) * .5; sun = (f + smoothstep(.5 - w, .5 + w, x - f)) / bands; }
+    // toon shadows (@polywar/shadows): a flat share of the sun gone
+    sun *= 1.0 - shadowAt(vWorld, n);
     vec3 hemi = mix(ground, sky, n.y * 0.5 + 0.5) * ambient * texturedAo();
     // small view-facing highlight so dark metal still reads
     vec3 v = normalize(eye - vWorld);
@@ -146,10 +152,8 @@ void main() {
     // gloss: a soft edged sun highlight, banded like the light
     if (gloss > 0.0) spec += smoothstep(.45, .6, pow(max(dot(n, normalize(normalize(sunDirection) + v)), 0.0), 24.0)) * gloss * sunStrength * step(0.001, sun);
     vec3 lit = base.rgb * (hemi + sunColor * sun * sunStrength + lampColor * lamp * lampStrength + pointLights(vWorld, n, toon)) + sunColor * spec;
-    float d = length(vWorld - eye);
-    float fog = 1.0 - exp(-d * fogDensity);
     // linear -> sRGB for the screen
-    vec3 c = pow(mix(lit, fogColor, fog), vec3(1.0 / 2.2));
+    vec3 c = pow(applyFog(lit, vWorld, eye), vec3(1.0 / 2.2));
     outColor = vec4(c * base.a, base.a);
 }`;
 

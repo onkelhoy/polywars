@@ -1,9 +1,14 @@
 /** Shared: noise sampling, colour patches, toon bands, cloud shadows, fog. `noiseTex` channels: r wind, g/b patches, a clouds. */
+import { FOG_GLSL } from "@polywar/fog";
+import { SHADOW_GLSL } from "@polywar/shadows";
+
 export const COMMON_GLSL = `
 #define PI 3.14159265
 uniform sampler2D noiseTex;
-uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye;
-uniform float sunStrength, ambient, fogDensity, cloudTime;
+${FOG_GLSL}
+${SHADOW_GLSL}
+uniform vec3 sunDirection, sunColor, sky, ground, eye;
+uniform float sunStrength, ambient, cloudTime;
 uniform vec3 grassColor;
 uniform vec3 patchColor[2];
 uniform vec3 patchNoise[2]; // scale, threshold, softness
@@ -57,9 +62,8 @@ vec4 shade(vec3 albedo, vec3 n, vec3 lightAt, vec3 world) {
     float d = (dot(n, normalize(sunDirection)) + wrap) * steepness;
     if (clouds) d = min(d, cloudLight(lightAt));
     vec3 hemi = mix(ground, sky, n.y * .5 + .5) * ambient;
-    vec3 lit = albedo * (hemi + sunColor * sunStrength * toon(d));
-    float fog = 1.0 - exp(-length(world - eye) * fogDensity);
-    return vec4(pow(mix(lit, fogColor, fog), vec3(1.0 / 2.2)), 1.0);
+    vec3 lit = albedo * (hemi + sunColor * sunStrength * toon(d) * (1.0 - shadowAt(world, n)));
+    return vec4(pow(applyFog(lit, world, eye), vec3(1.0 / 2.2)), 1.0);
 }
 `;
 

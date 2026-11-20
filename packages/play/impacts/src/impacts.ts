@@ -1,5 +1,5 @@
 import type { Layer3D } from "@papit/game-engine";
-import type { Colour, ImpactsSetting, SurfaceLook, Vec3, View } from "./types";
+import type { Carrier, Colour, ImpactsSetting, SurfaceLook, Vec3, View } from "./types";
 
 const dirt: SurfaceLook = { bits: 10, bitColour: [.22, .16, .1], bitSpeed: 4, bitLife: .7, puff: 4, puffColour: [.45, .38, .3], puffSize: .35, mark: .07, markColour: [.05, .04, .03], rimColour: [.2, .15, .1] };
 
@@ -49,6 +49,9 @@ export class Impacts {
     private dynamic: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; data: Float32Array };
     private marks: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; count: number; next: number; max: number; data: Float32Array };
     private eye: Vec3 = [0, 0, 0];
+    /** marks on a moving thing: slot -> its carrier and the mark's vertices in the carrier's space */
+    private carried = new Map<number, { carrier: Carrier; local: Float32Array }>();
+    private matrix = new Float32Array(16);
 
     constructor(layer: Layer3D, setting: ImpactsSetting = {}) {
         this.gl = layer.gl;
@@ -77,11 +80,14 @@ export class Impacts {
         return { vao, buffer };
     }
 
-    /** a bullet hit: bits + dust (when near the camera) and a mark; `direction` the bullet's way (for the spray) */
-    hit(point: Vec3, normal: Vec3, surface = "default", direction?: Vec3) {
+    /**
+     * a bullet hit: bits + dust (when near the camera) and a mark; `direction` the bullet's way (for the spray),
+     * `carrier` what was hit when it moves (the mark rides on it)
+     */
+    hit(point: Vec3, normal: Vec3, surface = "default", direction?: Vec3, carrier?: Carrier) {
         const look = this.surfaces[surface] ?? this.surfaces.default;
         const d = Math.hypot(point[0] - this.eye[0], point[1] - this.eye[1], point[2] - this.eye[2]);
-        if (look.mark > 0) this.mark(point, normal, look.mark * (.8 + Math.random() * .4), look.markColour, look.rimColour);
+        if (look.mark > 0) this.mark(point, normal, look.mark * (.8 + Math.random() * .4), look.markColour, look.rimColour, carrier);
         // sparks show far out (steel plates seen through a scope), bigger with distance; other bits stay near
         const far = look.sparks ? this.far * 6 : this.far, grow = look.sparks ? Math.max(1, d / 40) : 1;
         if (d > far) return;
@@ -147,6 +153,7 @@ export class Impacts {
     clear() {
         this.particles.length = 0;
         this.marks.count = this.marks.next = 0;
+        this.carried.clear();
     }
 
     update(dt: number) {
@@ -227,6 +234,7 @@ export class Impacts {
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.depthMask(false);
         gl.disable(gl.CULL_FACE);
+        this.followCarriers();
         if (this.marks.count)
         {
             gl.enable(gl.POLYGON_OFFSET_FILL);
@@ -247,7 +255,7 @@ export class Impacts {
     }
 
     /** a mark on a surface: a dark hole, a rim round it */
-    mark(point: Vec3, normal: Vec3, radius: number, centre: Colour, rim: Colour) {
+    mark(point: Vec3, normal: Vec3, radius: number, centre: Colour, rim: Colour, carrier?: Carrier) {
         const m = this.marks, data = new Float32Array(MARK_VERTICES * FLOATS);
         // a frame on the surface, turned at random
         const a = normalise(Math.abs(normal[1]) < .9 ? cross(normal, [0, 1, 0]) : cross(normal, [1, 0, 0])), b = cross(normal, a);
@@ -268,8 +276,37 @@ export class Impacts {
         gl.bindBuffer(gl.ARRAY_BUFFER, m.buffer);
         gl.bufferSubData(gl.ARRAY_BUFFER, m.next * MARK_VERTICES * FLOATS * 4, data);
         m.data.set(data, m.next * MARK_VERTICES * FLOATS);
+        this.carried.delete(m.next);
+        if (carrier)
+        {
+            // into the carrier's space: inverse of a rigid matrix (rotation transposed)
+            const r = carrier.matrix(this.matrix), local = new Float32Array(MARK_VERTICES * 3);
+            for (let v = 0; v < MARK_VERTICES; v++)
+            {
+                const x = data[v * FLOATS] - r[12], y = data[v * FLOATS + 1] - r[13], z = data[v * FLOATS + 2] - r[14];
+                for (let k = 0; k < 3; k++) local[v * 3 + k] = r[k * 4] * x + r[k * 4 + 1] * y + r[k * 4 + 2] * z;
+            }
+            this.carried.set(m.next, { carrier, local });
+        }
         m.next = (m.next + 1) % m.max;
         m.count = Math.min(m.count + 1, m.max);
+    }
+
+    /** puts the marks on moving things where their carrier is now */
+    private followCarriers() {
+        if (!this.carried.size) return;
+        const m = this.marks, gl = this.gl, stride = MARK_VERTICES * FLOATS;
+        gl.bindBuffer(gl.ARRAY_BUFFER, m.buffer);
+        for (const [slot, { carrier, local }] of this.carried)
+        {
+            const r = carrier.matrix(this.matrix), o = slot * stride;
+            for (let v = 0; v < MARK_VERTICES; v++)
+            {
+                const x = local[v * 3], y = local[v * 3 + 1], z = local[v * 3 + 2];
+                for (let k = 0; k < 3; k++) m.data[o + v * FLOATS + k] = r[k] * x + r[4 + k] * y + r[8 + k] * z + r[12 + k];
+            }
+            gl.bufferSubData(gl.ARRAY_BUFFER, o * 4, m.data.subarray(o, o + stride));
+        }
     }
 
     /** moves the marks whose centre is in the box `min`..`max` by `delta` (marks on a moving target ride with it) */

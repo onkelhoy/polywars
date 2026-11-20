@@ -10,7 +10,7 @@ export type VehiclesSetting = {
 };
 
 /** what a bullet cast returns: `t` 0..1 along the segment (same shape as `@polywar/ballistics` Hit) */
-export type VehicleHit = { t: number; point: Vector3; normal: Vector3; surface: string; vehicle: Vehicle };
+export type VehicleHit = { t: number; point: Vector3; normal: Vector3; surface: string; vehicle: Vehicle; carrier: Vehicle };
 
 const IDLE: DriveInput = { throttle: 0, steer: 0 };
 
@@ -67,6 +67,6 @@ export class Vehicles {
         }
         if (!hit) return null;
         const vehicle = this.list.find(c => c.body === hit.body)!;
-        return { t: hit.t / length, point: new Vector3(hit.point), normal: new Vector3(hit.normal), surface: "metal", vehicle };
+        return { t: hit.t / length, point: new Vector3(hit.point), normal: new Vector3(hit.normal), surface: "metal", vehicle, carrier: vehicle };
     };
 }

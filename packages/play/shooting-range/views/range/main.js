@@ -17,12 +17,21 @@ import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 import { Lights, Glow } from '@polywar/light';
+import { Shadows } from '@polywar/shadows';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
 await demo.ready;
 const gl = demo.gl, layer = demo.layer, renderer = new Renderer(layer);
-renderer.light.fogDensity = .0004;
+// height fog (@polywar/fog): thicker in the low ground, thins going up; tune live: renderer.light.fog*
+renderer.light.fogDensity = .0009;
+renderer.light.fogFalloff = .015;
+renderer.light.fogBase = 0;
+window.renderer = renderer;
+// toon sun shadows (@polywar/shadows): blocky, one flat shade, 45 m round the player; tune live: shadows.*
+const shadows = new Shadows(gl, { size: 512, radius: 45, strength: .5 });
+renderer.light.shadow = shadows;
+window.shadows = shadows;
 renderer.light.fogColor = [.62, .72, .84];
 const SKY = [.62, .72, .84, 1];
 
@@ -236,7 +245,7 @@ $('#body').onchange = e => { player.showBody = e.target.checked; };
 $('#clear').onclick = () => { player.impacts.clear(); player.feel.debris.clear(); };
 $('#play').onclick = () => {
     document.body.classList.add('playing');
-    layer.camera = new Camera({ near: .1, far: 3000, controllers: [player.controller] });
+    layer.camera = new Camera({ near: .25, far: 3000, controllers: [player.controller] });
 };
 demo.look([range.spawn[0] - 6, 3.5, range.spawn[2] + 1], [range.spawn[0], 1, -30]);
 
@@ -443,7 +452,7 @@ const seat = {
 };
 $('#play').onclick = () => {
     document.body.classList.add('playing');
-    layer.camera = new Camera({ near: .1, far: 3000, controllers: [seat] });
+    layer.camera = new Camera({ near: .2, far: 3000, controllers: [seat] });
 };
 const walkTick = demo.tick;
 demo.tick = dt => {
@@ -462,6 +471,8 @@ demo.tick = dt => {
     if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = 'E  drive';
 };
 demo.draw = camera => {
+    // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)
+    shadows.cast(camera, renderer.light.sunDirection, view => { renderer.begin(view, null); model.draw(renderer, identity); drawStands(); drawCars(); renderer.reset(); });
     renderer.begin(camera, SKY);
     model.draw(renderer, identity);
     drawStands();
@@ -472,7 +483,7 @@ demo.draw = camera => {
     if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();
-    if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); drawTufts(camera); }
+    if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); player.impacts.draw(camera); renderer.reset(); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); }
     else player.draw(camera);
 };

@@ -55,7 +55,9 @@
     "@papit/matrix": "*",
     "@papit/quaternion": "*",
     "@polywar/textured": "*",
-    "@polywar/light": "*"
+    "@polywar/light": "*",
+    "@polywar/fog": "*",
+    "@polywar/shadows": "*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
