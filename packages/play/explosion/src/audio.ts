@@ -15,7 +15,7 @@ export class ExplosionAudio {
     private listener: Vec3 = [0, 0, 0];
     private last = new Map<string, number>();
     private ringing?: Voice;
-    private stunned?: { filter: BiquadFilterNode; gain: GainNode };
+    private stunned?: { filter: BiquadFilterNode; gain: GainNode; ring: GainNode };
 
     constructor(readonly options: ExplosionAudioOptions) {
         this.mixer = options.mixer;
@@ -86,33 +86,47 @@ export class ExplosionAudio {
             this.mixer.master.gain.connect(filter);
             filter.connect(gain);
             gain.connect(context.destination);
-            // the ring is inside the head: past the muffle
-            const ring = this.mixer.bus("stun-ring").gain;
-            ring.disconnect();
-            ring.connect(context.destination);
-            this.stunned = { filter, gain };
+            this.stunned = { filter, gain, ring: this.ringNode(context) };
         }
-        const { filter, gain } = this.stunned, now = context.currentTime;
-        // dead silent, then everything fades back in muffled and opens up; the ring rises with it and dies away
-        const silent = .6 + 2 * amount, back = 3 + 7 * amount, deep = Math.max(.02, 1 - amount * 1.6);
-        for (const p of [gain.gain, filter.frequency]) p.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(gain.gain.value, now);
-        gain.gain.linearRampToValueAtTime(1 - (1 - deep) * .999, now + .06);
-        gain.gain.setValueAtTime(1 - (1 - deep) * .999, now + silent);
-        gain.gain.linearRampToValueAtTime(.35 + .65 * deep, now + silent + back * .4);
-        gain.gain.linearRampToValueAtTime(1, now + silent + back);
-        filter.frequency.setValueAtTime(Math.max(100, filter.frequency.value), now);
-        filter.frequency.exponentialRampToValueAtTime(150, now + .06);
-        filter.frequency.setValueAtTime(150, now + silent);
-        filter.frequency.exponentialRampToValueAtTime(900, now + silent + back * .5);
-        filter.frequency.exponentialRampToValueAtTime(20000, now + silent + back);
-        const file = this.files?.ring?.[0];
-        if (file)
+        const { filter, gain, ring } = this.stunned, now = context.currentTime;
+        // explosion -> silence -> the ring fades in -> the world fades back in (muffled, opening up) as the ring fades out
+        const silent = .5 + 1.5 * amount, ringUp = 1 + 1.5 * amount, back = 3 + 6 * amount, start = now + silent;
+        const hold = (p: AudioParam) => { p.cancelScheduledValues(now); p.setValueAtTime(p.value, now); };
+        hold(gain.gain); hold(filter.frequency); hold(ring.gain);
+        gain.gain.setTargetAtTime(Math.max(0, 1 - amount * 1.4) * .02, now, .03);
+        filter.frequency.setTargetAtTime(200, now, .03);
+        ring.gain.setTargetAtTime(.22 * amount, now + silent * .4, ringUp / 3);
+        // the world comes back: slow at first (an exponential approach)
+        gain.gain.setTargetAtTime(1, start + ringUp * .5, back / 3);
+        filter.frequency.setTargetAtTime(20000, start + ringUp * .5, back / 2);
+        ring.gain.setTargetAtTime(0, start + ringUp, back / 3);
+    }
+
+    /** a ring in the ear: a few detuned high tones that wobble + a thin hiss, past the muffle, silent till `stun` */
+    private ringNode(context: AudioContext) {
+        const out = context.createGain();
+        out.gain.value = 0;
+        out.connect(context.destination);
+        for (const [f, g] of [[3520, .5], [3610, .35], [4980, .12]])
         {
-            this.ringing?.stop();
-            const voice = this.mixer.play(`explosions/${file}`, { bus: "stun-ring", volume: .5 * amount, when: now + silent * .6, fadeIn: back * .3 });
-            this.ringing = voice;
+            const o = context.createOscillator(), og = context.createGain(), wobble = context.createOscillator(), depth = context.createGain();
+            o.frequency.value = f;
+            wobble.frequency.value = .3 + Math.random() * .6;
+            depth.gain.value = f * .006;
+            wobble.connect(depth).connect(o.frequency);
+            og.gain.value = g;
+            o.connect(og).connect(out);
+            o.start(); wobble.start();
         }
+        const n = context.sampleRate * 2, buffer = context.createBuffer(1, n, context.sampleRate), x = buffer.getChannelData(0);
+        for (let i = 0; i < n; i++) x[i] = Math.random() * 2 - 1;
+        const hiss = context.createBufferSource(), band = context.createBiquadFilter(), hg = context.createGain();
+        hiss.buffer = buffer; hiss.loop = true;
+        band.type = "bandpass"; band.frequency.value = 4200; band.Q.value = 3;
+        hg.gain.value = .25;
+        hiss.connect(band).connect(hg).connect(out);
+        hiss.start();
+        return out;
     }
 
     /** ears ring: `amount` 0..1 (from a close blast), plays once till it fades */
