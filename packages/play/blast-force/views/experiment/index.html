@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>blast-force | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".3" far="5000">
+    <aside>
+        <h1>blast force</h1>
+        <p>Space: boom at the centre. Crates (20 kg), a jeep (1.5 t), dummies (80 kg: red in the open, blue behind the jeep), a wall with a crate behind it.</p>
+        <label>power <input id="power" type="range" min="-1" max="3" step=".05" value=".7" /> <span id="kg"></span></label>
+        <label>strength <input id="strength" type="range" min="0" max="6" step=".1" value="2" /></label>
+        <label>slow <input id="speed" type="range" min=".05" max="1" step=".05" value="1" /></label>
+        <button id="reset">reset</button>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
+    <div id="glare"></div>
+</body>
+
+</html>
