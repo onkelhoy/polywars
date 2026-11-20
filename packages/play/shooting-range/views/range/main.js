@@ -18,6 +18,7 @@ import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 import { Lights, Glow } from '@polywar/light';
 import { Shadows } from '@polywar/shadows';
+import { Scatter } from '@polywar/scatter';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -43,6 +44,12 @@ const model = await Model.load(gl, range.model), identity = Matrix4.create();
 const EARTH = name => name === 'Ground' || /earth/i.test(name) || name.startsWith('Berm');
 const NO_TERRAIN = { skip: model.gltf.nodes.map(n => n.name ?? '').filter(EARTH) };
 window.range = range;
+// ---- props (range.json `props`): each model loaded once, all copies instanced (@polywar/scatter) ----
+const props = new Scatter(renderer, (name, lod) => lod ? undefined : range.propUrl(name), { lods: [], distance: { prop: 2500 }, fade: .05, surface: { bands: 0, soft: 0, grit: 0 } });
+await props.place(range.propBatches());
+window.props = props;
+/** the range model (no terrain) and its instanced props */
+const drawWorld = view => { model.draw(renderer, identity, {}, NO_TERRAIN); props.draw(view, performance.now() / 1000); };
 
 // ---- lamps: a point light per bulb (range.json `lights`); ?night dims the sun to see them ----
 renderer.lights = new Lights();
@@ -103,7 +110,7 @@ window.fleet = fleet;
 let lastHit = '';
 const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: shots, surface: range.surface,
-    scene: view => { model.draw(renderer, identity, {}, NO_TERRAIN); drawStands(); drawGrass(view); drawTufts(view); },
+    scene: view => { drawWorld(view); drawStands(); drawGrass(view); drawTufts(view); },
     character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
     worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); drawGlass(); },
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
@@ -285,7 +292,7 @@ demo.draw = camera => {
     // binoculars in the hands while raised (hidden otherwise)
     if (binocularNode) { const m = player.binocularsAt(camera); model.move(binocularNode, m ? m.multiply(binocularFrom) : hidden); }
     renderer.begin(camera, SKY);
-    model.draw(renderer, identity, {}, NO_TERRAIN);
+    drawWorld(camera);
     drawStands();
     if (document.body.classList.contains('playing')) player.draw(camera);
     else { player.impacts.draw(camera); renderer.reset(); }
@@ -480,9 +487,9 @@ demo.tick = dt => {
 };
 demo.draw = camera => {
     // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)
-    shadows.cast(camera, renderer.light.sunDirection, view => { renderer.begin(view, null); model.draw(renderer, identity, {}, NO_TERRAIN); drawStands(); drawCars(); renderer.reset(); });
+    shadows.cast(camera, renderer.light.sunDirection, view => { renderer.begin(view, null); drawWorld(view); drawStands(); drawCars(); renderer.reset(); });
     renderer.begin(camera, SKY);
-    model.draw(renderer, identity, {}, NO_TERRAIN);
+    drawWorld(camera);
     drawStands();
     drawGrass(camera);
     drawCars();

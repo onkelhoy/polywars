@@ -3,9 +3,13 @@
   blender -b --disable-autoexec ~/Developer/3d/shooting-range/camp.blend -P tools/blender/packs/shooting-range.py
 
 The .blend is never saved. Writes packages/play/shooting-range/asset/shooting-range/model.glb (via export.py) and range.json:
-  { ground: [[x,y,z]*3, ...] triangles, solids: [{ min, max, surface, name }], stands: [{ at, yaw }],
+  { ground: [[x,y,z]*3, ...] triangles, props: { <model>: [[x, y, z, yaw, scale], ...] }, solids: [{ min, max, surface, name }], stands: [{ at, yaw }],
     targets: [{ name, distance, min, max }], vehicles: [{ kind, at, yaw }], spawn: [x,y,z] }   (game space: y up, the range runs down -z)
 Roles come from object names (ROLES below): rename in Blender, export again.
+Instanced props: decor / solid objects whose mesh is linked from another .blend or shared by several objects (linked
+duplicates, Alt+D) and that are only turned around z with an even scale leave model.glb; each mesh is written once to
+props/<model>.glb (its own space) and every copy goes to range.json `props` (drawn instanced at runtime).
+Earth / ground pieces stay in the model (painted like the terrain).
 """
 import bpy, json, math, os, re, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
@@ -301,17 +305,65 @@ def points():
     return data
 
 
+def prop_key(me):
+    lib = os.path.splitext(os.path.basename(me.library.filepath))[0] + " " if me.library else ""
+    return re.sub(r"[^a-z0-9]+", "-", (lib + me.name).lower()).strip("-")
+
+
+def props():
+    """the instanced copies: { key: [[x y z yaw scale], ...] }, their meshes { key: mesh }, the objects to drop"""
+    objs = [o for o in bpy.context.scene.objects if o.type == "MESH" and o.data.polygons and not o.parent
+            and role(o.name) in ("decor", "solid") and not re.search(r"earth|^berm|^ground", o.name, re.I)]
+    users = {}
+    for o in objs:
+        users[o.data] = users.get(o.data, 0) + 1
+    out, meshes, drop = {}, {}, []
+    for o in objs:
+        if not (o.data.library or users[o.data] > 1) or o.modifiers:
+            continue
+        loc, rot, sc = o.matrix_world.decompose()
+        e = rot.to_euler()
+        if abs(e.x) > 1e-3 or abs(e.y) > 1e-3 or max(sc) - min(sc) > 1e-3 or min(sc) <= 0:
+            continue
+        key = prop_key(o.data)
+        meshes[key] = o.data
+        out.setdefault(key, []).append([*game(loc), round(e.z, 4), round(sc.x, 4)])
+        drop.append(o)
+    return out, meshes, drop
+
+
+def export_props(meshes):
+    """each prop mesh alone, in its own space, through the same export (colours, textures)"""
+    folder = os.path.join(OUT, "props")
+    os.makedirs(folder, exist_ok=True)
+    for f in os.listdir(folder):
+        if f.endswith(".glb") and f[:-4] not in meshes:
+            os.remove(os.path.join(folder, f))
+    for o in list(bpy.context.scene.objects):
+        bpy.data.objects.remove(o)
+    for key, me in meshes.items():
+        o = bpy.data.objects.new(key, me.copy())
+        bpy.context.scene.collection.objects.link(o)
+        exporter.export(os.path.join(folder, key + ".glb"))
+        bpy.data.objects.remove(o)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
     colour_maps_only()
     paint()
     data = points()
+    data["props"], prop_meshes, dropped = props()
     with open(os.path.join(OUT, "range.json"), "w") as f:
         json.dump(data, f, separators=(",", ":"))
     print(f"range.json: {len(data['ground'])} ground tris, {len(data['solids'])} solids, {len(data['stands'])} stands, {len(data['targets'])} targets")
     # grass zones and vehicles are data only
     for obj in [o for o in bpy.context.scene.objects if role(o.name) in ("grass", "vehicle")]:
         bpy.data.objects.remove(obj)
+    for obj in dropped:
+        bpy.data.objects.remove(obj)
+    print(f"props: {len(prop_meshes)} models, {sum(len(v) for v in data['props'].values())} instances")
     decimate()
     exporter.export(os.path.join(OUT, "model.glb"))
+    export_props(prop_meshes)

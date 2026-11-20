@@ -68,7 +68,8 @@
     "@papit/audio": "*",
     "@polywar/grass": "*",
     "@polywar/light": "*",
-    "@polywar/shadows": "*"
+    "@polywar/shadows": "*",
+    "@polywar/scatter": "*"
   },
   "browserslist": [
     "defaults",
