@@ -95,11 +95,11 @@ export class ExplosionAudio {
         hold(gain.gain); hold(filter.frequency); hold(ring.gain);
         gain.gain.setTargetAtTime(Math.max(0, 1 - amount * 1.4) * .02, now, .03);
         filter.frequency.setTargetAtTime(200, now, .03);
-        ring.gain.setTargetAtTime(.22 * amount, now + silent * .4, ringUp / 3);
+        ring.gain.setTargetAtTime(.09 * amount, now + silent * .4, ringUp / 3);
         // the world comes back: slow at first (an exponential approach)
         gain.gain.setTargetAtTime(1, start + ringUp * .5, back / 3);
         filter.frequency.setTargetAtTime(20000, start + ringUp * .5, back / 2);
-        ring.gain.setTargetAtTime(0, start + ringUp, back / 3);
+        ring.gain.setTargetAtTime(0, start + ringUp * .6, back / 6);
     }
 
     /** a ring in the ear: a few detuned high tones that wobble + a thin hiss, past the muffle, silent till `stun` */
