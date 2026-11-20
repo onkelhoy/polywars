@@ -27,14 +27,23 @@ export class ShootingRange {
         return new ShootingRange(data, `${base}model.glb`);
     }
 
-    /** where a prop model's glb is (range.json `props`) */
+    /** where a prop model's glb is (range.json `props`): a global asset (`assets/models/...`) or `props/<name>.glb` next to the model */
     propUrl(name: string) {
-        return this.model.replace(/[^/]*$/, `props/${name}.glb`);
+        return name.includes("/") ? `/${name}.glb` : this.model.replace(/[^/]*$/, `props/${name}.glb`);
     }
 
-    /** the props as instance batches, 8 floats each: x y z scale yaw tint sway _ (`@polywar/scatter` batches fit) */
+    /** rigged props (range.json `rigged`): drawn one by one in rest pose, `[url, matrices]` (column major, place yaw scale) */
+    riggedProps(): [string, Float32Array[]][] {
+        return (this.data.rigged ?? []).map(name => [this.propUrl(name), (this.data.props?.[name] ?? []).map(([x, y, z, yaw, k]) => {
+            const c = Math.cos(yaw) * k, s = Math.sin(yaw) * k;
+            return new Float32Array([c, 0, -s, 0, 0, k, 0, 0, s, 0, c, 0, x, y, z, 1]);
+        })]);
+    }
+
+    /** the (unrigged) props as instance batches, 8 floats each: x y z scale yaw tint sway _ (`@polywar/scatter` batches fit) */
     propBatches(kind = "prop") {
-        return Object.entries(this.data.props ?? {}).map(([model, list]) => {
+        const rigged = new Set(this.data.rigged ?? []);
+        return Object.entries(this.data.props ?? {}).filter(([model]) => !rigged.has(model)).map(([model, list]) => {
             const data = new Float32Array(list.length * 8);
             list.forEach(([x, y, z, yaw, scale], i) => data.set([x, y, z, scale, yaw, 1, 0, 0], i * 8));
             return { model, kind, data, count: list.length };

@@ -12,8 +12,10 @@ export type Stand = { name: string; at: Vec3; yaw: number };
 /** `asset/range.json`, written by `tools/blender/packs/shooting-range.py`. Game space: y up, the range runs down -z. */
 export type RangeData = {
     ground: [Vec3, Vec3, Vec3][];
-    /** instanced props: model (`props/<model>.glb` next to model.glb) -> copies `[x, y, z, yaw, scale]` */
+    /** instanced props: model (global `assets/models/...` or `props/<model>.glb` next to model.glb) -> copies `[x, y, z, yaw, scale]` */
     props?: Record<string, [number, number, number, number, number][]>;
+    /** props with a skin: drawn one by one (rest pose), not instanced */
+    rigged?: string[];
     solids: Omit<Solid, "kind">[];
     stands: Stand[];
     targets: Target[];

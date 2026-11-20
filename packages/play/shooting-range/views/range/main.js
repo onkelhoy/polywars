@@ -48,8 +48,14 @@ window.range = range;
 const props = new Scatter(renderer, (name, lod) => lod ? undefined : range.propUrl(name), { lods: [], distance: { prop: 2500 }, fade: .05, surface: { bands: 0, soft: 0, grit: 0 } });
 await props.place(range.propBatches());
 window.props = props;
-/** the range model (no terrain) and its instanced props */
-const drawWorld = view => { model.draw(renderer, identity, {}, NO_TERRAIN); props.draw(view, performance.now() / 1000); };
+// rigged props (tanks): a few, drawn one by one in rest pose
+const rigged = await Promise.all(range.riggedProps().map(async ([url, at]) => [await Model.load(gl, url), at.map(m => Matrix4.create(m))]));
+/** the range model (no terrain) and its props */
+const drawWorld = view => {
+    model.draw(renderer, identity, {}, NO_TERRAIN);
+    props.draw(view, performance.now() / 1000);
+    for (const [m, at] of rigged) for (const a of at) m.draw(renderer, a);
+};
 
 // ---- lamps: a point light per bulb (range.json `lights`); ?night dims the sun to see them ----
 renderer.lights = new Lights();

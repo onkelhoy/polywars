@@ -6,10 +6,11 @@ The .blend is never saved. Writes packages/play/shooting-range/asset/shooting-ra
   { ground: [[x,y,z]*3, ...] triangles, props: { <model>: [[x, y, z, yaw, scale], ...] }, solids: [{ min, max, surface, name }], stands: [{ at, yaw }],
     targets: [{ name, distance, min, max }], vehicles: [{ kind, at, yaw }], spawn: [x,y,z] }   (game space: y up, the range runs down -z)
 Roles come from object names (ROLES below): rename in Blender, export again.
-Instanced props: decor / solid objects whose mesh is linked from another .blend or shared by several objects (linked
-duplicates, Alt+D) and that are only turned around z with an even scale leave model.glb; each mesh is written once to
-props/<model>.glb (its own space) and every copy goes to range.json `props` (drawn instanced at runtime).
-Earth / ground pieces stay in the model (painted like the terrain).
+Instanced props (range.json `props`, `rigged`), drawn instanced at runtime, out of model.glb:
+- an empty with an `asset` property (assets/models/<asset>.glb, e.g. vehicles/tanks/Tank; optional `box` for its solid)
+- a mesh linked from camp-props.blend -> its own asset (assets/models/props/camp/, camp-props-export.py)
+- a mesh shared by several objects here (Alt+D) -> props/<mesh>.glb next to model.glb
+Only objects turned around z with an even scale; earth / ground pieces stay in the model (painted like the terrain).
 """
 import bpy, json, math, os, re, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib"))
@@ -305,35 +306,100 @@ def points():
     return data
 
 
-def prop_key(me):
-    lib = os.path.splitext(os.path.basename(me.library.filepath))[0] + " " if me.library else ""
-    return re.sub(r"[^a-z0-9]+", "-", (lib + me.name).lower()).strip("-")
+ASSETS = os.path.join(pw.ROOT, "assets/models")
+# linked .blend -> its exported asset folder (assets/models/...), one glb per object (camp-props-export.py)
+LIBRARY_ASSETS = {"camp-props": "props/camp"}
 
 
-def props():
-    """the instanced copies: { key: [[x y z yaw scale], ...] }, their meshes { key: mesh }, the objects to drop"""
-    objs = [o for o in bpy.context.scene.objects if o.type == "MESH" and o.data.polygons and not o.parent
-            and role(o.name) in ("decor", "solid") and not re.search(r"earth|^berm|^ground", o.name, re.I)]
-    users = {}
-    for o in objs:
-        users[o.data] = users.get(o.data, 0) + 1
+def slug(name):
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+def library_objects():
+    """per linked library mesh, the library object using it (its asset is named after the object)"""
+    out = {}
+    for lib in bpy.data.libraries:
+        with bpy.data.libraries.load(lib.filepath, link=True) as (src, dst):
+            dst.objects = list(src.objects)
+        for o in dst.objects:
+            if o and o.type == "MESH":
+                out.setdefault(o.data, o.name)
+    return out
+
+
+def rigged(key):
+    """a global asset glb with a skin (drawn one by one at runtime, rest pose)"""
+    path = os.path.join(pw.ROOT, key + ".glb")
+    if not os.path.exists(path):
+        return False
+    with open(path, "rb") as f:
+        head = f.read(20)
+        n = int.from_bytes(head[12:16], "little")
+        return bool(json.loads(f.read(n)).get("skins"))
+
+
+def flat(o):
+    """turned around z only, even scale: [loc, yaw, scale], else None"""
+    loc, rot, sc = o.matrix_world.decompose()
+    e = rot.to_euler()
+    if abs(e.x) > 1e-3 or abs(e.y) > 1e-3 or max(sc) - min(sc) > 1e-3 or min(sc) <= 0:
+        return None
+    return loc, e.z, sc.x
+
+
+def props(owners):
+    """the instanced copies { key: [[x y z yaw scale], ...] }, local meshes to export { key: mesh }, objects to drop.
+    key: a global asset (assets/models/<path>, no .glb) or a mesh only this blend has (props/<key>.glb next to model.glb).
+    Global: an empty with an `asset` property (e.g. vehicles/tanks/Tank), or a mesh linked from a library in
+    LIBRARY_ASSETS. Local: a mesh shared by several objects (Alt+D)."""
     out, meshes, drop = {}, {}, []
-    for o in objs:
-        if not (o.data.library or users[o.data] > 1) or o.modifiers:
+    scene = bpy.context.scene.objects
+    users = {}
+    for o in scene:
+        if o.type == "MESH":
+            users[o.data] = users.get(o.data, 0) + 1
+    for o in scene:
+        if o.parent:
             continue
-        loc, rot, sc = o.matrix_world.decompose()
-        e = rot.to_euler()
-        if abs(e.x) > 1e-3 or abs(e.y) > 1e-3 or max(sc) - min(sc) > 1e-3 or min(sc) <= 0:
+        t = flat(o)
+        if o.type == "EMPTY" and o.get("asset"):
+            if not t:
+                print("skipped (tilted / uneven scale):", o.name)
+                continue
+            key = "assets/models/" + o["asset"]
+        elif o.type == "MESH" and o.data.polygons and role(o.name) in ("decor", "solid") \
+                and not re.search(r"earth|^berm|^ground", o.name, re.I) and not o.modifiers and t:
+            lib = o.data.library and os.path.splitext(os.path.basename(o.data.library.filepath))[0]
+            if lib in LIBRARY_ASSETS and o.data in owners:
+                key = f"assets/models/{LIBRARY_ASSETS[lib]}/{slug(owners[o.data])}"
+            elif users[o.data] > 1 and not o.data.library:
+                key = slug(o.data.name)
+                meshes[key] = o.data
+            else:
+                continue
+        else:
             continue
-        key = prop_key(o.data)
-        meshes[key] = o.data
-        out.setdefault(key, []).append([*game(loc), round(e.z, 4), round(sc.x, 4)])
+        loc, yaw, scale = t
+        out.setdefault(key, []).append([*game(loc), round(yaw, 4), round(scale, 4)])
         drop.append(o)
     return out, meshes, drop
 
 
+def asset_solids():
+    """a box per asset empty (its `box`: min xyz, max xyz in the asset's own space)"""
+    out = []
+    for o in bpy.context.scene.objects:
+        if o.type == "EMPTY" and o.get("box"):
+            b = list(o["box"])
+            corners = [o.matrix_world @ Vector((x, y, z)) for x in (b[0], b[3]) for y in (b[1], b[4]) for z in (b[2], b[5])]
+            g = [game(c) for c in corners]
+            surface = "metal"
+            out.append({"name": o.name, "min": [min(c[i] for c in g) for i in range(3)], "max": [max(c[i] for c in g) for i in range(3)], "surface": surface})
+    return out
+
+
 def export_props(meshes):
-    """each prop mesh alone, in its own space, through the same export (colours, textures)"""
+    """each local prop mesh alone, in its own space, through the same export (colours, textures)"""
     folder = os.path.join(OUT, "props")
     os.makedirs(folder, exist_ok=True)
     for f in os.listdir(folder):
@@ -350,11 +416,14 @@ def export_props(meshes):
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
+    owners = library_objects()
     bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
     colour_maps_only()
     paint()
     data = points()
-    data["props"], prop_meshes, dropped = props()
+    data["props"], prop_meshes, dropped = props(owners)
+    data["solids"] += asset_solids()
+    data["rigged"] = [k for k in data["props"] if "/" in k and rigged(k)]
     with open(os.path.join(OUT, "range.json"), "w") as f:
         json.dump(data, f, separators=(",", ":"))
     print(f"range.json: {len(data['ground'])} ground tris, {len(data['solids'])} solids, {len(data['stands'])} stands, {len(data['targets'])} targets")
