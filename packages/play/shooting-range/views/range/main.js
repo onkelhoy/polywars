@@ -161,7 +161,6 @@ function drawStands() {
 }
 let near = -1, button;
 // the put-down gun within reach (F takes it back)
-// a loose gun within reach (F takes it: a held one is put down first)
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
     // F does what the prompt says (set with it each frame)
