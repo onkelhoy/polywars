@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { PRESETS, WHITE } from "./presets";
-import type { BurstOptions, Colour, Emitter, Layer, PlaceOptions, Preset, SmokeLook, SmokeSetting, Vec3, View } from "./types";
+import type { BurstOptions, Colour, Emitter, Field, FieldOptions, Layer, PlaceOptions, Preset, SmokeLook, SmokeSetting, Vec3, View } from "./types";
 
 // puff fields (one Float32Array, STRIDE per puff)
 const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8, R1 = 9, GROW = 10, DRAG = 11, LIFT = 12,
@@ -126,6 +126,7 @@ export class Smoke {
     private ground: (x: number, z: number) => number;
     private emitters: (Emitter & { preset: Preset; carry: number[]; last: number[]; on: boolean })[] = [];
     private time = 0;
+    private fields: Field[] = [];
     private ids = 1;
     private groups = 1;
     private slots = new Map<number, number>();
@@ -234,10 +235,26 @@ export class Smoke {
         return slot;
     }
 
+    /**
+     * A flow round a vertical axis at `at`: pulls puffs in (`inward`), up (`up`) and round (`spin`), m/s² at the axis,
+     * falling off to 0 at `radius` and above `height`. A suck back after a blast, a fire's updraft, a downwash (negative up).
+     * `strength` 0..1 is live; it ends after `life` s (default forever) or on `stop`.
+     */
+    field(at: ArrayLike<number>, options: FieldOptions): Field {
+        const f: Field = {
+            position: [at[0], at[1], at[2]], radius: options.radius, height: options.height ?? Infinity, inward: options.inward ?? 0,
+            up: options.up ?? 0, spin: options.spin ?? 0, strength: 1, life: options.life ?? Infinity,
+            stop: () => { this.fields = this.fields.filter(x => x !== f); },
+        };
+        this.fields.push(f);
+        return f;
+    }
+
     /** drop every puff and emitter */
     clear() {
         this.live = 0;
         this.emitters.length = 0;
+        this.fields.length = 0;
         this.slots.clear();
     }
 
@@ -261,9 +278,10 @@ export class Smoke {
         d[o + PX] = at[0] + x; d[o + PY] = at[1] + y; d[o + PZ] = at[2] + z;
         const dir = cone(layer.direction ?? [0, 1, 0], layer.spread ?? .3);
         const speed = rand(layer.speed) * scale * j(), out = layer.outward ? rand(layer.outward) * scale * j() : 0;
-        d[o + VX] = dir[0] * speed + ox * out + (velocity?.[0] ?? 0);
+        const round = layer.tangent ? rand(layer.tangent) * scale * j() : 0;
+        d[o + VX] = dir[0] * speed + ox * out - oz * round + (velocity?.[0] ?? 0);
         d[o + VY] = dir[1] * speed + (velocity?.[1] ?? 0);
-        d[o + VZ] = dir[2] * speed + oz * out + (velocity?.[2] ?? 0);
+        d[o + VZ] = dir[2] * speed + oz * out + ox * round + (velocity?.[2] ?? 0);
         d[o + AGE] = layer.delay ? -rand(layer.delay) : 0;
         d[o + LIFE] = rand(layer.life);
         const s = scale * j();
@@ -311,6 +329,7 @@ export class Smoke {
             });
 
         const d = this.data, w = this.look.wind, swirl = this.look.swirl;
+        for (const f of this.fields) if ((f.life -= dt) <= 0) f.stop();
         // vortex rings: each rolling burst's centre and ring radius
         const rings = new Map<number, number[]>();
         for (let i = 0; i < this.live; i++)
@@ -330,6 +349,7 @@ export class Smoke {
             if (age < 0) continue;
             const life = d[o + LIFE];
             if (age >= life) { this.remove(i); continue; }
+            if (this.fields.length && !d[o + SKY]) this.flow(o, dt);
             const damp = Math.exp(-d[o + DRAG] * dt);
             d[o + VX] *= damp; d[o + VY] = d[o + VY] * damp + d[o + LIFT] * dt; d[o + VZ] *= damp;
             const x = d[o + PX], y = d[o + PY], z = d[o + PZ], k = age / life;
@@ -443,6 +463,20 @@ export class Smoke {
         this.clear();
         const gl = this.gl;
         for (const x of [...this.meshes, this.tube]) { gl.deleteVertexArray(x.vao); gl.deleteBuffer(x.buffer); gl.deleteBuffer(x.geometry); }
+    }
+
+    /** fields push the puff's speed */
+    private flow(o: number, dt: number) {
+        const d = this.data;
+        for (const f of this.fields)
+        {
+            const p = f.position, hx = p[0] - d[o + PX], hz = p[2] - d[o + PZ], h = Math.hypot(hx, hz), y = d[o + PY] - p[1];
+            if (h >= f.radius || y > f.height || y < -f.radius * .2) continue;
+            const k = (1 - h / f.radius) ** 2 * (Number.isFinite(f.height) ? 1 - Math.max(0, y) / f.height : 1) * f.strength * dt, n = h || 1;
+            d[o + VX] += (hx / n * f.inward - hz / n * f.spin) * k;
+            d[o + VZ] += (hz / n * f.inward + hx / n * f.spin) * k;
+            d[o + VY] += f.up * k;
+        }
     }
 
     /** grown radius (before the shrink): a fast pop that eases out */

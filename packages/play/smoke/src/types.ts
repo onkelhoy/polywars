@@ -19,6 +19,8 @@ export type Layer = {
     spread?: number;
     /** m/s straight out from the centre, flat (ring / ground blasts) */
     outward?: Range;
+    /** m/s round the centre, flat (counter clockwise from above; a swirling ground surge) */
+    tangent?: Range;
     /** m/s along the cone */
     speed: Range;
     /** s */
@@ -130,3 +132,20 @@ export type PlaceOptions = {
     /** lit as part of the mass round this point (clouds) */
     centre?: ArrayLike<number>;
 };
+
+export type FieldOptions = {
+    /** m, reach round the axis */
+    radius: number;
+    /** m above `at` it fades out by (default no top) */
+    height?: number;
+    /** m/s² toward the axis */
+    inward?: number;
+    /** m/s² up */
+    up?: number;
+    /** m/s² round the axis (counter clockwise from above) */
+    spin?: number;
+    /** s (default forever) */
+    life?: number;
+};
+/** a live flow; change any field */
+export type Field = Required<Omit<FieldOptions, "life">> & { position: Vec3; strength: number; life: number; stop(): void };

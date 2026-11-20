@@ -1,0 +1,523 @@
+import type { Layer3D } from "@papit/game-engine";
+import type { Layer } from "@polywar/smoke";
+import { Vector3 } from "@papit/vector";
+import { ShockFront } from "./front";
+import { icosahedron, icosahedronBary, ring, spike } from "./meshes";
+import type { Blast, Colour, ExplodeOptions, ExplosionLook, ExplosionSetting, FlashLight, SmokeLike, Vec3, View } from "./types";
+
+// hot instance: a xyz radius | tint rgb heat (<0 lit solid, >1.5 white) | stretch xyz seed
+const HOT = 12;
+const GRAVITY = 9.81;
+
+const HOT_VERTEX = `#version 300 es
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec4 a;
+layout(location = 2) in vec4 b;
+layout(location = 3) in vec4 c;
+uniform mat4 view, projection;
+uniform int mode;
+out vec3 vWorld;
+out vec4 vTone;
+void main() {
+    vec3 p;
+    if (mode == 0) {
+        // a ball turned about its own random axis, stretched along its way
+        float s = c.w;
+        vec3 axis = normalize(vec3(sin(s * 12.9), cos(s * 7.3), sin(s * 3.1 + 1.0)));
+        float co = cos(s), si = sin(s);
+        p = (position * co + cross(axis, position) * si + axis * dot(axis, position) * (1.0 - co)) * a.w;
+        float l = min(length(c.xyz), 4.0);
+        if (l > 1e-4) { vec3 d = normalize(c.xyz); p += d * dot(p, d) * l; }
+        p += a.xyz;
+    } else {
+        // a spike from a.xyz along c.xyz, a.w wide at the base
+        vec3 d = normalize(c.xyz);
+        vec3 u = normalize(cross(d, abs(d.y) < .9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), v = cross(d, u);
+        p = a.xyz + d * length(c.xyz) * position.y + (u * position.x + v * position.z) * a.w;
+    }
+    vWorld = p;
+    vTone = b;
+    gl_Position = projection * view * vec4(p, 1.0);
+}`;
+const HOT_FRAGMENT = `#version 300 es
+precision highp float;
+precision highp int;
+in vec3 vWorld;
+in vec4 vTone;
+uniform vec3 sun, eye;
+out vec4 outColor;
+void main() {
+    vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+    float h = vTone.a;
+    if (h < 0.0) {
+        // a solid (rock): three flat bands
+        float l = dot(n, sun);
+        outColor = vec4(vTone.rgb * (l > .5 ? 1.15 : l > 0.0 ? .82 : .5), 1.0);
+        return;
+    }
+    if (h > 1.5) { outColor = vec4(vTone.rgb, 1.0); return; }
+    // fire: hotter on the faces that look at you, hard steps (no gradients)
+    float f = h + (abs(dot(n, normalize(eye - vWorld))) - .55) * .5;
+    vec3 c = f > .9 ? vec3(1.0, .98, .88) : f > .72 ? vec3(1.0, .85, .42) : f > .52 ? vec3(1.0, .56, .16)
+        : f > .34 ? vec3(.86, .28, .07) : f > .2 ? vec3(.42, .16, .08) : vec3(.17, .14, .13);
+    outColor = vec4(c * vTone.rgb, 1.0);
+}`;
+
+const SHOCK_VERTEX = `#version 300 es
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 bary;
+uniform mat4 view, projection;
+uniform vec3 centre;
+uniform float radius, width;
+uniform int mode;
+out vec3 vWorld;
+out vec3 vBary;
+void main() {
+    vec3 p;
+    if (mode == 0) p = centre + position * radius;
+    // ring: x z on the unit circle, y = side (0 out, 1 in)
+    else p = centre + vec3(position.x, 0.0, position.y) * (radius - position.z * width) + vec3(0.0, .06, 0.0);
+    vWorld = p;
+    vBary = bary;
+    gl_Position = projection * view * vec4(p, 1.0);
+}`;
+const SHOCK_FRAGMENT = `#version 300 es
+precision highp float;
+precision highp int;
+in vec3 vWorld;
+in vec3 vBary;
+uniform vec3 eye, centre;
+uniform float alpha, lines;
+uniform int mode;
+out vec4 outColor;
+void main() {
+    if (mode == 0) {
+        if (vWorld.y < centre.y) discard;
+        vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+        float rim = 1.0 - abs(dot(n, normalize(eye - vWorld)));
+        // crisp white edges, strong on the rim
+        float e = min(min(vBary.x, vBary.y), vBary.z), w = fwidth(e);
+        float line = (1.0 - smoothstep(.025 - w, .025 + w, e)) * lines;
+        float a = .05 + pow(rim, 3.0) * .5 + line * (.2 + rim * .8);
+        outColor = vec4(mix(vec3(.82, .88, 1.0), vec3(1.0), max(line, rim)), min(1.0, a) * alpha);
+        return;
+    }
+    // ring: broken dashes, hard edged
+    float dash = step(fract(vBary.x * .37), .72);
+    outColor = vec4(1.0, 1.0, 1.0, alpha * dash);
+}`;
+
+type Live = Blast & {
+    shock: ShockFront; fire: number[][]; spikes: number[][]; dust: Colour; kicked: number; stages: Set<string>;
+    fireLife: number; fireball: number; surge: number;
+};
+type Chunk = { p: Vec3; v: Vec3; r: number; seed: number; trail?: { position: Vec3; rate: number; stop(): void }; landed: number; spin: number };
+
+let count = 0;
+const rand = (a: number, b: number) => a + Math.random() * (b - a);
+const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const mix = (a: Colour, b: Colour, t: number): Colour => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+
+/**
+ * Fast, scary low poly explosions. `power` (kg TNT) sets the size, the speed and which stages run:
+ * a very short flash, a fireball that pops and chars, a shock bubble with white edge lines + a ground ring
+ * that kicks dust as it passes, a ground surge thrown out and swirling (bigger puffs to the rim, a ring),
+ * then the vacuum: the middle is sucked up into a column. Big ones grow a mushroom cap, massive ones throw
+ * rock on arcs with smoke trails that thicken. Smoke goes to the host's `@polywar/smoke`.
+ * `update(dt)` then `draw(view)` each frame (after opaque things: the shock is see through).
+ */
+export class Explosion {
+    readonly look: ExplosionLook = {
+        sun: [.35, .85, .4], shock: 1, lines: 1,
+        dust: [.74, .67, .5], smoke: [.52, .5, .48], char: [.24, .22, .21], rock: [.36, .31, .27],
+    };
+    /** time scale (slow motion for tuning) */
+    speed = 1;
+    /** live lights (flash, fireball) for the host's renderer */
+    readonly lights: FlashLight[] = [];
+    /** every blast as it goes off (wire sound, force here) */
+    onexplode?: (blast: Blast) => void;
+    readonly blasts: Live[] = [];
+    private chunks: Chunk[] = [];
+    private gl: WebGL2RenderingContext;
+    private smoke: SmokeLike;
+    private ground: (x: number, z: number) => number;
+    private maxChunks: number;
+    private hot?: { program: WebGLProgram; u: Record<string, WebGLUniformLocation | null> };
+    private shock?: { program: WebGLProgram; u: Record<string, WebGLUniformLocation | null> };
+    private ball: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; vertices: number };
+    private spikeMesh: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; vertices: number };
+    private bubble: { vao: WebGLVertexArrayObject; vertices: number };
+    private ringMesh: { vao: WebGLVertexArrayObject; vertices: number };
+    private balls = new Float32Array(1024 * HOT);
+    private spikeData = new Float32Array(256 * HOT);
+    private sun = new Float32Array(3);
+    private eye = new Float32Array(3);
+
+    constructor(layer: Layer3D, setting: ExplosionSetting) {
+        const gl = this.gl = layer.gl;
+        this.smoke = setting.smoke;
+        this.ground = setting.ground ?? (() => 0);
+        this.maxChunks = setting.chunks ?? 200;
+        const id = count++;
+        layer.createProgram(`pw-explosion-hot-${id}`, HOT_VERTEX, HOT_FRAGMENT).then(program => {
+            const u: Record<string, WebGLUniformLocation | null> = {};
+            for (const n of ["view", "projection", "mode", "sun", "eye"]) u[n] = gl.getUniformLocation(program, n);
+            this.hot = { program, u };
+        });
+        layer.createProgram(`pw-explosion-shock-${id}`, SHOCK_VERTEX, SHOCK_FRAGMENT).then(program => {
+            const u: Record<string, WebGLUniformLocation | null> = {};
+            for (const n of ["view", "projection", "mode", "eye", "centre", "radius", "width", "alpha", "lines"]) u[n] = gl.getUniformLocation(program, n);
+            this.shock = { program, u };
+        });
+        this.ball = this.instanced(icosahedron(0), 1024);
+        this.spikeMesh = this.instanced(spike(), 256);
+        this.bubble = this.plain(icosahedronBary(2), [[0, 3, 0], [1, 3, 3]], 6);
+        this.ringMesh = this.plain(ring(96), [[0, 3, 0], [1, 1, 3]], 4);
+    }
+
+    private instanced(geometry: Float32Array, max: number) {
+        const gl = this.gl, vao = gl.createVertexArray()!;
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ARRAY_BUFFER, geometry, gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        const buffer = gl.createBuffer()!;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, max * HOT * 4, gl.DYNAMIC_DRAW);
+        for (let i = 0; i < 3; i++)
+        {
+            gl.enableVertexAttribArray(i + 1);
+            gl.vertexAttribPointer(i + 1, 4, gl.FLOAT, false, HOT * 4, i * 16);
+            gl.vertexAttribDivisor(i + 1, 1);
+        }
+        gl.bindVertexArray(null);
+        return { vao, buffer, vertices: geometry.length / 3 };
+    }
+
+    private plain(geometry: Float32Array, attributes: number[][], stride: number) {
+        const gl = this.gl, vao = gl.createVertexArray()!;
+        gl.bindVertexArray(vao);
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(gl.ARRAY_BUFFER, geometry, gl.STATIC_DRAW);
+        for (const [location, n, offset] of attributes)
+        {
+            gl.enableVertexAttribArray(location);
+            gl.vertexAttribPointer(location, n, gl.FLOAT, false, stride * 4, offset * 4);
+        }
+        gl.bindVertexArray(null);
+        return { vao, vertices: geometry.length / stride };
+    }
+
+    /** set one off at `at` (on the ground) */
+    explode(at: ArrayLike<number>, options: ExplodeOptions = {}): Blast {
+        const power = Math.max(.01, options.power ?? 5), s = Math.cbrt(power), slow = Math.sqrt(s);
+        const lw = Math.log10(power);
+        const position: Vec3 = [at[0], at[1], at[2]];
+        const blast: Live = {
+            position, power, scale: s, slow, age: 0, front: 0,
+            mushroom: smoothstep(2.3, 4, lw), volcano: smoothstep(3.6, 5, lw),
+            shock: new ShockFront(power), fire: [], spikes: [], dust: options.dust ?? this.look.dust, kicked: 0, stages: new Set(),
+            fireball: 1.5 * s, fireLife: .16 * slow, surge: 7 * s ** .9,
+        };
+        // fireball: a few blobs that pop out and char
+        const n = Math.round(8 + 8 * blast.mushroom);
+        for (let i = 0; i < n; i++)
+        {
+            const u = new Vector3(rand(-1, 1), rand(.1, 1), rand(-1, 1)).normalize();
+            const k = rand(.1, .65) * blast.fireball;
+            // x y z r  vx vy vz  life seed grow
+            blast.fire.push([position[0] + u.x * k, position[1] + u.y * k, position[2] + u.z * k, blast.fireball * rand(.4, .75),
+                u.x * blast.fireball * 3 / slow, u.y * blast.fireball * (3 + 4 * blast.mushroom) / slow, u.z * blast.fireball * 3 / slow,
+                blast.fireLife * rand(.7, 1.3), Math.random() * 100]);
+        }
+        // white spikes: thin, fast, gone in a blink
+        for (let i = 0; i < 10 + Math.round(6 * Math.random()); i++)
+        {
+            const u = new Vector3(rand(-1, 1), rand(.15, 1.1), rand(-1, 1)).normalize();
+            blast.spikes.push([u.x, u.y, u.z, rand(.6, 1.2), rand(.05, .09) * slow]);
+        }
+        this.blasts.push(blast);
+        this.onexplode?.(blast);
+        return blast;
+    }
+
+    /** 0..1 how blinding the flashes are at `eye` now (a white overlay on the host's screen) */
+    glare(eye: ArrayLike<number>) {
+        let g = 0;
+        for (const b of this.blasts)
+        {
+            const f = this.flash(b);
+            if (!f) continue;
+            const d = Math.hypot(eye[0] - b.position[0], eye[1] - b.position[1], eye[2] - b.position[2]) / (b.scale * 60);
+            g += f / (1 + d * d);
+        }
+        return Math.min(1, g);
+    }
+
+    /** 0..1 flash of a blast: on hard, gone in ~50 ms */
+    private flash(b: Live) {
+        const t = b.age / (.045 * b.slow ** .5);
+        return t > 3 ? 0 : Math.exp(-t * t);
+    }
+
+    clear() {
+        this.blasts.length = 0;
+        for (const c of this.chunks) c.trail?.stop();
+        this.chunks.length = 0;
+        this.lights.length = 0;
+    }
+
+    update(dt: number) {
+        dt *= this.speed;
+        this.lights.length = 0;
+        for (let i = this.blasts.length - 1; i >= 0; i--)
+        {
+            const b = this.blasts[i];
+            b.age += dt;
+            b.front = b.shock.step(dt);
+            this.stages(b);
+            for (const f of b.fire)
+            {
+                const damp = Math.exp(-6 / b.slow * dt);
+                f[4] *= damp; f[5] = f[5] * damp + b.fireball * .8 * b.mushroom / b.slow * dt; f[6] *= damp;
+                f[0] += f[4] * dt; f[1] += f[5] * dt; f[2] += f[6] * dt;
+            }
+            const f = this.flash(b), heat = Math.max(0, 1 - b.age / b.fireLife);
+            if (f > .01 || heat > 0)
+                this.lights.push({
+                    position: [b.position[0], b.position[1] + b.fireball, b.position[2]], colour: f > .3 ? [1, .97, .9] : [1, .62, .3],
+                    intensity: f * 12 + heat * 3, range: b.scale * (30 + 30 * f),
+                });
+            if (b.age > 30 * b.slow && b.stages.has("suck")) this.blasts.splice(i, 1);
+        }
+        this.fly(dt);
+    }
+
+    /** runs each stage once, when its time comes */
+    private stages(b: Live) {
+        const at = b.position, s = b.scale, T = b.slow, z = b.front / s, once = (name: string, when: boolean) => when && !b.stages.has(name) && !!b.stages.add(name);
+        const smoke = this.smoke, L = this.look, m = b.mushroom;
+
+        if (once("surge", true))
+        {
+            const Rs = b.surge, drag = 2.6 / T, out = Rs * drag;
+            // the surge: thrown out flat, swirling round, rolling; small and fast inside, big and late on the rim
+            const layers: Layer[] = [
+                { count: 46, shape: "ring", radius: .3 * s, outward: [out * .45, out * .8], tangent: [out * .1, out * .22], speed: [0, .3 * s / T], spread: .3, life: [3.2 * T, 4.6 * T], size: [.25 * s, .9 * s], grow: 5 / T, drag, lift: .25 * s / T ** 2, swirl: .5 * s / T, roll: 1.2 * s / T, stretch: .05 * T / s, colour: b.dust, bright: 1, dim: .5 },
+                { count: 34, shape: "ring", radius: .5 * s, outward: [out * .85, out * 1.15], tangent: [out * .15, out * .28], speed: [0, .5 * s / T], spread: .3, life: [4 * T, 5.8 * T], delay: [0, .04 * T], size: [.3 * s, 1.9 * s], grow: 1.1 / T, drag, lift: .35 * s / T ** 2, swirl: .7 * s / T, roll: 1.6 * s / T, stretch: .04 * T / s, colour: mix(b.dust, L.smoke, .25), bright: 1, dim: .55 },
+                // low wisps streaking out first, ground hugging
+                { count: 20, link: false, shape: "ring", radius: .3 * s, outward: [out * 1.1, out * 1.5], tangent: [out * .1, out * .2], speed: [0, .1], spread: .2, life: [.5 * T, .9 * T], size: [.08 * s, .22 * s], grow: 6 / T, drag: drag * 1.3, swirl: 0, stretch: .1 * T / s, shrink: .4, colour: b.dust, bright: .8, dim: .6 },
+            ];
+            smoke.burst({ layers }, at);
+        }
+
+        // the fireball chars: dark puffs where it was (they ride up with a mushroom)
+        if (once("char", b.age > b.fireLife * .8))
+        {
+            const r = b.fireball;
+            smoke.burst({ layers: [{ count: Math.round(10 + 20 * m), shape: "sphere", radius: r * .6, direction: [0, 1, 0], spread: .4, speed: [r * .3 / T, r * (1 + 3 * m) / T], life: [2.5 * T, 4 * T], size: [r * .35, r * .7], grow: 3 / T, drag: 1.6 / T, lift: r * .3 * (1 + 2 * m) / T ** 2, swirl: .4 * s / T, stretch: .03 * T / s, colour: L.char, bright: .5, dim: .5 }] }, [at[0], at[1] + r * .3, at[2]]);
+        }
+
+        // the vacuum: what was pushed out comes back in and goes up the middle, with a pop of smoke from the centre
+        if (once("suck", b.age > .85 * T))
+        {
+            const Rs = b.surge, H = s * (3 + 8 * m) * (1 + 2 * m);
+            smoke.field(at, { radius: Rs * 1.35, height: H, inward: Rs * .9 / T ** 2, up: Rs * (1.1 + 2 * m) / T ** 2, spin: Rs * .3 / T ** 2, life: 3.5 * T });
+            const v = H * 1.6 / T;
+            smoke.burst({ layers: [
+                { count: Math.round(18 + 22 * m), shape: "sphere", radius: .3 * b.fireball, direction: [0, 1, 0], spread: .18, speed: [v * .4, v], life: [3.5 * T, 5.5 * T], delay: [0, .5 * T], size: [.35 * s, 1.2 * s * (1 + m)], grow: 2 / T, drag: 1.4 / T, lift: .4 * s / T ** 2, swirl: .6 * s / T, stretch: .02 * T / s, colour: mix(b.dust, L.smoke, .5), bright: .9, dim: .5 },
+            ] }, at);
+        }
+
+        // mushroom: a cap that keeps rising and rolls over itself, fed by a stem
+        if (m > 0 && once("cap", b.age > b.fireLife * .6))
+        {
+            const r = b.fireball, H = s * 5 * (1 + 2 * m), drag = .8 / T, v = H * drag * 1.1;
+            smoke.burst({ layers: [
+                { count: Math.round(40 + 80 * m), shape: "sphere", radius: r * .9, direction: [0, 1, 0], spread: .12, speed: [v * .85, v * 1.1], outward: [r * .2 / T, r * 1.2 / T], life: [6 * T, 8 * T], size: [r * .45, r * 1.1], grow: 1.4 / T, drag, lift: H * .04 / T ** 2, swirl: .8 * s / T, roll: r * 1.6 / T, stretch: .01 * T / s, colour: mix(L.char, L.smoke, .55), bright: 1, dim: .6 },
+                { count: Math.round(30 * m), shape: "sphere", radius: r * .35, direction: [0, 1, 0], spread: .05, speed: [v * .2, v * .75], life: [5 * T, 7 * T], delay: [0, 1.2 * T], size: [r * .3, r * .6], grow: 1.4 / T, drag, lift: H * .03 / T ** 2, swirl: .5 * s / T, stretch: .01 * T / s, colour: mix(b.dust, L.smoke, .6), bright: .9, dim: .5 },
+            ] }, at);
+        }
+
+        // volcano: rock thrown in a few jets, smoke trails behind
+        if (b.volcano > 0 && once("rock", true))
+        {
+            const jets = 3 + Math.round(Math.random() * 3 * b.volcano), per = Math.round(2 + 6 * b.volcano), reach = 9 * s;
+            for (let j = 0; j < jets; j++)
+            {
+                const a = Math.random() * Math.PI * 2, up = rand(.75, 1.25);
+                const jet = new Vector3(Math.cos(a) * Math.cos(up), Math.sin(up), Math.sin(a) * Math.cos(up));
+                for (let i = 0; i < per && this.chunks.length < this.maxChunks; i++)
+                {
+                    const d = new Vector3(jet.x + rand(-.15, .15), jet.y + rand(-.1, .1), jet.z + rand(-.15, .15)).normalize();
+                    const v = Math.sqrt(GRAVITY * reach) * rand(.6, 1.15), r = .2 * s ** .7 * rand(.5, 1.3);
+                    const p: Vec3 = [at[0] + d.x * b.fireball * .3, at[1] + b.fireball * .3, at[2] + d.z * b.fireball * .3];
+                    const trail = smoke.emitter({ layers: [{ count: 14, direction: [0, 1, 0], spread: .3, speed: [0, .3], life: [4, 7], size: [r * 1.2, r * 5], grow: .5, drag: 1.5, lift: .25, swirl: .3, stretch: .02, colour: mix(L.char, L.smoke, .4), bright: .8, dim: .5 }] }, p);
+                    this.chunks.push({ p, v: [d.x * v, d.y * v, d.z * v], r, seed: Math.random() * 100, trail, landed: 0, spin: rand(4, 10) });
+                }
+            }
+        }
+
+        // the ground ring kicks dust where it passes
+        const step = Math.max(1.2, s * 1.3);
+        if (z > 1.2 && z < 16 && b.front - b.kicked > step)
+        {
+            b.kicked = b.front;
+            const k = Math.round(10 + 8 * Math.min(1, b.front / (40 * s))), fade = 1 - smoothstep(4, 16, z);
+            for (let i = 0; i < k; i++)
+            {
+                if (Math.random() > .6) continue;
+                const a = Math.random() * Math.PI * 2, x = at[0] + Math.cos(a) * b.front, zz = at[2] + Math.sin(a) * b.front;
+                const r = s * (.12 + .22 * fade);
+                smoke.burst({ layers: [{ count: 1, direction: [Math.cos(a), .5, Math.sin(a)], spread: .3, speed: [r * 2, r * 4], life: [.5, .9], size: [r * .4, r], grow: 6, drag: 3, lift: .2, swirl: .2, stretch: .08, colour: b.dust, bright: .9, dim: .6, shrink: .5, link: false }] }, [x, this.ground(x, zz), zz]);
+            }
+        }
+    }
+
+    private fly(dt: number) {
+        for (let i = this.chunks.length - 1; i >= 0; i--)
+        {
+            const c = this.chunks[i];
+            if (c.landed)
+            {
+                if ((c.landed += dt) > 4) this.chunks.splice(i, 1);
+                continue;
+            }
+            const drag = Math.exp(-.08 * dt);
+            c.v[0] *= drag; c.v[1] = c.v[1] * drag - GRAVITY * dt; c.v[2] *= drag;
+            c.p[0] += c.v[0] * dt; c.p[1] += c.v[1] * dt; c.p[2] += c.v[2] * dt;
+            if (c.trail) { c.trail.position = [c.p[0], c.p[1], c.p[2]]; c.trail.rate = Math.min(1, Math.hypot(c.v[0], c.v[1], c.v[2]) / 25); }
+            const g = this.ground(c.p[0], c.p[2]);
+            if (c.p[1] <= g + c.r)
+            {
+                c.p[1] = g + c.r * .5;
+                c.landed = dt;
+                c.trail?.stop();
+                c.trail = undefined;
+                const r = c.r * 4;
+                this.smoke.burst({ layers: [{ count: 4, shape: "sphere", radius: c.r, direction: [0, 1, 0], spread: .7, speed: [r, r * 3], life: [1.2, 2.2], size: [r * .3, r], grow: 4, drag: 2.5, lift: .2, swirl: .3, colour: this.look.dust, bright: .9 }] }, c.p);
+            }
+        }
+    }
+
+    draw(view: View) {
+        const gl = this.gl;
+        if (!this.hot || !this.shock) return;
+        const vm = view.viewMatrix, viewM = new Float32Array(vm as ArrayLike<number>), projection = new Float32Array(view.projectionMatrix as ArrayLike<number>);
+        // eye from the view matrix: -Rᵀ t
+        this.eye[0] = -(vm[0] * vm[12] + vm[1] * vm[13] + vm[2] * vm[14]);
+        this.eye[1] = -(vm[4] * vm[12] + vm[5] * vm[13] + vm[6] * vm[14]);
+        this.eye[2] = -(vm[8] * vm[12] + vm[9] * vm[13] + vm[10] * vm[14]);
+        const sun = new Vector3(this.look.sun[0], this.look.sun[1], this.look.sun[2]).normalize();
+        this.sun[0] = sun.x; this.sun[1] = sun.y; this.sun[2] = sun.z;
+
+        // hot things: flash, fireball, spikes, rock
+        const B = this.balls, S = this.spikeData;
+        let n = 0, ns = 0;
+        const ball = (x: number, y: number, z: number, r: number, tint: Colour, heat: number, seed: number, sx = 0, sy = 0, sz = 0) => {
+            if (n >= 1024) return;
+            const k = n++ * HOT;
+            B[k] = x; B[k + 1] = y; B[k + 2] = z; B[k + 3] = r;
+            B[k + 4] = tint[0]; B[k + 5] = tint[1]; B[k + 6] = tint[2]; B[k + 7] = heat;
+            B[k + 8] = sx; B[k + 9] = sy; B[k + 10] = sz; B[k + 11] = seed;
+        };
+        for (const b of this.blasts)
+        {
+            const p = b.position, f = this.flash(b);
+            if (f > .05) ball(p[0], p[1] + b.fireball * .4, p[2], b.fireball * (.6 + 1.1 * (1 - f)), [1, 1, 1], 2, 1);
+            for (const fb of b.fire)
+            {
+                const t = b.age / fb[7];
+                if (t >= 1) continue;
+                // pops to full size in a blink, then shrinks as it chars
+                const r = fb[3] * (1 - Math.exp(-b.age * 60 / b.slow)) * (1 - smoothstep(.55, 1, t) * .7);
+                ball(fb[0], fb[1], fb[2], r, [1, 1, 1], 1.05 - t * 1.1, fb[8] + b.age * 3, fb[4] * .01, fb[5] * .01, fb[6] * .01);
+            }
+            for (const sp of b.spikes)
+            {
+                const t = b.age / sp[4];
+                if (t >= 1 || ns >= 256) continue;
+                const len = b.fireball * sp[3] * (1.5 + 5 * Math.sqrt(t)), k = ns++ * HOT, o = b.fireball * .3 * t;
+                S[k] = p[0] + sp[0] * o; S[k + 1] = p[1] + sp[1] * o; S[k + 2] = p[2] + sp[2] * o; S[k + 3] = b.fireball * .07 * (1 - t);
+                S[k + 4] = S[k + 5] = S[k + 6] = 1; S[k + 7] = 2;
+                S[k + 8] = sp[0] * len; S[k + 9] = sp[1] * len; S[k + 10] = sp[2] * len; S[k + 11] = 0;
+            }
+        }
+        for (const c of this.chunks)
+        {
+            const shrink = c.landed ? 1 - smoothstep(2.5, 4, c.landed) : 1;
+            if (shrink > 0) ball(c.p[0], c.p[1], c.p[2], c.r * shrink, this.look.rock, -1, c.seed + (c.landed ? 0 : performance.now() * .001 * c.spin));
+        }
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+        gl.disable(gl.CULL_FACE);
+        const { program, u } = this.hot;
+        gl.useProgram(program);
+        gl.uniformMatrix4fv(u.view, false, viewM);
+        gl.uniformMatrix4fv(u.projection, false, projection);
+        gl.uniform3fv(u.sun, this.sun);
+        gl.uniform3fv(u.eye, this.eye);
+        if (n)
+        {
+            gl.uniform1i(u.mode, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.ball.buffer);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, B, 0, n * HOT);
+            gl.bindVertexArray(this.ball.vao);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, this.ball.vertices, n);
+        }
+        if (ns)
+        {
+            gl.uniform1i(u.mode, 1);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.spikeMesh.buffer);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, S, 0, ns * HOT);
+            gl.bindVertexArray(this.spikeMesh.vao);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, this.spikeMesh.vertices, ns);
+        }
+
+        // shock: see through bubble + ground rings
+        const sh = this.shock;
+        gl.useProgram(sh.program);
+        gl.uniformMatrix4fv(sh.u.view, false, viewM);
+        gl.uniformMatrix4fv(sh.u.projection, false, projection);
+        gl.uniform3fv(sh.u.eye, this.eye);
+        gl.uniform1f(sh.u.lines, this.look.lines);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.depthMask(false);
+        for (const b of this.blasts)
+        {
+            const z = b.front / b.scale, p = b.position;
+            gl.uniform3f(sh.u.centre, p[0], this.ground(p[0], p[2]), p[2]);
+            const bubble = (1 - smoothstep(1.5, 9, z)) * this.look.shock;
+            if (bubble > .01)
+            {
+                gl.uniform1i(sh.u.mode, 0);
+                gl.uniform1f(sh.u.radius, b.front);
+                gl.uniform1f(sh.u.alpha, bubble);
+                gl.bindVertexArray(this.bubble.vao);
+                gl.drawArrays(gl.TRIANGLES, 0, this.bubble.vertices);
+            }
+            const ringA = (1 - smoothstep(3, 24, z)) * this.look.shock;
+            if (ringA > .01)
+            {
+                gl.uniform1i(sh.u.mode, 1);
+                gl.bindVertexArray(this.ringMesh.vao);
+                // the front, and a thinner one just behind it
+                for (const [k, w, a] of [[1, .05, .9], [.9, .025, .5]])
+                {
+                    gl.uniform1f(sh.u.radius, b.front * k);
+                    gl.uniform1f(sh.u.width, b.front * w + .1 * b.scale);
+                    gl.uniform1f(sh.u.alpha, ringA * a);
+                    gl.drawArrays(gl.TRIANGLES, 0, this.ringMesh.vertices);
+                }
+            }
+        }
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
+        gl.bindVertexArray(null);
+    }
+}
