@@ -167,8 +167,8 @@ addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
     // leaving an optic, a desk button looked at, an optic near, then a gun case
     if (player.looking) player.lookThrough();
-    else if (gunNear()) player.pickUp();
     else if (button) range.lanes.press(button.lane, button.dir);
+    else if (gunNear()) player.pickUp();
     else if (nearOptic) useOptic(nearOptic);
     else if (near >= 0) player.select(stands[near].gun);
 });
@@ -466,11 +466,24 @@ demo.draw = camera => {
     model.draw(renderer, identity);
     drawStands();
     drawGrass(camera);
+    // driving: tufts before the cars so they show through the windshield (they get SSAO then)
+    if (driving && document.body.classList.contains('playing')) drawTufts(camera);
     drawCars();
     if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();
     if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); drawTufts(camera); }
-    else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); }
+    else if (driving) { drawDriver(camera); demo.endOcclusion(); }
     else player.draw(camera);
 };
+
+// ---- FPS (top left): frames counted over half a second ----
+{
+    let frames = 0, from = performance.now();
+    const count = now => {
+        frames++;
+        if (now - from > 500) { $('#fps').value = `${Math.round(frames * 1000 / (now - from))} fps`; frames = 0; from = now; }
+        requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
+}

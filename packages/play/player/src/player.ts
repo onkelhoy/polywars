@@ -83,11 +83,13 @@ export class Player {
     private guns!: Debris;
 
     /** the gun out of the hands as a body: `m` its model's world matrix now, flying with `velocity` / `spin` */
-    private letGo(index: number, m: Matrix4, velocity: Vec3 = [0, 0, 0], spin: Vec3 = [0, 0, 0]) {
+    private letGo(index: number, m: Matrix4, velocity: Vec3 = [0, 0, 0], spin: Vec3 = [0, 0, 0], still = false) {
         const c = this.carried[index], size = c.model.size, centre = c.model.center;
         c.gun.cancel();
         const old = this.loose.get(index);
         if (old?.piece) this.guns.remove(old.piece);
+        // placed (laid / leant): exactly there, no physics; only thrown / dropped guns simulate (until they settle)
+        if (still) { this.loose.set(index, { index, matrix: Matrix4.create(Array.from(m)) }); return; }
         const axis = (k: number): Vec3 => { const l = Math.hypot(m[k], m[k + 1], m[k + 2]) || 1; return [m[k] / l, m[k + 1] / l, m[k + 2] / l]; };
         const at = point(m, centre);
         const piece = this.guns.spawn("gun", {
@@ -145,7 +147,7 @@ export class Player {
     }
 
     /** gun `index` out of the hands, laid on its side on `spot` (a table / box top / the ground), barrel across `yaw` */
-    lay(index: number, spot: Vec3, yaw: number) { this.letGo(index, this.lying(index, spot, yaw, .05)); }
+    lay(index: number, spot: Vec3, yaw: number) { this.letGo(index, this.lying(index, spot, yaw, .002), undefined, undefined, true); }
 
     /**
      * Gun `index` out of the hands, leant on a wall: `at` a point on it, `n` its normal (out of the wall). Butt on
@@ -158,15 +160,16 @@ export class Player {
             const h = Math.hypot(n[0], n[2]) || 1, nx = n[0] / h, nz = n[2] / h, t = 12 * Math.PI / 180;
             const up: Vec3 = [-nx * Math.sin(t), Math.cos(t), -nz * Math.sin(t)];
             const side: Vec3 = [-nz, 0, nx];
-            const y: Vec3 = [up[1] * side[2] - up[2] * side[1], up[2] * side[0] - up[0] * side[2], up[0] * side[1] - up[1] * side[0]];
+            const y: Vec3 = [side[1] * up[2] - side[2] * up[1], side[2] * up[0] - side[0] * up[2], side[0] * up[1] - side[1] * up[0]];
             const size = c.model.size, centre = c.model.center, len = size[2];
             // the butt on the ground a little out from the wall, the centre half a gun up the tilt
-            const bx = hit.point[0] + nx * (.06 + Math.sin(t) * len), bz = hit.point[2] + nz * (.06 + Math.sin(t) * len);
+            const off = size[1] / 2 + .01 + Math.sin(t) * len;
+            const bx = hit.point[0] + nx * off, bz = hit.point[2] + nz * off;
             const top: Vec3 = [bx + up[0] * len / 2, this.setting.ground(bx, bz) + up[1] * len / 2 + .02, bz + up[2] * len / 2];
             const m = Matrix4.create([side[0], side[1], side[2], 0, y[0], y[1], y[2], 0, -up[0], -up[1], -up[2], 0, 0, 0, 0, 1]);
             const o = point(m, centre);
             m[12] = top[0] - o[0]; m[13] = top[1] - o[1]; m[14] = top[2] - o[2];
-            this.letGo(index, m);
+            this.letGo(index, m, undefined, undefined, true);
         }
     }
 
@@ -207,6 +210,7 @@ export class Player {
         this.loose.delete(index);
         this.current = index;
         this.vm.set(this.held!.hold);
+        void this.feel.audio.load(this.held!.gun.spec.sounds ?? this.held!.gun.spec.model);
     }
     /** the put-down gun's place (world), for prompts */
     get downAt(): Vec3 | undefined { const m = this.down?.matrix; return m ? [m[12], m[13], m[14]] : undefined; }

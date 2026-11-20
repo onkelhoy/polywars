@@ -30,3 +30,4 @@ pw-gun-menu.open { display: block; }
 #optic.scope { display: block; background: radial-gradient(circle at 50% 50%, transparent 0 44vh, #000c 50vh); }
 #optic.scope::after { content: ""; position: absolute; left: 50%; top: 50%; width: 70vh; height: 70vh; transform: translate(-50%, -50%);
     background: linear-gradient(#000a, #000a) center / 1px 100% no-repeat, linear-gradient(#000a, #000a) center / 100% 1px no-repeat; }
+#fps { position: fixed; left: 8px; top: 6px; z-index: 10; font: 700 14px ui-monospace, monospace; color: #000; background: #fff8; padding: 1px 5px; border-radius: 3px; pointer-events: none; }
