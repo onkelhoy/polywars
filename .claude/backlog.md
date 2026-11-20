@@ -110,6 +110,13 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - [ ] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature.
 - [ ] Light fog (distance + height), first in the shooting range.
 
+## Explosion (`@polywar/explosion`, next fresh start, uses `@polywar/smoke`)
+- [ ] Own package: explosions compose smoke bursts + debris + shock waves; smoke stays only puffs / clouds.
+- [ ] Ground blast side heavy (ref Desktop/Screenshot 2026-11-20 at 22.50.17): big rolling masses out to the sides, low wisps trailing along the ground, a lighter lobe in front; less in the middle.
+- [ ] Massive blasts: debris / particles shot out like a volcano (arcs, trails of smoke).
+- [ ] Shock waves (ground ring, air ring).
+- [ ] Ref GIF (dribbble 21023971, ground ring rushes out + brakes, core rolls up, wisps streak, tops go flat, shrink + crumble). Smoke presets `explosion` / `blast` are the first pass to move over.
+
 ## Weapon editor
 - [ ] Better hold editing: see the fingers on the gun, control the grip per hand (pose / curl / wrist turn), not only sliders for the gun position. Ties into the hand editor (H) and hand pose clips.
 
