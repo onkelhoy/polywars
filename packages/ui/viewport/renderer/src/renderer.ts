@@ -29,9 +29,9 @@ export type Light = {
 
 export const DAYLIGHT: Light = {
     sunDirection: [.5, .8, .35],
-    sunColor: [1, .95, .85],
+    sunColor: [1, .9, .72],
     sunStrength: 1,
-    sky: [.6, .66, .75],
+    sky: [.5, .62, .86],
     ground: [.32, .3, .26],
     ambient: .6,
     lampPosition: [0, 1, 1],
