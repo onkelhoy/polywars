@@ -385,7 +385,7 @@ export class Explosion {
                     const d = new Vector3(jet.x + rand(-.15, .15), jet.y + rand(-.1, .1), jet.z + rand(-.15, .15)).normalize();
                     const v = Math.sqrt(GRAVITY * reach) * rand(.6, 1.15), r = .2 * s ** .7 * rand(.5, 1.3);
                     const p: Vec3 = [at[0] + d.x * b.fireball * .3, at[1] + b.fireball * .3, at[2] + d.z * b.fireball * .3];
-                    const trail = smoke.emitter({ layers: [{ count: 24, direction: [0, 1, 0], spread: .3, speed: [0, .3], life: [6, 10], size: [r * 1.5, r * 7], grow: .4, drag: 1.5, lift: .25, swirl: .3, stretch: .02, colour: mix(L.char, L.smoke, .4), bright: .8, dim: .5 }] }, p);
+                    const trail = smoke.emitter({ layers: [{ count: 8, direction: [0, 1, 0], spread: .3, speed: [0, .3], life: [6, 10], size: [r * 1.5, r * 7], grow: .4, drag: 1.5, lift: .25, swirl: .3, stretch: .02, colour: mix(L.char, L.smoke, .4), bright: .8, dim: .5 }] }, p);
                     this.chunks.push({ p, v: [d.x * v, d.y * v, d.z * v], r, seed: Math.random() * 100, trail, landed: 0, spin: rand(4, 10) });
                 }
             }

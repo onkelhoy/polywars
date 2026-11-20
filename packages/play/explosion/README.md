@@ -81,6 +81,17 @@ audio.ring(player.deaf);                              // ears after a close one
 - Late by distance / 343 m/s: flash first, then the gust (force), then the boom. Bigger is louder and lower; `deaf` muffles.
 
 
+### Shell shock (you)
+
+```ts
+const daze = new Daze(layer);                       // vision: last frames smear over, blurred, doubled, clears in 2-10 s
+const a = Math.min(1, hit.pressure / 60);           // from the player's blast hit
+daze.hit(a); audio.stun(a);                         // ears: near silence -> muffled -> clear, a ring fades in past the muffle
+daze.update(dt); daze.draw();                       // last thing each frame
+```
+
+`audio.stun` puts a lowpass + gain between the mixer's master and the speakers (papit audio has no master effects).
+
 View `experiment`: power presets, ear distance (to 40 km), slow motion, look sliders, crates / jeep / dummies / wall pushed, sound.
 
 ## License

@@ -5,7 +5,7 @@ import { Matrix4 } from '@papit/matrix';
 import { Smoke } from '@polywar/smoke';
 import { World, RigidBody, Plane, Box } from '@papit/rigidbody';
 import { AudioMixer } from '@papit/audio';
-import { Explosion, ShockFront, BlastForce, ExplosionAudio, bodyTargets, worldCover } from '@polywar/explosion';
+import { Explosion, ShockFront, BlastForce, ExplosionAudio, Daze, bodyTargets, worldCover } from '@polywar/explosion';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -19,7 +19,10 @@ for (const [x, z] of [[-18, -14], [30, -40], [-80, 60], [150, -120], [-300, -250
 const gl = demo.gl, mesh = upload(gl, b.build()), identity = Matrix4.create();
 
 // things that move: crates (20 kg), a jeep (1.5 t), dummies (80 kg, blue behind the jeep, red in the open), a wall with a crate behind it
-let world, things, force;
+let world, things, force, eye = [0, 0, 0];
+const daze = new Daze(demo.layer);
+// you (the camera) as a target: dazed and deafened by how hard it hits
+const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(_v, _s, hit) { const a = Math.min(1, hit.pressure / 60); daze.hit(a); audio.stun(a); } };
 const log = [];
 const reset = () => {
     world = new World();
@@ -37,7 +40,7 @@ const reset = () => {
     add([1, 1, 1], 20, [-8.5, 0, 0], '#a07a4a');
     for (let i = 0; i < 120; i++) world.update(1 / 60);
     force = new BlastForce({
-        targets: () => bodyTargets(world), cover: worldCover(world), front: p => new ShockFront(p), strength: +$('#strength').value,
+        targets: () => [...bodyTargets(world), you], cover: worldCover(world), front: p => new ShockFront(p), strength: +$('#strength').value,
         onhit: (t, hit) => log.unshift(`${t.mass} kg at ${hit.distance.toFixed(1)} m: ${hit.pressure.toFixed(0)} kPa, cover ${hit.cover.toFixed(2)}, Δv ${(hit.impulse / t.mass).toFixed(1)} m/s`),
     });
 };
@@ -85,8 +88,9 @@ demo.tick = dt => {
     world.update(dt * explosion.speed);
     const v = demo.camera?.viewMatrix;
     // eye from the view matrix: -Rᵀ t
-    const eye = v && [-(v[0] * v[12] + v[1] * v[13] + v[2] * v[14]), -(v[4] * v[12] + v[5] * v[13] + v[6] * v[14]), -(v[8] * v[12] + v[9] * v[13] + v[10] * v[14])];
+    eye = v && [-(v[0] * v[12] + v[1] * v[13] + v[2] * v[14]), -(v[4] * v[12] + v[5] * v[13] + v[6] * v[14]), -(v[8] * v[12] + v[9] * v[13] + v[10] * v[14])];
     $('#glare').style.opacity = eye ? explosion.glare(eye) * .9 : 0;
+    daze.update(dt);
     if (eye) audio.setListener(eye, [-v[2], -v[6], -v[10]]);
     $('#info').value = `${smoke.count} puffs\n${heard}\n${log.slice(0, 12).join('\n')}`;
 };
@@ -96,5 +100,6 @@ demo.draw = camera => {
     for (const t of things) renderer.draw(t.mesh, t.body.matrix(t.matrix));
     smoke.draw(camera);
     explosion.draw(camera);
+    daze.draw();
     renderer.reset();
 };

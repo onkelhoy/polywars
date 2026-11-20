@@ -15,6 +15,7 @@ export class ExplosionAudio {
     private listener: Vec3 = [0, 0, 0];
     private last = new Map<string, number>();
     private ringing?: Voice;
+    private stunned?: { filter: BiquadFilterNode; gain: GainNode };
 
     constructor(readonly options: ExplosionAudioOptions) {
         this.mixer = options.mixer;
@@ -65,6 +66,53 @@ export class ExplosionAudio {
             when: speed > 0 ? this.mixer.context.currentTime + distance / speed : undefined,
             spatial: { position: { x: p[0], y: p[1], z: p[2] }, refDistance: 8 * s, rolloff: .6, maxDistance: 40000 },
         });
+    }
+
+    /**
+     * Shell shock on the ears, `amount` 0..1 (a close blast): near silence first, then everything muffled,
+     * opening back up to normal over seconds while a ring fades in and out. A lowpass + gain after the mixer's master.
+     */
+    stun(amount: number) {
+        amount = Math.min(1, Math.max(0, amount));
+        if (amount < .05) return;
+        const context = this.mixer.context as AudioContext;
+        if (!this.stunned)
+        {
+            // papit audio has no master effects: put ours between the master and the speakers
+            const filter = context.createBiquadFilter(), gain = context.createGain();
+            filter.type = "lowpass";
+            filter.frequency.value = 20000;
+            this.mixer.master.gain.disconnect();
+            this.mixer.master.gain.connect(filter);
+            filter.connect(gain);
+            gain.connect(context.destination);
+            // the ring is inside the head: past the muffle
+            const ring = this.mixer.bus("stun-ring").gain;
+            ring.disconnect();
+            ring.connect(context.destination);
+            this.stunned = { filter, gain };
+        }
+        const { filter, gain } = this.stunned, now = context.currentTime;
+        const silent = .2 + 1.2 * amount, muffled = 1 + 3 * amount, clear = 2 + 6 * amount;
+        for (const p of [gain.gain, filter.frequency]) p.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value, now);
+        gain.gain.linearRampToValueAtTime(1 - .95 * amount, now + .02);
+        gain.gain.setValueAtTime(1 - .95 * amount, now + silent);
+        gain.gain.linearRampToValueAtTime(1 - .45 * amount, now + silent + muffled);
+        gain.gain.linearRampToValueAtTime(1, now + silent + muffled + clear);
+        filter.frequency.setValueAtTime(filter.frequency.value, now);
+        filter.frequency.exponentialRampToValueAtTime(200 + 600 * (1 - amount), now + .02);
+        filter.frequency.setValueAtTime(200 + 600 * (1 - amount), now + silent);
+        filter.frequency.exponentialRampToValueAtTime(1500, now + silent + muffled);
+        filter.frequency.exponentialRampToValueAtTime(20000, now + silent + muffled + clear);
+        // the ring comes up as the silence lifts
+        const file = this.files?.ring?.[0];
+        if (file)
+        {
+            this.ringing?.stop();
+            const voice = this.mixer.play(`explosions/${file}`, { bus: "stun-ring", volume: .45 * amount, when: now + silent * .5 });
+            this.ringing = voice;
+        }
     }
 
     /** ears ring: `amount` 0..1 (from a close blast), plays once till it fades */
