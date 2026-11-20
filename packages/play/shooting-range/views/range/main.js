@@ -66,17 +66,10 @@ const covered = (x, z) => { const y = range.ground(x, z); return range.colliders
         grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
         window: 130,
     });
-    // the grass ground (patches, spots) on the range's own ground where grass grows: top, not too steep, lifted 2 cm
+    // the painted grass ground (patches, spots) over all of the range's ground, lifted 2 cm (+ a depth offset in
+    // drawGround): skipping triangles showed the model's plain ground through in big triangles. Tufts follow the zones.
     const floor = [];
-    for (const t of range.data.ground)
-    {
-        const c = [0, 1, 2].map(k => (t[0][k] + t[1][k] + t[2][k]) / 3);
-        const u = t[1].map((v, k) => v - t[0][k]), w = t[2].map((v, k) => v - t[0][k]);
-        const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], l = Math.hypot(...n) || 1;
-        if (Math.abs(n[1] / l) < .55 || Math.abs(range.ground(c[0], c[2]) - c[1]) > .05) continue;
-        if (GROW[inZone('none', c[0], c[2]) || covered(c[0], c[2]) ? 'none' : 'tall'].density === 0) continue;
-        for (const p of t) floor.push(p[0], p[1] + .02, p[2]);
-    }
+    for (const t of range.data.ground) for (const p of t) floor.push(p[0], p[1] + .02, p[2]);
     grass.setGround(new Float32Array(floor));
 }
 function drawGrass(camera) {
