@@ -76,6 +76,8 @@ export type SmokeLook = {
     wind: Vec3;
     /** shadow side colour multiplier (cool shadows) */
     shade: Colour;
+    /** the same for clouds: tinted by the sky */
+    skyShade: Colour;
     /** how white the lit faces go, 0..1 */
     highlight: number;
     /** puff faces: 0 = 20 (icosahedron), 1 = 80 */
@@ -112,4 +114,17 @@ export type Emitter = {
 export type View = {
     viewMatrix: ArrayLike<number>;
     projectionMatrix: ArrayLike<number>;
+};
+
+export type CloudKind = "cumulus" | "fair" | "bank" | "overcast";
+export type CloudOptions = {
+    /** layout (default cumulus) */
+    kind?: CloudKind;
+    /** 0..1 greyer (and flatter for overcast) */
+    density?: number;
+    /** tower height multiplier (cumulus, default 1) */
+    height?: number;
+    /** head off to the side, fraction of size */
+    lean?: number;
+    colour?: Colour;
 };

@@ -22,14 +22,16 @@ const centre = [0, 0, 0], fire = [-7, .1, 2];
 let campfire = smoke.emitter('campfire', fire);
 let exhaust = smoke.emitter('exhaust', [0, .4, 0]);
 
-// big clouds far out: the world feels small under them
+// clouds far out: the world feels small under them
 const clouds = () => {
-    smoke.cloud([-500, 220, -1900], 320, { lean: .6 });
-    smoke.cloud([700, 260, -2400], 420, { height: 1.6, lean: -.4 });
-    smoke.cloud([1500, 200, -1500], 260, { height: 1 });
-    smoke.cloud([-1600, 240, -2300], 360, { lean: .8 });
+    const kind = $('#cloud').value, cover = +$('#cover').value;
+    if (kind === 'sky') return smoke.sky([0, 0, 0], { count: 14, cover, near: 1400, far: 3200 });
+    smoke.cloud([-300, 230, -1900], 380, { kind, density: cover, lean: .5 });
+    smoke.cloud([900, 250, -2500], 300, { kind, density: cover, lean: -.4 });
+    smoke.cloud([-1500, 220, -2200], 260, { kind, density: cover });
 };
 clouds();
+$('#cloud').onchange = $('#cover').onchange = () => { smoke.clear(); clouds(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
 
 const scale = () => +$('#scale').value, colour = () => COLOURS[$('#colour').value];
 const blast = () => smoke.burst($('#kind').value, centre, { scale: scale(), colour: colour() });
