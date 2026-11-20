@@ -1,3 +1,3 @@
-// exports
-export * from "./component";
+export * from "./smoke";
+export * from "./presets";
 export * from "./types";
