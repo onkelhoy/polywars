@@ -29,8 +29,9 @@ Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything.
 1-6. Done, needs look:
 - Split: clouds -> `@polywar/clouds` (`smoke.place` still puffs); smoke got `field` (inflow / updraft / spin) and layer `tangent`.
 - `@polywar/explosion`: flash, fireball, spikes, shock bubble (edge lines) + dashed ground rings, kicked dust, swirling surge, suck back, mushroom (~200 kg+), volcano rock + trails (~5 t+); `glare(eye)`, `lights`, `ShockFront`.
-- `@polywar/blast-force`: front pushes targets (rigidbody adapter `bodyTargets`, `worldCover`), `wind(at)` gust.
+- Force (in explosion): front pushes targets (rigidbody adapter `bodyTargets`, `worldCover`), `wind(at)` gust.
 - Player: `hit`, `shake`, `deaf`, `blastTarget`.
-- `@polywar/explosion-audio`: sfx-gen sets small/big × near-open/walls/indoor, far, distant + ring; late by distance.
-- Views: explosion `experiment` (power, distance, slow), blast-force `experiment` (crates, jeep, dummies, wall, sound), explosion-audio `experiment` (ear out to 40 km).
+- Sound (in explosion): sfx-gen sets small/big × near-open/walls/indoor, far, distant + ring; late by distance.
+- View: explosion `experiment` (everything: power, ear distance, slow, look, pushed things, sound).
+7. Merge force + sound into explosion. 8. More trail (rock from ~250 kg). 9. Black streaks. 10. Player shell shock (blur, silence -> muffled -> clear, ring).
 Not wired into the game yet (no game map uses explosions).

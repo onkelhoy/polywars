@@ -52,7 +52,8 @@
   "dependencies": {
     "@papit/game-engine": "*",
     "@papit/vector": "*",
-    "@polywar/smoke": "*"
+    "@polywar/smoke": "*",
+    "@papit/audio": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",
@@ -60,7 +61,8 @@
     "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@papit/game-mesh": "*",
-    "@papit/matrix": "*"
+    "@papit/matrix": "*",
+    "@papit/rigidbody": "*"
   },
   "browserslist": [
     "defaults",

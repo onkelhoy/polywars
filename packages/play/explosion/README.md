@@ -39,7 +39,49 @@ for (const l of explosion.lights) { /* light the scene */ }
 - From ~200 kg a mushroom (cap rises and rolls, a stem feeds it), from ~5 t rock in a few jets with smoke trails that thicken.
 - `ShockFront(power)`: front speed / radius / overpressure (Sadovsky) by scaled distance; shared with force and sound.
 
-View `experiment`: power presets, distance, slow motion.
+### Force (push)
+
+
+```ts
+import { World } from "@papit/rigidbody";
+import { ShockFront } from "@polywar/explosion";
+import { BlastForce, bodyTargets, worldCover } from "@polywar/explosion";
+
+const force = new BlastForce({
+    targets: () => [...bodyTargets(world), player.target],   // anything with position, mass, size, push()
+    cover: worldCover(world),                                // rays: walls let .15 through, props .45
+    front: p => new ShockFront(p),
+    onhit: (target, hit) => damage(target, hit.pressure),
+});
+explosion.onexplode = b => force.blast(b.position, b.power);
+// every frame
+force.update(dt); world.update(dt);
+grass.wind = force.wind(at);                                 // gust out, then a pull back
+```
+
+- A target is hit when the front reaches it: impulse ≈ 200 W^⅔ / R Pa·s on π size², times cover, times `strength` (default 2). Away from a point under the blast (lifts), plus a tumble. Mass does the rest.
+- Rigidbody bodies are woken, pushed and left to settle / sleep again; static ones (houses) never move.
+
+
+### Sound
+
+
+```ts
+import { AudioMixer } from "@papit/audio";
+import { ExplosionAudio } from "@polywar/explosion";
+
+const audio = new ExplosionAudio({ mixer: new AudioMixer(), cast: (from, to) => world.cast(from, to), deaf: () => player.deaf });
+await audio.load();                                   // assets/audio/effects/explosions/ (npm run sfx -- --only=explosions)
+explosion.onexplode = b => audio.play(b.position, b.power);
+audio.setListener(eye, forward);                      // every frame
+audio.ring(player.deaf);                              // ears after a close one
+```
+
+- Files `<size>-<scene>`: `small` (< 100 kg) / `big`; `near-open`, `near-walls`, `near-indoor` (rays round the blast, like weapon-audio), `far` (no crack, rolling thunder), `distant` (deep thud). Near under max(150, 60∛W) m, far under max(1500, 400∛W) m.
+- Late by distance / 343 m/s: flash first, then the gust (force), then the boom. Bigger is louder and lower; `deaf` muffles.
+
+
+View `experiment`: power presets, ear distance (to 40 km), slow motion, look sliders, crates / jeep / dummies / wall pushed, sound.
 
 ## License
 
