@@ -18,7 +18,7 @@ Done: 1-4b (body arms on the rig's IK + grip, 3 store soldiers, rig resync (`cha
 5. Backlog: papit math cleanup (play), drop box arms, mag / bullet grab, pockets, first shot flyer.
 
 ## Smoke (confirmed, `feature/smoke`)
-Look (pass 2): puffs are soft blobs summed into a half res field, cut at a threshold: merged shape with filler, lone puffs stay balls, stretched along speed + wind. Toon bands from the merged normal (white highlight, body, cool shade), no outlines, depth from the field. Dissolve: wind drag grows with age / height, swirl grows (roll in), shrink pinches the shape into balls.
-1-3. Done: `@polywar/smoke` (packages/play/smoke): `burst`, `emitter`, `spawn`; `look` live (sun, wind, shade, highlight, threshold, resolution); presets `explosion` (flat base, stem, cap ~50 m, spikes), `blast`, `campfire`, `exhaust`, `dust`, `puff`; view `views/experiment`.
+Look (pass 3): low poly. Puffs = flat shaded icosahedrons (20 or 80 faces), toon band per face (white top, body, cool shade), slow spin, no outlines. Filler = low poly 6 sided tubes from each puff to its parent (burst: nearest earlier puff, emitter: the one before) while close; ends stay lone balls. Motion: curl noise (Bridson) at puff scale growing with age, vortex roll on explosion caps, wind drag grows with age / height, shrink out.
+1-3. Done: `@polywar/smoke` (packages/play/smoke): `burst`, `emitter`, `spawn`; `look` live (sun, wind, shade, highlight, detail, thickness, reach, swirl); presets `explosion` (flat base, stem, cap ~50 m, spikes), `blast`, `campfire`, `exhaust`, `dust`, `puff`; view `views/experiment`.
 4. Jeep dust uses it.
-Later: clouds (redo on the field), shockwave ring, low-poly switch, fog on far smoke, field edge bumpiness / shading banding at half res.
+Later: clouds (low poly heaps), shockwave ring, fog on far smoke.

@@ -4,89 +4,75 @@ import type { BurstOptions, Colour, Emitter, Layer, Preset, SmokeLook, SmokeSett
 
 // puff fields (one Float32Array, STRIDE per puff)
 const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8, R1 = 9, GROW = 10, DRAG = 11, LIFT = 12,
-    SWIRL = 13, STRETCH = 14, CR = 15, CG = 16, CB = 17, BRIGHT = 18, DIM = 19, SHRINK = 20, GROUND = 21, SEED = 22;
-const STRIDE = 23;
-// instance: x y z radius | stretch xyz seed | r g b bright
-const INSTANCE = 12;
-/** the blob's reach (field 0) in puff radii; tight = bumpy edges, little filler. A lone puff at the default threshold ends near its radius */
-const REACH = 1.25;
+    SWIRL = 13, STRETCH = 14, CR = 15, CG = 16, CB = 17, BRIGHT = 18, DIM = 19, SHRINK = 20, GROUND = 21, SEED = 22,
+    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28;
+const STRIDE = 29;
+// puff instance: x y z radius | stretch xyz seed | r g b bright | angle
+const PUFF = 13;
+// tube instance: a xyz radius | b xyz radius | r g b bright
+const TUBE = 12;
 
-// pass 1: every puff adds a soft blob into the field (normal, weight | colour, bright | depth)
+const SHADE = `
+uniform vec3 sun, shade;
+uniform float highlight;
+vec3 toon(vec3 p, vec3 base, float bright) {
+    // flat: one normal per face
+    vec3 n = normalize(cross(dFdx(p), dFdy(p)));
+    float l = dot(n, sun);
+    if (l > .55) return mix(base, vec3(1.0), highlight * (.35 + .65 * bright));
+    if (l > .1) return mix(base, vec3(1.0), highlight * .25 * bright);
+    if (l > -.35) return base * mix(vec3(1.0), shade, .5);
+    return base * shade;
+}`;
+const FRAGMENT = `#version 300 es
+precision highp float;
+in vec3 vWorld;
+in vec4 vTone;
+out vec4 outColor;
+${SHADE}
+void main() { outColor = vec4(toon(vWorld, vTone.rgb, vTone.a), 1.0); }`;
+
 const PUFF_VERTEX = `#version 300 es
-layout(location = 0) in vec2 corner;
+layout(location = 0) in vec3 position;
 layout(location = 1) in vec4 puff;
 layout(location = 2) in vec4 motion;
 layout(location = 3) in vec4 tone;
+layout(location = 4) in float angle;
 uniform mat4 view, projection;
-out vec2 vUv;
-out vec3 vView;
-out float vRadius;
+out vec3 vWorld;
 out vec4 vTone;
 void main() {
-    vec3 c = (view * vec4(puff.xyz, 1.0)).xyz;
-    // stretched along the screen way it moves (speed + wind): head stays, tail trails
-    vec2 d = (mat3(view) * motion.xyz).xy;
-    float l = min(length(d), 4.0);
-    vec2 ax = l > 1e-4 ? normalize(d) : vec2(1.0, 0.0), ay = vec2(-ax.y, ax.x);
-    float k = 1.0 + l;
-    vec2 local = corner * ${REACH.toFixed(3)};
-    vec2 o = (ax * local.x * k + ay * local.y - ax * (k - 1.0) * .5) * puff.w;
-    vView = c + vec3(o, 0.0);
-    vUv = local;
-    vRadius = puff.w;
+    // turned about its own random axis
+    float seed = motion.w;
+    vec3 axis = normalize(vec3(sin(seed * 12.9), cos(seed * 7.3), sin(seed * 3.1 + 1.0)));
+    float c = cos(angle), s = sin(angle);
+    vec3 p = position * c + cross(axis, position) * s + axis * dot(axis, position) * (1.0 - c);
+    p *= puff.w;
+    // stretched along its way
+    float l = min(length(motion.xyz), 3.0);
+    if (l > 1e-4) { vec3 d = normalize(motion.xyz); p += d * dot(p, d) * l; }
+    vWorld = puff.xyz + p;
     vTone = tone;
-    gl_Position = projection * vec4(vView, 1.0);
-}`;
-const PUFF_FRAGMENT = `#version 300 es
-precision highp float;
-in vec2 vUv;
-in vec3 vView;
-in float vRadius;
-in vec4 vTone;
-layout(location = 0) out vec4 field;
-layout(location = 1) out vec4 tone;
-layout(location = 2) out vec4 depth;
-void main() {
-    float s = length(vUv) / ${REACH.toFixed(3)};
-    if (s >= 1.0) discard;
-    float w = (1.0 - s * s) * (1.0 - s * s);
-    float r = length(vUv);
-    vec3 n = r < 1.0 ? vec3(vUv, sqrt(1.0 - r * r)) : vec3(vUv / r, 0.0);
-    // normals lean to the nearest puff: the balls still read inside the merged shape
-    field = vec4(n * w * w, w);
-    tone = vTone * w;
-    depth = vec4(-(vView.z + n.z * vRadius) * w, 0.0, 0.0, 0.0);
+    gl_Position = projection * view * vec4(vWorld, 1.0);
 }`;
 
-// pass 2: cut the field at the threshold, toon shade the merged surface
-const MERGE_VERTEX = `#version 300 es
-out vec2 vUv;
-void main() { vec2 p = vec2(gl_VertexID == 1 ? 3.0 : -1.0, gl_VertexID == 2 ? 3.0 : -1.0); vUv = p * .5 + .5; gl_Position = vec4(p, 0.0, 1.0); }`;
-const MERGE_FRAGMENT = `#version 300 es
-precision highp float;
-in vec2 vUv;
-uniform sampler2D fieldMap, toneMap, depthMap;
-uniform vec3 sun, shade;
-uniform float threshold, highlight;
-uniform vec2 project;
-out vec4 outColor;
+const TUBE_VERTEX = `#version 300 es
+layout(location = 0) in vec3 ring;
+layout(location = 1) in vec4 a;
+layout(location = 2) in vec4 b;
+layout(location = 3) in vec4 tone;
+uniform mat4 view, projection;
+uniform float thickness;
+out vec3 vWorld;
+out vec4 vTone;
 void main() {
-    vec4 f = texture(fieldMap, vUv);
-    float w = f.w, aa = fwidth(w) * .75 + 1e-4;
-    float cover = smoothstep(threshold - aa, threshold + aa, w);
-    if (cover <= 0.0) discard;
-    vec3 n = normalize(f.xyz + vec3(0.0, 0.0, 1e-4));
-    vec4 t = texture(toneMap, vUv) / w;
-    vec3 base = t.rgb;
-    float bright = t.a, l = dot(n, sun);
-    vec3 col;
-    if (l > .62) col = mix(base, vec3(1.0), highlight * (.45 + .55 * bright));
-    else if (l > .15) col = mix(base, vec3(1.0), highlight * .25 * bright);
-    else if (l > -.3) col = base * mix(vec3(1.0), shade, .5);
-    else col = base * shade;
-    outColor = vec4(col * cover, cover);
-    float d = max(texture(depthMap, vUv).r / w, .01);
-    gl_FragDepth = ((project.x * -d + project.y) / d) * .5 + .5;
+    vec3 axis = b.xyz - a.xyz;
+    vec3 d = normalize(axis);
+    vec3 u = normalize(cross(d, abs(d.y) < .9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0))), v = cross(d, u);
+    float t = ring.z, r = mix(a.w, b.w, t) * thickness;
+    vWorld = mix(a.xyz, b.xyz, t) + (u * ring.x + v * ring.y) * r;
+    vTone = tone;
+    gl_Position = projection * view * vec4(vWorld, 1.0);
 }`;
 
 let count = 0;
@@ -94,90 +80,113 @@ const rand = (r: [number, number]) => r[0] === r[1] ? r[0] : r[0] + Math.random(
 const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /**
- * Stylized toon smoke. Puffs are soft blobs added into one field, cut at a threshold: near puffs merge with
- * filler between them, lone ones stay round balls, stretched ones deform along their way. The merged shape gets
- * flat bands (white top, body, cool shadow) and the scene's depth. Puffs burst out, brake, rise, get dragged by
- * the wind, roll in on themselves and shrink away.
- * `update(dt)` then `draw(view)` each frame (after the opaque scene).
+ * Stylized low poly smoke. Every puff is a flat shaded icosahedron (toon bands per face: white top, body,
+ * cool shadow), joined to its parent puff by a low poly tube while they are close: a body that fills between
+ * the balls, with lone balls at the ends. Puffs burst out, brake, rise, swirl on curl noise, roll (explosion caps),
+ * get dragged by the wind, and shrink away. Opaque, two instanced draws.
+ * `update(dt)` then `draw(view)` each frame.
  */
 export class Smoke {
     readonly presets: Record<string, Preset>;
-    readonly look: SmokeLook = { sun: [.35, .85, .4], wind: [0, 0, 0], shade: [.72, .74, .84], highlight: .8, threshold: .13, resolution: .5 };
+    readonly look: SmokeLook = { sun: [.35, .85, .4], wind: [0, 0, 0], shade: [.78, .8, .87], highlight: .8, detail: 0, thickness: .62, reach: 1.6, swirl: 1 };
     /** time scale (slow motion for tuning) */
     speed = 1;
     private gl: WebGL2RenderingContext;
     private puffProgram?: WebGLProgram;
-    private mergeProgram?: WebGLProgram;
-    private uniforms: Record<string, WebGLUniformLocation | null> = {};
+    private tubeProgram?: WebGLProgram;
+    private uniforms: Record<string, Record<string, WebGLUniformLocation | null>> = { puff: {}, tube: {} };
     private max: number;
     private data: Float32Array;
     private live = 0;
-    private instances: Float32Array;
-    private vao: WebGLVertexArrayObject;
-    private empty: WebGLVertexArrayObject;
-    private buffer: WebGLBuffer;
-    private quad: WebGLBuffer;
-    private target?: { fbo: WebGLFramebuffer; textures: WebGLTexture[]; width: number; height: number };
+    private puffs: Float32Array;
+    private tubes: Float32Array;
+    private meshes: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; geometry: WebGLBuffer; vertices: number }[];
+    private tube: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; geometry: WebGLBuffer; vertices: number };
     private ground: (x: number, z: number) => number;
-    private emitters: (Emitter & { preset: Preset; carry: number[]; on: boolean })[] = [];
+    private emitters: (Emitter & { preset: Preset; carry: number[]; last: number[]; on: boolean })[] = [];
     private time = 0;
-    private sunView = new Float32Array(3);
+    private ids = 1;
+    private groups = 1;
+    private slots = new Map<number, number>();
+    private sun = new Float32Array(3);
 
     constructor(layer: Layer3D, setting: SmokeSetting = {}) {
         const gl = this.gl = layer.gl;
-        gl.getExtension("EXT_color_buffer_float");
         this.max = setting.puffs ?? 4000;
         this.ground = setting.ground ?? (() => 0);
         this.presets = { ...PRESETS, ...setting.presets };
         this.data = new Float32Array(this.max * STRIDE);
-        this.instances = new Float32Array(this.max * INSTANCE);
-        const id = count++;
-        layer.createProgram(`pw-smoke-puff-${id}`, PUFF_VERTEX, PUFF_FRAGMENT).then(program => {
+        this.puffs = new Float32Array(this.max * PUFF);
+        this.tubes = new Float32Array(this.max * TUBE);
+        const id = count++, names = ["view", "projection", "sun", "shade", "highlight", "thickness"];
+        layer.createProgram(`pw-smoke-puff-${id}`, PUFF_VERTEX, FRAGMENT).then(program => {
             this.puffProgram = program;
-            for (const n of ["view", "projection"]) this.uniforms[n] = gl.getUniformLocation(program, n);
+            for (const n of names) this.uniforms.puff[n] = gl.getUniformLocation(program, n);
         });
-        layer.createProgram(`pw-smoke-merge-${id}`, MERGE_VERTEX, MERGE_FRAGMENT).then(program => {
-            this.mergeProgram = program;
-            for (const n of ["fieldMap", "toneMap", "depthMap", "sun", "shade", "threshold", "highlight", "project"]) this.uniforms[n] = gl.getUniformLocation(program, n);
+        layer.createProgram(`pw-smoke-tube-${id}`, TUBE_VERTEX, FRAGMENT).then(program => {
+            this.tubeProgram = program;
+            for (const n of names) this.uniforms.tube[n] = gl.getUniformLocation(program, n);
         });
+        this.meshes = [icosahedron(0), icosahedron(1)].map(g => this.mesh(g, 3, PUFF, [[1, 4, 0], [2, 4, 4], [3, 4, 8], [4, 1, 12]]));
+        this.tube = this.mesh(tubeRing(6), 3, TUBE, [[1, 4, 0], [2, 4, 4], [3, 4, 8]]);
+    }
 
-        this.vao = gl.createVertexArray()!;
-        gl.bindVertexArray(this.vao);
-        this.quad = gl.createBuffer()!;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.quad);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    private mesh(geometry: Float32Array, size: number, stride: number, attributes: number[][]) {
+        const gl = this.gl, vao = gl.createVertexArray()!;
+        gl.bindVertexArray(vao);
+        const g = gl.createBuffer()!;
+        gl.bindBuffer(gl.ARRAY_BUFFER, g);
+        gl.bufferData(gl.ARRAY_BUFFER, geometry, gl.STATIC_DRAW);
         gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-        this.buffer = gl.createBuffer()!;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.instances.byteLength, gl.DYNAMIC_DRAW);
-        const at = (location: number, size: number, offset: number) => {
+        gl.vertexAttribPointer(0, size, gl.FLOAT, false, 0, 0);
+        const buffer = gl.createBuffer()!;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this.max * stride * 4, gl.DYNAMIC_DRAW);
+        for (const [location, n, offset] of attributes)
+        {
             gl.enableVertexAttribArray(location);
-            gl.vertexAttribPointer(location, size, gl.FLOAT, false, INSTANCE * 4, offset * 4);
+            gl.vertexAttribPointer(location, n, gl.FLOAT, false, stride * 4, offset * 4);
             gl.vertexAttribDivisor(location, 1);
-        };
-        at(1, 4, 0); at(2, 4, 4); at(3, 4, 8);
+        }
         gl.bindVertexArray(null);
-        this.empty = gl.createVertexArray()!;
+        return { vao, buffer, geometry: g, vertices: geometry.length / size };
     }
 
     /** puffs alive */
     get count() { return this.live; }
 
-    /** a one shot: every layer of `preset` (a name or a preset) at `at` */
+    /** a one shot: every layer of `preset` (a name or a preset) at `at`; each puff joins the nearest one spawned before it */
     burst(preset: string | Preset, at: ArrayLike<number>, options: BurstOptions = {}) {
         const p = typeof preset === "string" ? this.presets[preset] : preset;
         if (!p) return;
+        const group = this.groups++, spawned: number[] = [];
         for (const layer of p.layers)
-            for (let i = 0; i < layer.count; i++) this.spawn(layer, at, options.scale ?? 1, options.velocity, options.colour);
+            for (let i = 0; i < layer.count; i++)
+            {
+                const slot = this.spawn(layer, at, options.scale ?? 1, options.velocity, options.colour, group);
+                if (slot < 0) return;
+                if (layer.link !== false)
+                {
+                    const d = this.data, o = slot * STRIDE;
+                    let best = -1, near = Infinity;
+                    for (const other of spawned)
+                    {
+                        const q = other * STRIDE, k = (d[q + PX] - d[o + PX]) ** 2 + (d[q + PY] - d[o + PY]) ** 2 + (d[q + PZ] - d[o + PZ]) ** 2;
+                        if (k < near) { near = k; best = other; }
+                    }
+                    if (best >= 0) d[o + PARENT] = d[best * STRIDE + ID];
+                    spawned.push(slot);
+                }
+            }
     }
 
-    /** a running source: each layer's `count` is puffs per second */
+    /** a running source: each layer's `count` is puffs per second, each puff joined to the one before */
     emitter(preset: string | Preset, at: ArrayLike<number>, options: BurstOptions = {}): Emitter {
         const p = typeof preset === "string" ? this.presets[preset] : preset;
+        const layers = p?.layers ?? [];
         const e = {
             preset: p ?? { layers: [] }, position: [at[0], at[1], at[2]] as Vec3, rate: 1, scale: options.scale ?? 1,
-            velocity: options.velocity ?? [0, 0, 0] as Vec3, colour: options.colour, carry: (p?.layers ?? []).map(() => Math.random()), on: true,
+            velocity: options.velocity ?? [0, 0, 0] as Vec3, colour: options.colour, carry: layers.map(() => Math.random()), last: layers.map(() => 0), on: true,
             stop: () => { e.on = false; this.emitters = this.emitters.filter(x => x !== e); },
         };
         this.emitters.push(e);
@@ -188,10 +197,11 @@ export class Smoke {
     clear() {
         this.live = 0;
         this.emitters.length = 0;
+        this.slots.clear();
     }
 
     /** one puff of `layer`; returns its slot (-1 when full) */
-    spawn(layer: Layer, at: ArrayLike<number>, scale = 1, velocity?: ArrayLike<number>, colour?: Colour) {
+    spawn(layer: Layer, at: ArrayLike<number>, scale = 1, velocity?: ArrayLike<number>, colour?: Colour, group = 0) {
         if (this.live >= this.max) return -1;
         const slot = this.live++, o = slot * STRIDE, d = this.data;
         const jitter = layer.jitter ?? .3, j = () => 1 + (Math.random() * 2 - 1) * jitter;
@@ -229,6 +239,12 @@ export class Smoke {
         d[o + SHRINK] = layer.shrink ?? .6;
         d[o + GROUND] = layer.ground === false ? 0 : 1;
         d[o + SEED] = Math.random() * 100;
+        const id = this.ids++;
+        d[o + ID] = id; d[o + PARENT] = 0;
+        d[o + OX] = at[0]; d[o + OZ] = at[2];
+        d[o + GROUP] = layer.roll ? group : 0;
+        d[o + ROLL] = (layer.roll ?? 0) * scale;
+        this.slots.set(id, slot);
         return slot;
     }
 
@@ -238,10 +254,29 @@ export class Smoke {
         for (const e of this.emitters)
             e.preset.layers.forEach((layer, i) => {
                 e.carry[i] += layer.count * e.rate * dt;
-                while (e.carry[i] >= 1) { e.carry[i]--; this.spawn(layer, e.position, e.scale, e.velocity, e.colour); }
+                while (e.carry[i] >= 1)
+                {
+                    e.carry[i]--;
+                    const slot = this.spawn(layer, e.position, e.scale, e.velocity, e.colour);
+                    if (slot < 0) continue;
+                    if (layer.link !== false) this.data[slot * STRIDE + PARENT] = e.last[i];
+                    e.last[i] = this.data[slot * STRIDE + ID];
+                }
             });
 
-        const d = this.data, t = this.time, w = this.look.wind;
+        const d = this.data, w = this.look.wind, swirl = this.look.swirl;
+        // vortex rings: each rolling burst's centre and ring radius
+        const rings = new Map<number, number[]>();
+        for (let i = 0; i < this.live; i++)
+        {
+            const o = i * STRIDE, g = d[o + GROUP];
+            if (!g || d[o + AGE] < 0) continue;
+            let r = rings.get(g);
+            if (!r) rings.set(g, r = [0, 0, 0]);
+            r[0] += d[o + PY]; r[1] += Math.hypot(d[o + PX] - d[o + OX], d[o + PZ] - d[o + OZ]); r[2]++;
+        }
+        for (const r of rings.values()) { r[0] /= r[2]; r[1] = r[1] / r[2] * .8; }
+
         for (let i = this.live - 1; i >= 0; i--)
         {
             const o = i * STRIDE;
@@ -251,21 +286,33 @@ export class Smoke {
             if (age >= life) { this.remove(i); continue; }
             const damp = Math.exp(-d[o + DRAG] * dt);
             d[o + VX] *= damp; d[o + VY] = d[o + VY] * damp + d[o + LIFT] * dt; d[o + VZ] *= damp;
-            // the flow: a swirling field that gets stronger as the puff ages (rolls in on itself),
-            // the wind drags more the older and higher it is
             const x = d[o + PX], y = d[o + PY], z = d[o + PZ], k = age / life;
-            const s = d[o + SWIRL] * (.4 + 1.6 * k), seed = d[o + SEED];
-            const fx = Math.sin(z * .37 + t * .7 + seed) * Math.cos(y * .41 - t * .3);
-            const fy = Math.sin(x * .33 - t * .5) * Math.cos(z * .29 + t * .4 + seed) * .6;
-            const fz = Math.sin(y * .39 + t * .6) * Math.cos(x * .31 + t * .2 + seed);
+            let mx = d[o + VX], my = d[o + VY], mz = d[o + VZ];
+            // curl noise at the puff's own scale, stronger with age
+            const s = d[o + SWIRL] * swirl * (.4 + 1.6 * k);
+            if (s > 0)
+            {
+                const c = curl(x, y, z, .5 / Math.max(.2, d[o + R1]), this.time * .25);
+                mx += c[0] * s; my += c[1] * s; mz += c[2] * s;
+            }
+            // roll round the ring: up the middle, out over the top, down the outside, in along the bottom
+            const ring = d[o + GROUP] ? rings.get(d[o + GROUP]) : undefined;
+            if (ring)
+            {
+                const hx = x - d[o + OX], hz = z - d[o + OZ], h = Math.hypot(hx, hz) || 1;
+                const rx = h - ring[1], ry = y - ring[0], rl = Math.hypot(rx, ry) || 1;
+                const roll = d[o + ROLL] * Math.min(1, age);
+                const vr = ry / rl * roll, vy = -rx / rl * roll;
+                mx += hx / h * vr; my += vy; mz += hz / h * vr;
+            }
+            // the wind drags it more the older and higher it is
             const drag = Math.min(1, .3 + k * 1.4) * (1 + Math.max(0, y - this.ground(x, z)) * .03);
-            d[o + PX] = x + (d[o + VX] + fx * s + w[0] * drag) * dt;
-            d[o + PY] = y + (d[o + VY] + fy * s + w[1] * drag) * dt;
-            d[o + PZ] = z + (d[o + VZ] + fz * s + w[2] * drag) * dt;
+            d[o + PX] = x + (mx + w[0] * drag) * dt;
+            d[o + PY] = y + (my + w[1] * drag) * dt;
+            d[o + PZ] = z + (mz + w[2] * drag) * dt;
             if (d[o + GROUND])
             {
-                // sit on the ground, flat bottomed: a little sunk, slide along it
-                const floor = this.ground(d[o + PX], d[o + PZ]) + this.radius(o) * .1;
+                const floor = this.ground(d[o + PX], d[o + PZ]) + this.radius(o) * .2;
                 if (d[o + PY] < floor) { d[o + PY] = floor; if (d[o + VY] < 0) d[o + VY] = 0; }
             }
         }
@@ -273,8 +320,9 @@ export class Smoke {
 
     draw(view: View) {
         const gl = this.gl;
-        if (!this.puffProgram || !this.mergeProgram) return;
-        const d = this.data, out = this.instances, w = this.look.wind;
+        if (!this.puffProgram || !this.tubeProgram) return;
+        const d = this.data, P = this.puffs, T = this.tubes, w = this.look.wind, reach = this.look.reach;
+        const shown = new Float32Array(this.live);
         let n = 0;
         for (let i = 0; i < this.live; i++)
         {
@@ -283,96 +331,63 @@ export class Smoke {
             const t = age / d[o + LIFE];
             const radius = this.radius(o) * (1 - smoothstep(d[o + SHRINK], 1, t));
             if (radius <= .001) continue;
-            const k = n++ * INSTANCE, st = d[o + STRETCH], wk = .3 + t;
-            out[k] = d[o + PX]; out[k + 1] = d[o + PY]; out[k + 2] = d[o + PZ]; out[k + 3] = radius;
-            out[k + 4] = (d[o + VX] + w[0] * wk) * st; out[k + 5] = (d[o + VY] + w[1] * wk) * st; out[k + 6] = (d[o + VZ] + w[2] * wk) * st; out[k + 7] = d[o + SEED];
-            out[k + 8] = d[o + CR]; out[k + 9] = d[o + CG]; out[k + 10] = d[o + CB];
-            out[k + 11] = d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], t));
+            shown[i] = radius;
+            const k = n++ * PUFF, st = d[o + STRETCH], wk = .3 + t;
+            P[k] = d[o + PX]; P[k + 1] = d[o + PY]; P[k + 2] = d[o + PZ]; P[k + 3] = radius;
+            P[k + 4] = (d[o + VX] + w[0] * wk) * st; P[k + 5] = (d[o + VY] + w[1] * wk) * st; P[k + 6] = (d[o + VZ] + w[2] * wk) * st; P[k + 7] = d[o + SEED];
+            P[k + 8] = d[o + CR]; P[k + 9] = d[o + CG]; P[k + 10] = d[o + CB];
+            P[k + 11] = d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], t));
+            P[k + 12] = d[o + SEED] + age * (.4 + (d[o + SEED] % 1) * .6);
         }
         if (!n) return;
+        // tubes: puff to parent while both show and they are close
+        let m = 0;
+        for (let i = 0; i < this.live; i++)
+        {
+            const ra = shown[i];
+            if (!ra) continue;
+            const o = i * STRIDE, parent = this.slots.get(d[o + PARENT]);
+            if (parent === undefined) continue;
+            const rb = shown[parent];
+            if (!rb) continue;
+            const q = parent * STRIDE;
+            const dist = Math.hypot(d[q + PX] - d[o + PX], d[q + PY] - d[o + PY], d[q + PZ] - d[o + PZ]);
+            if (dist < .01 || dist > (ra + rb) * reach) continue;
+            const k = m++ * TUBE;
+            T[k] = d[o + PX]; T[k + 1] = d[o + PY]; T[k + 2] = d[o + PZ]; T[k + 3] = ra;
+            T[k + 4] = d[q + PX]; T[k + 5] = d[q + PY]; T[k + 6] = d[q + PZ]; T[k + 7] = rb;
+            T[k + 8] = (d[o + CR] + d[q + CR]) / 2; T[k + 9] = (d[o + CG] + d[q + CG]) / 2; T[k + 10] = (d[o + CB] + d[q + CB]) / 2;
+            T[k + 11] = Math.min(d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], d[o + AGE] / d[o + LIFE])), d[q + BRIGHT] * (1 - smoothstep(0, d[q + DIM], d[q + AGE] / d[q + LIFE])));
+        }
 
-        // where the scene draws: put back after
-        const screen = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null;
-        const port = gl.getParameter(gl.VIEWPORT) as Int32Array;
-        const target = this.resize(Math.max(1, Math.round(port[2] * this.look.resolution)), Math.max(1, Math.round(port[3] * this.look.resolution)));
-
-        // pass 1: the field
-        gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
-        gl.viewport(0, 0, target.width, target.height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.useProgram(this.puffProgram);
-        gl.uniformMatrix4fv(this.uniforms.view, false, new Float32Array(view.viewMatrix as ArrayLike<number>));
-        gl.uniformMatrix4fv(this.uniforms.projection, false, new Float32Array(view.projectionMatrix as ArrayLike<number>));
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, out, 0, n * INSTANCE);
-        gl.disable(gl.DEPTH_TEST);
-        gl.depthMask(false);
-        gl.disable(gl.CULL_FACE);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE);
-        gl.bindVertexArray(this.vao);
-        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n);
-
-        // pass 2: merge onto the scene, its depth tests against the scene's
-        gl.bindFramebuffer(gl.FRAMEBUFFER, screen);
-        gl.viewport(port[0], port[1], port[2], port[3]);
-        const v = view.viewMatrix, s = this.look.sun, p = view.projectionMatrix;
-        for (let r = 0; r < 3; r++) this.sunView[r] = v[r] * s[0] + v[4 + r] * s[1] + v[8 + r] * s[2];
-        const l = Math.hypot(this.sunView[0], this.sunView[1], this.sunView[2]) || 1;
-        for (let r = 0; r < 3; r++) this.sunView[r] /= l;
-        gl.useProgram(this.mergeProgram);
-        target.textures.forEach((texture, i) => {
-            gl.activeTexture(gl.TEXTURE0 + i);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-        });
-        gl.uniform1i(this.uniforms.fieldMap, 0);
-        gl.uniform1i(this.uniforms.toneMap, 1);
-        gl.uniform1i(this.uniforms.depthMap, 2);
-        gl.uniform3fv(this.uniforms.sun, this.sunView);
-        gl.uniform3fv(this.uniforms.shade, this.look.shade);
-        gl.uniform1f(this.uniforms.threshold, this.look.threshold);
-        gl.uniform1f(this.uniforms.highlight, this.look.highlight);
-        gl.uniform2f(this.uniforms.project, p[10], p[14]);
+        const s = this.look.sun, l = Math.hypot(s[0], s[1], s[2]) || 1;
+        this.sun[0] = s[0] / l; this.sun[1] = s[1] / l; this.sun[2] = s[2] / l;
+        const viewM = new Float32Array(view.viewMatrix as ArrayLike<number>), projection = new Float32Array(view.projectionMatrix as ArrayLike<number>);
         gl.enable(gl.DEPTH_TEST);
         gl.depthMask(true);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        gl.bindVertexArray(this.empty);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-        gl.bindVertexArray(null);
         gl.disable(gl.BLEND);
-        gl.activeTexture(gl.TEXTURE0);
+        gl.disable(gl.CULL_FACE);
+        const pass = (program: WebGLProgram, u: Record<string, WebGLUniformLocation | null>, mesh: { vao: WebGLVertexArrayObject; buffer: WebGLBuffer; vertices: number }, data: Float32Array, floats: number, instances: number) => {
+            gl.useProgram(program);
+            gl.uniformMatrix4fv(u.view, false, viewM);
+            gl.uniformMatrix4fv(u.projection, false, projection);
+            gl.uniform3fv(u.sun, this.sun);
+            gl.uniform3fv(u.shade, this.look.shade);
+            gl.uniform1f(u.highlight, this.look.highlight);
+            gl.uniform1f(u.thickness, this.look.thickness);
+            gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, instances * floats);
+            gl.bindVertexArray(mesh.vao);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, mesh.vertices, instances);
+        };
+        pass(this.puffProgram, this.uniforms.puff, this.meshes[this.look.detail ? 1 : 0], P, PUFF, n);
+        if (m) pass(this.tubeProgram, this.uniforms.tube, this.tube, T, TUBE, m);
+        gl.bindVertexArray(null);
     }
 
     destroy() {
         const gl = this.gl;
-        gl.deleteVertexArray(this.vao);
-        gl.deleteVertexArray(this.empty);
-        gl.deleteBuffer(this.buffer);
-        gl.deleteBuffer(this.quad);
-        if (this.target) { gl.deleteFramebuffer(this.target.fbo); this.target.textures.forEach(t => gl.deleteTexture(t)); }
-    }
-
-    /** the field buffer: 3 half float targets */
-    private resize(width: number, height: number) {
-        if (this.target && this.target.width === width && this.target.height === height) return this.target;
-        const gl = this.gl;
-        if (this.target) { gl.deleteFramebuffer(this.target.fbo); this.target.textures.forEach(t => gl.deleteTexture(t)); }
-        const fbo = gl.createFramebuffer()!;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        const textures = [0, 1, 2].map(i => {
-            const t = gl.createTexture()!;
-            gl.bindTexture(gl.TEXTURE_2D, t);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, width, height, 0, gl.RGBA, gl.HALF_FLOAT, null);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, gl.TEXTURE_2D, t, 0);
-            return t;
-        });
-        gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1, gl.COLOR_ATTACHMENT2]);
-        return this.target = { fbo, textures, width, height };
+        for (const x of [...this.meshes, this.tube]) { gl.deleteVertexArray(x.vao); gl.deleteBuffer(x.buffer); gl.deleteBuffer(x.geometry); }
     }
 
     /** grown radius (before the shrink): a fast pop that eases out */
@@ -382,9 +397,63 @@ export class Smoke {
     }
 
     private remove(i: number) {
-        const last = --this.live;
-        if (i !== last) this.data.copyWithin(i * STRIDE, last * STRIDE, last * STRIDE + STRIDE);
+        const last = --this.live, d = this.data;
+        this.slots.delete(d[i * STRIDE + ID]);
+        if (i !== last)
+        {
+            d.copyWithin(i * STRIDE, last * STRIDE, last * STRIDE + STRIDE);
+            this.slots.set(d[i * STRIDE + ID], i);
+        }
     }
+}
+
+/** a smooth vector potential; its curl is a swirling flow with no sources or sinks (Bridson 2007, curl noise) */
+function potential(x: number, y: number, z: number, t: number, out: number[], k: number) {
+    out[k] = Math.sin(y * 1.3 + t) * Math.cos(z * .9 - t * .7) + .5 * Math.sin(z * 2.3 + x * .7 + t * 1.3);
+    out[k + 1] = Math.sin(z * 1.1 - t * .8) * Math.cos(x * 1.2 + t * .5) + .5 * Math.sin(x * 2.1 - y * .6 + t * 1.1);
+    out[k + 2] = Math.sin(x * .95 + t * .6) * Math.cos(y * 1.4 - t * .9) + .5 * Math.sin(y * 2.2 + z * .8 - t * 1.2);
+}
+const field = new Array(18).fill(0);
+function curl(x: number, y: number, z: number, frequency: number, t: number): Vec3 {
+    const e = .1, f = frequency;
+    x *= f; y *= f; z *= f;
+    potential(x + e, y, z, t, field, 0); potential(x - e, y, z, t, field, 3);
+    potential(x, y + e, z, t, field, 6); potential(x, y - e, z, t, field, 9);
+    potential(x, y, z + e, t, field, 12); potential(x, y, z - e, t, field, 15);
+    const k = 1 / (2 * e);
+    // curl = (dPz/dy - dPy/dz, dPx/dz - dPz/dx, dPy/dx - dPx/dy)
+    return [
+        ((field[8] - field[11]) - (field[13] - field[16])) * k * .5,
+        ((field[12] - field[15]) - (field[2] - field[5])) * k * .5,
+        ((field[1] - field[4]) - (field[6] - field[9])) * k * .5,
+    ];
+}
+
+/** unit icosahedron, `subdivisions` times split, flat triangle list */
+function icosahedron(subdivisions: number) {
+    const t = (1 + Math.sqrt(5)) / 2;
+    const v = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]]
+        .map(p => { const l = Math.hypot(p[0], p[1], p[2]); return [p[0] / l, p[1] / l, p[2] / l]; });
+    let faces = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+        [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]].map(f => f.map(i => v[i]));
+    for (let s = 0; s < subdivisions; s++)
+    {
+        const mid = (a: number[], b: number[]) => { const m = [a[0] + b[0], a[1] + b[1], a[2] + b[2]], l = Math.hypot(m[0], m[1], m[2]); return [m[0] / l, m[1] / l, m[2] / l]; };
+        faces = faces.flatMap(([a, b, c]) => { const ab = mid(a, b), bc = mid(b, c), ca = mid(c, a); return [[a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]]; });
+    }
+    return new Float32Array(faces.flat(2));
+}
+
+/** an open tube: `sides` quads round, (cos, sin, t along) per vertex */
+function tubeRing(sides: number) {
+    const out: number[] = [];
+    for (let i = 0; i < sides; i++)
+    {
+        const a = i / sides * Math.PI * 2, b = (i + 1) / sides * Math.PI * 2;
+        const p = (angle: number, t: number) => out.push(Math.cos(angle), Math.sin(angle), t);
+        p(a, 0); p(b, 0); p(b, 1); p(a, 0); p(b, 1); p(a, 1);
+    }
+    return new Float32Array(out);
 }
 
 function random3(): Vec3 {

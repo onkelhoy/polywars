@@ -38,8 +38,10 @@ demo.tick = dt => {
     smoke.speed = +$('#speed').value;
     smoke.look.wind = [+$('#wind').value, 0, 0];
     smoke.look.highlight = +$('#highlight').value;
-    smoke.look.threshold = +$('#threshold').value;
-    smoke.look.resolution = +$('#resolution').value;
+    smoke.look.detail = +$('#detail').value;
+    smoke.look.thickness = +$('#thickness').value;
+    smoke.look.reach = +$('#reach').value;
+    smoke.look.swirl = +$('#swirl').value;
     const a = +$('#sun').value * Math.PI / 180;
     smoke.look.sun = [Math.cos(a) * .5, .8, Math.sin(a) * .5];
     campfire.rate = $('#fire').checked ? 1 : 0;

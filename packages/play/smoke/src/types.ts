@@ -33,7 +33,7 @@ export type Layer = {
     drag?: number;
     /** m/s² up (buoyancy); negative sinks (default 0) */
     lift?: number;
-    /** m/s of swirl from the flow field, grows with age: the roll in (default .5) */
+    /** m/s of curl noise swirl, grows with age (default .5) */
     swirl?: number;
     /** puff stretch along its speed: extra length per m/s (default .05) */
     stretch?: number;
@@ -45,6 +45,10 @@ export type Layer = {
     dim?: number;
     /** life fraction it starts shrinking (default .6) */
     shrink?: number;
+    /** m/s roll round the burst's ring (vortex ring: up the middle, out over the top, down the outside); for explosion caps */
+    roll?: number;
+    /** joined to a parent puff by a low poly tube (default true) */
+    link?: boolean;
     /** kept on / slid along the ground (default true) */
     ground?: boolean;
     /** random size / speed jitter 0..1 (default .3) */
@@ -70,12 +74,16 @@ export type SmokeLook = {
     wind: Vec3;
     /** shadow side colour multiplier (cool shadows) */
     shade: Colour;
-    /** how white the lit top goes, 0..1 */
+    /** how white the lit faces go, 0..1 */
     highlight: number;
-    /** where puffs merge: lower = fatter blobs, more filler (0..1) */
-    threshold: number;
-    /** smoke buffer size vs the screen (default .5) */
-    resolution: number;
+    /** puff faces: 0 = 20 (icosahedron), 1 = 80 */
+    detail: number;
+    /** filler tube radius vs the puffs it joins */
+    thickness: number;
+    /** a tube shows while its puffs are closer than this times their radii summed */
+    reach: number;
+    /** swirl multiplier */
+    swirl: number;
 };
 
 export type BurstOptions = {
