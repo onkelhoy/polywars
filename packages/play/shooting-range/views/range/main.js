@@ -162,16 +162,12 @@ function drawStands() {
 let near = -1, button;
 // the put-down gun within reach (F takes it back)
 // a loose gun within reach (F takes it: a held one is put down first)
-const gunNear = () => player.nearLoose() >= 0;
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
-    // leaving an optic, a desk button looked at, an optic near, then a gun case
-    if (player.looking) player.lookThrough();
-    else if (button) range.lanes.press(button.lane, button.dir);
-    else if (gunNear()) player.pickUp();
-    else if (nearOptic) useOptic(nearOptic);
-    else if (near >= 0) player.select(stands[near].gun);
+    // F does what the prompt says (set with it each frame)
+    fAction?.();
 });
+let fAction;
 
 // ---- optics: binoculars on the desks (F takes them, G raises them: shaky), spotting scopes in the nests (F: steady) ----
 let nearOptic, binoculars = false, binocularNode, binocularFrom;
@@ -264,12 +260,16 @@ demo.tick = () => {
     button = buttonAt(range.data, [w[12], w[13], w[14]], [-w[8], -w[9], -w[10]]);
     const lane = button && range.lanes.of(button.lane);
     nearOptic = (range.data.optics ?? []).find(o => (o.kind === 'fixed' || !binoculars) && Math.hypot(o.at[0] - f[0], o.at[2] - f[2]) < 1.4);
-    $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`
-        : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars · wheel zoom' : 'F  step back · wheel zoom')
-        : gunNear() ? `F  take ${player.carried[player.nearLoose()].gun.spec.name}${player.down ? '' : ' (swap)'}`
-        : nearOptic ? (nearOptic.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars')
-        : binoculars ? 'G  look through the binoculars'
-        : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';
+    // the first that applies: its prompt is shown, F runs its action (the two never disagree)
+    const loose = player.nearLoose(), b = button, o = nearOptic, st = near;
+    const [text, action] = player.looking ? [$('#optic').className === 'binoculars' ? 'G  lower the binoculars · wheel zoom' : 'F  step back · wheel zoom', () => player.lookThrough()]
+        : b ? [`F  target ${b.dir < 0 ? 'nearer' : 'further'} (lane ${b.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`, () => range.lanes.press(b.lane, b.dir)]
+        : loose >= 0 ? [`F  take ${player.carried[loose].gun.spec.name}${player.down ? '' : ' (swap)'}`, () => player.pickUp(loose)]
+        : o ? [o.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars', () => useOptic(o)]
+        : binoculars ? ['G  look through the binoculars', undefined]
+        : st >= 0 ? [`F  take ${player.carried[stands[st].gun].gun.spec.name}`, () => player.select(stands[st].gun)] : ['', undefined];
+    $('#prompt').value = text;
+    fAction = action;
     $('#ammo').value = `${g.spec.name}\n${g.reloading > 0 ? 'reloading…' : `${g.rounds} / ${g.spec.magazine}`}${c.scope && g.aimed > .5 ? `\n${c.scope.zoom.toFixed(1)}×` : ''}`;
     $('#state').value = `shots ${player.shots} · hits ${player.hits}\n${lastHit}`;
 };
@@ -451,6 +451,7 @@ demo.tick = dt => {
     if (driving)
     {
         if (!document.body.classList.contains('playing')) return;
+        fAction = undefined;
         $('#prompt').value = `E  get out · V ${seatCam ? 'chase' : 'seat'} cam`;
         $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
         $('#cross').style.opacity = '0';
