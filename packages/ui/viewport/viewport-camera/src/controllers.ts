@@ -266,6 +266,8 @@ export type WalkSetting = Omit<MoverSetting, "ground"> & {
     sensitivity?: number;
     /** live multiplier on the look (dazed, a heavy scope ...), read every frame (default 1) */
     lookScale?: () => number;
+    /** live 0..1: the head follows the look on a soft spring (overshoots a touch, dazed), 0 = direct */
+    lookSpring?: () => number;
     /** the player let go of the view (Esc): the host switches back */
     exit?: () => void;
     /** on screen controls (stick walks, analog; `jump`, `run` buttons) */
@@ -281,6 +283,7 @@ export type WalkSetting = Omit<MoverSetting, "ground"> & {
 export function walk(setting: WalkSetting): CameraController & { feet: Vector3; grounded: boolean; mover: Mover } {
     const sensitivity = setting.sensitivity ?? .002, eye = setting.eye ?? 1.7, speed = setting.speed ?? 4.5, run = setting.run ?? 2.2;
     let dx = 0, dy = 0, cleanup: (() => void) | undefined;
+    let aim: { y: number; x: number; vy: number; vx: number } | undefined;
     const controller = {
         feet: new Vector3(0, 0, 0),
         grounded: true,
@@ -288,6 +291,7 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
         start(camera: Camera) {
             const canvas = camera.surface!.element as HTMLElement, element = stage(camera);
             const p = camera.position;
+            aim = undefined;
             controller.mover.place(p.x, p.z);
             controller.feet.set(controller.mover.feet);
             const root = () => canvas.getRootNode() as Document | ShadowRoot;
@@ -317,10 +321,19 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
         },
         update(camera: Camera, dt: number) {
             dt = Math.min(dt, .1);
-            const r = camera.rotation, look = sensitivity * (setting.lookScale?.() ?? 1);
-            r.y -= dx * look;
-            r.x = clampPitch(r.x - dy * look);
+            const r = camera.rotation, look = sensitivity * (setting.lookScale?.() ?? 1), spring = setting.lookSpring?.() ?? 0;
+            aim ??= { y: r.y, x: r.x, vy: 0, vx: 0 };
+            aim.y -= dx * look;
+            aim.x = clampPitch(aim.x - dy * look);
             dx = dy = 0;
+            if (spring > .001)
+            {
+                // a soft spring: lags, then swings a hair past
+                const k = 400 - 340 * spring, damp = 2 * Math.sqrt(k) * (1 - .45 * spring);
+                aim.vy += ((aim.y - r.y) * k - aim.vy * damp) * dt; aim.vx += ((aim.x - r.x) * k - aim.vx * damp) * dt;
+                r.y += aim.vy * dt; r.x = clampPitch(r.x + aim.vx * dt);
+            }
+            else { r.y = aim.y; r.x = aim.x; aim.vy = aim.vx = 0; }
             const keys = camera.engine!.input.keyboard;
             const k = (...names: string[]) => !typing() && names.some(n => keys.key(n)?.pressed) ? 1 : 0;
             // level forward / right, eased so starts and stops aren't instant

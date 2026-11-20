@@ -31,7 +31,7 @@ const daze = new Daze(demo.layer);
 const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(v, _s, hit) { const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a); demo.walker?.mover.push(v[0], v[1], v[2]); } };
 
 // play: walk round (P), dazed you turn slowly (the look slows with the daze)
-demo.walking = { ground: () => 0, lookScale: () => 1 - .85 * daze.amount };
+demo.walking = { ground: () => 0, lookScale: () => 1 - .85 * daze.amount, lookSpring: () => daze.amount * .5 };
 $('#play').onclick = () => { mixer.unlock(); demo.mode = 'walk'; };
 addEventListener('keydown', e => { if (e.code === 'KeyP' && demo.mode !== 'walk') { mixer.unlock(); demo.mode = 'walk'; } });
 const log = [];
