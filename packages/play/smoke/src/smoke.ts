@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { PRESETS, WHITE } from "./presets";
-import type { BurstOptions, CloudKind, CloudOptions, Colour, Emitter, Layer, Preset, SmokeLook, SmokeSetting, Vec3, View } from "./types";
+import type { BurstOptions, Colour, Emitter, Layer, PlaceOptions, Preset, SmokeLook, SmokeSetting, Vec3, View } from "./types";
 
 // puff fields (one Float32Array, STRIDE per puff)
 const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8, R1 = 9, GROW = 10, DRAG = 11, LIFT = 12,
@@ -216,62 +216,22 @@ export class Smoke {
     }
 
     /**
-     * A cloud (low poly, like a painted one): a few big round masses (`kind` sets their layout), round lobes only on
-     * their upper outer surface, big in the body and smaller to the edges, everything flat along one bottom line.
-     * `size` m sets the scale; `density` 0..1 makes it greyer (and flatter for `overcast`). Lives until `clear`,
-     * drifts with the wind. Kinds: `cumulus` a big lone tower, `fair` a small fluffy one, `bank` wide and low with a
-     * flat sheet under it, `overcast` a dense grey flat layer.
+     * One still puff (clouds, banks): lives until `clear`, drifts with the wind only, no spin, no tube.
+     * `flat` / `top` squash it under / over its centre (1 = round), `centre` lights it as part of one mass
+     * (facets lean to the way out of that centre, shaded with `look.skyShade`). Returns its slot (-1 when full).
      */
-    cloud(at: ArrayLike<number>, size: number, options: CloudOptions = {}) {
-        const kind = options.kind ?? "cumulus", density = options.density ?? (kind === "overcast" ? .7 : .2);
-        const masses = skeleton(kind, size, options.height ?? 1, (options.lean ?? 0) * size);
-        const grey = kind === "overcast" ? .45 + density * .45 : density * .3;
-        const colour = options.colour ?? [WHITE[0] - grey * .3, WHITE[1] - grey * .29, WHITE[2] - grey * .25] as Colour;
-        const top = kind === "overcast" ? .6 - density * .2 : kind === "bank" ? .85 : 1;
-        const layer: Layer = { count: 1, speed: [0, 0], life: [Infinity, Infinity], size: [1, 1], grow: 100, drag: 0, swirl: 0, stretch: 0, colour, bright: 1 - grey * .6, dim: Infinity, ground: false, jitter: 0, spin: 0, link: false };
-        const d = this.data;
-        let centre = [0, 0, 0];
-        const put = (x: number, y: number, z: number, r: number, flat = 1, squash = top) => {
-            const slot = this.spawn(layer, [at[0] + x, at[1] + y, at[2] + z], 1);
-            if (slot < 0) return;
-            const o = slot * STRIDE;
-            d[o + R0] = d[o + R1] = r;
-            // nothing below the bottom line
-            d[o + FLAT] = Math.max(.08, Math.min(flat, y / r));
-            d[o + TOP] = squash;
-            d[o + SKY] = 1;
-            d[o + DETAIL] = 0;
-            d[o + CX] = at[0] + centre[0]; d[o + CY] = at[1] + centre[1]; d[o + CZ] = at[2] + centre[2];
-        };
-        for (const m of masses)
-        {
-            // a core fills it
-            centre = [m[0], m[1] - m[3] * .2, m[2]];
-            put(m[0], m[1], m[2], m[3] * .95);
-            // lobes evenly over the upper surface (fibonacci sphere), none under, none buried in a neighbour
-            const n = Math.round(4 + 7 * m[3] / size);
-            for (let i = 0; i < n; i++)
-            {
-                const y = 1 - (i + .5) / n * 2, ring = Math.sqrt(1 - y * y), a = i * 2.39996 + m[0];
-                const u = [Math.cos(a) * ring, y, Math.sin(a) * ring];
-                if (u[1] < -.3) continue;
-                const p = [m[0] + u[0] * m[3] * .62, m[1] + u[1] * m[3] * .62, m[2] + u[2] * m[3] * .62];
-                if (masses.some(q => q !== m && Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < q[3] * .85)) continue;
-                put(p[0], p[1], p[2], m[3] * (.55 + Math.random() * .12));
-            }
-        }
-    }
-
-    /** a sky of clouds: `count` scattered round `at` from `near` to `far` m out, kinds mixed by `cover` 0..1 (more = flatter, greyer) */
-    sky(at: ArrayLike<number>, options: { count?: number; near?: number; far?: number; height?: number; cover?: number } = {}) {
-        const count = options.count ?? 10, near = options.near ?? 1200, far = options.far ?? 3000, cover = options.cover ?? .3;
-        for (let i = 0; i < count; i++)
-        {
-            const a = Math.random() * Math.PI * 2, k = near + Math.random() * (far - near), r = Math.random();
-            const kind: CloudKind = r < cover * .6 ? "overcast" : r < cover ? "bank" : r < .55 + cover * .3 ? "fair" : "cumulus";
-            const size = kind === "fair" ? 60 + Math.random() * 60 : kind === "cumulus" ? 180 + Math.random() * 200 : 140 + Math.random() * 120;
-            this.cloud([at[0] + Math.cos(a) * k, (options.height ?? 220) + Math.random() * 80, at[2] + Math.sin(a) * k], size, { kind, density: cover, lean: (Math.random() - .5) * .8 });
-        }
+    place(at: ArrayLike<number>, radius: number, options: PlaceOptions = {}) {
+        const layer: Layer = { count: 1, speed: [0, 0], life: [Infinity, Infinity], size: [radius, radius], grow: 100, drag: 0, swirl: 0, stretch: 0, colour: options.colour ?? WHITE, bright: options.bright ?? 1, dim: Infinity, ground: false, jitter: 0, spin: 0, link: false };
+        const slot = this.spawn(layer, at, 1);
+        if (slot < 0) return slot;
+        const d = this.data, o = slot * STRIDE;
+        d[o + R0] = d[o + R1] = radius;
+        d[o + FLAT] = options.flat ?? 1;
+        d[o + TOP] = options.top ?? 1;
+        d[o + DETAIL] = options.detail ?? 0;
+        const c = options.centre;
+        if (c) { d[o + SKY] = 1; d[o + CX] = c[0]; d[o + CY] = c[1]; d[o + CZ] = c[2]; }
+        return slot;
     }
 
     /** drop every puff and emitter */
@@ -562,31 +522,3 @@ function cone(n: ArrayLike<number>, spread: number): Vec3 {
     return [x / l, y / l, z / l];
 }
 
-/** the big masses a cloud is built on: [x, y, z, radius], y up from its bottom line */
-function skeleton(kind: CloudKind, size: number, height: number, lean: number): number[][] {
-    const r = () => Math.random(), S = size, out: number[][] = [];
-    const add = (x: number, y: number, z: number, radius: number) => out.push([x, y, z, radius * S]);
-    if (kind === "cumulus")
-    {
-        // a base row, shoulders, a body that climbs (and leans), a head
-        for (let i = 0; i < 4; i++) { const x = (i / 3 - .5) * 1.6 * S, mid = 1 - Math.abs(i / 3 - .5); add(x, (.24 + .08 * mid) * S, (r() - .5) * .3 * S, .4 + .12 * mid); }
-        add(-.6 * S, .62 * S, (r() - .5) * .3 * S, .36); add(.6 * S, .58 * S, (r() - .5) * .3 * S, .34);
-        add(lean * .3, .95 * S * height, 0, .52); add(lean * .65, 1.38 * S * height, (r() - .5) * .2 * S, .46);
-        for (let i = 0; i < 3; i++) add(lean + (i - 1) * .34 * S, (1.78 + (i === 1 ? .16 : 0)) * S * height, (r() - .5) * .3 * S, .34 + (i === 1 ? .06 : 0));
-    }
-    else if (kind === "fair")
-    {
-        add(0, .3 * S, 0, .5); add(-.45 * S, .2 * S, (r() - .5) * .3 * S, .34); add(.45 * S, .2 * S, (r() - .5) * .3 * S, .36);
-        if (r() < .5) add((r() - .5) * .4 * S, .55 * S, 0, .3);
-    }
-    else if (kind === "bank")
-    {
-        for (let i = 0; i < 7; i++) { const t = i / 6 - .5, mid = 1 - Math.abs(t) * 2; add(t * 3.2 * S, (.18 + .1 * mid) * S, (r() - .5) * .5 * S, .3 + .15 * mid); }
-        for (let i = 0; i < 2; i++) add((r() - .5) * 1.2 * S, .5 * S, (r() - .5) * .3 * S, .3);
-    }
-    else
-    {
-        for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) add((i / 3 - .5) * 3 * S + (r() - .5) * .3 * S, (.16 + r() * .06) * S, (j / 2 - .5) * 2 * S, .42 + r() * .08);
-    }
-    return out;
-}

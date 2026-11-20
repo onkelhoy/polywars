@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>clouds | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".5" far="5000">
+    <aside>
+        <h1>clouds</h1>
+        <label>clouds <select id="cloud"><option>sky</option><option>cumulus</option><option>fair</option><option>bank</option><option>overcast</option></select></label>
+        <label>cover <input id="cover" type="range" min="0" max="1" step=".05" value=".3" /></label>
+        <label>wind <input id="wind" type="range" min="0" max="20" step=".5" value="2" /></label>
+        <label>sun <input id="sun" type="range" min="0" max="360" step="5" value="40" /></label>
+        <button id="again">again</button>
+    </aside>
+    </pw-viewport>
+</body>
+
+</html>

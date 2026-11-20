@@ -1,6 +1,6 @@
 {
   "name": "@polywar/smoke",
-  "description": "Stylized toon smoke: puffs that burst, billow, stretch into wisps and shrink out. Campfire, exhaust, ground blasts, clouds.",
+  "description": "Stylized toon smoke: puffs that burst, billow, stretch into wisps and shrink out. Campfire, exhaust, dust; still puffs for clouds.",
   "keywords": [
     "papit",
     "web-component",

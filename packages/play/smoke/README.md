@@ -18,6 +18,19 @@ Stylized toon smoke: puffs that burst, billow, stretch into wisps and shrink out
 npm install @polywar/smoke
 ```
 
+## Usage
+
+```ts
+const smoke = new Smoke(layer, { ground: (x, z) => height(x, z) });
+smoke.burst("puff", at, { scale: 1 });
+const fire = smoke.emitter("campfire", at);        // move / rate / stop
+smoke.place(at, 40, { centre });                     // a still puff (clouds: @polywar/clouds)
+smoke.update(dt); smoke.draw(camera);
+```
+
+- Presets `campfire`, `exhaust`, `dust`, `puff`; any `Preset` works. Explosions live in `@polywar/explosion`.
+- `look` is live (sun, wind, shade, highlight, detail, thickness, reach, swirl).
+
 ## License
 
 Licensed under the @Papit License 1.0 - Copyright (c) 2024 Henry Pap (@onkelhoy)

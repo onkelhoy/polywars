@@ -22,25 +22,16 @@ const centre = [0, 0, 0], fire = [-7, .1, 2];
 let campfire = smoke.emitter('campfire', fire);
 let exhaust = smoke.emitter('exhaust', [0, .4, 0]);
 
-// clouds far out: the world feels small under them
-const clouds = () => {
-    const kind = $('#cloud').value, cover = +$('#cover').value;
-    if (kind === 'sky') return smoke.sky([0, 0, 0], { count: 14, cover, near: 1400, far: 3200 });
-    smoke.cloud([-300, 230, -1900], 380, { kind, density: cover, lean: .5 });
-    smoke.cloud([900, 250, -2500], 300, { kind, density: cover, lean: -.4 });
-    smoke.cloud([-1500, 220, -2200], 260, { kind, density: cover });
-};
-clouds();
-$('#cloud').onchange = $('#cover').onchange = () => { smoke.clear(); clouds(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
+const restart = () => { smoke.clear(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
 
 const scale = () => +$('#scale').value, colour = () => COLOURS[$('#colour').value];
 const blast = () => smoke.burst($('#kind').value, centre, { scale: scale(), colour: colour() });
 for (const button of document.querySelectorAll('[data-burst]'))
     button.onclick = () => smoke.burst(button.dataset.burst, centre, { scale: scale(), colour: colour() });
-$('#clear').onclick = () => { smoke.clear(); clouds(); campfire = smoke.emitter('campfire', fire); exhaust = smoke.emitter('exhaust', [0, .4, 0]); };
+$('#clear').onclick = restart;
 addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); blast(); } });
 
-const far = () => demo.look([-55, 6, 80], [0, 22, 0]), near = () => demo.look([-14, 4, 20], [0, 3, 0]);
+const far = () => demo.look([-30, 8, 40], [0, 2, 0]), near = () => demo.look([-8, 2, 10], [0, 1, 0]);
 $('#near').onclick = near; $('#far').onclick = far;
 far();
 let wait = .5, time = 0, last = [0, .4, 0];
@@ -64,7 +55,7 @@ demo.tick = dt => {
     exhaust.rate = $('#exhaust').checked ? 1 : 0;
     last = p;
 
-    if ($('#repeat').checked && (wait -= dt * smoke.speed) <= 0) { wait = $('#kind').value === 'explosion' ? 7 : 3.2; blast(); }
+    if ($('#repeat').checked && (wait -= dt * smoke.speed) <= 0) { wait = 1.5; blast(); }
     smoke.update(dt);
     $('#info').value = `${smoke.count} puffs`;
 };

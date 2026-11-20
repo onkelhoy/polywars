@@ -15,13 +15,11 @@
         <h1>smoke</h1>
         <p>Space: the repeat kind. Campfire left, a moving exhaust.</p>
         <div class="row">
-            <button data-burst="explosion">explosion</button>
-            <button data-burst="blast">blast</button>
             <button data-burst="puff">puff</button>
             <button data-burst="dust">dust</button>
             <button id="clear">clear</button>
         </div>
-        <label><input id="repeat" type="checkbox" checked /> repeat <select id="kind"><option>explosion</option><option>blast</option></select></label>
+        <label><input id="repeat" type="checkbox" checked /> repeat <select id="kind"><option>puff</option><option>dust</option></select></label>
         <div class="row"><button id="near">near view</button><button id="far">far view</button></div>
         <label>colour <select id="colour"><option value="preset">preset</option><option value="dust">dust</option><option value="white">white</option><option value="grey">grey</option><option value="dark">dark</option></select></label>
         <label>slow <input id="speed" type="range" min=".05" max="1" step=".05" value="1" /></label>
@@ -33,8 +31,6 @@
         <label>reach <input id="reach" type="range" min=".5" max="3" step=".05" value="1.6" /></label>
         <label>swirl <input id="swirl" type="range" min="0" max="3" step=".05" value="1" /></label>
         <label>sun <input id="sun" type="range" min="0" max="360" step="5" value="40" /></label>
-        <label>clouds <select id="cloud"><option>sky</option><option>cumulus</option><option>fair</option><option>bank</option><option>overcast</option></select></label>
-        <label>cover <input id="cover" type="range" min="0" max="1" step=".05" value=".3" /></label>
         <label><input id="fire" type="checkbox" checked /> campfire</label>
         <label><input id="exhaust" type="checkbox" checked /> exhaust</label>
         <output id="info"></output>

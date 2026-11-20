@@ -116,15 +116,17 @@ export type View = {
     projectionMatrix: ArrayLike<number>;
 };
 
-export type CloudKind = "cumulus" | "fair" | "bank" | "overcast";
-export type CloudOptions = {
-    /** layout (default cumulus) */
-    kind?: CloudKind;
-    /** 0..1 greyer (and flatter for overcast) */
-    density?: number;
-    /** tower height multiplier (cumulus, default 1) */
-    height?: number;
-    /** head off to the side, fraction of size */
-    lean?: number;
+/** a still puff (`place`) */
+export type PlaceOptions = {
     colour?: Colour;
+    /** 0..1 lit top (default 1) */
+    bright?: number;
+    /** squash under its centre, 1 = round (default 1) */
+    flat?: number;
+    /** squash over its centre (default 1) */
+    top?: number;
+    /** faces: 0 = 20, 1 = 80 (default 0) */
+    detail?: number;
+    /** lit as part of the mass round this point (clouds) */
+    centre?: ArrayLike<number>;
 };
