@@ -7,10 +7,10 @@ const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8,
     SWIRL = 13, STRETCH = 14, CR = 15, CG = 16, CB = 17, BRIGHT = 18, DIM = 19, SHRINK = 20, GROUND = 21, SEED = 22,
     ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30, TOP = 31, SKY = 32, DETAIL = 33, CX = 34, CY = 35, CZ = 36;
 const STRIDE = 37;
-// puff instance: x y z radius | stretch xyz seed | r g b bright | angle, bottom squash, top squash, sky shade
-const PUFF = 16;
-// tube instance: a xyz radius | b xyz radius | r g b bright
-const TUBE = 12;
+// puff instance: x y z radius | stretch xyz seed | r g b bright | angle, bottom squash, top squash, sky shade | eaten 0..1
+const PUFF = 20;
+// tube instance: a xyz radius | b xyz radius | r g b bright | eaten 0..1
+const TUBE = 16;
 
 const SHADE = `
 uniform vec3 sun, shade, skyShade;
@@ -37,9 +37,22 @@ in vec3 vWorld;
 in vec4 vTone;
 in float vSky;
 in vec3 vCentre;
+in vec2 vEat;
+in vec3 vNoise;
 out vec4 outColor;
 ${SHADE}
-void main() { outColor = vec4(toon(vWorld, vTone.rgb, vTone.a, vSky, vCentre), 1.0); }`;
+float hash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float noise(vec3 p) {
+    vec3 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hash(i), hash(i + vec3(1, 0, 0)), f.x), mix(hash(i + vec3(0, 1, 0)), hash(i + vec3(1, 1, 0)), f.x), f.y),
+               mix(mix(hash(i + vec3(0, 0, 1)), hash(i + vec3(1, 0, 1)), f.x), mix(hash(i + vec3(0, 1, 1)), hash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+void main() {
+    // eaten away by noise as it dies, holes grow till nothing is left
+    if (vEat.x > 0.0 && noise(vNoise) * .7 + noise(vNoise * 2.3) * .3 < vEat.x) discard;
+    outColor = vec4(toon(vWorld, vTone.rgb, vTone.a, vSky, vCentre), 1.0);
+}`;
 
 const PUFF_VERTEX = `#version 300 es
 layout(location = 0) in vec3 position;
@@ -47,11 +60,15 @@ layout(location = 1) in vec4 puff;
 layout(location = 2) in vec4 motion;
 layout(location = 3) in vec4 tone;
 layout(location = 4) in vec4 spin;
+layout(location = 5) in vec4 eat;
 uniform mat4 view, projection;
+uniform float grain;
 out vec3 vWorld;
 out vec4 vTone;
 out float vSky;
 out vec3 vCentre;
+out vec2 vEat;
+out vec3 vNoise;
 void main() {
     // turned about its own random axis
     float seed = motion.w;
@@ -69,6 +86,8 @@ void main() {
     vWorld = puff.xyz + p;
     vTone = tone;
     vSky = spin.w;
+    vEat = eat.xy;
+    vNoise = position * grain + seed;
     gl_Position = projection * view * vec4(vWorld, 1.0);
 }`;
 
@@ -77,12 +96,15 @@ layout(location = 0) in vec3 ring;
 layout(location = 1) in vec4 a;
 layout(location = 2) in vec4 b;
 layout(location = 3) in vec4 tone;
+layout(location = 4) in vec4 eat;
 uniform mat4 view, projection;
-uniform float thickness;
+uniform float thickness, grain;
 out vec3 vWorld;
 out vec4 vTone;
 out float vSky;
 out vec3 vCentre;
+out vec2 vEat;
+out vec3 vNoise;
 void main() {
     vec3 axis = b.xyz - a.xyz;
     vec3 d = normalize(axis);
@@ -92,6 +114,8 @@ void main() {
     vTone = tone;
     vSky = 0.0;
     vCentre = vWorld;
+    vEat = eat.xy;
+    vNoise = vWorld / max(r, .05) * grain * .5;
     gl_Position = projection * view * vec4(vWorld, 1.0);
 }`;
 
@@ -108,7 +132,7 @@ const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, 
  */
 export class Smoke {
     readonly presets: Record<string, Preset>;
-    readonly look: SmokeLook = { sun: [.35, .85, .4], wind: [0, 0, 0], shade: [.78, .8, .87], skyShade: [.62, .72, .9], highlight: .8, detail: 0, thickness: .62, reach: 1.6, swirl: 1 };
+    readonly look: SmokeLook = { sun: [.35, .85, .4], wind: [0, 0, 0], shade: [.78, .8, .87], skyShade: [.62, .72, .9], highlight: .8, detail: 0, thickness: .62, reach: 1.6, swirl: 1, eat: .45, grain: 2.2 };
     /** time scale (slow motion for tuning) */
     speed = 1;
     private gl: WebGL2RenderingContext;
@@ -141,7 +165,7 @@ export class Smoke {
         this.puffs = new Float32Array(this.max * PUFF);
         this.round = new Float32Array(this.max * PUFF);
         this.tubes = new Float32Array(this.max * TUBE);
-        const id = count++, names = ["view", "projection", "sun", "shade", "highlight", "thickness", "skyShade"];
+        const id = count++, names = ["view", "projection", "sun", "shade", "highlight", "thickness", "skyShade", "grain"];
         layer.createProgram(`pw-smoke-puff-${id}`, PUFF_VERTEX, FRAGMENT).then(program => {
             this.puffProgram = program;
             for (const n of names) this.uniforms.puff[n] = gl.getUniformLocation(program, n);
@@ -150,8 +174,8 @@ export class Smoke {
             this.tubeProgram = program;
             for (const n of names) this.uniforms.tube[n] = gl.getUniformLocation(program, n);
         });
-        this.meshes = [icosahedron(0), icosahedron(1)].map(g => this.mesh(g, 3, PUFF, [[1, 4, 0], [2, 4, 4], [3, 4, 8], [4, 4, 12]]));
-        this.tube = this.mesh(tubeRing(6), 3, TUBE, [[1, 4, 0], [2, 4, 4], [3, 4, 8]]);
+        this.meshes = [icosahedron(0), icosahedron(1)].map(g => this.mesh(g, 3, PUFF, [[1, 4, 0], [2, 4, 4], [3, 4, 8], [4, 4, 12], [5, 4, 16]]));
+        this.tube = this.mesh(tubeRing(6), 3, TUBE, [[1, 4, 0], [2, 4, 4], [3, 4, 8], [4, 4, 12]]);
     }
 
     private mesh(geometry: Float32Array, size: number, stride: number, attributes: number[][]) {
@@ -389,16 +413,19 @@ export class Smoke {
         const gl = this.gl;
         if (!this.puffProgram || !this.tubeProgram) return;
         const d = this.data, T = this.tubes, w = this.look.wind, reach = this.look.reach;
-        const shown = new Float32Array(this.live);
+        const shown = new Float32Array(this.live), eaten = new Float32Array(this.live);
         let n = 0, n1 = 0;
         for (let i = 0; i < this.live; i++)
         {
             const o = i * STRIDE, age = d[o + AGE];
             if (age < 0) continue;
             const t = age / d[o + LIFE];
-            const radius = this.radius(o) * (1 - smoothstep(d[o + SHRINK], 1, t));
-            if (radius <= .001) continue;
+            // eaten by noise from `look.eat` of its life (or its own shrink point if later), shrinking a little meanwhile
+            const from = Math.max(this.look.eat, d[o + SHRINK]), eat = d[o + SKY] ? 0 : smoothstep(from, 1, t) * 1.05;
+            const radius = this.radius(o) * (1 - smoothstep(from, 1, t) * .3);
+            if (radius <= .001 || eat >= 1) continue;
             shown[i] = radius;
+            eaten[i] = eat;
             const detail = d[o + DETAIL] < 0 ? this.look.detail : d[o + DETAIL];
             const P = detail ? this.round : this.puffs, k = (detail ? n1++ : n++) * PUFF, st = d[o + STRETCH], wk = .3 + t;
             P[k] = d[o + PX]; P[k + 1] = d[o + PY]; P[k + 2] = d[o + PZ]; P[k + 3] = radius;
@@ -410,6 +437,7 @@ export class Smoke {
             P[k + 13] = d[o + FLAT];
             P[k + 14] = d[o + TOP];
             P[k + 15] = d[o + SKY];
+            P[k + 16] = eat;
         }
         if (!n && !n1) return;
         // tubes: puff to parent while both show and they are close
@@ -429,6 +457,7 @@ export class Smoke {
             T[k] = d[o + PX]; T[k + 1] = d[o + PY]; T[k + 2] = d[o + PZ]; T[k + 3] = ra;
             T[k + 4] = d[q + PX]; T[k + 5] = d[q + PY]; T[k + 6] = d[q + PZ]; T[k + 7] = rb;
             T[k + 8] = (d[o + CR] + d[q + CR]) / 2; T[k + 9] = (d[o + CG] + d[q + CG]) / 2; T[k + 10] = (d[o + CB] + d[q + CB]) / 2;
+            T[k + 12] = Math.max(eaten[i], eaten[parent]);
             T[k + 11] = Math.min(d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], d[o + AGE] / d[o + LIFE])), d[q + BRIGHT] * (1 - smoothstep(0, d[q + DIM], d[q + AGE] / d[q + LIFE])));
         }
 
@@ -448,6 +477,7 @@ export class Smoke {
             gl.uniform3fv(u.skyShade, this.look.skyShade);
             gl.uniform1f(u.highlight, this.look.highlight);
             gl.uniform1f(u.thickness, this.look.thickness);
+            gl.uniform1f(u.grain, this.look.grain);
             gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
             gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, instances * floats);
             gl.bindVertexArray(mesh.vao);

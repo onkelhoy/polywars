@@ -90,6 +90,10 @@ export type SmokeLook = {
     reach: number;
     /** swirl multiplier */
     swirl: number;
+    /** life fraction a puff starts being eaten away by noise (holes grow till it is gone) */
+    eat: number;
+    /** noise size: higher = smaller holes */
+    grain: number;
 };
 
 export type BurstOptions = {

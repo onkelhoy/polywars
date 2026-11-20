@@ -305,10 +305,10 @@ export class Explosion {
             const Rs = b.surge, drag = 2.6 / T, out = Rs * drag;
             // the surge: thrown out flat, swirling round, rolling; small and fast inside, big and late on the rim
             const layers: Layer[] = [
-                { count: 46, shape: "ring", radius: .3 * s, outward: [out * .45, out * .8], tangent: [out * .1, out * .22], speed: [0, .3 * s / T], spread: .3, life: [3.2 * T, 4.6 * T], size: [.25 * s, .9 * s], grow: 5 / T, drag, lift: .25 * s / T ** 2, swirl: .5 * s / T, roll: 1.2 * s / T, stretch: .05 * T / s, colour: b.dust, bright: 1, dim: .5 },
-                { count: 34, shape: "ring", radius: .5 * s, outward: [out * .85, out * 1.15], tangent: [out * .15, out * .28], speed: [0, .5 * s / T], spread: .3, life: [4 * T, 5.8 * T], delay: [0, .04 * T], size: [.3 * s, 1.9 * s], grow: 1.1 / T, drag, lift: .35 * s / T ** 2, swirl: .7 * s / T, roll: 1.6 * s / T, stretch: .04 * T / s, colour: mix(b.dust, L.smoke, .25), bright: 1, dim: .55 },
+                { count: 46, shape: "ring", radius: .3 * s, outward: [out * .45, out * .8], tangent: [out * .1, out * .22], speed: [0, .3 * s / T], spread: .3, life: [2.24 * T, 3.22 * T], size: [.25 * s, .9 * s], grow: 5 / T, drag, lift: .25 * s / T ** 2, swirl: .5 * s / T, roll: 1.2 * s / T, stretch: .05 * T / s, colour: b.dust, bright: 1, dim: .5 },
+                { count: 34, shape: "ring", radius: .5 * s, outward: [out * .85, out * 1.15], tangent: [out * .15, out * .28], speed: [0, .5 * s / T], spread: .3, life: [2.8 * T, 4.06 * T], delay: [0, .04 * T], size: [.3 * s, 1.9 * s], grow: 1.1 / T, drag, lift: .35 * s / T ** 2, swirl: .7 * s / T, roll: 1.6 * s / T, stretch: .04 * T / s, colour: mix(b.dust, L.smoke, .25), bright: 1, dim: .55 },
                 // low wisps streaking out first, ground hugging
-                { count: 20, link: false, shape: "ring", radius: .3 * s, outward: [out * 1.1, out * 1.5], tangent: [out * .1, out * .2], speed: [0, .1], spread: .2, life: [.5 * T, .9 * T], size: [.08 * s, .22 * s], grow: 6 / T, drag: drag * 1.3, swirl: 0, stretch: .1 * T / s, shrink: .4, colour: b.dust, bright: .8, dim: .6 },
+                { count: 20, link: false, shape: "ring", radius: .3 * s, outward: [out * 1.1, out * 1.5], tangent: [out * .1, out * .2], speed: [0, .1], spread: .2, life: [0.35 * T, 0.63 * T], size: [.08 * s, .22 * s], grow: 6 / T, drag: drag * 1.3, swirl: 0, stretch: .1 * T / s, shrink: .4, colour: b.dust, bright: .8, dim: .6 },
             ];
             smoke.burst({ layers }, at);
         }
@@ -317,7 +317,7 @@ export class Explosion {
         if (once("char", b.age > b.fireLife * .8))
         {
             const r = b.fireball;
-            smoke.burst({ layers: [{ count: Math.round(10 + 20 * m), shape: "sphere", radius: r * .6, direction: [0, 1, 0], spread: .4, speed: [r * .3 / T, r * (1 + 3 * m) / T], life: [2.5 * T, 4 * T], size: [r * .35, r * .7], grow: 3 / T, drag: 1.6 / T, lift: r * .3 * (1 + 2 * m) / T ** 2, swirl: .4 * s / T, stretch: .03 * T / s, colour: L.char, bright: .5, dim: .5 }] }, [at[0], at[1] + r * .3, at[2]]);
+            smoke.burst({ layers: [{ count: Math.round(10 + 20 * m), shape: "sphere", radius: r * .6, direction: [0, 1, 0], spread: .4, speed: [r * .3 / T, r * (1 + 3 * m) / T], life: [1.75 * T, 2.8 * T], size: [r * .35, r * .7], grow: 3 / T, drag: 1.6 / T, lift: r * .3 * (1 + 2 * m) / T ** 2, swirl: .4 * s / T, stretch: .03 * T / s, colour: L.char, bright: .5, dim: .5 }] }, [at[0], at[1] + r * .3, at[2]]);
         }
 
         // the vacuum: what was pushed out comes back in and goes up the middle, with a pop of smoke from the centre
@@ -327,7 +327,7 @@ export class Explosion {
             smoke.field(at, { radius: Rs * 1.35, height: H, inward: Rs * .9 / T ** 2, up: Rs * (1.1 + 2 * m) / T ** 2, spin: Rs * .3 / T ** 2, life: 3.5 * T });
             const v = H * 1.6 / T;
             smoke.burst({ layers: [
-                { count: Math.round(18 + 22 * m), shape: "sphere", radius: .3 * b.fireball, direction: [0, 1, 0], spread: .18, speed: [v * .4, v], life: [3.5 * T, 5.5 * T], delay: [0, .5 * T], size: [.35 * s, 1.2 * s * (1 + m)], grow: 2 / T, drag: 1.4 / T, lift: .4 * s / T ** 2, swirl: .6 * s / T, stretch: .02 * T / s, colour: mix(b.dust, L.smoke, .5), bright: .9, dim: .5 },
+                { count: Math.round(18 + 22 * m), shape: "sphere", radius: .3 * b.fireball, direction: [0, 1, 0], spread: .18, speed: [v * .4, v], life: [2.45 * T, 3.85 * T], delay: [0, .5 * T], size: [.35 * s, 1.2 * s * (1 + m)], grow: 2 / T, drag: 1.4 / T, lift: .4 * s / T ** 2, swirl: .6 * s / T, stretch: .02 * T / s, colour: mix(b.dust, L.smoke, .5), bright: .9, dim: .5 },
             ] }, at);
         }
 
@@ -336,8 +336,8 @@ export class Explosion {
         {
             const r = b.fireball, H = s * 5 * (1 + 2 * m), drag = .8 / T, v = H * drag * 1.1;
             smoke.burst({ layers: [
-                { count: Math.round(40 + 80 * m), shape: "sphere", radius: r * .9, direction: [0, 1, 0], spread: .12, speed: [v * .85, v * 1.1], outward: [r * .2 / T, r * 1.2 / T], life: [6 * T, 8 * T], size: [r * .45, r * 1.1], grow: 1.4 / T, drag, lift: H * .04 / T ** 2, swirl: .8 * s / T, roll: r * 1.6 / T, stretch: .01 * T / s, colour: mix(L.char, L.smoke, .55), bright: 1, dim: .6 },
-                { count: Math.round(30 * m), shape: "sphere", radius: r * .35, direction: [0, 1, 0], spread: .05, speed: [v * .2, v * .75], life: [5 * T, 7 * T], delay: [0, 1.2 * T], size: [r * .3, r * .6], grow: 1.4 / T, drag, lift: H * .03 / T ** 2, swirl: .5 * s / T, stretch: .01 * T / s, colour: mix(b.dust, L.smoke, .6), bright: .9, dim: .5 },
+                { count: Math.round(40 + 80 * m), shape: "sphere", radius: r * .9, direction: [0, 1, 0], spread: .12, speed: [v * .85, v * 1.1], outward: [r * .2 / T, r * 1.2 / T], life: [4.2 * T, 5.6 * T], size: [r * .45, r * 1.1], grow: 1.4 / T, drag, lift: H * .04 / T ** 2, swirl: .8 * s / T, roll: r * 1.6 / T, stretch: .01 * T / s, colour: mix(L.char, L.smoke, .55), bright: 1, dim: .6 },
+                { count: Math.round(30 * m), shape: "sphere", radius: r * .35, direction: [0, 1, 0], spread: .05, speed: [v * .2, v * .75], life: [3.5 * T, 4.9 * T], delay: [0, 1.2 * T], size: [r * .3, r * .6], grow: 1.4 / T, drag, lift: H * .03 / T ** 2, swirl: .5 * s / T, stretch: .01 * T / s, colour: mix(b.dust, L.smoke, .6), bright: .9, dim: .5 },
             ] }, at);
         }
 

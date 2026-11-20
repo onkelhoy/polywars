@@ -34,6 +34,8 @@ demo.tick = dt => {
     smoke.speed = explosion.speed = +$('#speed').value;
     explosion.look.shock = +$('#shock').value;
     explosion.look.lines = +$('#lines').value;
+    smoke.look.eat = +$('#eat').value;
+    smoke.look.grain = +$('#grain').value;
     if ($('#repeat').checked && (wait -= dt * explosion.speed) <= 0) { wait = 4 + 3 * Math.sqrt(Math.cbrt(power())); boom(); }
     explosion.update(dt);
     smoke.update(dt);
