@@ -121,5 +121,13 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 ## Ground map (idea, needs thought)
 One small painted RGB map over the world (PNG, not JPEG: channels bleed): R grass density (black none, grey thin), G grass height, B fog clearing (or wetness). Replaces the no-grass / short-grass rectangles. Check what the world generator already makes first. Paint view like the grass view.
 
-## Range model as source only (later)
-The range glb is a source of truth, not drawn as is. Load it, read what's there (props, positions), map each to our asset models and draw them instanced. Terrain = the painted grass floor from the ground data (model `Ground` already skipped). Waits for the props being added as game props.
+## Range model as source only (mostly done, feature/camp-upgrade)
+Done: shooting-range.py writes range.json `props` (asset empties with `asset`, meshes linked from camp-props.blend -> assets/models/props/camp, Alt+D meshes -> package props/), drawn instanced via @polywar/scatter; rigged ones one by one. Blend files: only camp.blend + camp-props.blend. Left:
+- [ ] vehicle empties in camp.blend show as cubes: preview the real asset (script / linked collection)
+- [ ] fence shadow: shadow pass ignores the texture cut-out (solid strip)
+- [ ] owner: rename berms with "earth" (e.g. `Berm earth backstop A`), then drop the `Berm` rule (main.js EARTH, shooting-range.py ROLES)
+- [ ] while driving, impacts draw before the grass tufts (drawDriver order)
+- [ ] leftover Alt+D meshes only in camp.blend (cubes, cylinders, sandbag wall, tent canvas): owner moves them to camp-props.blend so the package keeps only model.glb + range.json
+- [ ] lighter vehicle versions for decor (tanks ~3 MB, drawn one by one); vehicle asset scales are inconsistent (empties carry the scale)
+- [ ] drivable tanks / trucks / motorbike / planes
+- [ ] motorbike asset: a stray wheel in the middle?
