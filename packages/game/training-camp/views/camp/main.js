@@ -74,17 +74,17 @@ const zones = range.data.grass ?? [];
 const inZone = (kind, x, z) => zones.some(g => g.kind === kind && x >= g.min[0] && x <= g.max[0] && z >= g.min[1] && z <= g.max[1]);
 const GROW = { tall: { density: 1, height: 1, dry: 0, flowers: 0 }, short: { density: .7, height: .4, dry: 0, flowers: 0 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
 // the look: exactly the grass view's (saved from it: assets/grass/range.json)
-const look = await (await fetch('/assets/grass/range.json')).json();
-const grass = new Grass(layer, look);
+const grassLook = await (await fetch('/assets/grass/range.json')).json();
+const grass = new Grass(layer, grassLook);
 // everywhere on the ground (hills, banks too), tall by default; not under solids (buildings, sandbags, floors)
 const covered = (x, z) => { const y = range.ground(x, z); return range.colliders(x, z).some(b => x >= b.min[0] && x <= b.max[0] && z >= b.min[2] && z <= b.max[2] && b.max[1] > y - .1 && b.min[1] < y + 1); };
 // the ground: the model's earth parts with the terrain material, grassy all over (edge -1) in the grass look's colours
 const earth = model.parts.filter(p => EARTH(p.name));
 const ground = new TerrainMaterial(layer, {
-    colors: { grassland: look.color },
-    grass: { color: look.color, dry: look.dry, patches: look.patches, blend: 1, darken: .8, edge: -1 },
-    paint: { edge: 0, size: 30, washes: .001, rim: 0, warmth: 0, grain: 0, pixel: look.size[0] / 24 },
-    flat: true, variation: 0, bands: look.bands ?? 3, lighting: look.lighting ?? { wrap: 0, steepness: 1 },
+    colors: { grassland: grassLook.color },
+    grass: { color: grassLook.color, dry: grassLook.dry, patches: grassLook.patches, blend: 1, darken: .8, edge: -1 },
+    paint: { edge: 0, size: 30, washes: .001, rim: 0, warmth: 0, grain: 0, pixel: grassLook.size[0] / 24 },
+    flat: true, variation: 0, bands: grassLook.bands ?? 3, lighting: grassLook.lighting ?? { wrap: 0, steepness: 1 },
 });
 window.ground = ground;
 let bake = true;
