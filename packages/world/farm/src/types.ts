@@ -38,7 +38,8 @@ export type FarmOptions = {
     bank: { chance: number; spacing: number };
     wood: { slope: number; chance: number };
     /** fence segment length (fence asset) */
-    fence: { asset: string; length: number; gate: number };
+    /** `styles`: fence style names per use (the view / world maps them to models); `fields`: chance a field is fenced */
+    fence: { asset: string; length: number; gate: number; styles: { pasture: string[]; field: string[]; run: string[] }; fields: number };
     /** `fields`: how many fields get their own trail */
     path: { lane: number; trail: number; fields: number };
     /** small things (asset names as the world knows them, e.g. "props/village/bale") */
@@ -112,6 +113,8 @@ export type FarmLayout = {
     fields: Field[];
     pastures: Pasture[];
     fences: Line[];
+    /** style per fence line (same order as `fences`) */
+    fenceStyles: string[];
     paths: { line: Line; width: number; kind: "lane" | "trail" }[];
     edits: GroundEdit[];
     /** tree lines between fields */

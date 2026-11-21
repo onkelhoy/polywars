@@ -1,18 +1,25 @@
+import type { Random } from "@papit/random";
 import type { FarmLayout, FarmOptions, Line } from "./types";
 
 const key = ([x, z]: [number, number]) => `${x.toFixed(2)},${z.toFixed(2)}`;
 
 /** fence loops around pastures, one gate per pasture (the edge nearest the court). Returns the gates. */
-export function fences(layout: FarmLayout, o: FarmOptions): [number, number][] {
+export function fences(layout: FarmLayout, o: FarmOptions, rnd: Random): [number, number][] {
     const { cells, neighbours: nb } = layout, gates: [number, number][] = [];
     const court = layout.court ?? { x: layout.area.x, z: layout.area.z };
-    for (const p of layout.pastures) {
-        if (!p.cells.length) continue;
+    // pastures always, some fields too (a field next to a pasture shares its fence)
+    const pastured = new Set(layout.pastures.flatMap(p => p.cells));
+    const areas = [
+        ...layout.pastures.filter(p => p.cells.length).map(p => ({ cells: p.cells, style: o.fence.styles.pasture })),
+        ...layout.fields.filter(() => rnd.chance(o.fence.fields)).map(f => ({ cells: f.cells, style: o.fence.styles.field })),
+    ];
+    for (const p of areas) {
+        const style = p.style[rnd.int(0, p.style.length)];
         const own = new Set(p.cells);
         // boundary edges, counter clockwise per cell, so they chain into loops
         const next = new Map<string, [[number, number], [number, number]]>();
         for (const c of p.cells) for (let i = 0; i < 4; i++) {
-            if (own.has(nb[c * 4 + i])) continue;
+            if (own.has(nb[c * 4 + i]) || (p.style === o.fence.styles.field && pastured.has(nb[c * 4 + i]))) continue;
             const a = cells[c].corners[i], b = cells[c].corners[(i + 1) % 4];
             next.set(key(a), [a, b]);
         }
@@ -42,7 +49,7 @@ export function fences(layout: FarmLayout, o: FarmOptions): [number, number][] {
                 line.push(b); k = key(b);
             }
             if (atGate) line.push(gA!);
-            if (line.length > 1) layout.fences.push(line);
+            if (line.length > 1) { layout.fences.push(line); layout.fenceStyles.push(style); }
         }
     }
     layout.gates.push(...gates);

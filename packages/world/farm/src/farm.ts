@@ -22,7 +22,7 @@ export const DEFAULTS: FarmOptions = {
     hedge: { chance: .55, spacing: 4.5 },
     bank: { chance: .75, spacing: 5 },
     wood: { slope: .35, chance: .5 },
-    fence: { asset: "Fence", length: 5.8, gate: 3.5 },
+    fence: { asset: "Fence", length: 5.8, gate: 3.5, styles: { pasture: ["1", "2"], field: ["simple", "2"], run: ["poor"] }, fields: .6 },
     path: { lane: 4, trail: 1.5, fields: 5 },
     props: {
         door: ["props/village/barrel", "props/village/crate", "props/village/sack", "props/village/bucket"],
@@ -42,9 +42,9 @@ export function generateFarm(area: FarmArea, ground: FarmGround, options: Partia
     const rnd = new Random(o.seed);
     const { cells, neighbours } = farmGrid(area, ground, o);
     const z = zone(cells, neighbours, area, o, rnd.fork("zones"));
-    const layout: FarmLayout = { area, cells, neighbours, buildings: [], fields: z.fields, pastures: z.pastures, fences: [], paths: [], edits: [], gates: [], hedges: [], trees: [], props: [] };
+    const layout: FarmLayout = { area, cells, neighbours, buildings: [], fields: z.fields, pastures: z.pastures, fences: [], paths: [], edits: [], gates: [], hedges: [], trees: [], props: [], fenceStyles: [] };
     placeYard(layout, z.yard, ground, o, rnd.fork("yard"));
-    const gates = fences(layout, o);
+    const gates = fences(layout, o, rnd.fork("fences"));
     hedges(layout, z.banks, o, rnd.fork("hedges"));
     paths(layout, z.yard, gates, o);
     dress(layout, ground, o, rnd.fork("props"));

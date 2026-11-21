@@ -57,6 +57,7 @@ export function placeYard(layout: FarmLayout, yard: number[], ground: FarmGround
                 // corners: 0 (-x,-z) 1 (+x,-z) 2 (+x,+z) 3 (-x,+z); the gate in the +x side (1 -> 2)
                 const mid: [number, number] = [(r[1][0] + r[2][0]) / 2, (r[1][1] + r[2][1]) / 2];
                 const dx = (r[2][0] - r[1][0]) / fd, dz = (r[2][1] - r[1][1]) / fd;
+                layout.fenceStyles.push(o.fence.styles.run[rnd.int(0, o.fence.styles.run.length)]);
                 layout.fences.push([[mid[0] + dx * g, mid[1] + dz * g], r[2], r[3], r[0], r[1], [mid[0] - dx * g, mid[1] - dz * g]]);
                 layout.gates.push(mid);
                 layout.pastures.push({ cells: [], animal: p.run.animal, run: r });

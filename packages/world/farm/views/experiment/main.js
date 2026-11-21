@@ -1,12 +1,10 @@
 import '@polywar/viewport';
-import { upload } from '@papit/game-mesh';
+import { upload, loadGLTF } from '@papit/game-mesh';
 import { Renderer } from '@polywar/renderer';
 import { Scatter } from '@polywar/scatter';
 import { Terrain, MAPS } from '@polywar/terrain';
 import { linear } from '@polywar/terrain-material';
 import { Grass } from '@polywar/grass';
-import { fence } from '@polywar/bridges';
-import { merge } from '@polywar/sweep';
 import { generateFarm, groundEdits, fencePosts, cropRows, zoneAt } from '@polywar/farm';
 
 // one farm on a tiny real terrain (a few hundred metres, low resolution: grows in a moment)
@@ -31,6 +29,49 @@ const url = (name, lod) => {
 };
 const scatter = new Scatter(renderer, url, { quality: $('#quality').value, distance: { building: 1500, tree: 900, rock: 400, bush: 300, prop: 250, crop: 400, default: 300 } });
 const grass = new Grass(layer, { quality: $('#quality').value });
+
+// fence pieces (assets/models/buildings/farm/fences): per style close / close.L / close.R / open, along -x from the origin
+const FENCE_URL = (style, kind) => `/assets/models/buildings/farm/fences/fence.${style}.${kind}.glb`;
+const pieces = new Map();
+async function piece(style, kind) {
+    const k = style + kind;
+    if (!pieces.has(k)) pieces.set(k, loadGLTF(FENCE_URL(style, kind)).then(g => {
+        const prims = g.meshes.flatMap(m => m.primitives);
+        let x0 = Infinity, x1 = -Infinity;
+        for (const p of prims) for (let i = 0; i < p.positions.length; i += 3) { x0 = Math.min(x0, p.positions[i]); x1 = Math.max(x1, p.positions[i]); }
+        return { prims, x0, x1 };
+    }).catch(() => null));
+    return pieces.get(k);
+}
+/** a fence line from pieces: one per post gap, stretched to it, sheared to the ground (posts stay upright), all in one mesh */
+async function fenceMesh(lines, styles, g) {
+    const pos = [], nor = [], col = [], idx = [];
+    for (let l = 0; l < lines.length; l++) {
+        const posts = fencePosts(lines[l], 3), style = styles[l] ?? '1';
+        for (let s = 1; s < posts.length; s++) {
+            // first gap: posts both ends, then a post only at the far end
+            const p = await piece(style, s === 1 ? 'close' : 'close.R') ?? await piece(style, 'close');
+            if (!p) continue;
+            const [ax, az] = posts[s - 1], [bx, bz] = posts[s], ay = g(ax, az), by = g(bx, bz);
+            const len = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / len, uz = (bz - az) / len;
+            for (const m of p.prims) {
+                const base = pos.length / 3;
+                for (let i = 0; i < m.positions.length; i += 3) {
+                    const t = (m.positions[i] - p.x0) / (p.x1 - p.x0), y = m.positions[i + 1], z = m.positions[i + 2];
+                    // along the gap (t), across it (z), up (y) over the ground line between the two posts
+                    pos.push(ax + (bx - ax) * t - uz * z, ay + (by - ay) * t + y, az + (bz - az) * t + ux * z);
+                    const nx = m.normals[i], ny = m.normals[i + 1], nz = m.normals[i + 2];
+                    nor.push(nx * ux - nz * uz, ny, nx * uz + nz * ux);
+                    if (m.colors) col.push(m.colors[i / 3 * 4], m.colors[i / 3 * 4 + 1], m.colors[i / 3 * 4 + 2], 1); else col.push(.45, .3, .2, 1);
+                }
+                if (m.indices) for (const k of m.indices) idx.push(base + k);
+                else for (let k = 0; k < m.positions.length / 3; k++) idx.push(base + k);
+            }
+        }
+    }
+    if (!pos.length) return null;
+    return upload(gl, { positions: new Float32Array(pos), normals: new Float32Array(nor), colors: new Float32Array(col), indices: new Uint32Array(idx) });
+}
 
 let terrain, farm, edits, fences, info = '';
 const settings = () => {
@@ -86,8 +127,7 @@ async function dress(data, t0) {
     terrain.material.paths({ data: paint, n, size: data.size });
     // fences: posts on the ground, rails follow the slope
     fences?.destroy();
-    const runs = farm.fences.map(l => fence(fencePosts(l).map(([x, z]) => [x, g(x, z), z])));
-    fences = runs.length ? upload(gl, merge(runs)) : null;
+    fences = await fenceMesh(farm.fences, farm.fenceStyles, g);
     // instances: x y z scale yaw tint sway _ (shader yaw turns the other way)
     const batches = new Map();
     const add = (model, kind, x, z, scale, yaw, sway = 0, lift = 0) => {
