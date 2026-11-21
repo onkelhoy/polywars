@@ -31,6 +31,8 @@ export type VehicleSpec = {
     seat?: Point;
     eye?: Point;
     exit?: Point;
+    /** exhaust pipe end, model space (`Exhaust`); default low at the back, right side */
+    exhaust?: Point;
 };
 
 /** a static axis aligned box the chassis bumps into and wheels drive onto (same shape as `@polywar/mover` boxes) */

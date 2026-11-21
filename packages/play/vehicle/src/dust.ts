@@ -10,6 +10,8 @@ export type DustSetting = {
     colour?: (x: number, z: number) => [number, number, number] | undefined;
     /** puffs per wheel per second at 10 m/s (slides add more). Default 6 */
     rate?: number;
+    /** how much plain speed kicks up dust, 0 = only slides. Default 1 */
+    speed?: number;
 };
 
 /** dirt / gravel kicked up behind the wheels: more with speed and slip, coloured by the ground */
@@ -27,7 +29,7 @@ export class Dust {
         for (const w of car.wheels)
         {
             if (!w.grounded) continue;
-            const amount = rate * dt * (speed / 10 + (w.slipping ? 2.5 : 0));
+            const amount = rate * dt * (speed / 10 * (this.setting.speed ?? 1) + (w.slipping ? 2.5 : 0));
             let n = (this.left.get(w) ?? 0) + amount;
             const c = w.contact;
             const colour = this.setting.colour ? this.setting.colour(c[0], c[2]) : [.5, .42, .32] as [number, number, number];
