@@ -278,7 +278,20 @@ export class Explosion {
         const power = Math.max(.01, options.power ?? 5), s = Math.cbrt(power), slow = Math.sqrt(s);
         const lw = Math.log10(power);
         const position: Vec3 = [at[0], at[1], at[2]];
+        // which way it blows: the surface normal, leaned along the bounce of whatever hit
+        const sn = options.normal ? new Vector3(options.normal[0], options.normal[1], options.normal[2]).normalize() : new Vector3(0, 1, 0);
+        const axis = new Vector3(sn.x, sn.y, sn.z);
+        if (options.incoming)
+        {
+            const d = new Vector3(options.incoming[0], options.incoming[1], options.incoming[2]).normalize(), k = d.x * sn.x + d.y * sn.y + d.z * sn.z;
+            axis.x += (d.x - 2 * k * sn.x) * .7; axis.y += (d.y - 2 * k * sn.y) * .7; axis.z += (d.z - 2 * k * sn.z) * .7;
+            axis.normalize();
+        }
+        const grounded = sn.y > .7 && at[1] - this.ground(at[0], at[2]) < 1.5 * s;
+        // a random direction in the half round `axis`
+        const out = (lean: number) => { const u = new Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).normalize(); return u.add(new Vector3(axis.x * lean, axis.y * lean, axis.z * lean)).normalize(); };
         const blast: Live = {
+            axis: [axis.x, axis.y, axis.z], grounded,
             position, power, scale: s, slow, age: 0, front: 0, tag: options.tag,
             mushroom: smoothstep(2.3, 4, lw), volcano: smoothstep(2.1, 5, lw),
             shock: new ShockFront(power), fire: [], spikes: [], dust: options.dust ?? this.look.dust, kicked: 0, stages: new Set(),
@@ -288,27 +301,28 @@ export class Explosion {
         const n = Math.round(8 + 8 * blast.mushroom);
         for (let i = 0; i < n; i++)
         {
-            const u = new Vector3(rand(-1, 1), rand(.1, 1), rand(-1, 1)).normalize();
+            const u = grounded ? new Vector3(rand(-1, 1), rand(.1, 1), rand(-1, 1)).normalize() : out(1.1);
             const k = rand(.1, .65) * blast.fireball;
             // x y z r  vx vy vz  life seed grow
             blast.fire.push([position[0] + u.x * k, position[1] + u.y * k, position[2] + u.z * k, blast.fireball * rand(.4, .75),
-                u.x * blast.fireball * 3 / slow, u.y * blast.fireball * (3 + 4 * blast.mushroom) / slow, u.z * blast.fireball * 3 / slow,
+                u.x * blast.fireball * 3 / slow, u.y * blast.fireball * (grounded ? 3 + 4 * blast.mushroom : 3) / slow, u.z * blast.fireball * 3 / slow,
                 blast.fireLife * rand(.7, 1.3), Math.random() * 100]);
         }
         // dark lines: grit and small stones, low and fast, arcing down, fading out
         for (let i = 0, n = 14 + Math.round(10 * Math.random() + 6 * Math.min(1, lw / 3)); i < n; i++)
         {
             const a = Math.random() * Math.PI * 2, up = rand(.08, .8), v = rand(28, 70) * s ** .35;
-            this.grit.push([position[0], position[1] + .1 * s, position[2], Math.cos(a) * Math.cos(up) * v, Math.sin(up) * v, Math.sin(a) * Math.cos(up) * v, 0, rand(.25, .7) * slow, .025 * Math.max(1, s ** .5)]);
+            const g = grounded ? [Math.cos(a) * Math.cos(up), Math.sin(up), Math.sin(a) * Math.cos(up)] : [...out(1.3)];
+            this.grit.push([position[0] + axis.x * .1 * s, position[1] + axis.y * .1 * s, position[2] + axis.z * .1 * s, g[0] * v, g[1] * v, g[2] * v, 0, rand(.25, .7) * slow, .025 * Math.max(1, s ** .5)]);
         }
         // white spikes: thin, fast, gone in a blink
         for (let i = 0; i < 10 + Math.round(6 * Math.random()); i++)
         {
-            const u = new Vector3(rand(-1, 1), rand(.15, 1.1), rand(-1, 1)).normalize();
+            const u = grounded ? new Vector3(rand(-1, 1), rand(.15, 1.1), rand(-1, 1)).normalize() : out(1.2);
             blast.spikes.push([u.x, u.y, u.z, rand(.6, 1.2), rand(.05, .09) * slow]);
         }
         this.blasts.push(blast);
-        if (options.mark !== false) this.mark(position, s);
+        if (options.mark !== false && grounded) this.mark(position, s);
         this.onexplode?.(blast);
         return blast;
     }
@@ -417,7 +431,16 @@ export class Explosion {
         const at = b.position, s = b.scale, T = b.slow, z = b.front / s, once = (name: string, when: boolean) => when && !b.stages.has(name) && !!b.stages.add(name);
         const smoke = this.smoke, L = this.look, m = b.mushroom;
 
-        if (once("surge", true))
+        if (once("surge", !b.grounded))
+        {
+            // off a wall / in the air: the surge is thrown out of the surface in a wide cone, then hangs
+            const Rs = b.surge, drag = 2.6 / T, v = Rs * drag, d = b.axis;
+            smoke.burst({ layers: [
+                { count: 40, shape: "sphere", radius: .3 * s, direction: d, spread: .55, speed: [v * .5, v * .95], life: [2 * T, 3 * T], size: [.25 * s, .9 * s], grow: 5 / T, drag, lift: .25 * s / T ** 2, swirl: .5 * s / T, stretch: .05 * T / s, colour: b.dust, bright: 1, dim: .5 },
+                { count: 26, shape: "sphere", radius: .5 * s, direction: d, spread: .8, speed: [v * .3, v * .7], life: [2.6 * T, 3.8 * T], delay: [0, .04 * T], size: [.3 * s, 1.6 * s], grow: 1.1 / T, drag, lift: .35 * s / T ** 2, swirl: .7 * s / T, stretch: .04 * T / s, colour: mix(b.dust, L.smoke, .25), bright: 1, dim: .55 },
+            ] }, at);
+        }
+        if (b.grounded && once("surge", true))
         {
             const Rs = b.surge, drag = 2.6 / T, out = Rs * drag;
             // the surge: thrown out flat, swirling round, rolling; small and fast inside, big and late on the rim
@@ -479,7 +502,7 @@ export class Explosion {
 
         // the ground ring kicks dust where it passes
         const step = Math.max(1.2, s * 1.3);
-        if (z > 1.2 && z < 16 && b.front - b.kicked > step)
+        if (b.grounded && z > 1.2 && z < 16 && b.front - b.kicked > step)
         {
             b.kicked = b.front;
             const k = Math.round(10 + 8 * Math.min(1, b.front / (40 * s))), fade = 1 - smoothstep(4, 16, z);
@@ -645,7 +668,7 @@ export class Explosion {
         for (const b of live)
         {
             const z = b.front / b.scale, p = b.position;
-            gl.uniform3f(sh.u.centre, p[0], this.ground(p[0], p[2]), p[2]);
+            gl.uniform3f(sh.u.centre, p[0], b.grounded ? this.ground(p[0], p[2]) : p[1], p[2]);
             gl.uniform1f(sh.u.radius, b.front);
             const bubble = (1 - smoothstep(1.5, 9, z)) * this.look.shock;
             if (bubble > .01)
@@ -655,7 +678,7 @@ export class Explosion {
                 gl.bindVertexArray(this.bubble.vao);
                 gl.drawArrays(gl.TRIANGLES, 0, this.bubble.vertices);
             }
-            const ringA = (1 - smoothstep(3, 24, z)) * this.look.shock;
+            const ringA = b.grounded ? (1 - smoothstep(3, 24, z)) * this.look.shock : 0;
             if (ringA > .01)
             {
                 gl.uniform1i(sh.u.mode, 1);

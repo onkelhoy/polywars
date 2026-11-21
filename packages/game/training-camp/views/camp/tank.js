@@ -18,7 +18,7 @@ export function tankGun({ gl, renderer, nades, shots, dust }) {
 
     bullets.onhit = (b, hit) => {
         // AP: no charge, but the hit packs ~2 MJ: chunks + dust burst out like a blast
-        nades.explosion.explode(hit.point, { power: GUN.impact, tag: 'tank' });
+        nades.explosion.explode(hit.point, { power: GUN.impact, tag: 'tank', normal: hit.normal, incoming: b.velocity });
         const car = hit.vehicle;
         if (car)
         {
@@ -59,7 +59,17 @@ export function tankGun({ gl, renderer, nades, shots, dust }) {
             c.car.kick(g, [-dir[0] * k, -dir[1] * k, -dir[2] * k], .05);
             // muzzle blast just in front of the barrel (flash, smoke, shock wave, sound)
             const at = [from[0] + dir[0] * .6, from[1] + dir[1] * .6, from[2] + dir[2] * .6];
-            nades.explosion.explode(at, { power: GUN.muzzle, mark: false, tag: 'tank' });
+            nades.explosion.explode(at, { power: GUN.muzzle, mark: false, tag: 'tank', normal: dir });
+            // muzzle brake: smoke jets forward and out both sides (a three lobed cloud), grey-brown, hanging a while
+            const side = [-dir[2], 0, dir[0]], sl = Math.hypot(side[0], side[2]) || 1;
+            side[0] /= sl; side[2] /= sl;
+            const jet = (d, speed, count, size) => ({ count, shape: 'sphere', radius: .15, direction: d, spread: .12, speed, life: [2.5, 4.5], size, grow: 2.5, drag: 2.6, lift: .25, swirl: .35, stretch: .05, colour: [.42, .4, .37], bright: .85, dim: .5 });
+            const back = .25;
+            nades.smoke.burst({ layers: [
+                jet([dir[0], dir[1], dir[2]], [14, 30], 26, [.3, 1.5]),
+                jet([side[0] - dir[0] * back, .05, side[2] - dir[2] * back], [9, 20], 18, [.25, 1.2]),
+                jet([-side[0] - dir[0] * back, .05, -side[2] - dir[2] * back], [9, 20], 18, [.25, 1.2]),
+            ] }, [from[0], from[1], from[2]]);
             // the crew feels every shot: a slight shock (blur + dulled ears)
             nades.daze.hit(.18); nades.audio.stun(.12);
             // the blast hits the ground round the tank: a ring of dust thrown out, heaviest under the muzzle

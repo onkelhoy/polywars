@@ -25,6 +25,11 @@ export type ExplodeOptions = {
     dust?: Colour;
     /** leave a mark on the ground (default true; a gun's muzzle blast doesn't) */
     mark?: boolean;
+    /** the surface's normal where it went off (default up: on the ground). On a wall the fireball, grit and
+     * surge blow out of the wall, no ground ring / mark */
+    normal?: ArrayLike<number>;
+    /** what hit, its direction of travel: the blast leans along the bounce off the surface (a glancing shell sprays on) */
+    incoming?: ArrayLike<number>;
     /** anything for the host, handed back on the blast (`onexplode`): what made it */
     tag?: string;
 };
@@ -44,6 +49,10 @@ export type Blast = {
     /** 0..1 how much of a mushroom it grows, 0..1 how much rock it throws */
     mushroom: number;
     volcano: number;
+    /** unit: which way the blast blows out (the normal, leaned by `incoming`) */
+    axis: Vec3;
+    /** on (flat enough) ground: the ground ring, surge and mark */
+    grounded: boolean;
     /** the `ExplodeOptions.tag` */
     tag?: string;
 };
