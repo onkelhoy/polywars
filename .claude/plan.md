@@ -18,8 +18,8 @@ Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gu
 - Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
 
 ## Farm (`@polywar/farm`, feature/farm): needs in-game check (owner)
-All 7 done (first pass). Views: `packages/world/farm` `experiment` (top down, show = edits) and `scene` (3D, fake terrain). World: farm sites get a farm (up to 220 m, heaviest first, clear of towns), flatten pads into the height grid, paint into the ways paint grid, no grass / no ecosystem trees on yard / fields / pastures, hedgerows + river bank trees (`FARM_TREES`), buildings + fences in `world.farmBuilt` with lods (`assets/models/buildings/farm/lod.json`).
-Known rough: fields one soil colour (no crop rows), edits per field cell (~1000 per farm), on steep maps few fields, fences sit on segment centres (ends float on slopes), no animals yet.
+All 7 done (first pass) + owner round 1 (gates, doors, chicken run, crops, props, view spot). Views: `farm/views/experiment` (top down, show = edits), `world/views/farm` (one farm on a 640 m real world, buttons top / yard / bench). World: `settings.farms` adds farm areas; farm sites get a farm (up to 220 m, heaviest first, clear of towns). Flatten pads into the height grid, paint into the ways paint grid, no grass / no trees on yard / fields / pastures, hedgerows + bank trees (`FARM_TREES`), crops (`CROPS`, `cropRows`), fences generated (bridges `fence`, follow the slope), buildings + props in `world.farmBuilt` (farm lods via `assets/models/buildings/farm/lod.json`).
+Known rough: yard + fields paint all brown, edits per field cell, few fields on steep maps, no animals, props/village has no lods.
 
 ## Open tasks
 1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
