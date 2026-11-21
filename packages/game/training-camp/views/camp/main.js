@@ -252,7 +252,12 @@ function slideLanes() {
 // ---- gun menu (Tab): every gun as a card with its side view, click to take it ----
 await renderer.ready;
 const gunMenu = $('pw-gun-menu');
-gunMenu.items = player.carried.map(c => ({ id: c.gun.spec.model, name: c.gun.spec.name, kind: c.gun.spec.kind, image: thumbnail(renderer, c.model) }));
+// posed at rest (weapon.json `animation.rest`, else the first clip's frame 0): bind pose shows clips / mags off the gun
+gunMenu.items = player.carried.map(c => {
+    const rest = c.weapon?.animation?.rest, clip = rest && c.model.animation(rest) ? rest : c.model.animations?.[0]?.name;
+    if (clip) c.model.pose(clip, 0, false);
+    return { id: c.gun.spec.model, name: c.gun.spec.name, kind: c.gun.spec.kind, image: thumbnail(renderer, c.model) };
+});
 function showMenu(on) {
     menuOpen = on;
     gunMenu.classList.toggle('open', on);
