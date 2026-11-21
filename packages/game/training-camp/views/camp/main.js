@@ -339,19 +339,33 @@ const DUST = { dirt: [.5, .42, .32], stone: [.6, .58, .54], wood: undefined, met
 const puffOut = (at, v, puff) => {
     DUST_LAYER.life[0] = DUST_LAYER.life[1] = puff.life; DUST_LAYER.size[0] = puff.size * .6; DUST_LAYER.size[1] = puff.size * 1.4;
     DUST_LAYER.grow = puff.grow * 2; DUST_LAYER.drag = puff.drag;
-    nades.smoke.burst(dustPuff, at, { velocity: [v[0], v[1], v[2]], colour: puff.colour });
+    nades.smoke.burst(dustPuff, at, { velocity: [v[0], v[1], v[2]], colour: puff.colour, opacity: puff.opacity ?? 1 });
 };
 const exhaust = new Exhaust({ emit: puffOut });
 window.exhaust = exhaust;
+// wheel dust by the ground: dry dirt throws brownish dust, stone / gravel thin grey, grass hardly any; see-through (dither)
+const DUST_GROUND = {
+    dirt: { colour: [.5, .42, .32], amount: 1, opacity: .55 },
+    stone: { colour: [.6, .59, .57], amount: .6, opacity: .4 },
+    grass: { colour: [.45, .43, .34], amount: .15, opacity: .35 },
+};
 const dust = new Dust({
-    rate: 3, speed: 0,
+    rate: 4,
     emit: (at, v, puff) => {
-        puff.size *= .5; puff.life *= .5; puff.grow *= .6;
-        v[0] *= .5; v[1] *= .5; v[2] *= .5;
+        // smaller and closer to the wheel than the default
+        puff.size *= .6; puff.life *= .6; puff.grow *= .7;
+        v[0] *= .6; v[1] *= .6; v[2] *= .6;
         puffOut(at, v, puff);
     },
-    colour: (x, z) => { const s = range.surface([x, range.ground(x, z) + .05, z]); return s in DUST ? DUST[s] : DUST.dirt; },
+    ground: (x, z) => {
+        const s = range.surface([x, range.ground(x, z) + .05, z]);
+        if (s === 'wood' || s === 'metal') return undefined;
+        if (s === 'stone') return DUST_GROUND.stone;
+        // grass grows everywhere but the 'none' zones (lanes, yards): those are the bare dirt
+        return inZone('none', x, z) ? DUST_GROUND.dirt : DUST_GROUND.grass;
+    },
 });
+window.dust = dust;
 window.cars = cars;
 const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
 const carMatrix = Matrix4.create();
