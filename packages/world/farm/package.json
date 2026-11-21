@@ -59,7 +59,12 @@
     "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@polywar/scatter": "*",
-    "@papit/game-mesh": "*"
+    "@papit/game-mesh": "*",
+    "@polywar/terrain": "*",
+    "@polywar/terrain-material": "*",
+    "@polywar/grass": "*",
+    "@polywar/bridges": "*",
+    "@polywar/sweep": "*"
   },
   "browserslist": [
     "defaults",

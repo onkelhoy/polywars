@@ -1,7 +1,8 @@
 @import "@papit/theme";
-body { margin: 0; display: flex; height: 100vh; background: #111; color: #ddd; font: 13px system-ui; }
-canvas { flex: 1; min-width: 0; height: 100%; }
-aside { width: 220px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #1b1b1b; }
-aside h1 { margin: 0 0 4px; font-size: 16px; }
+body { margin: 0; height: 100vh; font: 13px system-ui; }
+pw-viewport { display: block; width: 100%; height: 100%; }
+aside { position: absolute; top: 8px; left: 8px; width: 220px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: #000a; color: #ddd; border-radius: 6px; }
+aside h1 { margin: 0; font-size: 15px; }
 label { display: flex; justify-content: space-between; gap: 6px; }
-output { white-space: pre; color: #9a9; }
+output { white-space: pre; color: #9c9; }
+.row { display: flex; gap: 6px; }
