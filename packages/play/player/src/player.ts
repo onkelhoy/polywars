@@ -13,7 +13,9 @@ import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile
 import { ARMS, armsPoseOf, type ArmsPose } from "./arms";
 import { bend, bodyArm, flat, FORE_HAND, grip, handRotation, holdRotation, PISTOL_GRIP, reach, release, turnFrame, WRIST_GRIP, type BodyArm, type HandFrame, type SkinLike } from "./body-arms";
 import type { HandsFile } from "./weapon-editor";
-import { Feel } from "./feel";
+import { Feel, quaternion } from "./feel";
+import { Box } from "@papit/rigidbody";
+import { Debris, type Piece } from "@polywar/debris";
 import { bonePoint, holdOf, scopeMountFor, scopeMountOf } from "./holds";
 import { Input } from "./input";
 import type { PlayerEvents, PlayerSetting } from "./types";
@@ -73,39 +75,48 @@ export class Player {
             .multiply(Matrix4.rotationX(-.6 * (1 - t)));
         return Matrix4.create(Array.from(w)).multiply(local);
     }
-    /** the gun put down (before an optic): which one, its world matrix while it falls, where it rests */
-    down?: { index: number; matrix: Matrix4; y: number; rest: number; fall: number; base: number; fixed?: boolean };
-    /**
-     * Lays the held gun (or keeps the stowed one) on `at` (world matrix of the spot: y up, top of the surface),
-     * on its side, barrel along -z (the spot's forward). Call each frame to carry it (a car seat); `takeBack` / `pickUp` as usual.
-     */
-    stow(at: Matrix4) {
-        const c = this.down ? this.carried[this.down.index] : this.held;
-        if (!c) return;
-        if (!this.down) { c.gun.cancel(); this.down = { index: this.current, matrix: Matrix4.create(), y: 0, rest: 0, fall: 0, base: 0, fixed: true }; }
-        const size = c.model.size, centre = c.model.center;
-        const m = at.clone.multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, size[0] / 2, 0, 1]))
-            .multiply(Matrix4.rotationZ(Math.PI / 2))
+    /** guns out of the hands (index -> where): rigidbody pieces lying about, or `fixed` (a car seat, moved by the host) */
+    readonly loose = new Map<number, Loose>();
+    /** the held gun when it is out of the hands (put down / thrown / stowed) */
+    get down(): Loose | undefined { return this.loose.get(this.current); }
+    /** loose guns as `@papit/rigidbody` bodies (the feel's world: every range box is in it) */
+    private guns!: Debris;
+
+    /** the gun out of the hands as a body: `m` its model's world matrix now, flying with `velocity` / `spin` */
+    private letGo(index: number, m: Matrix4, velocity: Vec3 = [0, 0, 0], spin: Vec3 = [0, 0, 0], still = false) {
+        const c = this.carried[index], size = c.model.size, centre = c.model.center;
+        c.gun.cancel();
+        const old = this.loose.get(index);
+        if (old?.piece) this.guns.remove(old.piece);
+        // placed (laid / leant): exactly there, no physics; only thrown / dropped guns simulate (until they settle)
+        if (still) { this.loose.set(index, { index, matrix: Matrix4.create(Array.from(m)) }); return; }
+        const axis = (k: number): Vec3 => { const l = Math.hypot(m[k], m[k + 1], m[k + 2]) || 1; return [m[k] / l, m[k + 1] / l, m[k + 2] / l]; };
+        const at = point(m, centre);
+        const piece = this.guns.spawn("gun", {
+            shape: new Box(Math.max(.03, size[0]), Math.max(.03, size[1]), Math.max(.05, size[2])), mass: 4,
+            position: at, velocity, angularVelocity: spin, rotation: quaternion([axis(0), axis(4), axis(8)]),
+            local: Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]),
+            friction: .9, restitution: .1, data: index,
+        });
+        this.loose.set(index, { index, matrix: Matrix4.create(Array.from(m)), piece });
+    }
+
+    /** a gun lying on its side (model x up), barrel along `yaw`'s side, its centre over `spot` by `lift` */
+    private lying(index: number, spot: Vec3, yaw: number, lift = .02) {
+        const c = this.carried[index], centre = c.model.center;
+        return Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, spot[0], spot[1] + c.model.size[0] / 2 + lift, spot[2], 1])
+            .multiply(Matrix4.rotationY(yaw + Math.PI / 2)).multiply(Matrix4.rotationZ(Math.PI / 2))
             .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
-        this.down.matrix.set(m);
-        this.down.rest = m[13]; this.down.y = 0; this.down.base = m[13];
     }
-    /** the put-down gun's grip (world): where the hand takes it */
-    downGrip(): Hand | undefined {
-        const d = this.down;
-        if (!d) return;
-        const c = this.carried[d.index], f = c.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP;
-        return { at: point(d.matrix, (c.hands ?? c.hold).grip), axis: direction(d.matrix, f.axis), palm: direction(d.matrix, f.palm) };
-    }
+
     /**
      * Puts the held gun down in front: on a desk / wall ledge if one is there (casts down from chest high), else the
-     * ground. Laid on its side across the view; drops to the spot and stays (state kept on the carried gun).
+     * ground. Laid on its side across the view, dropped a little (physics settles it).
      */
     putDown() {
         const c = this.held, f = this.mover.feet;
         if (!c || this.down) return;
-        c.gun.cancel();
-        const y = this.yaw, fx = -Math.sin(y), fz = -Math.cos(y), size = c.model.size, centre = c.model.center;
+        const y = this.yaw, fx = -Math.sin(y), fz = -Math.cos(y);
         let spot: Vec3 = [f[0] + fx * .5, this.setting.ground(f[0] + fx * .5, f[2] + fz * .5), f[2] + fz * .5];
         for (const reach of [.45, .6, .3])
         {
@@ -114,29 +125,126 @@ export class Player {
             if (hit && hit.point[1] > f[1] + .4) { spot = [hit.point[0], hit.point[1], hit.point[2]]; break; }
             if (hit && reach === .45) spot = [hit.point[0], hit.point[1], hit.point[2]];
         }
-        // lying on its side (model x up), the barrel across to the left
-        const rest = spot[1] + size[0] / 2;
-        const turn = Matrix4.rotationY(y + Math.PI / 2).multiply(Matrix4.rotationZ(Math.PI / 2));
-        const m = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, spot[0], 0, spot[2], 1]).multiply(turn)
-            .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
-        this.down = { index: this.current, matrix: m, y: f[1] + 1, rest, fall: 0, base: m[13] };
+        this.letGo(this.current, this.lying(this.current, spot, y, .08));
     }
-    /** bending down to the put-down gun (`pickUp`) */
-    private picking = false;
-    /** Take the put-down gun back: the eye bends down to it (focus), the gun comes up at the bottom. */
-    pickUp() {
-        const at = this.downAt, f = this.mover.feet;
-        if (!at || this.picking) return;
+    /**
+     * The held gun knocked out of the hands (a blast): thrown `direction` (level, unit), tumbling, a loose gun there (`pickUp`).
+     */
+    knockGun(direction: ArrayLike<number>, strength = 1) {
+        if (!this.held || this.down || !this.camera) return;
+        const k = 2 + 3 * Math.min(1, strength), r = () => Math.random() - .5;
+        const m = Matrix4.create(Array.from(this.vm.world(this.camera.worldMatrix)));
+        this.letGo(this.current, m, [direction[0] * k, 1.5 + strength, direction[2] * k], [r() * 8, r() * 8, r() * 12]);
+    }
+
+    /**
+     * G: the held gun out of the hands by what is looked at (within 1.8 m): a table / box top -> laid on it,
+     * a wall -> leant against it (butt on the ground, muzzle up), else thrown ahead.
+     */
+    drop(camera: Camera) {
+        const c = this.held;
+        if (!c || this.down || this.picking >= 0) return;
+        const w = camera.worldMatrix, eye: Vec3 = [w[12], w[13], w[14]], look: Vec3 = [-w[8], -w[9], -w[10]];
+        const hit = this.setting.cast(eye, [eye[0] + look[0] * 1.8, eye[1] + look[1] * 1.8, eye[2] + look[2] * 1.8]);
+        const n = hit?.normal;
+        if (hit && n && n[1] > .7) return this.lay(this.current, hit.point, this.yaw);
+        if (hit && n && Math.abs(n[1]) < .4) return this.leanOn(this.current, hit.point, n);
+        // thrown from the hands: forward and up, tumbling
+        const m = Matrix4.create(Array.from(this.vm.world(w)));
+        const r = () => Math.random() - .5;
+        this.letGo(this.current, m, [look[0] * 4.5, look[1] * 4.5 + 1.8, look[2] * 4.5], [r() * 6, r() * 6, r() * 10]);
+    }
+
+    /** gun `index` out of the hands, laid on its side on `spot` (a table / box top / the ground), barrel across `yaw` */
+    lay(index: number, spot: Vec3, yaw: number) { this.letGo(index, this.lying(index, spot, yaw, .002), undefined, undefined, true); }
+
+    /**
+     * Gun `index` out of the hands, leant on a wall: `at` a point on it, `n` its normal (out of the wall). Butt on
+     * the ground a little out, muzzle up, tipped 12 degrees onto the wall.
+     */
+    leanOn(index: number, at: Vec3, n: Vec3) {
+        const c = this.carried[index], hit = { point: at };
+        {
+            // upright: model -z (muzzle) up, tipped onto the wall; model x along the wall
+            const h = Math.hypot(n[0], n[2]) || 1, nx = n[0] / h, nz = n[2] / h, t = 12 * Math.PI / 180;
+            const up: Vec3 = [-nx * Math.sin(t), Math.cos(t), -nz * Math.sin(t)];
+            const side: Vec3 = [-nz, 0, nx];
+            const y: Vec3 = [side[1] * up[2] - side[2] * up[1], side[2] * up[0] - side[0] * up[2], side[0] * up[1] - side[1] * up[0]];
+            const size = c.model.size, centre = c.model.center, len = size[2];
+            // the butt on the ground a little out from the wall, the centre half a gun up the tilt
+            const off = size[1] / 2 + .01 + Math.sin(t) * len;
+            const bx = hit.point[0] + nx * off, bz = hit.point[2] + nz * off;
+            const top: Vec3 = [bx + up[0] * len / 2, this.setting.ground(bx, bz) + up[1] * len / 2 + .02, bz + up[2] * len / 2];
+            const m = Matrix4.create([side[0], side[1], side[2], 0, y[0], y[1], y[2], 0, -up[0], -up[1], -up[2], 0, 0, 0, 0, 1]);
+            const o = point(m, centre);
+            m[12] = top[0] - o[0]; m[13] = top[1] - o[1]; m[14] = top[2] - o[2];
+            this.letGo(index, m, undefined, undefined, true);
+        }
+    }
+
+    /** bending down to a loose gun (`pickUp`): which one, -1 none */
+    private picking = -1;
+    /** the nearest loose gun (not stowed) within `range` of the feet, -1 none */
+    nearLoose(range = 1.5) {
+        const f = this.mover.feet;
+        let best = -1, d = range;
+        for (const l of this.loose.values())
+        {
+            if (l.fixed) continue;
+            const m = l.matrix, e = Math.hypot(m[12] - f[0], m[14] - f[2]);
+            if (e < d) { d = e; best = l.index; }
+        }
+        return best;
+    }
+    /**
+     * Take a loose gun (default: the nearest): a held gun is put down first, then the eye bends down to it (focus),
+     * the hand reaches its grip, the gun comes up at the bottom.
+     */
+    pickUp(index = this.nearLoose()) {
+        const l = this.loose.get(index), f = this.mover.feet;
+        if (!l || this.picking >= 0) return;
+        if (index !== this.current && !this.down) this.putDown();
+        const g = this.downGrip(index)!.at;
         // the eye a little back from the gun and over it, looking at it
-        const dx = f[0] - at[0], dz = f[2] - at[2], l = Math.hypot(dx, dz) || 1;
-        const eye: Vec3 = [at[0] + dx / l * .45, Math.max(at[1] + .55, f[1] + .9), at[2] + dz / l * .45];
-        this.picking = true;
-        this.focus.start({ eye, look: at, time: .45, nudge: .05 });
+        const dx = f[0] - g[0], dz = f[2] - g[2], d = Math.hypot(dx, dz) || 1;
+        const eye: Vec3 = [g[0] + dx / d * .45, Math.max(g[1] + .55, f[1] + .9), g[2] + dz / d * .45];
+        this.picking = index;
+        this.focus.start({ eye, look: g, time: .5, nudge: .05 });
     }
-    /** the gun back in the hands (from the ground / desk) */
-    takeBack() { if (this.down) { this.current = this.down.index; this.down = undefined; this.vm.set(this.held!.hold); } }
+    /** a loose gun into the hands (default: the held one's) */
+    takeBack(index = this.current) {
+        const l = this.loose.get(index);
+        if (!l) return;
+        if (l.piece) this.guns.remove(l.piece);
+        this.loose.delete(index);
+        this.current = index;
+        this.vm.set(this.held!.hold);
+        void this.feel.audio.load(this.held!.gun.spec.sounds ?? this.held!.gun.spec.model);
+    }
     /** the put-down gun's place (world), for prompts */
-    get downAt(): Vec3 | undefined { const m = this.down?.matrix; return m ? [m[12], this.down!.rest, m[14]] : undefined; }
+    get downAt(): Vec3 | undefined { const m = this.down?.matrix; return m ? [m[12], m[13], m[14]] : undefined; }
+    /**
+     * Lays the held gun (or keeps the stowed one) on `at` (world matrix of the spot: y up, top of the surface),
+     * on its side, barrel along -z (the spot's forward). Call each frame to carry it (a car seat).
+     */
+    stow(at: Matrix4) {
+        const c = this.down ? this.carried[this.current] : this.held;
+        if (!c) return;
+        let l = this.down;
+        if (l?.piece) { this.guns.remove(l.piece); l = undefined; }
+        if (!l) { c.gun.cancel(); l = { index: this.current, matrix: Matrix4.create(), fixed: true }; this.loose.set(this.current, l); }
+        const size = c.model.size, centre = c.model.center;
+        l.matrix.set(at.clone.multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, size[0] / 2, 0, 1]))
+            .multiply(Matrix4.rotationZ(Math.PI / 2))
+            .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1])));
+    }
+    /** a loose gun's grip (world): where the hand takes it (default: the one being picked, else the held one's) */
+    downGrip(index = this.picking >= 0 ? this.picking : this.current): Hand | undefined {
+        const d = this.loose.get(index);
+        if (!d) return;
+        const c = this.carried[index], f = c.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP;
+        return { at: point(d.matrix, (c.hands ?? c.hold).grip), axis: direction(d.matrix, f.axis), palm: direction(d.matrix, f.palm) };
+    }
 
     /** "look at this": `focus.start({ eye, look })`, `focus.stop()` */
     readonly focus = new Focus();
@@ -196,7 +304,7 @@ export class Player {
         this.impacts = new Impacts(layer);
         this.bullets = new Bullets(setting.cast);
         this.bullets.onhit = (b, hit) => {
-            this.impacts.hit(hit.point, hit.normal, hit.surface, b.direction);
+            this.impacts.hit(hit.point, hit.normal, hit.surface, b.direction, hit.carrier);
             if (hit.target !== undefined) this.hits++;
             this.events.hit?.(b, hit);
         };
@@ -205,6 +313,7 @@ export class Player {
         this.brace = new Brace({ cast: setting.cast });
         this.armory = new Armory(setting.assets ?? "/assets");
         this.feel = new Feel({ world: setting.world, mixer: setting.mixer, ground: setting.ground, cast: setting.cast, surface: setting.surface, assets: setting.assets ?? "/assets" });
+        this.guns = new Debris({ world: this.feel.world, ground: setting.ground, cap: 64, life: Infinity, roll: 3 });
         this.ready = this.load();
     }
 
@@ -440,9 +549,20 @@ export class Player {
         return true;
     }
 
+    /**
+     * The trigger hand busy (a grenade): `weight` 0..1 eases the gun into the off hand (dipped low left) and the trigger
+     * hand to `at` (camera space). No shooting, no aiming while on. The host eases `weight`.
+     */
+    busyHand?: { weight: number; at: Vec3 };
+
+    /** gun put away (hands free: a grenade, a tool): no trigger, no aim, not drawn. `select` takes a gun up again */
+    stowed = false;
+
     select(index: number) {
         if (!this.carried[index]) return;
-        if (this.down) { if (index === this.down.index) return this.takeBack(); this.down = undefined; }
+        this.stowed = false;
+        // from the menu: a loose one comes back to the hands at once; a put-down held one stays where it lies
+        if (this.loose.has(index) && !this.loose.get(index)!.fixed) return this.takeBack(index);
         this.held?.gun.cancel();
         this.current = index;
         this.vm.set(this.carried[index].hold);
@@ -503,6 +623,37 @@ export class Player {
 
     /** the camera of the last update (cues need it) */
     private camera?: Camera;
+    /** 0..1 camera shake, decays fast */
+    private shaking = 0;
+    /** stumble: view kick (pitch, roll), springs back */
+    private stumble = [0, 0];
+    private shakeTime = 0;
+    /** 0..1 ears ringing after a close blast (sound muffles by it), fades over seconds */
+    deaf = 0;
+
+    /** a blast reached the player: `velocity` m/s pushes the body, `pressure` kPa sets shake, stumble and ringing ears */
+    hit(velocity: ArrayLike<number>, pressure: number) {
+        this.mover.push(velocity[0], velocity[1], velocity[2]);
+        this.shake(Math.min(1, pressure / 40));
+        const k = Math.min(.5, pressure / 120), side = Math.random() < .5 ? -1 : 1;
+        this.stumble[0] += k * .5; this.stumble[1] += k * side;
+        this.deaf = Math.max(this.deaf, Math.min(1, (pressure - 8) / 50));
+    }
+
+    /** shake the view 0..1 (far blasts, a near shell) */
+    shake(amount: number) {
+        this.shaking = Math.min(1, Math.max(this.shaking, amount));
+    }
+
+    /** the player as a blast target (`@polywar/blast-force`) */
+    get blastTarget() {
+        const f = this.mover.feet, player = this;
+        return {
+            get position() { return { x: f[0], y: f[1] + 1, z: f[2] }; },
+            mass: 80, size: .45, lift: .25, cap: 6,
+            push(velocity: ArrayLike<number>, _spin: ArrayLike<number>, hit: { pressure: number }) { player.hit(velocity, hit.pressure); },
+        };
+    }
 
     update(camera: Camera, dt: number) {
         this.camera = camera;
@@ -510,14 +661,15 @@ export class Player {
         const { dx, dy, wheel, pressed } = input?.consume() ?? { dx: 0, dy: 0, wheel: 0, pressed: new Set<string>() };
         const k = (...n: string[]) => input?.key(...n) ? 1 : 0;
         const gun = carried?.gun;
+        const pose = this.setting.pose?.(), control = pose?.control ?? 1;
         if (pressed.has("alt")) this.toggled = !this.toggled;
         const optic = this.optic;
-        const aiming = !optic && !this.down && (this.toggled || !!input?.buttons.has(2));
+        const aiming = !optic && !this.down && !this.stowed && !this.busyHand?.weight && (this.toggled || !!input?.buttons.has(2));
         const scoped = !!carried?.scope && (gun?.aimed ?? 0) > .5;
         // aimed down a scope, the mouse turns slower (by the zoom)
         // through an optic the mouse is not slowed: real hands don't get steadier with zoom
         const sense = (this.setting.sensitivity ?? .0022) / (optic ? 1 : scoped ? carried!.scope!.zoom * .8 : 1 + (gun?.aimed ?? 0) * .3);
-        const turnYaw = -dx * sense, turnPitch = -dy * sense;
+        const lookK = pose?.look ?? control, turnYaw = -dx * sense * lookK, turnPitch = -dy * sense * lookK;
         const pinned = this.focus.active && !!this.focus.target?.look;
         if (!pinned) this.yaw += turnYaw;
         if (!pinned) this.pitch = Math.max(-LIMIT, Math.min(LIMIT, this.pitch + turnPitch));
@@ -569,7 +721,8 @@ export class Player {
         else if (!aiming) this.backed = 0;
         const still = !!this.opticEye || this.focus.active;
         if (still) { wx = 0; wz = 0; }
-        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") && !still });
+        wx *= control; wz *= control;
+        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") && !still && control > .9 });
         const m = this.mover;
 
         // the gun
@@ -579,7 +732,8 @@ export class Player {
             // break actions: C pulls the hammers back, X the safety
             if (pressed.has("c")) gun.cock();
             if (gun.barrels && pressed.has("x")) gun.toggleSafety();
-            const event = sprint || optic || this.down ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
+            if (pressed.has("g") && !optic && !this.down) this.drop(camera);
+            const event = sprint || optic || this.down || this.stowed || (this.busyHand?.weight ?? 0) > 0 || control < .3 ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
@@ -596,6 +750,7 @@ export class Player {
             this.spread = gun.spread(m.speed / 4.2);
         }
         const strafe = m.velocity[0] * rx + m.velocity[2] * rz;
+        this.vm.offhand = this.busyHand?.weight ?? 0;
         this.vm.update(dt, { yaw: turnYaw, pitch: turnPitch, speed: m.speed, strafe, grounded: m.grounded, landed: m.landed, aimed: gun?.aimed ?? 0, reload: gun && gun.reloading > 0 ? gun.progress : -1, sprint });
         // the barrel against the world (from last frame's camera)
         if (gun) { const f = this.vm.free, o = this.obstruction.update(camera.worldMatrix, f.grip, f.muzzle, this.pitch); this.vm.obstruct(this.room && o.tuck ? { yaw: 0, back: o.back, tuck: 0 } : o); }
@@ -611,8 +766,15 @@ export class Player {
 
         camera.zoom = 1 + (scoped ? 0 : (gun?.aimed ?? 0) * .25);
         const out = this.lean * LEAN;
-        camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06, m.feet[2] + rz * out]);
-        camera.rotation.set([this.pitch + this.climb + this.vm.view[0], this.yaw + this.vm.view[1], -this.lean * LEAN_ROLL]);
+        camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06 - (pose?.drop ?? 0), m.feet[2] + rz * out]);
+        // blast: a hard shake that dies fast, a stumble that springs back, ears ring for a while
+        this.shakeTime += dt;
+        const sh = this.shaking ** 2 * .06, st = this.shakeTime * 40;
+        const shake = [Math.sin(st * 1.3) * sh + Math.sin(st * 2.9) * sh * .5, Math.sin(st * 1.7 + 1) * sh, Math.sin(st * .9 + 2) * sh * .6];
+        this.shaking *= Math.exp(-dt * 3);
+        this.stumble[0] *= Math.exp(-dt * 4); this.stumble[1] *= Math.exp(-dt * 4);
+        this.deaf = Math.max(0, this.deaf - dt * .12);
+        camera.rotation.set([this.pitch + this.climb + this.vm.view[0] + shake[0] + this.stumble[0] + (pose?.pitch ?? 0), this.yaw + this.vm.view[1] + shake[1] + (pose?.yaw ?? 0), -this.lean * LEAN_ROLL + shake[2] + this.stumble[1] + (pose?.roll ?? 0)]);
         // zoomed in, everything looked at is far: a further near plane keeps the depth precise (no flicker at 800 m)
         this.baseNear ??= camera.near;
         // focus: the camera eases to its eye (a fixed optic's eyepiece too), mouse nudges, springs back
@@ -642,16 +804,12 @@ export class Player {
         }
 
         // picking up: at the bottom of the bend the gun is in the hands, then back up
-        if (this.picking && this.focus.settled) { this.takeBack(); this.picking = false; this.focus.stop(); }
-        // the put-down gun drops onto its spot
-        if (this.down && !this.down.fixed && this.down.y > this.down.rest)
-        {
-            const d = this.down;
-            d.fall += 9.81 * dt; d.y = Math.max(d.rest, d.y - d.fall * dt);
-        }
-        if (this.down && !this.down.fixed) this.down.matrix[13] = this.down.base + this.down.y;
+        if (this.picking >= 0 && this.focus.settled) { this.takeBack(this.picking); this.picking = -1; this.focus.stop(); }
         const p = this.pitch, ya = this.yaw;
         this.feel.update(dt, [camera.position[0], camera.position[1], camera.position[2]], [-Math.sin(ya) * Math.cos(p), Math.sin(p), -Math.cos(ya) * Math.cos(p)]);
+        // loose guns: after the world step (in feel.update), their matrices from the bodies
+        this.guns.update(dt);
+        for (const l of this.loose.values()) if (l.piece) this.guns.matrix(l.piece, l.matrix);
         this.bullets.update(dt);
         this.impacts.update(dt);
         this.impacts.tracers(this.bullets.list.filter(b => b.tracer));
@@ -740,7 +898,16 @@ export class Player {
         };
         // pistols and pistol grip guns (smgs) by their grip, rifles by the stock's wrist; the index on the trigger
         const trigger = carried.weapon?.points?.trigger ?? bonePoint(carried.model, "trigger");
-        hand(0, hands.grip, carried.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP, trigger);
+        const busy = this.busyHand;
+        if (busy && busy.weight > .01)
+        {
+            // the trigger hand off the grip to the busy point (a fist round the grenade)
+            const f = turnFrame(PISTOL_GRIP, 0, 0), arm = this.rigArms![0];
+            const from = new Vector3(...at(hands.grip)), to = local(point(cam, busy.at));
+            reach(skin, arm, from.lerp(new Vector3(to[0], to[1], to[2]), busy.weight), holdRotation(arm, along(camDir([0, 1, 0])), along(camDir([-1, 0, 0]))), pole(0));
+            grip(skin, arm, f.radius * .8);
+        }
+        else hand(0, hands.grip, carried.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP, trigger);
         const b = this.brace.value;
         if (b.weight > .01)
         {
@@ -762,6 +929,8 @@ export class Player {
             else if (hands.fore) grip(skin, arm, FORE_HAND.radius);
         }
         else if (hands.fore) hand(1, hands.fore, FORE_HAND);
+        // no fore end (a pistol) but the trigger hand busy: the off hand takes the grip
+        else if (busy && busy.weight > .5) hand(1, hands.grip, PISTOL_GRIP);
         else release(skin, this.rigArms![1]);
         skin.update();
     }
@@ -786,7 +955,7 @@ export class Player {
         {
             this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.rigArms) { if (carried && !this.down) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); skin.update(); } }
+            if (skin && this.rigArms) { if (carried && !this.down && !this.stowed) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking >= 0) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
             this.posed = skin ? skin.matrices.slice() : undefined;
             if (skin) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
@@ -795,10 +964,11 @@ export class Player {
         this.drawDown();
         const held = this.held;
         if (held) this.impacts.follow(point(camera.worldMatrix, point(this.vm.matrix, held.hold.muzzle)), direction(camera.worldMatrix, this.vm.muzzle.direction));
+        // after the host's last world pass (grass tufts): smoke and dust don't write depth, so later draws would paint over them
+        this.setting.worldDrawn?.();
         this.impacts.draw(camera);
         r.reset();
-        this.setting.worldDrawn?.();
-        if (!carried || this.optic || this.down) return;
+        if (!carried || this.optic || this.down || this.stowed) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);
@@ -835,11 +1005,14 @@ export class Player {
 
     /** the put-down / stowed gun: in the world pass (before `renderer.reset`); `draw` does it on foot */
     drawDown() {
-        if (!this.down) return;
-        const r = this.renderer, c = this.carried[this.down.index];
-        c.model.draw(r, this.down.matrix);
-        if (c.scopeModel && c.scopeAt) c.scopeModel.draw(r, this.down.matrix.clone.multiply(c.scopeAt));
-        if (c.scopeMesh) r.draw(c.scopeMesh, this.down.matrix);
+        const r = this.renderer;
+        for (const l of this.loose.values())
+        {
+            const c = this.carried[l.index];
+            c.model.draw(r, l.matrix);
+            if (c.scopeModel && c.scopeAt) c.scopeModel.draw(r, l.matrix.clone.multiply(c.scopeAt));
+            if (c.scopeMesh) r.draw(c.scopeMesh, l.matrix);
+        }
     }
 
     /**
@@ -863,6 +1036,23 @@ export class Player {
         const right = direction(body, [-1, 0, 0]);
         reach(skin, arm, target, rotation, along([right[0], right[1] - 1, right[2]]));
         grip(skin, arm, weight > .5 ? .016 : .04);
+    }
+
+    /** both hands flat on the ground in front of the shoulders by `weight` (0..1): pushing up after a knockdown */
+    private handsDown(skin: SkinLike, weight: number) {
+        if (!this.rigArms || weight <= .01) return;
+        const body = this.bodyMatrix(), toSkin = body.clone.multiply(this.body!.skeletonMatrix).inverse();
+        const local = (p: Vec3): Vec3 => { const q = toSkin.clone.multiply([p[0], p[1], p[2], 1]) as unknown as number[]; return [q[0], q[1], q[2]]; };
+        const along = (d: Vec3): Vec3 => { const a = local([0, 0, 0]), b = local(d); return [b[0] - a[0], b[1] - a[1], b[2] - a[2]]; };
+        const f = this.mover.feet, y = this.yaw, fx = -Math.sin(y), fz = -Math.cos(y), rx = Math.cos(y), rz = -Math.sin(y);
+        this.rigArms.forEach((arm, i) => {
+            const s = i === 0 ? 1 : -1, x = f[0] + fx * .45 + rx * .22 * s, z = f[2] + fz * .45 + rz * .22 * s;
+            const ground: Vec3 = [x, this.setting.ground(x, z) + .02, z], hang: Vec3 = [f[0] + rx * .25 * s, f[1] + .8, f[2] + rz * .25 * s];
+            const target = new Vector3(...local(hang)).lerp(new Vector3(...local(ground)), weight);
+            // palm on the ground, fingers ahead; elbow out and back
+            reach(skin, arm, target, holdRotation(arm, along([fx, 0, fz]), along([0, -1, 0])), along([rx * s - fx, .3, rz * s - fz]));
+            flat(skin, arm);
+        });
     }
 
     /**
@@ -923,6 +1113,7 @@ export class Player {
 }
 
 /** a seated hand target (world): `at` the grab point, `axis` the bar (thumb along it), `palm` toward it */
+export type Loose = { index: number; matrix: Matrix4; piece?: Piece; fixed?: boolean };
 export type Hand = { at: Vec3; axis: Vec3; palm: Vec3 };
 
 /** a weapon.json `aim` (degrees) as a `Hold.aim` (radians) */

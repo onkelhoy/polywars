@@ -1,5 +1,6 @@
 import { brass, PARTS, part, RATE, SCENES, shot, SURFACES } from "./recipes";
 import type { GunVoice } from "./types";
+import { BOOM_SCENES, boom, tinnitus, type BoomSize } from "./explosions";
 
 /** sound name -> its variants (samples at `RATE`) */
 export type SoundSet = Record<string, Float32Array[]>;
@@ -22,3 +23,12 @@ export function brassSet(variants = 3): SoundSet {
 }
 
 export { RATE };
+
+/** Explosions: `<size>-<scene>` (small / big × near-open, near-walls, near-indoor, far, distant), and `ring` (ears). */
+export function explosionSet(variants = 2): SoundSet {
+    const set: SoundSet = {};
+    for (const size of ["small", "big"] as BoomSize[])
+        for (const scene of BOOM_SCENES) set[`${size}-${scene}`] = Array.from({ length: variants }, (_, i) => boom(size, scene, hash(`boom/${size}/${scene}/${i}`)));
+    set.ring = [tinnitus(hash("ring"))];
+    return set;
+}

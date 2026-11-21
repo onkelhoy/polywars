@@ -90,6 +90,9 @@ export class Viewport extends CustomElement {
 
     get layer() { return this.engine?.layers.main as Layer3D | undefined; }
     get gl() { return this.layer!.gl; }
+    /** the walk controller while walking (`mover.push` for knockback, `feet`) */
+    walker?: ReturnType<typeof walk>;
+
     get camera() { return this.layer?.camera ?? null; }
 
     firstRender() {
@@ -162,6 +165,7 @@ export class Viewport extends CustomElement {
         const controller = this.mode === "walk" ? walk({ ...this.walking!, touch: this.touchInput, exit: this.exitWalk })
             : this.mode === "fly" ? fly({ speed: this.speed, touch: this.touchInput }) : panZoom({ pivot: target, pan: this.pan, max: this.maxDistance });
         this.pivot = "pivot" in controller ? controller.pivot : undefined;
+        this.walker = "mover" in controller ? controller : undefined;
         const camera = new Camera({ near: this.near, far: this.far, controllers: [controller] });
         camera.position.set(pose.position);
         camera.rotation.set(pose.rotation);

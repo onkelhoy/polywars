@@ -1,7 +1,10 @@
+import { FOG_GLSL } from "@polywar/fog";
+
 /** Light, fog and sky shared by the water programs (same uniforms as the other polywar materials). */
 const COMMON = `
-uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye;
-uniform float sunStrength, ambient, fogDensity;
+${FOG_GLSL}
+uniform vec3 sunDirection, sunColor, sky, ground, eye;
+uniform float sunStrength, ambient;
 vec3 hemi(vec3 n) { return mix(ground, sky, n.y * .5 + .5) * ambient; }
 `;
 
@@ -305,7 +308,7 @@ void main() {
 
     // where the depth is known the water thins out to nothing at the waterline
     float a = clamp(mix(opacity, 1.0, deepness) + graze * .3 + foam, 0.0, 1.0) * mix(1.0, smoothstep(0.0, .05, waterDepth), trust * (1.0 - foam));
-    c = mix(c, fogColor, 1.0 - exp(-dist * fogDensity));
+    c = applyFog(c, vWorld, eye);
     // the far sea melts into the sky at the horizon
     c = mix(c, fogColor, pow(1.0 - max(v.y, 0.0), 12.0) * horizon);
     outColor = vec4(pow(c, vec3(1.0 / 2.2)) * a, a);

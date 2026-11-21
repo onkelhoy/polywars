@@ -34,6 +34,9 @@ export type ImpactsSetting = {
     surfaces?: Record<string, SurfaceLook>;
 };
 
+/** something marks can stick to: its model matrix (column major 4x4, rigid) written into `out` */
+export type Carrier = { matrix(out: Float32Array): ArrayLike<number> };
+
 /** what the renderer needs from a camera; `@papit/game-engine`'s `Camera` fits */
 export type View = {
     viewMatrix: ArrayLike<number>;

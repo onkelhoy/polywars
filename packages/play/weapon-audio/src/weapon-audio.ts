@@ -4,13 +4,16 @@ import type { PlayOptions, Scene, SoundsFile, Vec3, WeaponAudioOptions } from ".
 /** how far each kind of sound carries: [refDistance, rolloff, maxDistance] */
 const REACH = { shot: [6, 1, 3000], part: [1, 1.6, 60], brass: [.6, 2, 30] } as const;
 
-/** 8 ways round and one up, for the scene guess */
-const AROUND: Vec3[] = [...Array.from({ length: 8 }, (_, i): Vec3 => [Math.cos(i * Math.PI / 4), 0, Math.sin(i * Math.PI / 4)]), [0, 1, 0]];
+/** 16 ways round, for the scene guess */
+const AROUND: Vec3[] = Array.from({ length: 16 }, (_, i): Vec3 => [Math.cos(i * Math.PI / 8), 0, Math.sin(i * Math.PI / 8)]);
+/** a wall must also stand this much above the shooter's height (a crate or desk doesn't) */
+const WALL_HIGH = .9;
 
 /**
  * Weapon sounds in 3D through `@papit/audio`: sets from `@polywar/sfx-gen` (`<set>/sounds.json`), a random variant
  * (never the same twice in a row) at a random pitch, late by the speed of sound. Shots pick their file by the
  * scene, guessed by rays round the shooter: a roof and walls close all round is `indoor`, a few walls `walls`, else `open`.
+ * Only things taller than the shooter count as walls.
  */
 export class WeaponAudio {
     readonly mixer: AudioMixer;
@@ -51,19 +54,28 @@ export class WeaponAudio {
 
     /**
      * The scene round `at`, cached while the shooter stays within a metre for half a second.
-     * Rays: 8 round at `at` out to 30 m, one up 20 m.
+     * Rays: 16 round out to 30 m, each at `at` and `WALL_HIGH` above it (a wall blocks both, near the same
+     * distance: small props don't count), plus 3 up 20 m (a roof covers at least 2).
      */
     scene(at: Vec3, time = performance.now() / 1000): Scene {
         const cast = this.options.cast, g = this.guess;
         if (!cast) return "open";
         if (g && time - g.time < .5 && Math.hypot(at[0] - g.at[0], at[1] - g.at[1], at[2] - g.at[2]) < 1) return g.scene;
-        const reach = (d: Vec3, max: number) => {
-            const hit = cast(at, [at[0] + d[0] * max, at[1] + d[1] * max, at[2] + d[2] * max]);
-            return hit ? Math.hypot(hit.point[0] - at[0], hit.point[1] - at[1], hit.point[2] - at[2]) : Infinity;
+        const reach = (from: Vec3, d: Vec3, max: number) => {
+            const hit = cast(from, [from[0] + d[0] * max, from[1] + d[1] * max, from[2] + d[2] * max]);
+            return hit ? Math.hypot(hit.point[0] - from[0], hit.point[1] - from[1], hit.point[2] - from[2]) : Infinity;
         };
-        const round = AROUND.slice(0, 8).map(d => reach(d, 30)), up = reach(AROUND[8], 20);
+        const high: Vec3 = [at[0], at[1] + WALL_HIGH, at[2]];
+        const wall = (d: Vec3) => {
+            const low = reach(at, d, 30);
+            if (low === Infinity) return Infinity;
+            const top = reach(high, d, 30);
+            return Math.abs(top - low) < 2 ? Math.max(low, top) : Infinity;
+        };
+        const round = AROUND.map(wall);
+        const roof = [at, [at[0] + 1.5, at[1], at[2]], [at[0], at[1], at[2] + 1.5]].filter(p => reach(p as Vec3, [0, 1, 0], 20) < 8).length;
         const close = round.filter(d => d < 12).length, near = round.filter(d => d < 25).length;
-        const scene: Scene = up < 8 && close >= 6 ? "indoor" : near >= 2 ? "walls" : "open";
+        const scene: Scene = roof >= 2 && close >= 11 ? "indoor" : near >= 3 ? "walls" : "open";
         this.guess = { at: [...at], time, scene };
         return scene;
     }

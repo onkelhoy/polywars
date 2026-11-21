@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>smoke | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".5" far="5000">
+    <aside>
+        <h1>smoke</h1>
+        <p>Space: the repeat kind. Campfire left, a moving exhaust.</p>
+        <div class="row">
+            <button data-burst="puff">puff</button>
+            <button data-burst="dust">dust</button>
+            <button id="clear">clear</button>
+        </div>
+        <label><input id="repeat" type="checkbox" checked /> repeat <select id="kind"><option>puff</option><option>dust</option></select></label>
+        <div class="row"><button id="near">near view</button><button id="far">far view</button></div>
+        <label>colour <select id="colour"><option value="preset">preset</option><option value="dust">dust</option><option value="white">white</option><option value="grey">grey</option><option value="dark">dark</option></select></label>
+        <label>slow <input id="speed" type="range" min=".05" max="1" step=".05" value="1" /></label>
+        <label>scale <input id="scale" type="range" min=".2" max="4" step=".1" value="1" /></label>
+        <label>wind <input id="wind" type="range" min="0" max="6" step=".1" value=".6" /></label>
+        <label>highlight <input id="highlight" type="range" min="0" max="1" step=".05" value=".8" /></label>
+        <label>faces <select id="detail"><option value="0">20</option><option value="1">80</option></select></label>
+        <label>filler <input id="thickness" type="range" min="0" max="1" step=".02" value=".62" /></label>
+        <label>reach <input id="reach" type="range" min=".5" max="3" step=".05" value="1.6" /></label>
+        <label>swirl <input id="swirl" type="range" min="0" max="3" step=".05" value="1" /></label>
+        <label>sun <input id="sun" type="range" min="0" max="360" step="5" value="40" /></label>
+        <label><input id="fire" type="checkbox" checked /> campfire</label>
+        <label><input id="exhaust" type="checkbox" checked /> exhaust</label>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
+</body>
+
+</html>

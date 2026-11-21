@@ -123,7 +123,7 @@ export class Feel {
 }
 
 /** quaternion [x, y, z, w] of a rotation given by its columns (unit x, y, z axes) */
-function quaternion([x, y, z]: Vec3[]): [number, number, number, number] {
+export function quaternion([x, y, z]: Vec3[]): [number, number, number, number] {
     const m00 = x[0], m11 = y[1], m22 = z[2], trace = m00 + m11 + m22;
     if (trace > 0)
     {

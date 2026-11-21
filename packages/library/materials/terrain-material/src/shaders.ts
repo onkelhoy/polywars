@@ -1,11 +1,15 @@
 import { UNDER_GLSL } from "@polywar/water";
+import { FOG_GLSL } from "@polywar/fog";
+import { SHADOW_GLSL } from "@polywar/shadows";
 import { BIOMES } from "./types";
 
 const N = BIOMES.length;
 
 const COMMON = `
-uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye;
-uniform float sunStrength, ambient, fogDensity, bands, wrap, steepness;
+${FOG_GLSL}
+${SHADOW_GLSL}
+uniform vec3 sunDirection, sunColor, sky, ground, eye;
+uniform float sunStrength, ambient, bands, wrap, steepness;
 
 float toon(float d) {
     if (bands <= 0.0) return clamp(d, 0.0, 1.0);
@@ -19,11 +23,10 @@ float lightShift = 0.0; // painted ground: bends the light band edges into patch
 vec3 lit(vec3 albedo, vec3 n, vec3 world, float extra) {
     float d = (dot(n, normalize(sunDirection)) + wrap) * steepness + lightShift;
     vec3 hemi = mix(ground, sky, n.y * .5 + .5) * ambient;
-    vec3 c = albedo * (hemi + sunColor * sunStrength * toon(d)) + sunColor * sunStrength * extra;
-    float dist = length(world - eye);
+    vec3 c = albedo * (hemi + sunColor * sunStrength * toon(d) * (1.0 - shadowAt(world, n))) + sunColor * sunStrength * extra;
     // under water the fog is the water's
     if (eyeUnder) return underFog(c, world, eye);
-    return mix(c, fogColor, 1.0 - exp(-dist * fogDensity));
+    return applyFog(c, world, eye);
 }
 `;
 

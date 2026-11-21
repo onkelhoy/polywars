@@ -1,0 +1,79 @@
+{
+  "name": "@polywar/explosion",
+  "description": "Fast scary low poly explosions: flash, fireball, shock wave, swirling ground surge, suck back, mushroom, volcano debris.",
+  "keywords": [
+    "papit",
+    "web-component",
+    "typescript",
+    "explosion"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build -- --error --ancestors",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "preversion": "papit-version",
+    "postversion": "papit-version",
+    "component": "npm create @papit -- --component"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/play/explosion",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/play/explosion"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/game-engine": "*",
+    "@papit/vector": "*",
+    "@polywar/smoke": "*",
+    "@papit/audio": "*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@papit/theme": "*",
+    "@polywar/viewport": "*",
+    "@polywar/renderer": "*",
+    "@papit/game-mesh": "*",
+    "@papit/matrix": "*",
+    "@papit/rigidbody": "*",
+    "@polywar/grass": "*"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "browser",
+    "main": "explosion",
+    "htmlprefix": ""
+  }
+}

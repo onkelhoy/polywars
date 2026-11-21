@@ -264,6 +264,14 @@ export type WalkSetting = Omit<MoverSetting, "ground"> & {
     run?: number;
     /** radians per mouse pixel */
     sensitivity?: number;
+    /** live multiplier on the look (dazed, a heavy scope ...), read every frame (default 1) */
+    lookScale?: () => number;
+    /** live 0..1: the head follows the look on a soft spring (overshoots a touch, dazed), 0 = direct */
+    lookSpring?: () => number;
+    /** live multiplier on walk speed (dazed, hurt, carrying), default 1 */
+    moveScale?: () => number;
+    /** live: the body thrown off the look (knocked down): eye lowered `drop`, look offset, `control` 0..1 of look / walk */
+    pose?: () => { drop: number; pitch: number; yaw: number; roll: number; control: number; look?: number } | undefined;
     /** the player let go of the view (Esc): the host switches back */
     exit?: () => void;
     /** on screen controls (stick walks, analog; `jump`, `run` buttons) */
@@ -279,6 +287,8 @@ export type WalkSetting = Omit<MoverSetting, "ground"> & {
 export function walk(setting: WalkSetting): CameraController & { feet: Vector3; grounded: boolean; mover: Mover } {
     const sensitivity = setting.sensitivity ?? .002, eye = setting.eye ?? 1.7, speed = setting.speed ?? 4.5, run = setting.run ?? 2.2;
     let dx = 0, dy = 0, cleanup: (() => void) | undefined;
+    let aim: { y: number; x: number; vy: number; vx: number } | undefined;
+    const off = { pitch: 0, yaw: 0, roll: 0 };
     const controller = {
         feet: new Vector3(0, 0, 0),
         grounded: true,
@@ -286,6 +296,7 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
         start(camera: Camera) {
             const canvas = camera.surface!.element as HTMLElement, element = stage(camera);
             const p = camera.position;
+            aim = undefined;
             controller.mover.place(p.x, p.z);
             controller.feet.set(controller.mover.feet);
             const root = () => canvas.getRootNode() as Document | ShadowRoot;
@@ -315,23 +326,37 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
         },
         update(camera: Camera, dt: number) {
             dt = Math.min(dt, .1);
-            const r = camera.rotation;
-            r.y -= dx * sensitivity;
-            r.x = clampPitch(r.x - dy * sensitivity);
+            const r = camera.rotation, pose = setting.pose?.(), control = pose?.control ?? 1;
+            // last frame's knocked offset off, the look is ours again
+            r.x -= off.pitch; r.y -= off.yaw; r.z -= off.roll;
+            const look = sensitivity * (setting.lookScale?.() ?? 1) * (pose?.look ?? control), spring = setting.lookSpring?.() ?? 0;
+            aim ??= { y: r.y, x: r.x, vy: 0, vx: 0 };
+            aim.y -= dx * look;
+            aim.x = clampPitch(aim.x - dy * look);
             dx = dy = 0;
+            if (spring > .001)
+            {
+                // a soft spring: lags, then swings a hair past
+                const k = 400 - 340 * spring, damp = 2 * Math.sqrt(k) * (1 - .45 * spring);
+                aim.vy += ((aim.y - r.y) * k - aim.vy * damp) * dt; aim.vx += ((aim.x - r.x) * k - aim.vx * damp) * dt;
+                r.y += aim.vy * dt; r.x = clampPitch(r.x + aim.vx * dt);
+            }
+            else { r.y = aim.y; r.x = aim.x; aim.vy = aim.vx = 0; }
             const keys = camera.engine!.input.keyboard;
             const k = (...names: string[]) => !typing() && names.some(n => keys.key(n)?.pressed) ? 1 : 0;
             // level forward / right, eased so starts and stops aren't instant
             const t = setting.touch, stick = t?.stick;
             const ahead = k("w", "arrowup") - k("s", "arrowdown") - (stick?.y ?? 0), side = k("d", "arrowright") - k("a", "arrowleft") + (stick?.x ?? 0);
             // keys: full speed any way; the stick is analog (a light push walks slowly)
-            const l = Math.max(Math.hypot(ahead, side), 1), v = speed * (k("shift") || held(t, "run") ? run : 1);
+            const l = Math.max(Math.hypot(ahead, side), 1), v = speed * (k("shift") || held(t, "run") ? run : 1) * (setting.moveScale?.() ?? 1) * control;
             const fx = -Math.sin(r.y), fz = -Math.cos(r.y), rx = Math.cos(r.y), rz = -Math.sin(r.y);
             const m = controller.mover;
-            m.update(dt, { x: (fx * ahead + rx * side) / l * v, z: (fz * ahead + rz * side) / l * v, jump: !!(k(" ") || held(t, "jump")) });
+            m.update(dt, { x: (fx * ahead + rx * side) / l * v, z: (fz * ahead + rz * side) / l * v, jump: control > .9 && !!(k(" ") || held(t, "jump")) });
             controller.grounded = m.grounded;
             controller.feet.set(m.feet);
-            camera.position.set([m.feet[0], m.feet[1] + eye, m.feet[2]]);
+            camera.position.set([m.feet[0], m.feet[1] + eye - (pose?.drop ?? 0), m.feet[2]]);
+            off.pitch = pose?.pitch ?? 0; off.yaw = pose?.yaw ?? 0; off.roll = pose?.roll ?? 0;
+            r.x += off.pitch; r.y += off.yaw; r.z += off.roll;
         },
         destroy() { cleanup?.(); },
     };

@@ -74,8 +74,8 @@ Gun animation map: `animation` property in each gun's weapon.json (format in `.c
 - Reloads in detail: rounds into the magazine, magazine swap, stripper clips.
 - Fatigue lowers recoil `control`.
 
-## Shooting range (`@polywar/shooting-range`)
-Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view `range`. Ideas from the owner:
+## Training camp (`@polywar/training-camp`)
+Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view `camp`. Ideas from the owner:
 - [x] button to move the targets nearer / further (moving targets on the rails)
 - [x] binoculars ("kikare") on the roof to look down the range
 - [x] lamps
@@ -106,9 +106,22 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - [x] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
 
 ## Sky + weather
+- [ ] World tones per time / weather (morning, cloudy, evening, night): warm sun + blue shadow base set in `DAYLIGHT` now.
 - [ ] Time of day: sun / moon move with the real local clock (13:00 is 13:00), time controllable (speed / set). Night fall, sun light colour + ambient follow it.
 - [ ] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature.
 - [ ] Light fog (distance + height), first in the shooting range.
+
+## Explosion (`@polywar/explosion`, next fresh start, uses `@polywar/smoke`)
+- [ ] Knockdown poses by situation (seated in a car: tossed on the side, no roll over; prone; against a wall). Now: always fall, roll over if on the back, push up.
+- [ ] Own package: explosions compose smoke bursts + debris + shock waves; smoke stays only puffs / clouds.
+- [ ] Ground blast side heavy (ref Desktop/Screenshot 2026-11-20 at 22.50.17): big rolling masses out to the sides, low wisps trailing along the ground, a lighter lobe in front; less in the middle.
+- [ ] Massive blasts: debris / particles shot out like a volcano (arcs, trails of smoke).
+- [ ] Shock waves (ground ring, air ring).
+- [ ] Wire into the game: player blast hit -> `Daze.hit` + `audio.stun` (player keeps `deaf`).
+- [ ] Papit report: `@papit/audio` buses have no effects (filter) slot; explosion `stun` reroutes `master.gain` by hand.
+- [ ] Player ragdoll fall on a big push (now: mover push, shake, stumble, `deaf`).
+- [ ] Shake / stumble also through optics and focus (camera rotation set again there).
+- [ ] Ref GIF (dribbble 21023971, ground ring rushes out + brakes, core rolls up, wisps streak, tops go flat, shrink + crumble). Smoke presets `explosion` / `blast` are the first pass to move over.
 
 ## Weapon editor
 - [ ] Better hold editing: see the fingers on the gun, control the grip per hand (pose / curl / wrist turn), not only sliders for the gun position. Ties into the hand editor (H) and hand pose clips.
@@ -116,3 +129,20 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 ## Optics / gun handling (follow ups)
 - [ ] Put-down gun: real rigidbody drop (now a straight fall), hand IK to the grip on take back.
 - [ ] Steel plates: ring sound on hit; metal cans as targets.
+
+## Grenades
+- [ ] in-game selector: which kind G throws, how many you carry (slots)
+- [ ] shield the eyes: forearm over the eyes on a bright thing (explosion at mid distance = quick reflex, staring at a lamp / the sun ~1.5 s = slowly up). Needs line of sight (not inside a house). Own small package (`@polywar/reflex`), brightness like `explosion.glare` + lamps
+## Ground map (idea, needs thought)
+One small painted RGB map over the world (PNG, not JPEG: channels bleed): R grass density (black none, grey thin), G grass height, B fog clearing (or wetness). Replaces the no-grass / short-grass rectangles. Check what the world generator already makes first. Paint view like the grass view.
+
+## Range model as source only (mostly done, feature/camp-upgrade)
+Done: shooting-range.py writes range.json `props` (asset empties with `asset`, meshes linked from camp-props.blend -> assets/models/props/camp, Alt+D meshes -> package props/), drawn instanced via @polywar/scatter; rigged ones one by one. Blend files: only camp.blend + camp-props.blend. Left:
+- [ ] vehicle empties in camp.blend show as cubes: preview the real asset (script / linked collection)
+- [ ] fence shadow: shadow pass ignores the texture cut-out (solid strip)
+- [ ] owner: rename berms with "earth" (e.g. `Berm earth backstop A`), then drop the `Berm` rule (main.js EARTH, shooting-range.py ROLES)
+- [ ] while driving, impacts draw before the grass tufts (drawDriver order)
+- [ ] leftover Alt+D meshes only in camp.blend (cubes, cylinders, sandbag wall, tent canvas): owner moves them to camp-props.blend so the package keeps only model.glb + range.json
+- [ ] lighter vehicle versions for decor (tanks ~3 MB, drawn one by one); vehicle asset scales are inconsistent (empties carry the scale)
+- [ ] drivable tanks / trucks / motorbike / planes
+- [ ] motorbike asset: a stray wheel in the middle?

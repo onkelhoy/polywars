@@ -1,18 +1,22 @@
 # Plan
 
 ## Where we are
-Everything is on `main`. Next: jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
+Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gun drop, fx fixes). Next: smoke 4 (jeep dust uses `@polywar/smoke`). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
-Range rework (`feature/range` tasks: ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off), jeep 1-8 (7: gun on passenger seat, hand reach), lights + glow, doors, jeep crash fix (`fleet.cast` skips a chassis the ray starts inside), optics 1-6, grass on the range (falloff, no SSAO on tufts, grass in the gun scope).
+- Camp: range rework (ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, lights + glow, doors, grass (falloff, no SSAO on tufts, grass in the scope), optics 1-6.
+- Arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off). Jeep 1-8, jeep crash fix.
+- Gun drop / swap: G `drop` (lay on a top, lean on a wall, else throw), F `pickUp` (swap). Stand guns still instant.
+- FX fixes: camera near .25, smoke after tufts, marks ride on what they hit (`Hit.carrier`), muzzle sound scene rays, `@polywar/fog`, `@polywar/shadows`, parked cars hold, jeep glass last.
+- Explosion (`@polywar/explosion`): look, `BlastForce`, `ExplosionAudio` + `stun`, `Daze`, `Knockdown` (a new blast always counts, from the current pose).
+- Grenades: `Grenade` / `GRENADES` (mk2, f1, M24 stick: flips + twists) in `@polywar/weapons`. Camp `views/camp/grenades.js`: crates at x 16 z 40-44, F takes 4 (one in hand: gun to the off hand, `viewmodel.offhand*`, `player.busyHand`), hold fire = wind up + arc, let go = throw, H next / put back, right click pin back. Cover by the camp's own walls. Console: `nades.lastHit()`, `nades.live()`.
 
-Optics notes (rough first pass):
-- `Focus` (`@polywar/viewmodel`): `player.focus.start({ eye, look })` / `stop()`.
-- Gun put down before an optic: `player.putDown()` / `pickUp()` (F bends to it) / `down`. Straight fall, laid on its side.
-- Spotting scope: F eases the eye to the eyepiece (.7 s), view blends in. Binoculars: G raises the desk model (`player.binocularsAt`), view blends in.
-- Steel targets from 200 m (`STEEL_FROM` in shooting-range.ts), metal sparks seen to 900 m.
-- Grass: `falloff` quality setting; range look = `assets/grass/range.json` (saved from the grass view; 120 m, falloff 3).
+## Notes
+- Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.
+- Grass look = `assets/grass/range.json` (120 m, falloff 3).
+- Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
 
-## Tasks (confirmed, `feature/arms-grip`)
-Done: 1-4b (body arms on the rig's IK + grip, 3 store soldiers, rig resync (`characters/base/model.blend` authoring rig, `export.py --bake`, runtime IK via `Skeleton.addIK`, soldiers fitted by `lib/base_rig.py`, brace hand, aim at a wall).
-5. Backlog: papit math cleanup (play), drop box arms, mag / bullet grab, pockets, first shot flyer.
+## Open tasks
+1. Smoke 4: jeep dust uses `@polywar/smoke`.
+2. Jeep 7: gun on the passenger seat (`.claude/plan.jeep.md`).
+3. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.

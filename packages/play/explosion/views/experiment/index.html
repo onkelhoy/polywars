@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>explosion | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".5" far="60000">
+    <aside>
+        <h1>explosion</h1>
+        <p>Space or B: boom (B while playing). Click once for sound. Crates, a jeep, dummies (blue behind the jeep), a wall. The camera is yours: the ear is where it is.</p>
+        <div class="row">
+            <button data-power=".2">grenade</button>
+            <button data-power="5">shell</button>
+            <button data-power="250">bomb</button>
+            <button data-power="5000">huge</button>
+            <button data-power="100000">massive</button>
+        </div>
+        <label>power <input id="power" type="range" min="-1" max="5.5" step=".05" value=".7" /> <span id="kg"></span></label>
+        <label>push cap m/s <input id="cap" type="range" min="1" max="20" step=".5" value="6" /></label>
+        <label>lift <input id="lift" type="range" min="0" max="1" step=".05" value=".25" /></label>
+        <label>knock from <input id="knock" type="range" min="0" max="1" step=".05" value=".2" /></label>
+        <label>slow <input id="speed" type="range" min=".02" max="1" step=".02" value="1" /></label>
+        <label>shock <input id="shock" type="range" min="0" max="1" step=".05" value="1" /></label>
+        <label>bend <input id="bend" type="range" min="0" max=".15" step=".005" value=".04" /></label>
+        <label>line ground <input id="low" type="range" min="0" max="1" step=".05" value="1" /></label>
+        <label>line top <input id="top" type="range" min="0" max="1" step=".05" value=".7" /></label>
+        <label>eat from <input id="eat" type="range" min="0" max="1" step=".05" value=".45" /></label>
+        <label>fade from <input id="fade" type="range" min="0" max="1" step=".05" value=".6" /></label>
+        <label>grain <input id="grain" type="range" min=".5" max="6" step=".1" value="2.2" /></label>
+        <label>strength <input id="strength" type="range" min="0" max="6" step=".1" value="2" /></label>
+        <label><input id="grass" type="checkbox" checked /> grass</label>
+        <label><input id="music" type="checkbox" /> background loop (hear the muffle)</label>
+        <label><input id="repeat" type="checkbox" /> repeat</label>
+        <div class="row"><button id="play">play (P, Esc out)</button><button id="reset">reset (things, marks, grass)</button></div>
+        <output id="info"></output>
+    </aside>
+    </pw-viewport>
+    <div id="glare"></div>
+</body>
+
+</html>

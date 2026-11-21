@@ -162,6 +162,33 @@ export class Grass {
         gl.bufferData(gl.ARRAY_BUFFER, placed.data, gl.DYNAMIC_DRAW);
     }
 
+    /**
+     * No grass in a circle any more (a blast mark, dug ground): tufts there vanish now and are never planted again
+     * (kept in `planting.holes`).
+     */
+    clear(x: number, z: number, radius: number) {
+        const pl = this.planting;
+        if (!pl) return;
+        (pl.holes ??= []).push([x, z, radius]);
+        const r2 = radius * radius, hide = (data: ArrayLike<number> & { [i: number]: number }, count: number) => {
+            let hit = false;
+            for (let k = 0; k < count; k++)
+            {
+                const o = k * TUFT;
+                if ((data[o] - x) ** 2 + (data[o + 2] - z) ** 2 < r2 && data[o + 3]) { data[o + 3] = 0; data[o + 4] = 0; hit = true; }
+            }
+            return hit;
+        };
+        for (const c of this.cache.values()) hide(c.data as number[], c.count);
+        const placed = this.placed;
+        if (placed && hide(placed.data, placed.count))
+        {
+            const gl = this.gl;
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.instances);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, placed.data);
+        }
+    }
+
     /** Characters that bend grass: x y z radius each. Only the first `pushers` (quality) count. */
     push(pushers: Pusher[]) {
         this.material.push(pushers);
@@ -202,10 +229,14 @@ export class Grass {
         const gl = this.gl, g = this.ground;
         if (!g || !this.material.useGround(view, light, time, darken)) return;
         gl.enable(gl.DEPTH_TEST);
+        // the floor is the terrain: pushed back in depth steps, so roads / pads lying on it win (no z-fight)
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(2, 8);
         gl.bindVertexArray(g.vao);
         if (g.indexed) gl.drawElements(gl.TRIANGLES, g.count, g.indexed, 0);
         else gl.drawArrays(gl.TRIANGLES, 0, g.count);
         gl.bindVertexArray(null);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
     destroy() {

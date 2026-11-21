@@ -1,3 +1,5 @@
+import { bindFog } from "@polywar/fog";
+import { bindShadows } from "@polywar/shadows";
 import type { Layer3D } from "@papit/game-engine";
 import { noise } from "./noise";
 import { GROUND_FRAGMENT, GROUND_VERTEX, TUFT_FRAGMENT, TUFT_VERTEX } from "./shaders";
@@ -198,8 +200,8 @@ export class GrassMaterial {
         gl.uniform3fv(u("sky"), light.sky);
         gl.uniform3fv(u("ground"), light.ground);
         gl.uniform1f(u("ambient"), light.ambient);
-        gl.uniform3fv(u("fogColor"), light.fogColor);
-        gl.uniform1f(u("fogDensity"), light.fogDensity);
+        bindFog(gl, u, light);
+        bindShadows(gl, u, light.shadow);
         gl.uniform3fv(u("grassColor"), linear(o.color));
         const pa = [o.patches[0], o.patches[1]];
         gl.uniform3fv(u("patchColor"), [...linear(pa[0]?.color ?? o.color), ...linear(pa[1]?.color ?? o.color)]);

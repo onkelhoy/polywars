@@ -235,7 +235,7 @@ export class Vehicle {
             this.toWorld(set(this.local, p[0], p[1] + this.sag, p[2]), mount);
             const reach = s.travel + ws.radius;
             const hit = this.cast(mount, dir, reach, w.normal);
-            const locked = !!input.handbrake && p[2] >= rearZ - .01;
+            const locked = !!input.parked || (!!input.handbrake && p[2] >= rearZ - .01);
             if (hit === null)
             {
                 w.grounded = false; w.load = 0; w.slipping = false;
@@ -274,7 +274,7 @@ export class Vehicle {
             if (locked) fLong = -vLong * quarter * LOCK;
             else if (brake) fLong = -Math.sign(vLong) * Math.min(brake, Math.abs(vLong) * quarter * LOCK);
             else fLong = (ws.drive !== false ? drive : 0) - vLong * quarter * (throttle ? .02 : .08);
-            if (locked) fLat = clamp(fLat, -limit * s.slide, limit * s.slide);
+            if (locked && !input.parked) fLat = clamp(fLat, -limit * s.slide, limit * s.slide);
             const total = Math.hypot(fLong, fLat);
             w.slipping = total > limit;
             if (w.slipping) { fLong *= limit / total; fLat *= limit / total; }

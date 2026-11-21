@@ -92,6 +92,8 @@ export type DriveInput = {
     /** -1 left .. 1 right */
     steer: number;
     handbrake?: boolean;
+    /** parking brake: every wheel held (cars nobody drives) */
+    parked?: boolean;
 };
 
 export type WheelState = {

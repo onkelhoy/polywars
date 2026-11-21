@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>training-camp | camp</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+
+<body>
+    <pw-viewport near=".1" far="3000" no-bar no-axes no-origin>
+    <div id="hud">
+        <div id="cross"><i></i><i></i><i></i><i></i></div>
+        <div id="optic"></div>
+        <div id="marker">×</div>
+        <div id="glare" style="position:fixed;inset:0;background:#fff8ee;opacity:0;pointer-events:none"></div>
+        <output id="prompt"></output>
+        <output id="ammo"></output>
+        <output id="state"></output>
+    </div>
+    <output id="fps"></output>
+    <aside id="menu">
+        <h1>training camp</h1>
+        <p><b>click to play</b> · WASD walk · shift run · space jump · left mouse fire · right mouse aim · Q E lean · R reload · <b>F</b> take the gun over the case in front of you · <b>Tab</b> gun menu · 1-9 / [ ] guns · Option toggles aim · T weapon editor (pose, hands) (wheel zooms a scope while aimed) · Esc menu</p>
+        <p>Indoor lanes with moving targets at 18 m, outdoor stands every 100 m out to 800 m. Stairs at the back go up to the roof.</p>
+        <label><input id="ao" type="checkbox" /> ambient occlusion (SSAO)</label>
+        <label><input id="body" type="checkbox" checked /> show body</label>
+        <label>character <select id="character"></select></label>
+        <button id="play" type="button">play</button>
+        <button id="clear" type="button">clear marks</button>
+    </aside>
+    <pw-gun-menu></pw-gun-menu>
+    </pw-viewport>
+</body>
+
+</html>
