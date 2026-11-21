@@ -949,26 +949,32 @@ export class Player {
      * Draw after the world (same `renderer.begin`): the body, impacts, then (scoped) the scope's picture,
      * then the gun and arms on their own depth so they never go into walls, and the scope glass on top.
      */
+    /** dev third person: the eye's world matrix (the camera is elsewhere). The whole body (head, arms) and the gun
+     * are drawn in the world pass, placed from this eye; undefined = first person */
+    thirdPerson?: Matrix4;
+
     draw(camera: Camera) {
-        const r = this.renderer, gl = this.gl, carried = this.held;
+        const r = this.renderer, gl = this.gl, carried = this.held, third = this.thirdPerson;
+        const eye = third ?? camera.worldMatrix;
         if (this.body && this.showBody)
         {
             this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.rigArms) { if (carried && !this.down && !this.stowed) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking >= 0) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
+            if (skin && this.rigArms) { if (carried && !this.down && !this.stowed) this.reachGun(skin, eye, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking >= 0) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
             this.posed = skin ? skin.matrices.slice() : undefined;
-            if (skin) collapse(skin, this.hidden);
+            if (skin && !third) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
         }
+        if (third && carried && !this.down && !this.stowed) carried.model.draw(r, Matrix4.create(Array.from(this.vm.world(eye))));
         this.feel.draw(r);
         this.drawDown();
         const held = this.held;
-        if (held) this.impacts.follow(point(camera.worldMatrix, point(this.vm.matrix, held.hold.muzzle)), direction(camera.worldMatrix, this.vm.muzzle.direction));
+        if (held) this.impacts.follow(point(eye, point(this.vm.matrix, held.hold.muzzle)), direction(eye, this.vm.muzzle.direction));
         // after the host's last world pass (grass tufts): smoke and dust don't write depth, so later draws would paint over them
         this.setting.worldDrawn?.();
         this.impacts.draw(camera);
         r.reset();
-        if (!carried || this.optic || this.down || this.stowed) return;
+        if (!carried || this.optic || this.down || this.stowed || third) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);

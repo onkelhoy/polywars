@@ -429,15 +429,25 @@ function drawRider(camera) {
     const at = o => { const p = car.toWorld(o); return [p[0], p[1], p[2]]; };
     const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
     const seatM = car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1], s[2], 1]));
-    // feet: from the ground by the bike up onto the pegs (the far foot swings over)
-    const feet = PEGS.map((p, i) => lerp3([spec.exit[0] + (i ? .25 : -.05), spec.exit[1] + .05, spec.exit[2] + (i ? -.1 : .1)], [spec.seat[0] + p[0], spec.seat[1] + p[1], spec.seat[2] + p[2]], i ? smooth(mount * 1.6 - .4) : t)).map(at);
+    // feet: the near (left) foot stays down then steps onto its peg; the right leg swings up high and over the seat
+    const swing = smooth(Math.min(1, mount * 1.4)), step = smooth(Math.max(0, mount * 1.6 - .6));
+    const feet = PEGS.map((p, i) => {
+        const peg = [spec.seat[0] + p[0], spec.seat[1] + p[1], spec.seat[2] + p[2]];
+        const ground = [spec.exit[0] + (i ? 0 : .3), spec.exit[1] + .05, spec.exit[2] + (i ? .1 : -.1)];
+        if (i) return at(lerp3(ground, peg, step));
+        const f = lerp3(ground, peg, swing);
+        f[1] += Math.sin(Math.PI * swing) * (spec.seat[1] + .25);
+        f[2] += Math.sin(Math.PI * swing) * .35;
+        return at(f);
+    });
     const knees = BIKE_KNEES.map(k => at([s[0] + k[0], s[1] + k[1], s[2] + k[2]]));
     const F = car.fork(Matrix4.create()), turn = q => [F[0] * q[0] + F[4] * q[1] + F[8] * q[2] + F[12], F[1] * q[0] + F[5] * q[1] + F[9] * q[2] + F[13], F[2] * q[0] + F[6] * q[1] + F[10] * q[2] + F[14]];
     const grips = spec.grips.map((g, i) => {
         const bar = turn(g), side = turn([g[0] + (i ? 1 : -1), g[1], g[2]]);
         return { at: at(bar), axis: dir([side[0] - bar[0], side[1] - bar[1], side[2] - bar[2]]), palm: dir([0, -.7, -.7]) };
     });
-    player.drawSeated(camera, seatM, { feet, knees, elbows: BIKE_ELBOWS.map(dir), hands: grips, take: 0 }, seatCam);
+    // drawSeated takes the hands [right, left]; grips are [left, right]
+    player.drawSeated(camera, seatM, { feet, knees, elbows: BIKE_ELBOWS.map(dir), hands: [grips[1], grips[0]], take: 0 }, seatCam);
     if (player.down?.fixed) stowBack();
 }
 /** the rifle slung across the rider's back, muzzle up over the right shoulder (stow lays a gun flat: undo its turn + lift) */
@@ -462,7 +472,7 @@ let taking = -1, placing = false;
 const TAKE = .6, smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 const passenger = spec => spec.passenger ?? [-spec.seat[0], spec.seat[1] - .08, spec.seat[2]];
 function stowGun() {
-    if (!driving || !player.down?.fixed) return;
+    if (!driving || !player.down?.fixed || driving.spec.kind === 'bike') return;
     const p = passenger(driving.spec);
     player.stow(driving.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])));
 }
@@ -510,6 +520,24 @@ addEventListener('keydown', e => {
     if (driving) { if (placing) return; if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
     else if (nearCar) enter(nearCar);
 });
+// ---- dev third person (M): camera behind / round the body; no daze or blink over it ----
+let third = false;
+const orbit = [0, 0];
+addEventListener('keydown', e => {
+    if (e.key.toLowerCase() !== 'm' || !document.body.classList.contains('playing')) return;
+    third = !third; orbit[0] = orbit[1] = 0;
+    if (!third) player.thirdPerson = undefined;
+});
+function thirdCamera(c) {
+    if (!third) return;
+    player.thirdPerson = Matrix4.create(Array.from(c.worldMatrix));
+    const e = [c.position[0], c.position[1], c.position[2]], yaw = c.rotation.y + orbit[0], pitch = Math.max(-1.3, Math.min(1.3, c.rotation.x * .5 - .25 + orbit[1]));
+    const cp = Math.cos(pitch), d = [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp], dist = 3;
+    const p = [e[0] - d[0] * dist + Math.cos(yaw) * .4, e[1] - d[1] * dist + .3, e[2] - d[2] * dist - Math.sin(yaw) * .4];
+    p[1] = Math.max(p[1], range.ground(p[0], p[2]) + .3);
+    c.position.set(p);
+    c.rotation.set([pitch, yaw, 0]);
+}
 function driveCamera(camera, dt) {
     const { car, spec } = driving, input = player.input;
     const { dx, dy } = input?.consume() ?? { dx: 0, dy: 0 };
@@ -584,7 +612,14 @@ const seat = {
                 if (c2 !== driving && c2.awake <= 0) { c2.engine.stop(.8); c2.engine = undefined; }
             }
         }
-        if (driving) driveCamera(c, dt); else walkCam.update(c, dt);
+        if (driving) driveCamera(c, dt);
+        else
+        {
+            // dev third person: hold Z to orbit (the mouse turns the camera, not you)
+            if (third && player.input?.key('z')) { const { dx, dy } = player.input.consume(); orbit[0] -= dx * .004; orbit[1] = Math.max(-1.2, Math.min(1.2, orbit[1] - dy * .004)); }
+            walkCam.update(c, dt);
+            thirdCamera(c);
+        }
     },
     destroy: () => walkCam.destroy?.(),
 };
@@ -631,7 +666,7 @@ demo.draw = camera => {
     if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); drawAir(camera); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); drawAir(camera); }
     else player.draw(camera);
-    nades.drawDaze();
+    if (!third || driving) nades.drawDaze();
 };
 
 // ---- FPS (top left): frames counted over half a second ----

@@ -356,8 +356,19 @@ export class Vehicle {
         // a hard hit: speed lost in one step
         const v = b.velocity, impact = Math.hypot(v.x - this.last[0], v.y - this.last[1], v.z - this.last[2]);
         this.last.set(v);
-        if (!this.fallen && (Math.abs(this.lean) > max + .35 || impact > 6)) this.crash(impact);
-        if (this.fallen) return;
+        // lean alone can't tell upside down (lean ~0 again): the body's up pointing down counts too
+        const up = q.rotate(set(this.up, 0, 1, 0));
+        if (!this.fallen && (Math.abs(this.lean) > max + .35 || up[1] < .3 || impact > 6)) this.crash(impact);
+        if (this.fallen)
+        {
+            // landed on its back (bars + seat): tips onto a side and lies there, never back up by itself
+            if (up[1] < -.2 && b.position.y - this.s.ground(b.position.x, b.position.z) < 1.2)
+            {
+                const side = right[1] >= 0 ? 1 : -1, t = m * G * .5 * side;
+                b.applyTorque({ x: nose[0] * t, y: nose[1] * t, z: nose[2] * t });
+            }
+            return;
+        }
         const rate = b.angularVelocity.x * nose[0] + b.angularVelocity.y * nose[1] + b.angularVelocity.z * nose[2];
         // ridden: lean into the turn; stopped, the feet hold it up; slow, nothing slides sideways (no glide)
         const ws = spec.wheels, base = Math.abs(ws[0].position[2] - ws[1].position[2]) || 1.4;
