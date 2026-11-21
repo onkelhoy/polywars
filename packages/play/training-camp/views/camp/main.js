@@ -314,10 +314,16 @@ const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     return { car, spec, hands, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
 let driving, seatCam = true, nearCar;
-// dust behind the wheels, coloured by what the ground is made of; drawn by the player's impacts
+// dust behind the wheels, coloured by what the ground is made of; drawn by @polywar/smoke (the grenades' smoke)
+const DUST_LAYER = { count: 1, shape: 'sphere', radius: .1, direction: [0, 1, 0], spread: .4, speed: [0, .2], life: [1, 1], size: [.3, .3], grow: 2, drag: 2, lift: .1, swirl: .4, stretch: .06, colour: [.5, .42, .32], bright: .7, dim: .4 };
+const dustPuff = { layers: [DUST_LAYER] };
 const DUST = { dirt: [.5, .42, .32], stone: [.6, .58, .54], wood: undefined, metal: undefined };
 const dust = new Dust({
-    emit: (at, v, puff) => player.impacts.emit(at, v, puff),
+    emit: (at, v, puff) => {
+        DUST_LAYER.life[0] = DUST_LAYER.life[1] = puff.life; DUST_LAYER.size[0] = puff.size * .6; DUST_LAYER.size[1] = puff.size * 1.4;
+        DUST_LAYER.grow = puff.grow * 2; DUST_LAYER.drag = puff.drag;
+        nades.smoke.burst(dustPuff, at, { velocity: [v[0], v[1], v[2]], colour: puff.colour });
+    },
     colour: (x, z) => { const s = range.surface([x, range.ground(x, z) + .05, z]); return s in DUST ? DUST[s] : DUST.dirt; },
 });
 window.cars = cars;
@@ -455,8 +461,8 @@ const seat = {
         if (driving && placing && (taking -= dt / TAKE) <= 0) { taking = -1; placing = false; }
         else if (driving && !placing && taking >= 0 && (taking += dt / TAKE) >= 1) { taking = -1; player.takeBack(); leave(); }
         for (const c2 of cars) dust.update(dt, c2.car);
-        // the player isn't updated while driving: age the dust here
-        if (driving) player.impacts.update(dt);
+        // the player / grenades aren't ticked while driving: age the impacts + dust here
+        if (driving) { player.impacts.update(dt); nades.smoke.update(dt); }
         for (const c2 of cars)
         {
             if (c2 !== driving && c2.awake > 0) c2.awake -= dt;

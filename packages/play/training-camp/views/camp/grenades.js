@@ -132,6 +132,8 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
             const c = layer.camera;
             if (c?.worldMatrix) { const w = c.worldMatrix, e = [w[12], w[13], w[14]]; audio.setListener(e, [-w[8], -w[9], -w[10]]); audio.ring(player.deaf); }
         },
+        /** shared smoke (jeep dust uses it too) */
+        smoke,
         lastHit: () => lastHit,
         live: () => live.map(g => ({ state: g.state, left: +g.left.toFixed(1), at: g.position.map(v => +v.toFixed(1)) })),
         glare: () => { const w = layer.camera?.worldMatrix; return w ? explosion.glare([w[12], w[13], w[14]]) : 0; },

@@ -1,10 +1,11 @@
 # Plan
 
 ## Where we are
-Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gun drop, fx fixes). Next: smoke 4 (jeep dust uses `@polywar/smoke`). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
+Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gun drop, fx fixes). Smoke 4 done, jeep 7 was already done. Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 - Camp: range rework (ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, lights + glow, doors, grass (falloff, no SSAO on tufts, grass in the scope), optics 1-6.
+- Jeep dust now via `@polywar/smoke` (grenades' `nades.smoke`, one puff per Dust emit).
 - Arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off). Jeep 1-8, jeep crash fix.
 - Gun drop / swap: G `drop` (lay on a top, lean on a wall, else throw), F `pickUp` (swap). Stand guns still instant.
 - FX fixes: camera near .25, smoke after tufts, marks ride on what they hit (`Hit.carrier`), muzzle sound scene rays, `@polywar/fog`, `@polywar/shadows`, parked cars hold, jeep glass last.
@@ -17,6 +18,4 @@ Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gu
 - Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
 
 ## Open tasks
-1. Smoke 4: jeep dust uses `@polywar/smoke`.
-2. Jeep 7: gun on the passenger seat (`.claude/plan.jeep.md`).
-3. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
+1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
