@@ -1,0 +1,18 @@
+{
+ "bones": {
+  "main": {
+   "length": 0.8667,
+   "deform": true
+  },
+  "bolt": {
+   "length": 0.17185,
+   "deform": true
+  },
+  "bolt_extra": {
+   "length": 0.17185,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

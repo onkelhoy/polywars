@@ -8,6 +8,121 @@
      "name": "effects",
      "assets": [
       {
+       "name": "explosions",
+       "assets": [
+        {
+         "name": "big-distant-1.wav",
+         "file": "/assets/audio/effects/explosions/big-distant-1.wav",
+         "size": 467018
+        },
+        {
+         "name": "big-distant-2.wav",
+         "file": "/assets/audio/effects/explosions/big-distant-2.wav",
+         "size": 495078
+        },
+        {
+         "name": "big-far-1.wav",
+         "file": "/assets/audio/effects/explosions/big-far-1.wav",
+         "size": 438268
+        },
+        {
+         "name": "big-far-2.wav",
+         "file": "/assets/audio/effects/explosions/big-far-2.wav",
+         "size": 441714
+        },
+        {
+         "name": "big-near-indoor-1.wav",
+         "file": "/assets/audio/effects/explosions/big-near-indoor-1.wav",
+         "size": 192172
+        },
+        {
+         "name": "big-near-indoor-2.wav",
+         "file": "/assets/audio/effects/explosions/big-near-indoor-2.wav",
+         "size": 192172
+        },
+        {
+         "name": "big-near-open-1.wav",
+         "file": "/assets/audio/effects/explosions/big-near-open-1.wav",
+         "size": 333438
+        },
+        {
+         "name": "big-near-open-2.wav",
+         "file": "/assets/audio/effects/explosions/big-near-open-2.wav",
+         "size": 334092
+        },
+        {
+         "name": "big-near-walls-1.wav",
+         "file": "/assets/audio/effects/explosions/big-near-walls-1.wav",
+         "size": 197780
+        },
+        {
+         "name": "big-near-walls-2.wav",
+         "file": "/assets/audio/effects/explosions/big-near-walls-2.wav",
+         "size": 178622
+        },
+        {
+         "name": "ring-1.wav",
+         "file": "/assets/audio/effects/explosions/ring-1.wav",
+         "size": 320044
+        },
+        {
+         "name": "small-distant-1.wav",
+         "file": "/assets/audio/effects/explosions/small-distant-1.wav",
+         "size": 371244
+        },
+        {
+         "name": "small-distant-2.wav",
+         "file": "/assets/audio/effects/explosions/small-distant-2.wav",
+         "size": 369444
+        },
+        {
+         "name": "small-far-1.wav",
+         "file": "/assets/audio/effects/explosions/small-far-1.wav",
+         "size": 320044
+        },
+        {
+         "name": "small-far-2.wav",
+         "file": "/assets/audio/effects/explosions/small-far-2.wav",
+         "size": 320044
+        },
+        {
+         "name": "small-near-indoor-1.wav",
+         "file": "/assets/audio/effects/explosions/small-near-indoor-1.wav",
+         "size": 192044
+        },
+        {
+         "name": "small-near-indoor-2.wav",
+         "file": "/assets/audio/effects/explosions/small-near-indoor-2.wav",
+         "size": 192044
+        },
+        {
+         "name": "small-near-open-1.wav",
+         "file": "/assets/audio/effects/explosions/small-near-open-1.wav",
+         "size": 256044
+        },
+        {
+         "name": "small-near-open-2.wav",
+         "file": "/assets/audio/effects/explosions/small-near-open-2.wav",
+         "size": 256044
+        },
+        {
+         "name": "small-near-walls-1.wav",
+         "file": "/assets/audio/effects/explosions/small-near-walls-1.wav",
+         "size": 193462
+        },
+        {
+         "name": "small-near-walls-2.wav",
+         "file": "/assets/audio/effects/explosions/small-near-walls-2.wav",
+         "size": 200022
+        },
+        {
+         "name": "sounds.json",
+         "file": "/assets/audio/effects/explosions/sounds.json",
+         "size": 1168
+        }
+       ]
+      },
+      {
        "name": "weapons",
        "assets": [
         {
@@ -4403,23 +4518,16 @@
        ]
       }
      ]
-    },
+    }
+   ]
+  },
+  {
+   "name": "grass",
+   "assets": [
     {
-     "name": "songs",
-     "assets": [
-      {
-       "name": "game",
-       "assets": [
-        
-       ]
-      },
-      {
-       "name": "menu",
-       "assets": [
-        
-       ]
-      }
-     ]
+     "name": "range.json",
+     "file": "/assets/grass/range.json",
+     "size": 1356
     }
    ]
   },
@@ -5798,6 +5906,16 @@
          "size": 125344
         },
         {
+         "name": "Barn.lod1.glb",
+         "file": "/assets/models/buildings/farm/Barn.lod1.glb",
+         "size": 81776
+        },
+        {
+         "name": "Barn.lod2.glb",
+         "file": "/assets/models/buildings/farm/Barn.lod2.glb",
+         "size": 35328
+        },
+        {
          "name": "BigBarn.blend",
          "file": "/assets/models/buildings/farm/BigBarn.blend",
          "size": 742232
@@ -5806,6 +5924,16 @@
          "name": "BigBarn.glb",
          "file": "/assets/models/buildings/farm/BigBarn.glb",
          "size": 183860
+        },
+        {
+         "name": "BigBarn.lod1.glb",
+         "file": "/assets/models/buildings/farm/BigBarn.lod1.glb",
+         "size": 119248
+        },
+        {
+         "name": "BigBarn.lod2.glb",
+         "file": "/assets/models/buildings/farm/BigBarn.lod2.glb",
+         "size": 47836
         },
         {
          "name": "ChickenCoop.blend",
@@ -5818,6 +5946,16 @@
          "size": 47208
         },
         {
+         "name": "ChickenCoop.lod1.glb",
+         "file": "/assets/models/buildings/farm/ChickenCoop.lod1.glb",
+         "size": 32232
+        },
+        {
+         "name": "ChickenCoop.lod2.glb",
+         "file": "/assets/models/buildings/farm/ChickenCoop.lod2.glb",
+         "size": 12996
+        },
+        {
          "name": "Fence.blend",
          "file": "/assets/models/buildings/farm/Fence.blend",
          "size": 506040
@@ -5826,6 +5964,16 @@
          "name": "Fence.glb",
          "file": "/assets/models/buildings/farm/Fence.glb",
          "size": 10272
+        },
+        {
+         "name": "Fence.lod1.glb",
+         "file": "/assets/models/buildings/farm/Fence.lod1.glb",
+         "size": 6180
+        },
+        {
+         "name": "Fence.lod2.glb",
+         "file": "/assets/models/buildings/farm/Fence.lod2.glb",
+         "size": 2560
         },
         {
          "name": "Fence2.blend",
@@ -5838,6 +5986,16 @@
          "size": 16468
         },
         {
+         "name": "Fence2.lod1.glb",
+         "file": "/assets/models/buildings/farm/Fence2.lod1.glb",
+         "size": 10200
+        },
+        {
+         "name": "Fence2.lod2.glb",
+         "file": "/assets/models/buildings/farm/Fence2.lod2.glb",
+         "size": 2872
+        },
+        {
          "name": "OpenBarn.blend",
          "file": "/assets/models/buildings/farm/OpenBarn.blend",
          "size": 595340
@@ -5846,6 +6004,16 @@
          "name": "OpenBarn.glb",
          "file": "/assets/models/buildings/farm/OpenBarn.glb",
          "size": 74712
+        },
+        {
+         "name": "OpenBarn.lod1.glb",
+         "file": "/assets/models/buildings/farm/OpenBarn.lod1.glb",
+         "size": 48304
+        },
+        {
+         "name": "OpenBarn.lod2.glb",
+         "file": "/assets/models/buildings/farm/OpenBarn.lod2.glb",
+         "size": 15508
         },
         {
          "name": "Silo.blend",
@@ -5858,6 +6026,16 @@
          "size": 68232
         },
         {
+         "name": "Silo.lod1.glb",
+         "file": "/assets/models/buildings/farm/Silo.lod1.glb",
+         "size": 46172
+        },
+        {
+         "name": "Silo.lod2.glb",
+         "file": "/assets/models/buildings/farm/Silo.lod2.glb",
+         "size": 15472
+        },
+        {
          "name": "Silo_House.blend",
          "file": "/assets/models/buildings/farm/Silo_House.blend",
          "size": 666868
@@ -5866,6 +6044,16 @@
          "name": "Silo_House.glb",
          "file": "/assets/models/buildings/farm/Silo_House.glb",
          "size": 126264
+        },
+        {
+         "name": "Silo_House.lod1.glb",
+         "file": "/assets/models/buildings/farm/Silo_House.lod1.glb",
+         "size": 86264
+        },
+        {
+         "name": "Silo_House.lod2.glb",
+         "file": "/assets/models/buildings/farm/Silo_House.lod2.glb",
+         "size": 28040
         },
         {
          "name": "SmallBarn.blend",
@@ -5878,6 +6066,16 @@
          "size": 95512
         },
         {
+         "name": "SmallBarn.lod1.glb",
+         "file": "/assets/models/buildings/farm/SmallBarn.lod1.glb",
+         "size": 62876
+        },
+        {
+         "name": "SmallBarn.lod2.glb",
+         "file": "/assets/models/buildings/farm/SmallBarn.lod2.glb",
+         "size": 26656
+        },
+        {
          "name": "TowerWindmill.blend",
          "file": "/assets/models/buildings/farm/TowerWindmill.blend",
          "size": 884588
@@ -5886,6 +6084,16 @@
          "name": "TowerWindmill.glb",
          "file": "/assets/models/buildings/farm/TowerWindmill.glb",
          "size": 327008
+        },
+        {
+         "name": "TowerWindmill.lod1.glb",
+         "file": "/assets/models/buildings/farm/TowerWindmill.lod1.glb",
+         "size": 208452
+        },
+        {
+         "name": "TowerWindmill.lod2.glb",
+         "file": "/assets/models/buildings/farm/TowerWindmill.lod2.glb",
+         "size": 117260
         },
         {
          "name": "WaterTower.blend",
@@ -5898,6 +6106,16 @@
          "size": 103992
         },
         {
+         "name": "WaterTower.lod1.glb",
+         "file": "/assets/models/buildings/farm/WaterTower.lod1.glb",
+         "size": 77528
+        },
+        {
+         "name": "WaterTower.lod2.glb",
+         "file": "/assets/models/buildings/farm/WaterTower.lod2.glb",
+         "size": 50496
+        },
+        {
          "name": "Well.blend",
          "file": "/assets/models/buildings/farm/Well.blend",
          "size": 670132
@@ -5908,6 +6126,16 @@
          "size": 151556
         },
         {
+         "name": "Well.lod1.glb",
+         "file": "/assets/models/buildings/farm/Well.lod1.glb",
+         "size": 89932
+        },
+        {
+         "name": "Well.lod2.glb",
+         "file": "/assets/models/buildings/farm/Well.lod2.glb",
+         "size": 30816
+        },
+        {
          "name": "Windmill.blend",
          "file": "/assets/models/buildings/farm/Windmill.blend",
          "size": 575324
@@ -5916,6 +6144,21 @@
          "name": "Windmill.glb",
          "file": "/assets/models/buildings/farm/Windmill.glb",
          "size": 73212
+        },
+        {
+         "name": "Windmill.lod1.glb",
+         "file": "/assets/models/buildings/farm/Windmill.lod1.glb",
+         "size": 44552
+        },
+        {
+         "name": "Windmill.lod2.glb",
+         "file": "/assets/models/buildings/farm/Windmill.lod2.glb",
+         "size": 30200
+        },
+        {
+         "name": "lod.json",
+         "file": "/assets/models/buildings/farm/lod.json",
+         "size": 26
         }
        ]
       },
@@ -7910,17 +8153,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/army-soldier-cartoon/model.blend",
-         "size": 515499
+         "size": 516239
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/army-soldier-cartoon/model.glb",
-         "size": 2016884
+         "size": 2001360
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/army-soldier-cartoon/model.rig.json",
-         "size": 5374
+         "size": 2520
         }
        ]
       },
@@ -7935,17 +8178,42 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/base/model.blend",
-         "size": 131298
+         "size": 143831
+        },
+        {
+         "name": "model.blend1",
+         "file": "/assets/models/characters/base/model.blend1",
+         "size": 142289
+        },
+        {
+         "name": "model.copy.blend",
+         "file": "/assets/models/characters/base/model.copy.blend",
+         "size": 141363
+        },
+        {
+         "name": "model.copy.blend1",
+         "file": "/assets/models/characters/base/model.copy.blend1",
+         "size": 140821
+        },
+        {
+         "name": "model.copy.glb",
+         "file": "/assets/models/characters/base/model.copy.glb",
+         "size": 325764
+        },
+        {
+         "name": "model.copy.rig.json",
+         "file": "/assets/models/characters/base/model.copy.rig.json",
+         "size": 5442
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/base/model.glb",
-         "size": 294576
+         "size": 196332
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/base/model.rig.json",
-         "size": 5346
+         "size": 2508
         }
        ]
       },
@@ -8110,17 +8378,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/soldier-low-poly/model.blend",
-         "size": 422028
+         "size": 429687
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/soldier-low-poly/model.glb",
-         "size": 1429928
+         "size": 1417276
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/soldier-low-poly/model.rig.json",
-         "size": 5378
+         "size": 2524
         }
        ]
       },
@@ -8170,17 +8438,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/ww2-soldier-allied/model.blend",
-         "size": 599435
+         "size": 604258
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/ww2-soldier-allied/model.glb",
-         "size": 2291888
+         "size": 2277208
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/ww2-soldier-allied/model.rig.json",
-         "size": 5376
+         "size": 2522
         }
        ]
       },
@@ -8205,17 +8473,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/ww2-soldier-german/model.blend",
-         "size": 274227
+         "size": 280847
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/ww2-soldier-german/model.glb",
-         "size": 667284
+         "size": 656604
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/ww2-soldier-german/model.rig.json",
-         "size": 5397
+         "size": 2543
         }
        ]
       },
@@ -8245,17 +8513,17 @@
         {
          "name": "model.blend",
          "file": "/assets/models/characters/ww2-soldier-us/model.blend",
-         "size": 161668
+         "size": 165356
         },
         {
          "name": "model.glb",
          "file": "/assets/models/characters/ww2-soldier-us/model.glb",
-         "size": 380020
+         "size": 368968
         },
         {
          "name": "model.rig.json",
          "file": "/assets/models/characters/ww2-soldier-us/model.rig.json",
-         "size": 5373
+         "size": 2527
         }
        ]
       }
@@ -13495,6 +13763,206 @@
      "name": "props",
      "assets": [
       {
+       "name": "camp",
+       "assets": [
+        {
+         "name": "barbed-wire.glb",
+         "file": "/assets/models/props/camp/barbed-wire.glb",
+         "size": 11964
+        },
+        {
+         "name": "barrel.glb",
+         "file": "/assets/models/props/camp/barrel.glb",
+         "size": 3072
+        },
+        {
+         "name": "bigtent.glb",
+         "file": "/assets/models/props/camp/bigtent.glb",
+         "size": 93888
+        },
+        {
+         "name": "binoculars-1.glb",
+         "file": "/assets/models/props/camp/binoculars-1.glb",
+         "size": 20548
+        },
+        {
+         "name": "bunker-earth.glb",
+         "file": "/assets/models/props/camp/bunker-earth.glb",
+         "size": 14392
+        },
+        {
+         "name": "bunker.glb",
+         "file": "/assets/models/props/camp/bunker.glb",
+         "size": 16672
+        },
+        {
+         "name": "crate.glb",
+         "file": "/assets/models/props/camp/crate.glb",
+         "size": 3648
+        },
+        {
+         "name": "fence-metal-barbed-close-l.glb",
+         "file": "/assets/models/props/camp/fence-metal-barbed-close-l.glb",
+         "size": 17080
+        },
+        {
+         "name": "fence-metal-barbed-close-r.glb",
+         "file": "/assets/models/props/camp/fence-metal-barbed-close-r.glb",
+         "size": 17080
+        },
+        {
+         "name": "fence-metal-barbed-closed.glb",
+         "file": "/assets/models/props/camp/fence-metal-barbed-closed.glb",
+         "size": 17640
+        },
+        {
+         "name": "fence-metal-barbed-open.glb",
+         "file": "/assets/models/props/camp/fence-metal-barbed-open.glb",
+         "size": 16516
+        },
+        {
+         "name": "fence-metal-closed-l.glb",
+         "file": "/assets/models/props/camp/fence-metal-closed-l.glb",
+         "size": 3500
+        },
+        {
+         "name": "fence-metal-closed-r.glb",
+         "file": "/assets/models/props/camp/fence-metal-closed-r.glb",
+         "size": 3500
+        },
+        {
+         "name": "fence-metal-closed.glb",
+         "file": "/assets/models/props/camp/fence-metal-closed.glb",
+         "size": 4056
+        },
+        {
+         "name": "fence-metal-open.glb",
+         "file": "/assets/models/props/camp/fence-metal-open.glb",
+         "size": 2932
+        },
+        {
+         "name": "fence-short.glb",
+         "file": "/assets/models/props/camp/fence-short.glb",
+         "size": 18676
+        },
+        {
+         "name": "flag.glb",
+         "file": "/assets/models/props/camp/flag.glb",
+         "size": 44492
+        },
+        {
+         "name": "marker-012.glb",
+         "file": "/assets/models/props/camp/marker-012.glb",
+         "size": 11016
+        },
+        {
+         "name": "marker-10.glb",
+         "file": "/assets/models/props/camp/marker-10.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-100.glb",
+         "file": "/assets/models/props/camp/marker-100.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-200.glb",
+         "file": "/assets/models/props/camp/marker-200.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-30.glb",
+         "file": "/assets/models/props/camp/marker-30.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-300.glb",
+         "file": "/assets/models/props/camp/marker-300.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-400.glb",
+         "file": "/assets/models/props/camp/marker-400.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-50.glb",
+         "file": "/assets/models/props/camp/marker-50.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-500.glb",
+         "file": "/assets/models/props/camp/marker-500.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-600.glb",
+         "file": "/assets/models/props/camp/marker-600.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-700.glb",
+         "file": "/assets/models/props/camp/marker-700.glb",
+         "size": 11012
+        },
+        {
+         "name": "marker-75.glb",
+         "file": "/assets/models/props/camp/marker-75.glb",
+         "size": 11012
+        },
+        {
+         "name": "siren.glb",
+         "file": "/assets/models/props/camp/siren.glb",
+         "size": 6340
+        },
+        {
+         "name": "table.glb",
+         "file": "/assets/models/props/camp/table.glb",
+         "size": 5436
+        },
+        {
+         "name": "target-50-a1-post-001.glb",
+         "file": "/assets/models/props/camp/target-50-a1-post-001.glb",
+         "size": 1748
+        },
+        {
+         "name": "target-50-a1-post.glb",
+         "file": "/assets/models/props/camp/target-50-a1-post.glb",
+         "size": 1744
+        },
+        {
+         "name": "target-50-a1.glb",
+         "file": "/assets/models/props/camp/target-50-a1.glb",
+         "size": 23724
+        },
+        {
+         "name": "tent.glb",
+         "file": "/assets/models/props/camp/tent.glb",
+         "size": 16520
+        },
+        {
+         "name": "watchtower-01.glb",
+         "file": "/assets/models/props/camp/watchtower-01.glb",
+         "size": 31340
+        },
+        {
+         "name": "watchtower-02.glb",
+         "file": "/assets/models/props/camp/watchtower-02.glb",
+         "size": 46468
+        },
+        {
+         "name": "watchtower-03.glb",
+         "file": "/assets/models/props/camp/watchtower-03.glb",
+         "size": 58124
+        },
+        {
+         "name": "watchtower-04.glb",
+         "file": "/assets/models/props/camp/watchtower-04.glb",
+         "size": 52160
+        }
+       ]
+      },
+      {
        "name": "food",
        "assets": [
         {
@@ -15060,6 +15528,26 @@
        ]
       },
       {
+       "name": "willys-jeep",
+       "assets": [
+        {
+         "name": "model.blend",
+         "file": "/assets/models/vehicles/willys-jeep/model.blend",
+         "size": 197448
+        },
+        {
+         "name": "model.glb",
+         "file": "/assets/models/vehicles/willys-jeep/model.glb",
+         "size": 725076
+        },
+        {
+         "name": "vehicle.json",
+         "file": "/assets/models/vehicles/willys-jeep/vehicle.json",
+         "size": 1191
+        }
+       ]
+      },
+      {
        "name": "ww2-bomber",
        "assets": [
         {
@@ -15631,9 +16119,24 @@
            "size": 291644
           },
           {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/model.rig.json",
+           "size": 403
+          },
+          {
            "name": "original.blend",
            "file": "/assets/models/weapons/guns/arisaka-type-99/original.blend",
            "size": 1375434
+          },
+          {
+           "name": "original.glb",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/original.glb",
+           "size": 291644
+          },
+          {
+           "name": "original.rig.json",
+           "file": "/assets/models/weapons/guns/arisaka-type-99/original.rig.json",
+           "size": 403
           },
           {
            "name": "weapon.json",
@@ -15661,9 +16164,24 @@
            "size": 201552
           },
           {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/beretta-m1951/model.rig.json",
+           "size": 345
+          },
+          {
            "name": "original.blend",
            "file": "/assets/models/weapons/guns/beretta-m1951/original.blend",
            "size": 1127646
+          },
+          {
+           "name": "original.glb",
+           "file": "/assets/models/weapons/guns/beretta-m1951/original.glb",
+           "size": 201552
+          },
+          {
+           "name": "original.rig.json",
+           "file": "/assets/models/weapons/guns/beretta-m1951/original.rig.json",
+           "size": 345
           },
           {
            "name": "weapon.json",
@@ -15701,9 +16219,24 @@
            "size": 429104
           },
           {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/beretta-model-57/model.rig.json",
+           "size": 718
+          },
+          {
            "name": "original.blend",
            "file": "/assets/models/weapons/guns/beretta-model-57/original.blend",
            "size": 251407
+          },
+          {
+           "name": "original.glb",
+           "file": "/assets/models/weapons/guns/beretta-model-57/original.glb",
+           "size": 429104
+          },
+          {
+           "name": "original.rig.json",
+           "file": "/assets/models/weapons/guns/beretta-model-57/original.rig.json",
+           "size": 718
           },
           {
            "name": "weapon.json",
@@ -15781,9 +16314,24 @@
            "size": 514156
           },
           {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/double-deuce/model.rig.json",
+           "size": 861
+          },
+          {
            "name": "original.blend",
            "file": "/assets/models/weapons/guns/double-deuce/original.blend",
            "size": 251761
+          },
+          {
+           "name": "original.glb",
+           "file": "/assets/models/weapons/guns/double-deuce/original.glb",
+           "size": 514156
+          },
+          {
+           "name": "original.rig.json",
+           "file": "/assets/models/weapons/guns/double-deuce/original.rig.json",
+           "size": 861
           },
           {
            "name": "weapon.json",
@@ -15951,9 +16499,24 @@
            "size": 272768
           },
           {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/kar98k/model.rig.json",
+           "size": 225
+          },
+          {
            "name": "original.blend",
            "file": "/assets/models/weapons/guns/kar98k/original.blend",
            "size": 1014408
+          },
+          {
+           "name": "original.glb",
+           "file": "/assets/models/weapons/guns/kar98k/original.glb",
+           "size": 272768
+          },
+          {
+           "name": "original.rig.json",
+           "file": "/assets/models/weapons/guns/kar98k/original.rig.json",
+           "size": 225
           },
           {
            "name": "weapon.json",
@@ -16083,12 +16646,27 @@
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/m1903a1-springfield/model.glb",
-           "size": 332540
+           "size": 332488
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/model.rig.json",
+           "size": 1011
           },
           {
            "name": "original.blend",
            "file": "/assets/models/weapons/guns/m1903a1-springfield/original.blend",
            "size": 1460192
+          },
+          {
+           "name": "original.glb",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/original.glb",
+           "size": 332488
+          },
+          {
+           "name": "original.rig.json",
+           "file": "/assets/models/weapons/guns/m1903a1-springfield/original.rig.json",
+           "size": 1011
           },
           {
            "name": "weapon.json",
@@ -16228,12 +16806,27 @@
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/mp40/model.glb",
-           "size": 421552
+           "size": 419968
+          },
+          {
+           "name": "model.rig.json",
+           "file": "/assets/models/weapons/guns/mp40/model.rig.json",
+           "size": 578
           },
           {
            "name": "original.blend",
            "file": "/assets/models/weapons/guns/mp40/original.blend",
            "size": 225569
+          },
+          {
+           "name": "original.glb",
+           "file": "/assets/models/weapons/guns/mp40/original.glb",
+           "size": 419968
+          },
+          {
+           "name": "original.rig.json",
+           "file": "/assets/models/weapons/guns/mp40/original.rig.json",
+           "size": 578
           },
           {
            "name": "weapon.json",
@@ -16823,6 +17416,36 @@
          ]
         }
        ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "textures",
+   "assets": [
+    {
+     "name": "camp",
+     "assets": [
+      {
+       "name": "distance-markers.png",
+       "file": "/assets/textures/camp/distance-markers.png",
+       "size": 7929
+      },
+      {
+       "name": "fence_texture.png",
+       "file": "/assets/textures/camp/fence_texture.png",
+       "size": 563
+      }
+     ]
+    },
+    {
+     "name": "range",
+     "assets": [
+      {
+       "name": "target-rings.png",
+       "file": "/assets/textures/range/target-rings.png",
+       "size": 20601
       }
      ]
     }

@@ -1,0 +1,30 @@
+{
+ "bones": {
+  "main": {
+   "length": 0.3103,
+   "deform": true
+  },
+  "bolt": {
+   "length": 0.16788,
+   "deform": true
+  },
+  "bolt_extra": {
+   "length": 0.16788,
+   "deform": true
+  },
+  "scope": {
+   "length": 0.06823,
+   "deform": true
+  },
+  "scope.R": {
+   "length": 0.05129,
+   "deform": true
+  },
+  "scope.L": {
+   "length": 0.05129,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

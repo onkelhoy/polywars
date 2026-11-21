@@ -1,0 +1,58 @@
+{
+ "bones": {
+  "body": {
+   "length": 0.17944,
+   "deform": true
+  },
+  "trigger.L": {
+   "length": 0.02532,
+   "deform": true
+  },
+  "trigger.R": {
+   "length": 0.02728,
+   "deform": true
+  },
+  "breakaction": {
+   "length": 0.20399,
+   "deform": true
+  },
+  "bullet.a.shell": {
+   "length": 0.05297,
+   "deform": true
+  },
+  "bullet.a.tip": {
+   "length": 0.01733,
+   "deform": true
+  },
+  "bullet.b.shell": {
+   "length": 0.05298,
+   "deform": true
+  },
+  "bullet.b.tip": {
+   "length": 0.01927,
+   "deform": true
+  },
+  "safety.L": {
+   "length": 0.02178,
+   "deform": true
+  },
+  "safety.R": {
+   "length": 0.02178,
+   "deform": true
+  },
+  "unlock": {
+   "length": 0.09217,
+   "deform": true
+  },
+  "hammer.R": {
+   "length": 0.04293,
+   "deform": true
+  },
+  "hammer.L": {
+   "length": 0.04293,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

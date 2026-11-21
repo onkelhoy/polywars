@@ -1,0 +1,26 @@
+{
+ "bones": {
+  "main": {
+   "length": 0.07103,
+   "deform": true
+  },
+  "mantel": {
+   "length": 0.16182,
+   "deform": true
+  },
+  "hammer": {
+   "length": 0.02933,
+   "deform": true
+  },
+  "magazine": {
+   "length": 0.11375,
+   "deform": true
+  },
+  "trigger": {
+   "length": 0.02477,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}

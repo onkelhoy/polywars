@@ -1,0 +1,42 @@
+{
+ "bones": {
+  "main": {
+   "length": 0.11525,
+   "deform": true
+  },
+  "scope": {
+   "length": 0.04102,
+   "deform": true
+  },
+  "stock": {
+   "length": 0.11328,
+   "deform": true
+  },
+  "stockend": {
+   "length": 0.08899,
+   "deform": true
+  },
+  "mag": {
+   "length": 0.2185,
+   "deform": true
+  },
+  "bullets": {
+   "length": 0.06559,
+   "deform": true
+  },
+  "trigger": {
+   "length": 0.03131,
+   "deform": true
+  },
+  "bolt": {
+   "length": 0.05983,
+   "deform": true
+  },
+  "bolt_extra": {
+   "length": 0.07056,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}
