@@ -6,7 +6,7 @@ import { Vehicle, Dust } from '@polywar/vehicle';
 import { Impacts } from '@polywar/impacts';
 import { Camera } from '@papit/game-engine';
 import { AudioMixer } from '@papit/audio';
-import { EngineSound } from '@polywar/vehicle-audio';
+import { EngineSound, ENGINES } from '@polywar/vehicle-audio';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -14,7 +14,9 @@ await demo.ready;
 const gl = demo.gl, renderer = new Renderer(demo.layer);
 
 // ---- ground: rolling hills, washboard bumps, potholes, a ramp, a flat start ----
-const base = '/assets/models/vehicles/willys-jeep/';
+// ?v=ww2-motorcycle drives the bike (default the jeep)
+const kind = new URLSearchParams(location.search).get('v') ?? 'willys-jeep';
+const base = `/assets/models/vehicles/${kind}/`;
 const spec = await (await fetch(base + 'vehicle.json')).json();
 const hills = (x, z) => Math.sin(x * .04) * Math.cos(z * .05) * 3;
 const bumps = (x, z) => z < -20 && z > -60 && Math.abs(x) < 8 ? Math.max(0, Math.sin(z * 1.4)) * .12 : 0;
@@ -33,11 +35,13 @@ const mesh = upload(gl, b.build()), identity = Matrix4.create();
 
 const model = await Model.load(gl, base + spec.model);
 const tune = { frequency: 1.3, damping: .3, grip: 1.1, boost: 1 };
+// bike: lighter, revs higher, 4 gears
+const extra = spec.kind === 'bike' ? { accel: 4.5, gears: [.25, .45, .7, 1], pull: [1.8, 1.3, 1, .75], idle: 900, redline: 5200, steer: 30, steerFade: 4 } : {};
 const yaw = () => { const f = car.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
-let car = new Vehicle({ spec, ground, solids, ...tune });
+let car = new Vehicle({ spec, ground, solids, ...extra, ...tune });
 for (const k of Object.keys(tune)) $('#' + k).oninput = e => {
     tune[k] = +e.target.value; e.target.nextElementSibling.textContent = e.target.value;
-    const { position: p } = car.body; car = new Vehicle({ spec, ground, solids, ...tune }, [p.x, 0, p.z], yaw());
+    const { position: p } = car.body; car = new Vehicle({ spec, ground, solids, ...extra, ...tune }, [p.x, 0, p.z], yaw());
 };
 Object.keys(tune).forEach(k => $('#' + k).oninput({ target: $('#' + k) }));
 
@@ -48,7 +52,7 @@ const dust = new Dust({ emit: (at, v, puff) => impacts.emit(at, v, puff) });
 // ---- sound: starts on the first key (audio needs a gesture) ----
 const mixer = new AudioMixer();
 let engine;
-addEventListener('keydown', () => { mixer.unlock(); engine ??= new EngineSound({ mixer }); });
+addEventListener('keydown', () => { mixer.unlock(); engine ??= new EngineSound({ mixer, ...(spec.kind === 'bike' ? ENGINES.bike : {}) }); });
 
 // ---- input ----
 const keys = new Set();
@@ -56,7 +60,7 @@ let seat = false;
 addEventListener('keydown', e => {
     keys.add(e.code);
     if (e.code === 'KeyV') seat = !seat;
-    if (e.code === 'KeyR') car.place(car.body.position.x, car.body.position.z, yaw());
+    if (e.code === 'KeyR') car.fallen ? car.raise() : car.place(car.body.position.x, car.body.position.z, yaw());
     if (e.code === 'Space') e.preventDefault();
 });
 addEventListener('keyup', e => keys.delete(e.code));
@@ -94,11 +98,11 @@ const chase = {
 };
 demo.layer.camera = new Camera({ near: .1, far: 800, controllers: [chase] });
 demo.tick = dt => {
-    car.update(dt, { throttle: axis('KeyW', 'KeyS'), steer: axis('KeyD', 'KeyA'), handbrake: keys.has('Space') });
+    car.update(dt, { throttle: axis('KeyW', 'KeyS'), steer: axis('KeyD', 'KeyA'), handbrake: keys.has('Space'), ridden: true });
     dust.update(dt, car);
     impacts.update(dt);
     const w = car.wheels.map(w => `${w.grounded ? (w.slipping ? 'slip' : 'grip') : 'air '} ${w.length.toFixed(2)}`).join('\n');
-    $('#info').value = `${(car.speed * 3.6).toFixed(0)} km/h · gear ${car.gear} · ${car.rpm.toFixed(0)} rpm · steer ${(car.steering * 180 / Math.PI).toFixed(0)}°\n${w}`;
+    $('#info').value = `${(car.speed * 3.6).toFixed(0)} km/h · gear ${car.gear} · ${car.rpm.toFixed(0)} rpm · steer ${(car.steering * 180 / Math.PI).toFixed(0)}°${spec.kind === 'bike' ? ` · lean ${(car.lean * 180 / Math.PI).toFixed(0)}°${car.fallen ? ' FALLEN (R)' : ''}` : ''}\n${w}`;
 };
 demo.draw = camera => {
     renderer.begin(camera, demo.background);
@@ -106,6 +110,8 @@ demo.draw = camera => {
     car.wheels.forEach((w, i) => model.move(w.spec.node, car.wheel(i, Matrix4.create())));
     const sw = car.steeringWheel(Matrix4.create());
     if (sw) model.move(spec.steeringWheel.node, sw);
+    const fork = car.fork(Matrix4.create());
+    if (fork) model.move(spec.fork.node, fork);
     model.draw(renderer, car.matrix(M));
     impacts.draw(camera);
 };

@@ -12,7 +12,7 @@ import { RigidBody, Box } from '@papit/rigidbody';
 import { TrainingCamp, buttonAt } from '@polywar/training-camp';
 import { Vehicles, Dust, Exhaust, SteeringHands } from '@polywar/vehicle';
 import { nearest } from '@polywar/ballistics';
-import { EngineSound } from '@polywar/vehicle-audio';
+import { EngineSound, ENGINES } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
@@ -323,10 +323,12 @@ demo.draw = camera => {
 };
 
 // ---- vehicles: parked jeeps, E in / out, W / S, A / D, Space handbrake, V seat / chase cam ----
+// bike: lighter, revs higher, 4 gears
+const BIKE = { accel: 4.5, gears: [.25, .45, .7, 1], pull: [1.8, 1.3, 1, .75], idle: 900, redline: 5200, steer: 30, steerFade: 4 };
 const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;
     const spec = await (await fetch(base + 'vehicle.json')).json();
-    const car = fleet.add({ spec }, v.at, v.yaw);
+    const car = fleet.add({ spec, ...(spec.kind === 'bike' ? BIKE : {}) }, v.at, v.yaw);
     const hands = spec.steeringWheel && new SteeringHands(spec.steeringWheel);
     return { car, spec, hands, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
@@ -370,6 +372,7 @@ const dust = new Dust({
 });
 window.dust = dust;
 window.cars = cars;
+for (const c of cars) c.car.oncrash = (speed, impact) => thrown(c, speed, impact);
 const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
 const carMatrix = Matrix4.create();
 const forward = c => { const f = c.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
@@ -380,7 +383,8 @@ const withCars = (x, z) => {
     const extra = cars.filter(c => c !== driving).flatMap(({ car }) => {
         const p = car.body.position, f = car.toWorld([0, 0, -1], undefined, 0);
         if (Math.hypot(p.x - x, p.z - z) > 6) return [];
-        return [-.85, .85].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: .85, bottom: p.y - 1, top: p.y + .6 }));
+        const bike = car.spec.kind === 'bike', r = bike ? .35 : .85, d = bike ? .6 : .85;
+        return [-d, d].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: r, bottom: p.y - 1, top: p.y + (bike ? .2 : .6) }));
     });
     return extra.length ? list.concat(extra) : list;
 };
@@ -394,6 +398,8 @@ function drawCars() {
         car.wheels.forEach((w, i) => m.move(w.spec.node, car.wheel(i, Matrix4.create())));
         const sw = car.steeringWheel(Matrix4.create());
         if (sw) m.move(spec.steeringWheel.node, sw);
+        const fork = car.fork(Matrix4.create());
+        if (fork) m.move(spec.fork.node, fork);
         m.draw(renderer, car.matrix(carMatrix), {}, { skip: GLASS });
     }
 }
@@ -405,7 +411,45 @@ function drawGlass() {
 }
 // the driver: hips on the seat, feet on the pedals, knees up, hands on the rim (car space offsets from the seat)
 const FEET = [[.17, -.42, -.62], [-.17, -.42, -.62]], KNEES = [[.22, .5, -1.2], [-.22, .5, -1.2]], ELBOWS = [[.8, -1, .3], [-.8, -1, .3]];
+// the rider: feet on the pegs, knees bent to the tank, hands on the grips (which turn with the fork)
+const PEGS = [[.2, -.55, -.3], [-.2, -.55, -.3]], BIKE_KNEES = [[.18, -.1, -.55], [-.18, -.1, -.55]], BIKE_ELBOWS = [[.8, -.6, .2], [-.8, -.6, .2]];
+const lerp3 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+/** getting on / off: 0 standing by the exit spot .. 1 seated; the hips swing up and over */
+let mount = 1, mounting = 0;
+const MOUNT = .9;
+function seatOffset(spec) {
+    // hips start standing at the exit spot, arc up over the seat
+    const t = smooth(mount), s = spec.seat, from = [spec.exit[0], spec.exit[1] + .95, spec.exit[2]];
+    const p = lerp3(from, s, t);
+    p[1] += Math.sin(Math.PI * t) * .3;
+    return p;
+}
+function drawRider(camera) {
+    const { car, spec } = driving, s = seatOffset(spec), t = smooth(mount);
+    const at = o => { const p = car.toWorld(o); return [p[0], p[1], p[2]]; };
+    const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
+    const seatM = car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1], s[2], 1]));
+    // feet: from the ground by the bike up onto the pegs (the far foot swings over)
+    const feet = PEGS.map((p, i) => lerp3([spec.exit[0] + (i ? .25 : -.05), spec.exit[1] + .05, spec.exit[2] + (i ? -.1 : .1)], [spec.seat[0] + p[0], spec.seat[1] + p[1], spec.seat[2] + p[2]], i ? smooth(mount * 1.6 - .4) : t)).map(at);
+    const knees = BIKE_KNEES.map(k => at([s[0] + k[0], s[1] + k[1], s[2] + k[2]]));
+    const F = car.fork(Matrix4.create()), turn = q => [F[0] * q[0] + F[4] * q[1] + F[8] * q[2] + F[12], F[1] * q[0] + F[5] * q[1] + F[9] * q[2] + F[13], F[2] * q[0] + F[6] * q[1] + F[10] * q[2] + F[14]];
+    const grips = spec.grips.map((g, i) => {
+        const bar = turn(g), side = turn([g[0] + (i ? 1 : -1), g[1], g[2]]);
+        return { at: at(bar), axis: dir([side[0] - bar[0], side[1] - bar[1], side[2] - bar[2]]), palm: dir([0, -.7, -.7]) };
+    });
+    player.drawSeated(camera, seatM, { feet, knees, elbows: BIKE_ELBOWS.map(dir), hands: grips, take: 0 }, seatCam);
+    if (player.down?.fixed) stowBack();
+}
+/** the rifle slung across the rider's back, muzzle up over the right shoulder (stow lays a gun flat: undo its turn + lift) */
+function stowBack() {
+    const { car, spec } = driving, s = seatOffset(spec), size = (player.held ?? player.carried[player.current]).model.size;
+    player.stow(car.matrix(Matrix4.create())
+        .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1] + .42, s[2] + .17, 1]))
+        .multiply(Matrix4.rotationZ(-.64)).multiply(Matrix4.rotationX(Math.PI / 2))
+        .multiply(Matrix4.rotationZ(-Math.PI / 2)).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -size[0] / 2, 0, 1])));
+}
 function drawDriver(camera) {
+    if (driving.spec.kind === 'bike') return drawRider(camera);
     const { car, spec, hands } = driving, s = spec.seat;
     const at = o => { const p = car.toWorld([s[0] + o[0], s[1] + o[1], s[2] + o[2]]); return [p[0], p[1], p[2]]; };
     const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
@@ -425,9 +469,15 @@ function stowGun() {
 function enter(c) {
     driving = c;
     taking = -1; placing = false;
-    if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
+    if (c.spec.kind === 'bike')
+    {
+        mount = 0; mounting = 1;
+        if (c.car.fallen) c.car.raise();
+        if (player.held && !player.down) stowBack();
+    }
+    else if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
-    c.engine ??= new EngineSound({ mixer: player.feel.mixer });
+    c.engine ??= new EngineSound({ mixer: player.feel.mixer, ...(c.spec.kind === 'bike' ? ENGINES.bike : {}) });
     chase.yaw = forward(c.car);
     const p = c.car.body.position;
     chase.pos = [p.x + Math.sin(chase.yaw) * 7, p.y + 2.5, p.z + Math.cos(chase.yaw) * 7];
@@ -435,13 +485,28 @@ function enter(c) {
 }
 function leave() {
     const c = driving.car, out = c.toWorld(driving.spec.exit);
+    if (driving.spec.kind === 'bike' && player.down?.fixed) player.takeBack();
     driving.awake = 3;
     driving = undefined;
+    mounting = 0; mount = 1;
     player.mover.place(out[0], out[2]);
+}
+/** crashed: off the bike where it is, flung on with its speed; hard = out cold a while (knocked down + dazed) */
+function thrown(c, speed, impact) {
+    if (driving !== c) return;
+    const v = c.car.body.velocity, at = c.car.body.position;
+    if (player.down?.fixed) player.takeBack();
+    driving.awake = 3;
+    driving = undefined;
+    mounting = 0; mount = 1;
+    player.mover.place(at.x, at.z);
+    const shock = Math.min(1, Math.max(.3, (speed - 3) / 12));
+    nades.fling([v.x * .8, Math.max(2, v.y + 2 + speed * .1), v.z * .8], shock);
 }
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
+    if (driving?.spec.kind === 'bike') { if (!mounting && Math.abs(driving.car.speed) < 3) mounting = -1; return; }
     if (driving) { if (placing) return; if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
     else if (nearCar) enter(nearCar);
 });
@@ -453,7 +518,7 @@ function driveCamera(camera, dt) {
     {
         chase.look[0] = Math.max(-2.2, Math.min(2.2, chase.look[0] - dx * .0022));
         chase.look[1] = Math.max(-1.2, Math.min(1.2, chase.look[1] - dy * .0022));
-        eye = car.toWorld(spec.eye);
+        eye = car.toWorld(spec.kind === 'bike' ? lerp3([spec.exit[0], spec.exit[1] + 1.65, spec.exit[2]], spec.eye, smooth(mount)) : spec.eye);
         const f = car.toWorld([0, 0, -1], undefined, 0);
         yaw = forward(car) + chase.look[0];
         pitch = Math.asin(Math.max(-1, Math.min(1, f[1]))) + chase.look[1];
@@ -497,10 +562,12 @@ const seat = {
         if (driving)
         {
             const input = player.input, k = n => input?.key(n) ? 1 : 0;
-            inputs.set(driving.car, { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' ') });
+            const on = driving.spec.kind !== 'bike' || mount >= 1;
+            inputs.set(driving.car, on ? { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' '), ridden: true } : { throttle: 0, steer: 0, parked: true, ridden: mount > .5 });
         }
         fleet.update(dt, inputs);
         driving?.hands?.update(dt, driving.car.wheelTurn);
+        if (mounting) { mount = Math.max(0, Math.min(1, mount + mounting * dt / MOUNT)); if (mount >= 1 && mounting > 0) mounting = 0; else if (mount <= 0 && mounting < 0) leave(); }
         if (driving && placing && (taking -= dt / TAKE) <= 0) { taking = -1; placing = false; }
         else if (driving && !placing && taking >= 0 && (taking += dt / TAKE) >= 1) { taking = -1; player.takeBack(); leave(); }
         for (const c2 of cars) { dust.update(dt, c2.car); if (c2.engine) exhaust.update(dt, c2.car); }
@@ -536,7 +603,7 @@ demo.tick = dt => {
     {
         if (!document.body.classList.contains('playing')) return;
         fAction = undefined;
-        $('#prompt').value = `E  get out · V ${seatCam ? 'chase' : 'seat'} cam`;
+        $('#prompt').value = `E  get ${driving.spec.kind === 'bike' ? 'off' : 'out'} · V ${seatCam ? 'chase' : 'seat'} cam`;
         $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
         $('#cross').style.opacity = '0';
         return;
@@ -547,7 +614,7 @@ demo.tick = dt => {
     if (nades.held()) $('#prompt').value = nades.prompt();
     const f = player.mover.feet;
     nearCar = cars.find(({ car, spec }) => { const d = car.toWorld(spec.exit); return Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.6; });
-    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = 'E  drive';
+    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : 'E  drive';
 };
 demo.draw = camera => {
     // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)

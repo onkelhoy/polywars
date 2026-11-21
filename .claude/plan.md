@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Everything is on `main` (farm, smoke, explosion, knockdown, grenades, camp upgrade, gun drop, fx fixes). Smoke 4 done, jeep 7 was already done. Open: arms-grip 5 (grab animation: owner designs).
+Everything is on `main` (farm, smoke, explosion, knockdown, grenades, camp upgrade, gun drop, fx fixes). Smoke 4 done, jeep 7 was already done. Open: arms-grip 5 (grab animation: owner designs). Vehicles round started: motorbike first pass on `feature/motorbike`.
 
 ## Needs in-game check (owner)
 - Camp: range rework (ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, lights + glow, doors, grass (falloff, no SSAO on tufts, grass in the scope), optics 1-6.
@@ -11,6 +11,13 @@ Everything is on `main` (farm, smoke, explosion, knockdown, grenades, camp upgra
 - FX fixes: camera near .25, smoke after tufts, marks ride on what they hit (`Hit.carrier`), muzzle sound scene rays, `@polywar/fog`, `@polywar/shadows`, parked cars hold, jeep glass last.
 - Explosion (`@polywar/explosion`): look, `BlastForce`, `ExplosionAudio` + `stun`, `Daze`, `Knockdown` (a new blast always counts, from the current pose).
 - Grenades: `Grenade` / `GRENADES` (mk2, f1, M24 stick: flips + twists) in `@polywar/weapons`. Camp `views/camp/grenades.js`: crates at x 16 z 40-44, F takes 4 (one in hand: gun to the off hand, `viewmodel.offhand*`, `player.busyHand`), hold fire = wind up + arc, let go = throw, H next / put back, right click pin back. Cover by the camp's own walls. Console: `nades.lastHit()`, `nades.live()`.
+
+## Motorbike (`feature/motorbike`): needs in-game check (owner)
+Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
+- Asset: `tools/blender/packs/motorbike.py` (reads the owner's model.blend, never saves it) -> model.glb (texture kept, star shows) + vehicle.json (`kind: "bike"`, `fork` raked 28°, `grips`, seat / eye / exit eyeballed). Camp: `Motorbike 0` added by hand to range.json `vehicles` (an exporter re-run drops it: add an empty in camp.blend).
+- Physics: `Vehicle` bike mode: balance torque leans into turns (`balance`, `balanceDamping`, `maxLean`), kickstand lean when parked, `fallen` + `oncrash` on tip over / hard hit, `raise()`. Drive view: `?v=ww2-motorcycle`.
+- Fork + front wheel turn round the raked axis, wheels spin. Sound: `ENGINES.bike` (V-twin).
+- Camp: E ride / get off (hips swing over the seat, ~.9 s), rider on pegs + grips, rifle slung on the back (back in the hands on getting off). Crash: thrown with the speed, `nades.fling` -> knockdown + daze (hard = down long).
 
 ## Notes
 - Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.

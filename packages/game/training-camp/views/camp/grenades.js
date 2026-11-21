@@ -113,6 +113,14 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     const matrix = new Float32Array(16);
     let arc = [];
     return {
+        /** thrown off a vehicle: `velocity` m/s flings the body, `shock` 0..1 knocks down / dazes (1: out cold a while) */
+        fling(velocity, shock) {
+            target.push(velocity, [0, 0, 0], { pressure: 20 * shock });
+            daze.hit(shock);
+            const r = layer.camera.rotation;
+            knock.hit(Math.min(1, shock * 1.2), velocity, r.y, r.x);
+            if (shock > .4) player.knockGun(velocity, shock);
+        },
         held: () => inHand || !!nearCrate(),
         prompt: () => inHand ? (holding >= 0 ? `let go to throw · ${Math.round(new Grenade(spec, setting).speedOf(holding))} m/s · right click: pin back` : `hold fire to throw · H next / gun`) + ` · ${spec.name} ${bag[kind]}` : `F  take ${GRENADES[nearCrate().kind].name} grenades`,
         tick(dt) {

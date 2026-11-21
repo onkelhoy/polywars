@@ -42,6 +42,12 @@ export class Vehicle {
         const v = this.body.velocity;
         return n / this.wheels.length * Math.min(1, Math.hypot(v.x, v.z) / 6);
     }
+    /** bike: lean, rad (+ right side down) */
+    lean = 0;
+    /** bike: on its side (balance off until `raise`) */
+    fallen = false;
+    /** bike: tipped over or hit hard; `speed` m/s at the moment, `impact` the speed lost in one step, m/s */
+    oncrash?: (speed: number, impact: number) => void;
     /** called on every gear change (sound, a camera nudge) */
     onshift?: (gear: number, up: boolean) => void;
 
@@ -71,13 +77,17 @@ export class Vehicle {
     private sag: number;
     private lock: number;
     private left = 0;
+    private bike: boolean;
+    private last = new Vector3(0, 0, 0);
+    private right = new Vector3(0, 0, 0);
 
     constructor(setting: VehicleSetting, at: Point = [0, 0, 0], yaw = 0) {
         this.s = {
             travel: .3, frequency: 1.3, damping: .3, grip: 1.1, slide: .35, accel: 3.5, brake: 8, reverse: 5,
-            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: .3, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
+            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: setting.spec.kind === "bike" ? 0 : .3, balance: 30, balanceDamping: 8, maxLean: 45, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
         };
         const spec = this.spec = setting.spec;
+        this.bike = spec.kind === "bike";
         const n = spec.wheels.length, quarter = spec.mass / n;
         const w = 2 * Math.PI * this.s.frequency;
         this.k = quarter * w * w;
@@ -128,7 +138,15 @@ export class Vehicle {
         b.angularVelocity.x = b.angularVelocity.y = b.angularVelocity.z = 0;
         b.updateInertia();
         b.wake();
+        this.fallen = false;
+        this.last.set(b.velocity);
         if (this.owned) this.solids.gather([b.position]);
+    }
+
+    /** bike: stand it back up where it lies, nose kept */
+    raise() {
+        const q = this.body.rotation, n = q.rotate(set(this.nose, 0, 0, -1));
+        this.place(this.body.position.x, this.body.position.z, Math.atan2(-n[0], -n[2]));
     }
 
     /** alone: steps its own world. Shared: use `Vehicles.update` */
@@ -166,7 +184,22 @@ export class Vehicle {
         out[0] = cy; out[1] = 0; out[2] = -sy; out[3] = 0;
         out[4] = sy * sx; out[5] = cx; out[6] = cy * sx; out[7] = 0;
         out[8] = sy * cx; out[9] = -sx; out[10] = cy * cx; out[11] = 0;
-        return pivot(out, p, this.sag - w.length);
+        pivot(out, p, this.sag - w.length);
+        if (!(w.spec.steer && this.spec.fork)) return out;
+        // bike: the wheel only spins + travels in the fork; the fork turns it
+        const r = Math.cos(w.spin), t = Math.sin(w.spin);
+        out[0] = 1; out[1] = 0; out[2] = 0; out[4] = 0; out[5] = r; out[6] = t; out[8] = 0; out[9] = -t; out[10] = r;
+        pivot(out, p, this.sag - w.length);
+        const f = this.fork(FORK)!;
+        return multiply(f, out, out);
+    }
+
+    /** bike fork node move (model space): turn round the raked axis; undefined without a fork */
+    fork<T extends M16>(out: T): T | undefined {
+        const f = this.spec.fork;
+        if (!f) return undefined;
+        this.turn.setAxisAngle(f.axis[0], f.axis[1], f.axis[2], -this.steering).writeMatrix(out);
+        return pivot(out, f.position, 0);
     }
 
     /** the steering wheel's turn round its axis, rad */
@@ -302,9 +335,35 @@ export class Vehicle {
             this.push(r, set(force, -pv[0] * rub, fy, -pv[2] * rub));
         }
 
+        if (this.bike) this.balance(dt, input);
+
         // air drag
         const sp = Math.hypot(v.x, v.y, v.z), drag = .5 * sp;
         b.applyForce({ x: -v.x * drag, y: -v.y * drag, z: -v.z * drag });
+    }
+
+    /** bike: a roll torque towards the lean the turn wants (or the kickstand), off once it lies on its side */
+    private balance(dt: number, input: DriveInput) {
+        const b = this.body, s = this.s, q = b.rotation;
+        const nose = q.rotate(set(this.nose, 0, 0, -1)), right = q.rotate(set(this.right, 1, 0, 0));
+        this.lean = Math.asin(clamp(-right[1], -1, 1));
+        const max = s.maxLean * Math.PI / 180;
+        // a hard hit: speed lost in one step
+        const v = b.velocity, impact = Math.hypot(v.x - this.last[0], v.y - this.last[1], v.z - this.last[2]);
+        this.last.set(v);
+        if (!this.fallen && (Math.abs(this.lean) > max + .35 || impact > 6))
+        {
+            this.fallen = true;
+            this.oncrash?.(Math.hypot(v.x, v.y, v.z) + impact, impact);
+        }
+        if (this.fallen) return;
+        const ws = this.spec.wheels, base = Math.abs(ws[0].position[2] - ws[1].position[2]) || 1.4;
+        const stand = !input.ridden && Math.abs(this.speed) < 1;
+        const target = stand ? -.2 : clamp(Math.atan(this.speed * this.speed * Math.tan(this.steering) / (base * G)), -max, max);
+        const rate = b.angularVelocity.x * nose[0] + b.angularVelocity.y * nose[1] + b.angularVelocity.z * nose[2];
+        const t = this.spec.mass * .1 * (s.balance * (target - this.lean) - s.balanceDamping * rate);
+        b.applyTorque({ x: nose[0] * t, y: nose[1] * t, z: nose[2] * t });
+        void dt;
     }
 
     private shift(to: number) {
@@ -365,6 +424,16 @@ export class Vehicle {
     }
 }
 
+const FORK = new Float32Array(16);
+/** a * b (column major 4x4) into out (out may be b) */
+function multiply<T extends M16>(a: M16, b: M16, out: T): T {
+    const t = TMP;
+    for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++)
+        t[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+    for (let i = 0; i < 16; i++) out[i] = t[i];
+    return out;
+}
+const TMP = new Float32Array(16);
 function clamp(x: number, lo: number, hi: number) { return x < lo ? lo : x > hi ? hi : x; }
 /** fill a scratch vector (no allocation, unlike `new Vector3`) */
 function set(v: Vector3, x: number, y: number, z: number) { v[0] = x; v[1] = y; v[2] = z; return v; }
