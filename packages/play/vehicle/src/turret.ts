@@ -22,6 +22,8 @@ export class Turret {
     yaw = 0;
     /** rad, gun up + */
     pitch = 0;
+    /** traverse speed now, rad / s (+ left): the motor sound */
+    rate = 0;
     /** 0..1 the barrel's run back (1 just fired) */
     back = 0;
     private s: Required<TurretSetting>;
@@ -43,7 +45,9 @@ export class Turret {
         let dy = wantYaw - this.yaw;
         dy = Math.atan2(Math.sin(dy), Math.cos(dy));
         const ty = this.s.traverse * Math.PI / 180 * dt, te = this.s.elevate * Math.PI / 180 * dt;
-        this.yaw += Math.max(-ty, Math.min(ty, dy));
+        const turn = Math.max(-ty, Math.min(ty, dy));
+        this.yaw += turn;
+        this.rate = dt > 0 ? turn / dt : 0;
         this.yaw = Math.atan2(Math.sin(this.yaw), Math.cos(this.yaw));
         const p = Math.max(this.range[0], Math.min(this.range[1], wantPitch));
         this.pitch += Math.max(-te, Math.min(te, p - this.pitch));

@@ -35,7 +35,7 @@ Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
 
 ## Tank round 2 (feature/tank): needs in-game check (owner)
 - Gun up / down: elevation 9°/s, -10..25° (math checked headless, no bug found: was just slow + narrow).
-- Sound: `ENGINES.tank` deeper (muffle 170-950), tracks = link clicks through 3 ringing metal bands + sprocket clunk, steel squeal (wobbling) in turns.
+- Sound: replaced by `TankSound` + `TANK_SOUND` look (`@polywar/vehicle-audio`, rebuilt from the owner's two reference mp3s by measured spectrum + rhythm): engine harmonics of a ~42-70 Hz firing rate (uneven, muffled, rasp), track clicks 3.7 / m (2.6 kHz broad) + slaps + rumble, hull turn scrub, turret motor whine (800 + 1600 Hz, 50 Hz rough, gear hiss) from `Turret.rate`. `ENGINES.tank` + EngineSound clatter removed. Console: `TANK_SOUND`.
 - Tank blasts `deep` (`ExplosionAudio.play(..., { deep })`): pitched down, bigger sub thump + 3 s rumble. `ExplodeOptions.mark` (muzzle: no mark, impact: mark) + `tag` back on the blast.
 - Recoil x3 (hull slides ~10 cm, rocks ~3°), softer suspension (1 Hz, damping .32, travel .38, roll 1: squats / dives).
 

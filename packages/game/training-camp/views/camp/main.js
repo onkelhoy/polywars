@@ -12,7 +12,7 @@ import { RigidBody, Box } from '@papit/rigidbody';
 import { TrainingCamp, buttonAt } from '@polywar/training-camp';
 import { Vehicles, Dust, Exhaust, SteeringHands } from '@polywar/vehicle';
 import { nearest } from '@polywar/ballistics';
-import { EngineSound, ENGINES } from '@polywar/vehicle-audio';
+import { EngineSound, ENGINES, TankSound, TANK_SOUND } from '@polywar/vehicle-audio';
 import { CloseDark } from '@polywar/close-dark';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
@@ -504,7 +504,7 @@ function enter(c) {
     else if (c.spec.kind === 'tank') { if (player.held && !player.down) player.stow(c.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...c.spec.seat, 1]))); }
     else if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
-    c.engine ??= new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
+    c.engine ??= c.spec.kind === 'tank' ? new TankSound(player.feel.mixer, TANK_SOUND) : new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
     chase.yaw = forward(c.car);
     // tank: the look is the gun's aim (world yaw / pitch), starts along the turret
     if (c.spec.kind === 'tank') { const t = gun.turretOf(c); chase.aim = [chase.yaw + t.yaw, t.pitch]; }
@@ -657,7 +657,8 @@ const seat = {
             {
                 const p = c2.car.body.position;
                 const turn = c2 === driving ? Math.abs(inputs.get(c2.car)?.steer ?? 0) : 0;
-                c2.engine.update({ rpm: c2.car.rpm, load: c2.car.power, slip: c2.car.slip, position: [p.x, p.y, p.z], tracks: c2.car.speed + turn * 1.5, turn });
+                if (c2.spec.kind === 'tank') c2.engine.update({ rev: (c2.car.rpm - TANK.idle) / (TANK.redline - TANK.idle), load: Math.max(c2.car.power, turn * .7), tracks: Math.abs(c2.car.speed) + turn * 1.6, turn, turret: gun.turretOf(c2).rate, position: [p.x, p.y, p.z] });
+                else c2.engine.update({ rpm: c2.car.rpm, load: c2.car.power, slip: c2.car.slip, position: [p.x, p.y, p.z] });
                 if (c2 !== driving && c2.awake <= 0) { c2.engine.stop(.8); c2.engine = undefined; }
             }
         }
@@ -686,6 +687,7 @@ window.nades = nades;
 // ---- tank gun (left click while in the tank): tank.js ----
 gun = tankGun({ gl, renderer, nades, shots, dust: (at, v) => { at[1] = range.ground(at[0], at[2]) + .3; puffOut(at, v, { life: 3.5, size: 2.2, grow: 1.2, drag: 1.4, colour: DUST_GROUND.dirt.colour, opacity: .6 }); } });
 window.gun = gun;
+window.TANK_SOUND = TANK_SOUND; // tune live: TANK_SOUND.tracks.links = 4 etc. (read on each update; band / tone set-up on getting in)
 addEventListener('mousedown', e => {
     if (e.button !== 0 || driving?.spec.kind !== 'tank' || !document.body.classList.contains('playing')) return;
     if (gun.fire(driving)) player.feel.mixer.context.resume?.();
