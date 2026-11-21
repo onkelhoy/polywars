@@ -146,5 +146,7 @@ Done: shooting-range.py writes range.json `props` (asset empties with `asset`, m
 - [ ] while driving, impacts draw before the grass tufts (drawDriver order)
 - [ ] leftover Alt+D meshes only in camp.blend (cubes, cylinders, sandbag wall, tent canvas): owner moves them to camp-props.blend so the package keeps only model.glb + range.json
 - [ ] lighter vehicle versions for decor (tanks ~3 MB, drawn one by one); vehicle asset scales are inconsistent (empties carry the scale)
-- [ ] drivable tanks / trucks / motorbike / planes
+- [ ] drivable tanks / trucks / motorbike / planes (tank round 1 + motorbike done)
+- [ ] tank crew: driver / loader / gunner / commander stations, loading shells by hand, stocking shells into the tank, coordinates from the commander, gunner works the ballistics (sight + range table); one player can't run it alone
+- [ ] tank: tracks scroll (UV / link mesh), gunner sight zoom + reticle, shell types (AP / HE), armour + penetration, cannon sound files, put the tank in the exported camp layout
 - [ ] motorbike asset: a stray wheel in the middle?

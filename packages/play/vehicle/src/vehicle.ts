@@ -86,14 +86,18 @@ export class Vehicle {
     private bike: boolean;
     private last = new Vector3(0, 0, 0);
     private right = new Vector3(0, 0, 0);
+    private tank: boolean;
+    /** a short push being applied (`kick`): model space point, world N per step, seconds left */
+    private kicks: { at: Vector3; force: Vector3; left: number }[] = [];
 
     constructor(setting: VehicleSetting, at: Point = [0, 0, 0], yaw = 0) {
         this.s = {
             travel: .3, frequency: 1.3, damping: .3, grip: 1.1, slide: .35, accel: 3.5, brake: 8, reverse: 5,
-            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: setting.spec.kind === "bike" ? 1 : .3, balance: 30, balanceDamping: 8, maxLean: 45, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
+            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: setting.spec.kind === "bike" ? 1 : .3, balance: 30, balanceDamping: 8, maxLean: 45, pivotTurn: .6, rolling: .25, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
         };
         const spec = this.spec = setting.spec;
         this.bike = spec.kind === "bike";
+        this.tank = spec.kind === "tank";
         const n = spec.wheels.length, quarter = spec.mass / n;
         const w = 2 * Math.PI * this.s.frequency;
         this.k = quarter * w * w;
@@ -222,6 +226,12 @@ export class Vehicle {
         return pivot(out, sw.position, 0);
     }
 
+    /** a sudden push: `impulse` N·s (world) at model space point `at`, spread over `time` s (a gun's recoil, a hit) */
+    kick(at: Point, impulse: Point, time = .06) {
+        const k = 1 / time;
+        this.kicks.push({ at: new Vector3(at[0], at[1], at[2]), force: new Vector3(impulse[0] * k, impulse[1] * k, impulse[2] * k), left: time });
+    }
+
     // ---- physics ----
 
     /** this step's wheel, engine and drag forces (call before each world step) */
@@ -266,6 +276,14 @@ export class Vehicle {
         const drive = braking || this.fallen ? 0 : Math.sign(throttle) * this.power * spec.mass * s.accel * pull * fade / driven;
         const brake = braking ? spec.mass * s.brake / this.wheels.length : 0;
         const rearZ = Math.max(...this.wheels.map(w => w.spec.position[2]));
+        // tank: each track gets throttle -+ steer (steer right: the left track pulls harder); turned by a yaw torque to
+        // the wanted rate (the tracks skid sideways while turning, so they don't fight it)
+        const steerIn = clamp(input.steer, -1, 1);
+        const track = (side: number) => {
+            const t = throttle - side * steerIn * (throttle ? .5 : 1);
+            return clamp(t, -1, 1);
+        };
+        const tankDrive = (side: number) => braking && !steerIn ? 0 : track(side) * Math.max(this.power, steerIn ? 1 : 0) * spec.mass * s.accel * pull * fade / driven;
 
         const { mount, r, rt, pv, fwd, side, force } = this, dir = set(this.dir, -up[0], -up[1], -up[2]);
         for (const w of this.wheels)
@@ -305,13 +323,17 @@ export class Vehicle {
             const n = w.normal, fn = fwd.dot(n);
             fwd.subtract(n[0] * fn, n[1] * fn, n[2] * fn).normalize();
             side.set(fwd); side.cross(n).normalize();
-            const vLong = pv.dot(fwd), vLat = pv.dot(side);
+            const vLong = pv.dot(fwd);
+            // tank: sideways from the hull's own velocity, not the turn (skid steer)
+            const vLat = this.tank ? set(this.r, v.x, v.y, v.z).dot(side) : pv.dot(side);
+            r.set(w.contact); r.subtract(b.position);
 
             const limit = s.grip * load;
             let fLat = -vLat * quarter * LATERAL;
             let fLong: number;
             if (locked) fLong = -vLong * quarter * LOCK;
             else if (brake) fLong = -Math.sign(vLong) * Math.min(brake, Math.abs(vLong) * quarter * LOCK);
+            else if (this.tank) fLong = tankDrive(ws.side ?? Math.sign(p[0])) - Math.sign(vLong) * Math.min(Math.abs(vLong) * quarter * LOCK, load * s.rolling * (throttle || steerIn ? .15 : 1));
             else fLong = (ws.drive !== false ? drive : 0) - vLong * quarter * (throttle ? .02 : .08);
             if (locked && !input.parked) fLat = clamp(fLat, -limit * s.slide, limit * s.slide);
             // down: the tyres skid (a lying bike slides on, spinning)
@@ -320,7 +342,7 @@ export class Vehicle {
             w.slipping = total > limit;
             if (w.slipping) { fLong *= limit / total; fLat *= limit / total; }
 
-            w.omega = locked ? 0 : vLong / ws.radius;
+            w.omega = locked ? 0 : vLong / (ws.spin ?? ws.radius);
             w.spin -= w.omega * dt;
             // bike: the tyre's load stands straight up off the ground (a leaned bike tips by it), car: along the body
             const ld = this.bike ? w.normal : up;
@@ -329,6 +351,24 @@ export class Vehicle {
             const lift = -r.dot(up) * (1 - (this.fallen ? 1 : s.roll));
             set(rt, r[0] + up[0] * lift, r[1] + up[1] * lift, r[2] + up[2] * lift);
             this.push(rt, set(force, fwd[0] * fLong + side[0] * fLat, fwd[1] * fLong + side[1] * fLat, fwd[2] * fLong + side[2] * fLat));
+        }
+
+        // tank: yaw torque towards the wanted turn rate (on the spot: full, moving: a bit less), only with tracks down
+        if (this.tank && !input.parked)
+        {
+            const grounded = this.wheels.filter(w => w.grounded).length / this.wheels.length;
+            const want = -steerIn * s.pivotTurn * (1 - .35 * Math.min(1, Math.abs(this.speed) / spec.topSpeed)) * Math.sign(this.speed < -.5 ? -1 : 1);
+            const w = b.angularVelocity, now = w.x * up[0] + w.y * up[1] + w.z * up[2];
+            const I = spec.mass * 3.5, t = clamp((want - now) * I * 4, -spec.mass * 6, spec.mass * 6) * grounded;
+            b.applyTorque({ x: up[0] * t, y: up[1] * t, z: up[2] * t });
+        }
+        for (let i = this.kicks.length - 1; i >= 0; i--)
+        {
+            const k = this.kicks[i];
+            this.toWorld(set(this.local, k.at[0], k.at[1], k.at[2]), r);
+            r.subtract(b.position);
+            this.push(r, k.force);
+            if ((k.left -= dt) <= 0) this.kicks.splice(i, 1);
         }
 
         // chassis corners in the ground: a stiff spring + friction (the ground is a height function, no body)

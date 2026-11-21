@@ -59,13 +59,33 @@ export class ExplosionAudio {
         this.last.set(name, pick);
         const deaf = this.options.deaf?.() ?? 0, speed = this.options.sound ?? 343;
         // louder and lower the bigger it is; heard over kilometres
-        const volume = Math.min(1.6, .5 + .22 * Math.log10(power + 1)) * (1 - .6 * deaf);
+        const volume = Math.min(2.6, 1.1 + .3 * Math.log10(power + 1)) * (1 - .35 * deaf);
+        // a shell or bigger: a sub-bass thump under it (felt in the chest), close only
+        if (power >= 1 && distance < 400 * s) this.thump(p, power, distance, speed > 0 ? distance / speed : 0);
         return this.mixer.play(`explosions/${variants[pick]}`, {
             bus: this.options.bus ?? "sfx", volume,
             rate: (1.12 - Math.min(.35, .06 * Math.log10(power + 1))) * (1 + (Math.random() - .5) * .06),
             when: speed > 0 ? this.mixer.context.currentTime + distance / speed : undefined,
-            spatial: { position: { x: p[0], y: p[1], z: p[2] }, refDistance: 8 * s, rolloff: .6, maxDistance: 40000 },
+            spatial: { position: { x: p[0], y: p[1], z: p[2] }, refDistance: 14 * s, rolloff: .45, maxDistance: 40000 },
         });
+    }
+
+    /** a low sine dropping in pitch (a pressure punch): louder the bigger and the closer */
+    thump(at: ArrayLike<number>, power: number, distance: number, delay = 0) {
+        const ctx = this.mixer.context, t = ctx.currentTime + delay, s = Math.cbrt(power);
+        const level = Math.min(1.4, .9 * s / (1 + distance / (25 * s))) * (1 - .35 * (this.options.deaf?.() ?? 0));
+        if (level < .02) return;
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(70, t);
+        o.frequency.exponentialRampToValueAtTime(28, t + .35);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(level, t + .008);
+        g.gain.setTargetAtTime(0, t + .03, .12 * Math.min(2, s));
+        o.connect(g).connect(this.mixer.bus(this.options.bus ?? "sfx").gain);
+        o.start(t);
+        o.stop(t + 1.5);
+        void at;
     }
 
     /**

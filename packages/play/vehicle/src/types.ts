@@ -14,13 +14,17 @@ export type WheelSpec = {
     width?: number;
     steer?: boolean;
     drive?: boolean;
+    /** tank: which track, -1 left / 1 right (the same node can stand for both sides of an axle) */
+    side?: number;
+    /** drawn radius when it differs from the contact `radius` (tank road wheels stand on the track), m */
+    spin?: number;
 };
 
 /** what an asset's `vehicle.json` holds (see tools/blender/packs/jeep.py) */
 export type VehicleSpec = {
     model?: string;
     /** "bike": two wheels in line, kept upright by a balance (leans into turns, kickstand when parked, falls on a crash) */
-    kind?: "car" | "bike";
+    kind?: "car" | "bike" | "tank";
     /** kg */
     mass: number;
     /** m/s */
@@ -37,6 +41,10 @@ export type VehicleSpec = {
     seat?: Point;
     eye?: Point;
     exit?: Point;
+    /** tank: turret node turning round y through `position` (the ring) */
+    turret?: { node: string; position: Point };
+    /** tank: gun node raised round x through `position` (the trunnion), `muzzle` its end at rest, `elevation` [down, up] degrees */
+    gun?: { node: string; position: Point; muzzle: Point; elevation?: number[] };
     /** exhaust pipe end, model space (`Exhaust`); default low at the back, right side */
     exhaust?: Point;
 };
@@ -97,6 +105,10 @@ export type VehicleSetting = {
     balanceDamping?: number;
     /** bike: most lean, degrees. Default 45 */
     maxLean?: number;
+    /** tank: turn on the spot, rad / s at full steer. Default .6 */
+    pivotTurn?: number;
+    /** tank: track rolling drag (share of the weight) with no throttle. Default .25 */
+    rolling?: number;
 };
 
 export type DriveInput = {

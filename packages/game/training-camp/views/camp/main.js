@@ -20,6 +20,7 @@ import { Grass } from '@polywar/grass';
 import { TerrainMaterial, coverMap } from '@polywar/terrain-material';
 import { Lights, Glow } from '@polywar/light';
 import { grenades } from './grenades.js';
+import { tankGun } from './tank.js';
 import { Shadows } from '@polywar/shadows';
 import { Scatter } from '@polywar/scatter';
 
@@ -328,10 +329,15 @@ demo.draw = camera => {
 // ---- vehicles: parked jeeps, E in / out, W / S, A / D, Space handbrake, V seat / chase cam ----
 // bike: lighter, revs higher, 4 gears
 const BIKE = { accel: 4.5, gears: [.25, .45, .7, 1], pull: [1.8, 1.3, 1, .75], idle: 900, redline: 5200, steer: 30, steerFade: 4 };
-const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
+// tank: 30 t, slow to pull away, 4 gears, a low revving diesel; stiff, well damped suspension (the hull pitches a little)
+const TANK = { accel: 2.2, gears: [.22, .45, .72, 1], pull: [1.7, 1.25, 1, .8], idle: 500, redline: 2600, travel: .25, frequency: 1.4, damping: .55, grip: 1.3, brake: 5, reverse: 3, centre: .5, antiRoll: .3, roll: .7, shiftTime: .9 };
+// the tank isn't in the exported layout yet: parked on the open ground east of the spawn
+const VEHICLES = [...(range.data.vehicles ?? []), { name: 'Tank 0', kind: 'ww2-tank', at: [16, 0, 22], yaw: 0 }];
+const SETTINGS = { bike: BIKE, tank: TANK };
+const cars = await Promise.all(VEHICLES.map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;
     const spec = await (await fetch(base + 'vehicle.json')).json();
-    const car = fleet.add({ spec, ...(spec.kind === 'bike' ? BIKE : {}) }, v.at, v.yaw);
+    const car = fleet.add({ spec, ...(SETTINGS[spec.kind] ?? {}) }, v.at, v.yaw);
     const hands = spec.steeringWheel && new SteeringHands(spec.steeringWheel);
     return { car, spec, hands, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
@@ -377,6 +383,8 @@ window.dust = dust;
 window.cars = cars;
 for (const c of cars) c.car.oncrash = (speed, impact) => thrown(c, speed, impact);
 const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
+/** the tank gun (set up after the grenades: it uses their explosions) */
+let gun;
 const carMatrix = Matrix4.create();
 const forward = c => { const f = c.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
 // the player stands in the driven car: two cylinders per car for the mover (front / back half)
@@ -385,7 +393,8 @@ const withCars = (x, z) => {
     const list = baseColliders(x, z);
     const extra = cars.filter(c => c !== driving).flatMap(({ car }) => {
         const p = car.body.position, f = car.toWorld([0, 0, -1], undefined, 0);
-        if (Math.hypot(p.x - x, p.z - z) > 6) return [];
+        if (Math.hypot(p.x - x, p.z - z) > 8) return [];
+        if (car.spec.kind === 'tank') return [-1.9, 0, 1.9].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: 1.45, bottom: p.y - 1, top: p.y + 2 }));
         const bike = car.spec.kind === 'bike', r = bike ? .35 : .85, d = bike ? .6 : .85;
         return [-d, d].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: r, bottom: p.y - 1, top: p.y + (bike ? .2 : .6) }));
     });
@@ -396,8 +405,10 @@ player.mover.setting.colliders = withCars;
 // the glass goes last (after the grass tufts): drawn earlier its depth would hide the grass behind it
 const GLASS = ['Window'];
 function drawCars() {
-    for (const { car, spec, model: m } of cars)
+    for (const c of cars)
     {
+        const { car, spec, model: m } = c;
+        gun?.pose(c, m);
         car.wheels.forEach((w, i) => m.move(w.spec.node, car.wheel(i, Matrix4.create())));
         const sw = car.steeringWheel(Matrix4.create());
         if (sw) m.move(spec.steeringWheel.node, sw);
@@ -463,6 +474,8 @@ function stowBack() {
 }
 function drawDriver(camera) {
     if (driving.spec.kind === 'bike') return drawRider(camera);
+    // tank: the crew sits inside, out of sight
+    if (driving.spec.kind === 'tank') return;
     const { car, spec, hands } = driving, s = spec.seat;
     const at = o => { const p = car.toWorld([s[0] + o[0], s[1] + o[1], s[2] + o[2]]); return [p[0], p[1], p[2]]; };
     const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
@@ -475,7 +488,7 @@ let taking = -1, placing = false;
 const TAKE = .6, smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 const passenger = spec => spec.passenger ?? [-spec.seat[0], spec.seat[1] - .08, spec.seat[2]];
 function stowGun() {
-    if (!driving || !player.down?.fixed || driving.spec.kind === 'bike') return;
+    if (!driving || !player.down?.fixed || driving.spec.kind === 'bike' || driving.spec.kind === 'tank') return;
     const p = passenger(driving.spec);
     player.stow(driving.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])));
 }
@@ -488,17 +501,20 @@ function enter(c) {
         if (c.car.fallen) c.car.raise();
         if (player.held && !player.down) stowBack();
     }
+    else if (c.spec.kind === 'tank') { if (player.held && !player.down) player.stow(c.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...c.spec.seat, 1]))); }
     else if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
-    c.engine ??= new EngineSound({ mixer: player.feel.mixer, ...(c.spec.kind === 'bike' ? ENGINES.bike : {}) });
+    c.engine ??= new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
     chase.yaw = forward(c.car);
+    // tank: the look is the gun's aim (world yaw / pitch), starts along the turret
+    if (c.spec.kind === 'tank') { const t = gun.turretOf(c); chase.aim = [chase.yaw + t.yaw, t.pitch]; }
     const p = c.car.body.position;
     chase.pos = [p.x + Math.sin(chase.yaw) * 7, p.y + 2.5, p.z + Math.cos(chase.yaw) * 7];
     chase.look = [0, 0];
 }
 function leave() {
     const c = driving.car, out = c.toWorld(driving.spec.exit);
-    if (driving.spec.kind === 'bike' && player.down?.fixed) player.takeBack();
+    if ((driving.spec.kind === 'bike' || driving.spec.kind === 'tank') && player.down?.fixed) player.takeBack();
     driving.awake = 3;
     driving = undefined;
     mounting = 0; mount = 1;
@@ -506,7 +522,7 @@ function leave() {
 }
 /** crashed: thrown off / out where it is with its speed just before (jeep: open, no belts, only a hard one throws you) */
 function thrown(c, speed, impact) {
-    if (driving !== c) return;
+    if (driving !== c || c.spec.kind === 'tank') return;
     // slow: the bike just stops / tips and you step off; the jeep keeps you in
     if (speed < 6) { if (c.car.fallen) leave(); return; }
     if (c.spec.kind !== 'bike' && speed < 8) return;
@@ -521,6 +537,7 @@ function thrown(c, speed, impact) {
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
+    if (driving?.spec.kind === 'tank') { if (Math.abs(driving.car.speed) < 2) leave(); return; }
     if (driving?.spec.kind === 'bike') { if (!mounting && Math.abs(driving.car.speed) < 3) mounting = -1; return; }
     if (driving) { if (placing) return; if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
     else if (nearCar) enter(nearCar);
@@ -547,7 +564,31 @@ function driveCamera(camera, dt) {
     const { car, spec } = driving, input = player.input;
     const { dx, dy } = input?.consume() ?? { dx: 0, dy: 0 };
     let eye, yaw, pitch;
-    if (seatCam)
+    if (spec.kind === 'tank')
+    {
+        // the mouse aims (world yaw / pitch); seat = the gunner's sight on the turret, chase = behind + over the turret
+        chase.aim[0] -= dx * .0018;
+        chase.aim[1] = Math.max(-.3, Math.min(.5, chase.aim[1] - dy * .0018));
+        yaw = chase.aim[0]; pitch = chase.aim[1];
+        const cp = Math.cos(pitch), d = [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp];
+        const t = gun.turretOf(driving);
+        if (seatCam)
+        {
+            const m = t.turretMatrix(), e = spec.eye;
+            eye = car.toWorld([m[0] * e[0] + m[4] * e[1] + m[8] * e[2] + m[12], m[1] * e[0] + m[5] * e[1] + m[9] * e[2] + m[13], m[2] * e[0] + m[6] * e[1] + m[10] * e[2] + m[14]]);
+        }
+        else
+        {
+            const r = car.toWorld(spec.turret.position);
+            eye = [r[0] - d[0] * 11, r[1] + 3.2 - d[1] * 6, r[2] - d[2] * 11];
+            eye[1] = Math.max(eye[1], range.ground(eye[0], eye[2]) + 1);
+            // look a little down at the tank: the aim point stays at the crosshair (centre) far off
+            const far = [r[0] + d[0] * 400, r[1] + d[1] * 400, r[2] + d[2] * 400], to = [far[0] - eye[0], far[1] - eye[1], far[2] - eye[2]];
+            pitch = Math.atan2(to[1], Math.hypot(to[0], to[2]));
+        }
+        chase.lookDir = d;
+    }
+    else if (seatCam)
     {
         chase.look[0] = Math.max(-2.2, Math.min(2.2, chase.look[0] - dx * .0022));
         chase.look[1] = Math.max(-1.2, Math.min(1.2, chase.look[1] - dy * .0022));
@@ -596,16 +637,18 @@ const seat = {
         {
             const input = player.input, k = n => input?.key(n) ? 1 : 0;
             const on = driving.spec.kind !== 'bike' || mount >= 1;
+            if (driving.spec.kind === 'tank') { const p = driving.car.body.position; player.mover.place(p.x, p.z); }
             inputs.set(driving.car, on ? { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' '), ridden: true } : { throttle: 0, steer: 0, parked: true, ridden: mount > .5 });
         }
         fleet.update(dt, inputs);
+        gun?.update(dt, driving, driving?.spec.kind === 'tank' ? chase.lookDir : undefined);
         driving?.hands?.update(dt, driving.car.wheelTurn);
         if (mounting) { mount = Math.max(0, Math.min(1, mount + mounting * dt / MOUNT)); if (mount >= 1 && mounting > 0) mounting = 0; else if (mount <= 0 && mounting < 0) leave(); }
         if (driving && placing && (taking -= dt / TAKE) <= 0) { taking = -1; placing = false; }
         else if (driving && !placing && taking >= 0 && (taking += dt / TAKE) >= 1) { taking = -1; player.takeBack(); leave(); }
         for (const c2 of cars) { dust.update(dt, c2.car); if (c2.engine) exhaust.update(dt, c2.car); }
         // the player / grenades aren't ticked while driving: age the impacts + dust here
-        if (driving) { player.impacts.update(dt); nades.smoke.update(dt); }
+        if (driving) player.impacts.update(dt);
         for (const c2 of cars)
         {
             if (c2 !== driving && c2.awake > 0) c2.awake -= dt;
@@ -613,7 +656,8 @@ const seat = {
             if (c2.engine)
             {
                 const p = c2.car.body.position;
-                c2.engine.update({ rpm: c2.car.rpm, load: c2.car.power, slip: c2.car.slip, position: [p.x, p.y, p.z] });
+                const turn = c2 === driving ? Math.abs(inputs.get(c2.car)?.steer ?? 0) : 0;
+                c2.engine.update({ rpm: c2.car.rpm, load: c2.car.power, slip: c2.car.slip, position: [p.x, p.y, p.z], tracks: c2.car.speed + turn * 1.5, turn });
                 if (c2 !== driving && c2.awake <= 0) { c2.engine.stop(.8); c2.engine = undefined; }
             }
         }
@@ -635,8 +679,17 @@ $('#play').onclick = () => {
 // ---- grenades (H hold / let go, F at a crate): grenades.js ----
 // smoke + explosions in the world's depth (before the hands, which clear it)
 function drawAir(camera) { window.nades?.drawAir(camera); renderer.reset(); }
-const nades = await grenades({ layer, gl, renderer, range, player, playing: () => document.body.classList.contains('playing') && !driving, busy: () => binoculars || menuOpen || !!tuner?.open });
+const nades = await grenades({ layer, gl, renderer, range, player, playing: () => document.body.classList.contains('playing') && !driving, busy: () => binoculars || menuOpen || !!tuner?.open,
+    // in the tank the hull takes a blast: the crew gets 15% of the shock
+    armour: () => driving?.spec.kind === 'tank' ? .15 : 1 });
 window.nades = nades;
+// ---- tank gun (left click while in the tank): tank.js ----
+gun = tankGun({ gl, renderer, nades, shots, dust: (at, v) => { at[1] = range.ground(at[0], at[2]) + .3; puffOut(at, v, { life: 3.5, size: 2.2, grow: 1.2, drag: 1.4, colour: DUST_GROUND.dirt.colour, opacity: .6 }); } });
+window.gun = gun;
+addEventListener('mousedown', e => {
+    if (e.button !== 0 || driving?.spec.kind !== 'tank' || !document.body.classList.contains('playing')) return;
+    if (gun.fire(driving)) player.feel.mixer.context.resume?.();
+});
 const walkTick = demo.tick;
 demo.tick = dt => {
     if (driving)
@@ -646,6 +699,12 @@ demo.tick = dt => {
         $('#prompt').value = `E  get ${driving.spec.kind === 'bike' ? 'off' : 'out'} · V ${seatCam ? 'chase' : 'seat'} cam`;
         $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
         $('#cross').style.opacity = '0';
+        if (driving.spec.kind === 'tank')
+        {
+            $('#prompt').value += ` · click fire · ${gun.loading > 0 ? `loading ${gun.loading.toFixed(1)} s` : 'loaded'}`;
+            $('#cross').style.opacity = '1';
+        }
+        nades.tick(dt);
         return;
     }
     walkTick(dt);
@@ -654,7 +713,7 @@ demo.tick = dt => {
     if (nades.held()) $('#prompt').value = nades.prompt();
     const f = player.mover.feet;
     nearCar = cars.find(({ car, spec }) => { const d = car.toWorld(spec.exit); return Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.6; });
-    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : 'E  drive';
+    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : nearCar.spec.kind === 'tank' ? 'E  climb in' : 'E  drive';
 };
 demo.draw = camera => {
     // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)
@@ -665,6 +724,7 @@ demo.draw = camera => {
     drawGrass(camera);
     drawCars();
     nades.draw();
+    gun.draw();
     if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();

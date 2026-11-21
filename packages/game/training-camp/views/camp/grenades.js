@@ -11,7 +11,7 @@ import { Model } from '@polywar/renderer';
 
 export const PIT = [25, 38];
 
-export async function grenades({ layer, gl, renderer, range, player, playing, busy }) {
+export async function grenades({ layer, gl, renderer, range, player, playing, busy, armour = () => 1 }) {
     const smoke = new Smoke(layer, { puffs: 6000 });
     const explosion = new Explosion(layer, { smoke, ground: range.ground });
     const daze = new Daze(layer), knock = new Knockdown({ eye: 1.7 });
@@ -35,6 +35,14 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     const you = {
         get position() { return target.position; }, mass: 80, size: .45, lift: .25, cap: 6,
         push(v, spin, hit) {
+            // in a tank: the hull takes the push, the crew only a dulled shock (dizzy, blurred; no knock down unless huge)
+            const through = armour();
+            if (through < 1)
+            {
+                const a = shellShock(hit.pressure * through);
+                daze.hit(a); audio.stun(a * .6);
+                return;
+            }
             target.push(v, spin, hit);
             const a = shellShock(hit.pressure);
             daze.hit(a); audio.stun(a);
@@ -146,6 +154,7 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         /** shared smoke (jeep dust uses it too) */
         smoke,
         lastHit: () => lastHit,
+        explosion, force, audio, daze,
         live: () => live.map(g => ({ state: g.state, left: +g.left.toFixed(1), at: g.position.map(v => +v.toFixed(1)) })),
         glare: () => { const w = layer.camera?.worldMatrix; return w ? explosion.glare([w[12], w[13], w[14]]) : 0; },
         /** opaque: grenades, crates, arc */

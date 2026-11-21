@@ -12,6 +12,10 @@ export type EngineSoundSetting = {
     volume?: number;
     /** low pass cut-off at idle / redline, Hz: the muffler. Defaults 500 / 2600 */
     muffle?: [number, number];
+    /** track clatter loudness (tank: steel links on the wheels), 0 off. Default 0 */
+    clatter?: number;
+    /** rpm span for the brightness: [idle, top]. Default [700, 4000] */
+    revs?: [number, number];
 };
 
 export type EngineState = {
@@ -23,6 +27,9 @@ export type EngineState = {
     slip?: number;
     /** where the car is (3D) */
     position?: ArrayLike<number>;
+    /** tracks' speed, m/s (clatter rate) and turn 0..1 (the squeal of skidding links) */
+    tracks?: number;
+    turn?: number;
 };
 
 /**
@@ -44,10 +51,13 @@ export class EngineSound {
     private skid: GainNode;
     private master: GainNode;
     readonly panner: PannerNode;
+    private links?: OscillatorNode;
+    private clank?: GainNode;
+    private squeal?: GainNode;
     private s: Required<Omit<EngineSoundSetting, "mixer">>;
 
     constructor(readonly setting: EngineSoundSetting) {
-        this.s = { bus: "sfx", cylinders: 4, volume: .6, muffle: [500, 2600], ...setting };
+        this.s = { bus: "sfx", cylinders: 4, volume: .6, muffle: [500, 2600], clatter: 0, revs: [700, 4000], ...setting };
         const ctx = this.ctx = setting.mixer.context;
         const keep = <T extends AudioNode>(n: T) => (this.nodes.push(n), n);
 
@@ -81,7 +91,32 @@ export class EngineSound {
         this.skid = keep(new GainNode(ctx, { gain: 0 }));
         noise.connect(hiss).connect(this.skid).connect(this.master);
 
-        for (const o of [this.saw, this.sub, this.pulse, noise]) o.start();
+        const sources: AudioScheduledSourceNode[] = [this.saw, this.sub, this.pulse, noise];
+        // track clatter: metallic noise gated at the link rate (a square wave on the gain), a rumble under it,
+        // and a squeal (two detuned tones) while the tracks skid round a turn
+        if (this.s.clatter > 0)
+        {
+            const ring = keep(new BiquadFilterNode(ctx, { type: "bandpass", frequency: 1900, Q: 3 }));
+            const thud = keep(new BiquadFilterNode(ctx, { type: "lowpass", frequency: 160 }));
+            this.clank = keep(new GainNode(ctx, { gain: 0 }));
+            const gate = keep(new GainNode(ctx, { gain: 0 }));
+            this.links = keep(new OscillatorNode(ctx, { type: "square", frequency: 1 }));
+            const depth = keep(new GainNode(ctx, { gain: .5 }));
+            this.links.connect(depth).connect(gate.gain);
+            noise.connect(ring).connect(gate);
+            noise.connect(thud).connect(gate);
+            gate.connect(this.clank).connect(this.master);
+            this.squeal = keep(new GainNode(ctx, { gain: 0 }));
+            for (const f of [1720, 1795])
+            {
+                const o = keep(new OscillatorNode(ctx, { type: "triangle", frequency: f }));
+                o.connect(this.squeal);
+                sources.push(o);
+            }
+            this.squeal.connect(this.master);
+            sources.push(this.links);
+        }
+        for (const o of sources) o.start();
         this.master.gain.setTargetAtTime(this.s.volume, ctx.currentTime, .3);
     }
 
@@ -89,7 +124,7 @@ export class EngineSound {
         const t = this.ctx.currentTime, k = .04;
         const firing = state.rpm / 60 * this.s.cylinders / 2;
         const load = Math.max(0, Math.min(1, state.load));
-        const rev = Math.max(0, Math.min(1, (state.rpm - 700) / 3300));
+        const [r0, r1] = this.s.revs, rev = Math.max(0, Math.min(1, (state.rpm - r0) / (r1 - r0)));
         this.saw.frequency.setTargetAtTime(firing, t, k);
         this.sub.frequency.setTargetAtTime(firing / 2, t, k);
         this.pulse.frequency.setTargetAtTime(firing, t, k);
@@ -100,6 +135,14 @@ export class EngineSound {
         const [lo, hi] = this.s.muffle;
         this.filter.frequency.setTargetAtTime(lo + (hi - lo) * (.25 * rev + .75 * rev * load + .1 * load), t, k);
         this.skid.gain.setTargetAtTime(Math.min(1, state.slip ?? 0) * .5, t, .05);
+        if (this.links && this.clank && this.squeal)
+        {
+            const v = Math.abs(state.tracks ?? 0);
+            // ~6 links per metre
+            this.links.frequency.setTargetAtTime(Math.max(.5, v * 6), t, k);
+            this.clank.gain.setTargetAtTime(this.s.clatter * Math.min(1, v / 3), t, .08);
+            this.squeal.gain.setTargetAtTime(.03 * Math.min(1, state.turn ?? 0) * Math.min(1, v / 1.5 + .3), t, .15);
+        }
         if (state.position)
         {
             const p = this.panner, x = state.position[0], y = state.position[1], z = state.position[2];
@@ -137,4 +180,6 @@ function noiseBuffer(ctx: BaseAudioContext) {
 export const ENGINES = {
     jeep: {},
     bike: { cylinders: 2, muffle: [750, 3800] as [number, number], volume: .5 },
+    /** WW2 tank: a big slow V12 (low, heavy muffled), steel tracks clattering */
+    tank: { cylinders: 12, muffle: [260, 1300] as [number, number], volume: 1, clatter: .55, revs: [500, 2600] as [number, number] },
 } satisfies Record<string, Partial<EngineSoundSetting>>;

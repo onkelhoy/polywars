@@ -26,6 +26,13 @@ Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
 - Crash: `Vehicle.oncrash` for cars too (`crashAt` 7 m/s lost in a step, `crashVelocity`); the jeep throws you over 8 m/s. `nades.fling(v, speed)`: <4 m/s blur + stumble, more = down, >7 m/s out cold (`Knockdown.hit(..., out)`, up to 8 s eyes shut).
 - `@polywar/close-dark` (packages/ui/viewport): 5 short rays round the look, dark from the centre with a dithered grit edge; camera near .04 while limp.
 
+## Tank round 1 (feature/tank): needs in-game check (owner)
+- Asset: `tools/blender/packs/tank.py` (reads model.blend, never saves) -> model.glb (texture baked to vertex colours, as before) + vehicle.json (`kind: "tank"`, x3.1 = 6.2 m, 30 t, a contact per side per wheel, `turret`, `gun` + muzzle). Camp: parked at x 16 z 22 (`VEHICLES` in main.js, not in the exported layout yet).
+- Physics: `Vehicle` tank mode: track throttle -+ steer, yaw torque to `pivotTurn` (turns on the spot), sideways grip from the hull's velocity (skid steer), `rolling` drag. `Vehicle.kick(at, impulse, time)`. Camp `TANK` setting (~40 km/h top, 4 gears).
+- `Turret` (`@polywar/vehicle`): slow traverse (18°/s) + elevation (5°/s, -8..20°), barrel run back, `muzzle()` / `direction()`.
+- Camp `views/camp/tank.js`: E climb in / out (< 2 km/h), mouse aims, V gunner sight / chase, click fires (6 s reload). Shell 6.8 kg 790 m/s (`GUN`), recoil kick, muzzle blast (explosion 1.2 kg) + dust ring, hit = 2.5 kg shatter blast, cars hit get shoved. Crew inside gets 15% of any blast (`armour` in grenades.js): daze / muffle, no knock down.
+- Sound: `ENGINES.tank` (V12, track clatter + squeal, `clatter` / `revs` settings). Explosions louder + carry further, less hidden when deafened, `ExplosionAudio.thump` (sub bass) for 1 kg+.
+
 ## Notes
 - Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).
