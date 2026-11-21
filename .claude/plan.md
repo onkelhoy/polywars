@@ -17,5 +17,18 @@ Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gu
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).
 - Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
 
+## Farm (`@polywar/farm`, feature/farm)
+Done 1-4: grid, zoning (yard / fields / pastures / wood), yard buildings + windmill on high ground, pasture fences + gates, lane + trails, edits (flatten, noGrass, paint). View: `packages/world/farm` `npm start`, show = edits for masks.
+5. 3D view: real farm glbs + fences on the fake terrain, edits applied.
+6. Hook into `world`: farm `Site` -> area, terrain / grass / ways read the edits.
+7. LOD (separate asset-side package, later).
+
 ## Open tasks
 1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
+
+## Milestones (proposed, not planned yet)
+1. Farm: building-builder + papit irregular grid, fields / fences / barn / house / silo / paths from existing assets. LOD for all assets (shared LOD package). Later castles, villages.
+2. Weather + day/night: per-biome weather state, cloud cover grays + damps light, fog, mostly-overcast before rain (rare big-cloud bursts), rain / snow by biome.
+3. Vehicles: generic core from jeep, then motorbike, tank, airplane.
+4. Destruction: damage per vehicle / building, wrecks, parts break off, planes shot down.
+5. Animals (on the farm).

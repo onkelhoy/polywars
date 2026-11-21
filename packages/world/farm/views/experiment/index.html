@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>farm | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <canvas id="map"></canvas>
+    <aside>
+        <h1>farm</h1>
+        <output id="info"></output>
+        <label>terrain seed <input id="tseed" type="number" min="0" step="1" value="1" /></label>
+        <label>hills <input id="hills" type="range" min="0" max="30" step="1" value="10" /></label>
+        <label>river <input id="river" type="checkbox" checked /></label>
+        <label>farm seed <input id="seed" type="number" min="0" step="1" value="1" /></label>
+        <label>cell m <input id="cell" type="range" min="6" max="30" step="1" value="14" /></label>
+        <label>radius m <input id="radius" type="range" min="60" max="300" step="10" value="180" /></label>
+        <label>show <select id="show"><option>zone</option><option>slope</option><option>edits</option></select></label>
+        <label>labels <input id="labels" type="checkbox" checked /></label>
+    </aside>
+</body>
+</html>
