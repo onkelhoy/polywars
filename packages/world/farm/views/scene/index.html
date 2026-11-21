@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>farm | scene</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <pw-viewport near=".5" far="4000" speed="30">
+    <aside>
+        <h1>farm scene</h1>
+        <output id="info"></output>
+        <label>terrain seed <input id="tseed" type="number" min="0" step="1" value="1" /></label>
+        <label>hills <input id="hills" type="range" min="0" max="30" step="1" value="10" /></label>
+        <label>river <input id="river" type="checkbox" checked /></label>
+        <label>farm seed <input id="seed" type="number" min="0" step="1" value="1" /></label>
+        <label>radius m <input id="radius" type="range" min="60" max="300" step="10" value="180" /></label>
+        <label>edits <input id="edits" type="checkbox" checked /></label>
+        <label>quality <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+    </aside>
+    </pw-viewport>
+</body>
+</html>

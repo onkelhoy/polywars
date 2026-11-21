@@ -1,0 +1,7 @@
+@import "@papit/theme";
+body { margin: 0; height: 100vh; font: 13px system-ui; }
+pw-viewport { display: block; width: 100%; height: 100%; }
+aside { position: absolute; top: 8px; left: 8px; width: 210px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: #000a; color: #ddd; border-radius: 6px; }
+aside h1 { margin: 0; font-size: 15px; }
+label { display: flex; justify-content: space-between; gap: 6px; }
+output { white-space: pre; color: #9c9; }

@@ -55,7 +55,11 @@
   },
   "devDependencies": {
     "typescript": "5.9.3",
-    "@papit/theme": "*"
+    "@papit/theme": "*",
+    "@polywar/viewport": "*",
+    "@polywar/renderer": "*",
+    "@polywar/scatter": "*",
+    "@papit/game-mesh": "*"
   },
   "browserslist": [
     "defaults",
