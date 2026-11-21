@@ -39,7 +39,7 @@ export type FarmOptions = {
     wood: { slope: number; chance: number };
     /** fence segment length (fence asset) */
     /** `styles`: fence style names per use (the view / world maps them to models); `fields`: chance a field is fenced */
-    fence: { asset: string; length: number; gate: number; styles: { pasture: string[]; field: string[]; run: string[] }; fields: number };
+    fence: { asset: string; length: number; gate: number; styles: { pasture: string[]; field: string[]; run: string[]; yard: string[] }; fields: number };
     /** `fields`: how many fields get their own trail */
     path: { lane: number; trail: number; fields: number };
     /** small things (asset names as the world knows them, e.g. "props/village/bale") */

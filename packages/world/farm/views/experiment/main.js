@@ -27,7 +27,6 @@ const NATURE = new Set([...Object.values(TREES).flat(), ...ROCKS, ...Object.valu
 const url = (name, lod) => {
     const path = name.includes('/') ? name : NATURE.has(name) ? `nature/${name}` : `buildings/farm/${name}`;
     if (lod && path.startsWith('props/')) return undefined;
-    if (lod > 2 && path.startsWith('buildings/')) return undefined;
     return `/assets/models/${path}${lod ? `.lod${lod}` : ''}.glb`;
 };
 const scatter = new Scatter(renderer, url, { quality: $('#quality').value, distance: { building: 1500, tree: 900, rock: 400, bush: 300, prop: 250, crop: 120, default: 300 } });

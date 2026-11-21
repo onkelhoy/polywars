@@ -13,7 +13,7 @@ import export as ex
 out = [x for x in pw.args() if not x.startswith("--")][0]
 ex.realize_instances()
 ex.principled_materials()
-ex.textures_to_vertex_colours()
+ex.textures_to_vertex_colours(per_corner=True)
 meshes = [o for o in bpy.context.scene.objects if o.type == "MESH" and o.parent is None]
 for o in meshes:
     for other in bpy.context.scene.objects:

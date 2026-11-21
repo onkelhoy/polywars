@@ -78,3 +78,50 @@ export function fencePosts(line: Line, spacing = 2.9): Line {
     }
     return out;
 }
+
+/** a low fancy fence round the yard, only on its outer edges that no other fence uses (the house front) */
+export function yardFence(layout: FarmLayout, yard: number[], o: FarmOptions) {
+    const { cells, neighbours: nb } = layout, own = new Set(yard), style = o.fence.styles.yard[0];
+    const fenced = new Set<string>();
+    for (const l of layout.fences) for (const p of l) fenced.add(key(p));
+    for (const c of yard) for (let i = 0; i < 4; i++) {
+        const n = nb[c * 4 + i];
+        if (own.has(n)) continue;
+        const a = cells[c].corners[i], b = cells[c].corners[(i + 1) % 4];
+        if (fenced.has(key(a)) || fenced.has(key(b))) continue;
+        // only toward open land (not fields, pastures), like a front garden
+        if (n >= 0 && cells[n].zone !== "none") continue;
+        layout.fences.push([a, b]); layout.fenceStyles.push(style);
+    }
+}
+
+/**
+ * Fences resampled to post gaps (`spacing` m), then gaps dropped where a path crosses (path width + 1 m)
+ * or where an earlier fence already runs (no crossings, no doubles).
+ */
+export function cutFences(layout: FarmLayout, o: FarmOptions, spacing = 3) {
+    const near = (l: Line, x: number, z: number) => {
+        let d = Infinity;
+        for (let i = 1; i < l.length; i++) {
+            const [ax, az] = l[i - 1], [bx, bz] = l[i], dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+            d = Math.min(d, Math.hypot(x - ax - dx * t, z - az - dz * t));
+        }
+        return d;
+    };
+    const kept: Line[] = [], styles: string[] = [];
+    layout.fences.forEach((line, f) => {
+        const posts = fencePosts(line, spacing);
+        let run: Line = [posts[0]];
+        const flush = () => { if (run.length > 1) { kept.push(run); styles.push(layout.fenceStyles[f]); } };
+        for (let i = 1; i < posts.length; i++) {
+            const a = posts[i - 1], b = posts[i], mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
+            const onPath = layout.paths.some(p => near(p.line, mx, mz) < p.width / 2 + 1);
+            const onFence = kept.some(k => near(k, mx, mz) < .8);
+            if (onPath || onFence) { flush(); run = [b]; continue; }
+            run.push(b);
+        }
+        flush();
+    });
+    layout.fences = kept;
+    layout.fenceStyles = styles;
+}

@@ -71,7 +71,7 @@ export function dress(layout: FarmLayout, ground: FarmGround, o: FarmOptions, rn
         put(P.sign, bx - Math.cos(dir) * 4 - Math.sin(dir) * side, bz - Math.sin(dir) * 4 + Math.cos(dir) * side, dir, .4, 1, true);
     }
     // sheaves in a few wheat fields: little rows along the near edge; bales by pasture gates
-    for (const f of layout.fields) {
+    for (const f of [] as typeof layout.fields) {
         if (f.crop !== "wheat" || !rnd.chance(.4)) continue;
         const c = cells[f.cells[rnd.int(0, f.cells.length)]];
         const [[ax, az], [bx, bz]] = c.corners, dir = Math.atan2(bz - az, bx - ax);

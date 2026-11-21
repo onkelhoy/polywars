@@ -2,7 +2,7 @@ import { Random } from "@papit/random";
 import { farmGrid } from "./grid";
 import { zone } from "./zones";
 import { placeYard } from "./yard";
-import { fences } from "./fences";
+import { fences, yardFence, cutFences } from "./fences";
 import { paths } from "./paths";
 import { hedges } from "./hedges";
 import { dress } from "./props";
@@ -22,7 +22,7 @@ export const DEFAULTS: FarmOptions = {
     hedge: { chance: .55, spacing: 4.5 },
     bank: { chance: .75, spacing: 5 },
     wood: { slope: .35, chance: .5 },
-    fence: { asset: "Fence", length: 5.8, gate: 3.5, styles: { pasture: ["1", "2"], field: ["simple", "2"], run: ["poor"] }, fields: .6 },
+    fence: { asset: "Fence", length: 5.8, gate: 3.5, styles: { pasture: ["1", "2"], field: ["poor"], run: ["simple"], yard: ["fancy"] }, fields: .35 },
     path: { lane: 4, trail: 1.5, fields: 5 },
     props: {
         door: ["props/village/barrel", "props/village/crate", "props/village/sack", "props/village/bucket"],
@@ -46,7 +46,9 @@ export function generateFarm(area: FarmArea, ground: FarmGround, options: Partia
     placeYard(layout, z.yard, ground, o, rnd.fork("yard"));
     const gates = fences(layout, o, rnd.fork("fences"));
     hedges(layout, z.banks, o, rnd.fork("hedges"));
+    yardFence(layout, z.yard, o);
     paths(layout, z.yard, gates, o);
+    cutFences(layout, o);
     dress(layout, ground, o, rnd.fork("props"));
     // fields: soil, no grass
     for (const f of layout.fields) for (const c of f.cells) {
