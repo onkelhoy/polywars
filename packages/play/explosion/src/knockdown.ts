@@ -62,6 +62,7 @@ export class Knockdown {
     private side = 1;
     private keys: [number, number][] = [];
     private shock = 0;
+    private start = { drop: 0, pitch: 0, yaw: 0, roll: 0 };
     private seed = Math.random() * 100;
 
     constructor(readonly setting: KnockdownSetting = {}) { }
@@ -89,8 +90,11 @@ export class Knockdown {
             yaw: r * .8,
             roll: -side * .9,
         };
+        // from wherever you are now (standing, getting up, still blinking): a new blast always counts
+        this.start = { drop: this.drop, pitch: this.pitch, yaw: this.yaw, roll: this.roll };
         this.phase = "fall";
         this.time = 0;
+        this.since = 0;
         this.shock = shock;
         this.plan(shock);
         this.ondown?.(this.direction, shock);
@@ -134,8 +138,9 @@ export class Knockdown {
         {
             // limp: speeds up like a fall, the eyes go on the thud
             const t = Math.min(1, this.time / this.fallTime), f = t * t;
-            this.drop = low * f;
-            this.pitch = this.to.pitch * ease(t * 1.2); this.yaw = this.to.yaw * t; this.roll = this.to.roll * f;
+            const st = this.start, e = ease(Math.min(1, t * 1.2));
+            this.drop = mix(st.drop, low, f);
+            this.pitch = mix(st.pitch, this.to.pitch, e); this.yaw = mix(st.yaw, this.to.yaw, t); this.roll = mix(st.roll, this.to.roll, f);
             this.blink = t > .85 ? (t - .85) / .15 : 0;
             this.look = this.control = this.hands = 0;
             if (t >= 1) { this.phase = "down"; this.time = 0; }

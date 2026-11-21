@@ -21,7 +21,6 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     // ---- grenade crates (own world for anything the blast pushes; host props can join it later) ----
     const world = new World(), things = [];
     const gy = range.ground(PIT[0], PIT[1]);
-    world.add(new RigidBody({ shape: new Box(60, 1, 60), position: { x: PIT[0], y: gy - .5, z: PIT[1] } }));
     const meshes = {};
     const meshOf = (size, colour) => meshes[size + colour] ??= upload(gl, new MeshBuilder().box(colour, { at: [0, 0, 0], scale: size }).build());
     const add = (size, mass, at, colour) => {
@@ -44,7 +43,14 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         },
     };
     player.setting.pose = () => knock.active ? knock : undefined;
-    const force = new BlastForce({ targets: () => [...bodyTargets(world), you], cover: worldCover(world), front: p => new ShockFront(p) });
+    const force = new BlastForce({ targets: () => [...bodyTargets(world), you], cover: (from, to) => {
+            // the camp's own walls between (from a little over the blast): .15 gets round
+            const a = [from[0], from[1] + .3, from[2]], h = range.cast(a, to);
+            return h && Math.hypot(h.point[0] - to[0], h.point[1] - to[1], h.point[2] - to[2]) > .6 ? .15 : 1;
+        }, front: p => new ShockFront(p),
+        // the last blast on you (console: `nades.lastHit()`)
+        onhit: (t, hit) => { if (t === you) lastHit = hit; } });
+    let lastHit;
     explosion.onexplode = b => { force.blast(b.position, b.power); audio.play(b.position, b.power); };
 
     // ---- the grenades: the owner's models (assets/models/weapons/grenades/<model>/model.glb), long axis y, centred ----
@@ -81,14 +87,14 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     addEventListener('keydown', e => {
         if (e.repeat || !playing() || busy()) return;
         const k = e.key.toLowerCase(), c = k === 'f' && nearCrate();
-        if (c) { bag[c.kind] = c.take; if (!knock.active) take(c.kind); return; }
-        if (k !== 'h' || knock.active || holding >= 0) return;
+        if (c) { bag[c.kind] = c.take; if (!knock.floored) take(c.kind); return; }
+        if (k !== 'h' || knock.floored || holding >= 0) return;
         // H: through the kinds you have, then hands back on the gun
         const kinds = have(), i = inHand ? kinds.indexOf(kind) + 1 : 0;
         if (i < kinds.length) take(kinds[i]); else inHand = false;
     });
     addEventListener('mousedown', e => {
-        if (!inHand || !playing() || knock.active) return;
+        if (!inHand || !playing() || knock.floored) return;
         if (e.button === 0 && holding < 0) holding = 0;
         if (e.button === 2 && holding >= 0) holding = -1;
     });
@@ -110,7 +116,7 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         prompt: () => inHand ? (holding >= 0 ? `let go to throw · ${Math.round(new Grenade(spec, setting).speedOf(holding))} m/s · right click: pin back` : `hold fire to throw · H next / gun`) + ` · ${spec.name} ${bag[kind]}` : `F  take ${GRENADES[nearCrate().kind].name} grenades`,
         tick(dt) {
             // knocked down: it drops from the hand (pin still in)
-            if (knock.active) { inHand = false; holding = -1; }
+            if (knock.floored) { inHand = false; holding = -1; }
             // the gun to the off hand while a grenade is in hand: in .25 s, back .4 s after the throw
             weight = inHand ? Math.min(1, weight + dt / .25) : Math.max(0, weight - dt / .4);
             if (holding >= 0) holding += dt;
@@ -126,6 +132,8 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
             const c = layer.camera;
             if (c?.worldMatrix) { const w = c.worldMatrix, e = [w[12], w[13], w[14]]; audio.setListener(e, [-w[8], -w[9], -w[10]]); audio.ring(player.deaf); }
         },
+        lastHit: () => lastHit,
+        live: () => live.map(g => ({ state: g.state, left: +g.left.toFixed(1), at: g.position.map(v => +v.toFixed(1)) })),
         glare: () => { const w = layer.camera?.worldMatrix; return w ? explosion.glare([w[12], w[13], w[14]]) : 0; },
         /** opaque: grenades, crates, arc */
         draw() {
