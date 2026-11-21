@@ -78,7 +78,7 @@ async function fenceMesh(lines, styles, g) {
                 first = false;
                 const ay = g(ax, az), by = g(bx, bz), gl_ = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / gl_, uz = (bz - az) / gl_;
                 for (const m of p.prims) {
-                    const out = m.uvs ? tex : plain, base = out.pos.length / 3;
+                    const out = TEXTURED.has(style) && m.uvs ? tex : plain, base = out.pos.length / 3;
                     for (let i = 0; i < m.positions.length; i += 3) {
                         const t = (m.positions[i] - p.x0) / (p.x1 - p.x0), y = m.positions[i + 1], z = m.positions[i + 2];
                         out.pos.push(ax + (bx - ax) * t - uz * z, ay + (by - ay) * t + y, az + (bz - az) * t + ux * z);
@@ -97,7 +97,15 @@ async function fenceMesh(lines, styles, g) {
     const up = b => b.pos.length ? upload(gl, { positions: new Float32Array(b.pos), normals: new Float32Array(b.nor), colors: new Float32Array(b.col), ...(b.uv.length ? { uvs: new Float32Array(b.uv) } : {}), indices: new Uint32Array(b.idx) }) : null;
     return { plain: up(plain), tex: up(tex) };
 }
-const birch = { albedo: await loadTexture(gl, '/assets/models/buildings/farm/fences/birch_texture.png', true) };
+/** fence styles drawn with the birch texture (their material has it in the .blend) */
+const TEXTURED = new Set(['poor']);
+const birchTex = await loadTexture(gl, '/assets/models/buildings/farm/fences/birch_texture.png', true);
+// pixel perfect: no filtering, no mips
+gl.bindTexture(gl.TEXTURE_2D, birchTex);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.bindTexture(gl.TEXTURE_2D, null);
+const birch = { albedo: birchTex };
 
 let terrain, farm, edits, fences, info = '';
 const settings = () => {

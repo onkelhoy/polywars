@@ -19,7 +19,9 @@ export function fences(layout: FarmLayout, o: FarmOptions, rnd: Random): [number
         // boundary edges, counter clockwise per cell, so they chain into loops
         const next = new Map<string, [[number, number], [number, number]]>();
         for (const c of p.cells) for (let i = 0; i < 4; i++) {
-            if (own.has(nb[c * 4 + i]) || (p.style === o.fence.styles.field && pastured.has(nb[c * 4 + i]))) continue;
+            // fields: only toward land that is no field / pasture (no fence between two fields)
+            const n = nb[c * 4 + i];
+            if (own.has(n) || (p.style === o.fence.styles.field && n >= 0 && (pastured.has(n) || cells[n].zone === "field"))) continue;
             const a = cells[c].corners[i], b = cells[c].corners[(i + 1) % 4];
             next.set(key(a), [a, b]);
         }
@@ -118,7 +120,8 @@ export function cutFences(layout: FarmLayout, o: FarmOptions, near = 1.5) {
         const flush = () => { if (run.length > 1) { kept.push(run); styles.push(layout.fenceStyles[f]); } };
         for (let i = 1; i < line.length; i++) {
             const a = line[i - 1], b = line[i], m: [number, number] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-            const along = kept.some(k => dist(k, m[0], m[1]) < near || (dist(k, a[0], a[1]) < near && dist(k, b[0], b[1]) < near));
+            // along: the whole edge lies on a kept fence (touching one at a corner is fine)
+            const along = kept.some(k => dist(k, m[0], m[1]) < near && dist(k, a[0], a[1]) < near && dist(k, b[0], b[1]) < near);
             const crosses = kept.some(k => k.some((p, j) => j > 0 && cross(a, b, k[j - 1], p)));
             if (along || crosses) { flush(); run = [b]; continue; }
             run.push(b);
