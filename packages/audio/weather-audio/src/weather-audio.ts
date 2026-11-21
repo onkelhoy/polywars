@@ -23,6 +23,9 @@ export class WeatherAudio {
     private muffle: BiquadFilterNode;
     private hiss: { gain: GainNode; band: BiquadFilterNode };
     private roar: GainNode;
+    /** pre-rendered drop beds: sparse big drops, dense many small */
+    private light: GainNode;
+    private heavy: GainNode;
     private wind: { gain: GainNode; band: BiquadFilterNode };
     private noise: AudioBuffer;
     private carry = 0;
@@ -56,8 +59,18 @@ export class WeatherAudio {
         };
         const band = (type: BiquadFilterType, f: number, q = .7) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; };
         const gain = () => { const g = ctx.createGain(); g.gain.value = 0; return g; };
-        this.hiss = { band: band("bandpass", 3000, .6), gain: gain() };
-        loop(band("highpass", 700), this.hiss.band, this.hiss.gain);
+        // a soft wash only under the drops (plain noise alone sounds like a radio between stations)
+        this.hiss = { band: band("lowpass", 3000, .5), gain: gain() };
+        loop(band("highpass", 400), this.hiss.band, this.hiss.gain);
+        const bed = (perSecond: number, size: number) => {
+            const g = gain(), s = ctx.createBufferSource();
+            s.buffer = rainBed(ctx, perSecond, size); s.loop = true;
+            s.connect(g).connect(this.out);
+            s.start(0, Math.random() * 3);
+            return g;
+        };
+        this.light = bed(90, 1);
+        this.heavy = bed(3500, .45);
         this.roar = gain();
         loop(band("lowpass", 700), band("highpass", 120), this.roar);
         this.wind = { band: band("bandpass", 400, 1.4), gain: gain() };
@@ -70,8 +83,10 @@ export class WeatherAudio {
         const w = weights(s.surfaces);
         const bed = w.reduce((a, [name, v]) => a + SURFACE[name].bed * v, 0);
         // bed: barely there in a drizzle, a wall of hiss in a downpour
-        this.hiss.gain.gain.setTargetAtTime(Math.pow(k, 1.6) * .35, t, .3);
-        this.hiss.band.frequency.setTargetAtTime(bed, t, .5);
+        this.light.gain.setTargetAtTime(Math.sqrt(k) * .5 * (1 - k * .4), t, .3);
+        this.heavy.gain.setTargetAtTime(Math.pow(k, 1.5) * .9, t, .3);
+        this.hiss.gain.gain.setTargetAtTime(Math.pow(k, 2) * .06, t, .3);
+        this.hiss.band.frequency.setTargetAtTime(bed * .8, t, .5);
         this.roar.gain.setTargetAtTime(Math.pow(k, 2.5) * .45 + s.inside * k * .2, t, .4);
         // wind: wandering band + gusts, hushed under snow
         const gust = .6 + .4 * Math.sin(this.time * .23) * Math.sin(this.time * .61 + 1);
@@ -82,7 +97,7 @@ export class WeatherAudio {
         // drops: mild = a few countable taps, dense = hundreds (the bed covers them)
         if (k > .005)
         {
-            this.carry += dt * (6 + 260 * k * k);
+            this.carry += dt * (4 + 60 * k);
             let n = Math.min(40, Math.floor(this.carry));
             this.carry -= n;
             for (; n > 0; n--) this.grain(pick(w), t + Math.random() * dt, .15 + Math.random() * .85, (1 - Math.pow(k, 1.5) * .5));
@@ -126,6 +141,47 @@ export class WeatherAudio {
     }
 
     destroy() { this.out.disconnect(); }
+}
+
+/**
+ * A loop of `perSecond` drops: each a short tick (filtered noise, 1-4 ms) and often a little bubble (a sine that
+ * bends up, the "plink" of real rain), loudness mostly small with a few big ones, spread over stereo.
+ */
+function rainBed(ctx: BaseAudioContext, perSecond: number, size: number) {
+    const rate = ctx.sampleRate, seconds = 4, n = rate * seconds, b = ctx.createBuffer(2, n, rate);
+    const L = b.getChannelData(0), R = b.getChannelData(1);
+    for (let d = 0, count = perSecond * seconds; d < count; d++)
+    {
+        const at = Math.floor(Math.random() * n), a = Math.pow(Math.random(), 3) * size, pan = Math.random();
+        const tick = (1 + Math.random() * 3) / 1000 * rate;
+        let lp = 0;
+        const bright = .3 + Math.random() * .6;
+        for (let i = 0; i < tick * 4; i++)
+        {
+            lp += ((Math.random() * 2 - 1) - lp) * bright;
+            const v = lp * a * Math.exp(-i / tick);
+            const k = (at + i) % n;
+            L[k] += v * (1 - pan); R[k] += v * pan;
+        }
+        if (Math.random() < .45)
+        {
+            const f = 1200 + Math.random() * 3200, len = (4 + Math.random() * 10) / 1000 * rate, ba = a * .5;
+            let ph = 0;
+            for (let i = 0; i < len * 3; i++)
+            {
+                ph += 2 * Math.PI * f * (1 + i / len * .6) / rate;
+                const v = Math.sin(ph) * ba * Math.exp(-i / len);
+                const k = (at + i) % n;
+                L[k] += v * (1 - pan); R[k] += v * pan;
+            }
+        }
+    }
+    // keep it from clipping in a dense bed
+    let peak = 0;
+    for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]));
+    const g = peak > 0 ? .9 / peak : 1;
+    for (let i = 0; i < n; i++) { L[i] *= g; R[i] *= g; }
+    return b;
 }
 
 function weights(s: Surfaces): [Surface, number][] {
