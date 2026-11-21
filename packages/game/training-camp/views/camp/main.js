@@ -13,6 +13,7 @@ import { TrainingCamp, buttonAt } from '@polywar/training-camp';
 import { Vehicles, Dust, Exhaust, SteeringHands } from '@polywar/vehicle';
 import { nearest } from '@polywar/ballistics';
 import { EngineSound, ENGINES } from '@polywar/vehicle-audio';
+import { CloseDark } from '@polywar/close-dark';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
@@ -130,6 +131,8 @@ window.grass = grass;
 // cars share one world (they hit each other); bullets hit them too
 const fleet = new Vehicles({ ground: range.ground, solids: range.colliders });
 const shots = nearest(range.cast, fleet.cast);
+const closeDark = new CloseDark(layer);
+window.closeDark = closeDark;
 window.fleet = fleet;
 let lastHit = '';
 const player = new Player(layer, renderer, {
@@ -665,6 +668,16 @@ demo.draw = camera => {
     if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); drawAir(camera); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); drawAir(camera); }
     else player.draw(camera);
+    // face against something / lying: dark from the centre (first person only)
+    const cam = layer.camera;
+    if (cam && document.body.classList.contains('playing') && !third && (!driving || seatCam))
+    {
+        const e = cam.worldPosition, x = cam.rotation.x, y = cam.rotation.y, cx = Math.cos(x);
+        closeDark.update(1 / 60, [e[0] ?? e.x, e[1] ?? e.y, e[2] ?? e.z], [-Math.sin(y) * cx, Math.sin(x), -Math.cos(y) * cx], driving ? range.cast : shots, range.ground);
+        // limp on the ground the eye is low: a closer near plane so the ground isn't cut open
+        cam.near = player.ragdoll ? .04 : .25;
+        closeDark.draw();
+    }
     if (!third || driving) nades.drawDaze();
 };
 

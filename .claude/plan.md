@@ -19,6 +19,13 @@ Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
 - Fork + front wheel turn round the raked axis, wheels spin. Sound: `ENGINES.bike` (V-twin).
 - Camp: E ride / get off (hips swing over the seat, ~.9 s), rider on pegs + grips, rifle slung on the back (back in the hands on getting off). Crash: thrown with the speed, `nades.fling` -> knockdown + daze (hard = down long).
 
+## Round 2 (`feature/motorbike`): needs in-game check (owner)
+- Grips fixed (hands were crossed). Bike: upside down counts as fallen, rolls onto a side, stays down. Getting on: right leg swings up over the seat.
+- Dev cam: M third person (whole body + gun, no daze / lids), hold Z to orbit. `player.thirdPerson` = the eye matrix.
+- `@polywar/ragdoll` (packages/animation): heavy verlet (copied from arrow-warfare) + `HumanRagdoll` (points from the HUMANOID bones, torso as one block, limbs `pointAt`). `player.limp(v)` / `player.rise()`; eye rides the head. Blast knockdown and thrown off a vehicle go limp; the get up starts where the hips lie (snap, no blend yet).
+- Crash: `Vehicle.oncrash` for cars too (`crashAt` 7 m/s lost in a step, `crashVelocity`); the jeep throws you over 8 m/s. `nades.fling(v, speed)`: <4 m/s blur + stumble, more = down, >7 m/s out cold (`Knockdown.hit(..., out)`, up to 8 s eyes shut).
+- `@polywar/close-dark` (packages/ui/viewport): 5 short rays round the look, dark from the centre with a dithered grit edge; camera near .04 while limp.
+
 ## Notes
 - Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).

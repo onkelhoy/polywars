@@ -103,6 +103,7 @@ Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view 
 - [ ] Vec3 -> papit vector (271 uses in `packages/*/*/src`): plain tuple only for JSON data (weapon.json hands / points, Hold, HandsFile, aim tune; rename e.g. `Point3`); params take `VectorValue`; math + returns `Vector3` (viewmodel `point` / `direction`, obstruction, player, feel). Papit report: `Vector` has no `toJSON` (stringifies as `{"0":..}`); with one, the tuple type goes too.
 
 ## Vehicles
+- [ ] Bug: once after a bike crash the rider got shot up high (fling / ragdoll launch); the bike lay upside down (now: it rolls onto a side).
 - [x] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
 
 ## Sky + weather
