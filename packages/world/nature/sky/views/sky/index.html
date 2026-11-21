@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sky</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <pw-viewport id="view" far="20000">
+        <aside>
+            <h1>sky + weather</h1>
+            <label>wetness <input id="bias" type="range" min="-1" max="1" step=".01" value="0" /></label>
+            <label>biome moisture <input id="moisture" type="range" min="0" max="1" step=".01" value=".5" /></label>
+            <label>temperature <input id="heat" type="range" min="0" max="1" step=".01" value=".55" /></label>
+            <label>time speed <input id="speed" type="range" min="0" max="200" step="1" value="20" /></label>
+            <label>wind <input id="wind" type="range" min="0" max="40" step="1" value="8" /></label>
+            <label>sun height <input id="sun" type="range" min="2" max="90" step="1" value="40" /></label>
+            <label>cloud size <input id="scale" type="range" min="500" max="8000" step="100" value="2600" /></label>
+            <label>bands <input id="bands" type="range" min="0" max="6" step="1" value="3" /></label>
+            <output id="values"></output>
+        </aside>
+    </pw-viewport>
+</body>
+</html>

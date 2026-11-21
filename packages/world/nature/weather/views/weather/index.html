@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weather</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <canvas id="map" width="160" height="160"></canvas>
+    <aside>
+        <h1>weather (60 km, top down)</h1>
+        <label>wetness <input id="bias" type="range" min="-1" max="1" step=".01" value="0" /></label>
+        <label>time speed <input id="speed" type="range" min="0" max="2000" step="10" value="300" /></label>
+        <p>left: desert (dry, hot) · right: wet + cold. white = cloud, grey = heavy, blue = rain, cyan = snow, yellow = storm</p>
+        <output id="values"></output>
+    </aside>
+</body>
+</html>

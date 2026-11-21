@@ -51,6 +51,18 @@ Known rough: yard + fields paint all brown, edits per field cell, few fields on 
 ## Terrain cover (feature/terrain-control): needs in-game check (owner)
 Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B height 0..2, A flowers; `coverMap` / `coverAt` in `@polywar/terrain-material`), look `grass` (color, patches, dry, blend to the terrain colour, darken, edge; edge -1 = grassy everywhere). Tufts plant from the same map and take the ground colour from `bakeAlbedo` (`grass.ground(albedo)`). `drawPart(mesh, matrix)` draws any model's earth as terrain (camp: model earth drawn once, no grass floor copy). `Grass.drawGround/setGround` gone. Debug `cover`. World / farm / terrain / grass / camp views wired.
 
+## Weather round 1 (feature/weather): needs check (owner)
+Picked (no answer yet): hero puffs near + shader layer far, weather changes over minutes, world view first.
+- `@polywar/weather` (world/nature, headless): humidity = biome moisture + wind-blown noise + slow swing (`bias` knob); `at(x, z)` -> cover, grey, kind (clear / cirrus / fair / towering / storm / overcast), base / top, precipitation, snow (cold), storm. Seed + time only (same on every client). View `weather`: 60 km map, desert left -> wet cold right.
+- `@polywar/sky` (world/nature): gradient dome + sun, toon cloud layer to the horizon (noise always there, cover shows it, banded light, grey undersides), cirrus streaks. `sky.light(clear, out)` dims sun / greys ambient / fog = horizon. Draw right after `renderer.begin`. View `sky`: sliders.
+
+## Weather next
+4. Hero puff clouds (`@polywar/clouds`) grow / fade from the field, cloud types (HUGE cumulonimbus + anvils).
+5. `@polywar/precipitation`: rain mild..dense (streaks, splash points), snow, ground wetness.
+6. Weather sounds: rain by intensity + surface, drips, wind.
+7. Hook into world view, then camp.
+8. Lightning (spider bolts along the base, cloud to ground, flash) + thunder audio (343 m/s delay, near crack, far rumble).
+
 ## Open tasks
 1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
 
