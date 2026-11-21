@@ -113,6 +113,15 @@ export class Debris {
         return out;
     }
 
+    /** take one piece out (picked up) */
+    remove(p: Piece) {
+        const i = this.pieces.indexOf(p);
+        if (i < 0) return;
+        if (!p.settled) this.options.world.remove(p.body);
+        this.pieces.splice(i, 1);
+        this.last.delete(p.body);
+    }
+
     /** remove every piece (and its body) */
     clear() {
         for (const p of this.pieces) if (!p.settled) this.options.world.remove(p.body);

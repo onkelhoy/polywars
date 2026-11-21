@@ -70,7 +70,9 @@
     "@polywar/light": "*",
     "@polywar/explosion": "*",
     "@polywar/smoke": "*",
-    "@papit/rigidbody": "*"
+    "@papit/rigidbody": "*",
+    "@polywar/shadows": "*",
+    "@polywar/scatter": "*"
   },
   "browserslist": [
     "defaults",

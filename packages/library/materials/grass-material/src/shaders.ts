@@ -1,9 +1,14 @@
 /** Shared: noise sampling, colour patches, toon bands, cloud shadows, fog. `noiseTex` channels: r wind, g/b patches, a clouds. */
+import { FOG_GLSL } from "@polywar/fog";
+import { SHADOW_GLSL } from "@polywar/shadows";
+
 export const COMMON_GLSL = `
 #define PI 3.14159265
 uniform sampler2D noiseTex;
-uniform vec3 sunDirection, sunColor, sky, ground, fogColor, eye;
-uniform float sunStrength, ambient, fogDensity, cloudTime;
+${FOG_GLSL}
+${SHADOW_GLSL}
+uniform vec3 sunDirection, sunColor, sky, ground, eye;
+uniform float sunStrength, ambient, cloudTime;
 uniform vec3 grassColor;
 uniform vec3 patchColor[2];
 uniform vec3 patchNoise[2]; // scale, threshold, softness
@@ -17,12 +22,20 @@ vec2 rotate2(vec2 v, float degrees) {
     return vec2(v.x * c - v.y * s, v.x * s + v.y * c);
 }
 
+// one noise texture, no visible tiling: two lookups turned and scaled apart (their tile grids never line up),
+// blended, the contrast the blend loses put back; a very slow third lookup shifts it over hundreds of metres
+float untiled(vec2 uv, int channel) {
+    vec4 n1 = texture(noiseTex, rotate2(uv, 37.0)), n2 = texture(noiseTex, rotate2(uv, -53.0) * 1.37 + .31);
+    float v = (channel == 1 ? n1.g + n2.g : n1.b + n2.b) * .5;
+    return (v - .5) * 1.6 + .5;
+}
 // grass colour with the noise patches on top
 vec3 patchedColor(vec2 xz) {
     vec3 c = grassColor;
     vec3 a = patchNoise[0], b = patchNoise[1];
-    c = mix(c, patchColor[0], smoothstep(a.y - a.z, a.y + a.z, texture(noiseTex, xz * a.x).g));
-    c = mix(c, patchColor[1], smoothstep(b.y - b.z, b.y + b.z, texture(noiseTex, xz * b.x).b));
+    float macro = (texture(noiseTex, rotate2(xz, 71.0) * a.x * .09).b - .5) * .35;
+    c = mix(c, patchColor[0], smoothstep(a.y - a.z, a.y + a.z, untiled(xz * a.x, 1) + macro));
+    c = mix(c, patchColor[1], smoothstep(b.y - b.z, b.y + b.z, untiled(xz * b.x, 2) - macro));
     return c;
 }
 
@@ -57,9 +70,8 @@ vec4 shade(vec3 albedo, vec3 n, vec3 lightAt, vec3 world) {
     float d = (dot(n, normalize(sunDirection)) + wrap) * steepness;
     if (clouds) d = min(d, cloudLight(lightAt));
     vec3 hemi = mix(ground, sky, n.y * .5 + .5) * ambient;
-    vec3 lit = albedo * (hemi + sunColor * sunStrength * toon(d));
-    float fog = 1.0 - exp(-length(world - eye) * fogDensity);
-    return vec4(pow(mix(lit, fogColor, fog), vec3(1.0 / 2.2)), 1.0);
+    vec3 lit = albedo * (hemi + sunColor * sunStrength * toon(d) * (1.0 - shadowAt(world, n)));
+    return vec4(pow(applyFog(lit, world, eye), vec3(1.0 / 2.2)), 1.0);
 }
 `;
 
@@ -276,5 +288,8 @@ void main() {
     // pixel style snaps the colour lookups to a world texel grid
     vec3 p = vWorld;
     if (texel > 0.0) p.xz = (floor(vWorld.xz / texel) + .5) * texel;
-    outColor = shade(patchedColor(p.xz) * darken, vec3(0, 1, 0), p, vWorld);
+    // flat normal per triangle (banks, mounds, earth roofs light by their slope)
+    vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+    if (n.y < 0.0) n = -n;
+    outColor = shade(patchedColor(p.xz) * darken, n, p, vWorld);
 }`;

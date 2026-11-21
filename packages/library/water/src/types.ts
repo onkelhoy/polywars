@@ -49,6 +49,9 @@ export type Light = {
     ambient: number;
     fogColor: Vec3;
     fogDensity: number;
+    /** height fog (`@polywar/fog`), optional */
+    fogFalloff?: number;
+    fogBase?: number;
 };
 
 /** What the material needs from a camera; `@papit/game-engine`'s `Camera` fits. */

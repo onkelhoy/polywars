@@ -9,6 +9,8 @@ export type Hit = {
     surface?: string;
     /** whatever the host hangs on it (a target, a player id) */
     target?: unknown;
+    /** a moving thing that was hit (a car): its model matrix, so marks can ride on it */
+    carrier?: { matrix(out: Float32Array): ArrayLike<number> };
 };
 
 /** finds the first hit on the segment from -> to, or null */

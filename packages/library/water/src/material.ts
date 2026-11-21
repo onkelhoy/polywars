@@ -1,3 +1,4 @@
+import { bindFog } from "@polywar/fog";
 import type { Layer3D } from "@papit/game-engine";
 import { WATER_FRAGMENT, WATER_VERTEX } from "./shaders";
 import type { Light, View, WaterLook } from "./types";
@@ -160,8 +161,7 @@ export class WaterMaterial {
         gl.uniform3fv(u("sky"), light.sky);
         gl.uniform3fv(u("ground"), light.ground);
         gl.uniform1f(u("ambient"), light.ambient);
-        gl.uniform3fv(u("fogColor"), light.fogColor);
-        gl.uniform1f(u("fogDensity"), light.fogDensity);
+        bindFog(gl, u, light);
         gl.uniform1f(u("time"), time);
 
         const colors = fresh ? o.fresh : o, f0 = o.foam, g0 = o.glints;

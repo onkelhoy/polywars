@@ -54,6 +54,8 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@polywar/fog": "*",
+    "@polywar/shadows": "*",
     "@papit/game-engine": "*",
     "@papit/random": "*",
     "@polywar/noise": "*"

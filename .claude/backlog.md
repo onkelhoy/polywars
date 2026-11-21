@@ -106,6 +106,7 @@ Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view 
 - [x] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
 
 ## Sky + weather
+- [ ] World tones per time / weather (morning, cloudy, evening, night): warm sun + blue shadow base set in `DAYLIGHT` now.
 - [ ] Time of day: sun / moon move with the real local clock (13:00 is 13:00), time controllable (speed / set). Night fall, sun light colour + ambient follow it.
 - [ ] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature.
 - [ ] Light fog (distance + height), first in the shooting range.
@@ -132,3 +133,16 @@ Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view 
 ## Grenades
 - [ ] in-game selector: which kind G throws, how many you carry (slots)
 - [ ] shield the eyes: forearm over the eyes on a bright thing (explosion at mid distance = quick reflex, staring at a lamp / the sun ~1.5 s = slowly up). Needs line of sight (not inside a house). Own small package (`@polywar/reflex`), brightness like `explosion.glare` + lamps
+## Ground map (idea, needs thought)
+One small painted RGB map over the world (PNG, not JPEG: channels bleed): R grass density (black none, grey thin), G grass height, B fog clearing (or wetness). Replaces the no-grass / short-grass rectangles. Check what the world generator already makes first. Paint view like the grass view.
+
+## Range model as source only (mostly done, feature/camp-upgrade)
+Done: shooting-range.py writes range.json `props` (asset empties with `asset`, meshes linked from camp-props.blend -> assets/models/props/camp, Alt+D meshes -> package props/), drawn instanced via @polywar/scatter; rigged ones one by one. Blend files: only camp.blend + camp-props.blend. Left:
+- [ ] vehicle empties in camp.blend show as cubes: preview the real asset (script / linked collection)
+- [ ] fence shadow: shadow pass ignores the texture cut-out (solid strip)
+- [ ] owner: rename berms with "earth" (e.g. `Berm earth backstop A`), then drop the `Berm` rule (main.js EARTH, shooting-range.py ROLES)
+- [ ] while driving, impacts draw before the grass tufts (drawDriver order)
+- [ ] leftover Alt+D meshes only in camp.blend (cubes, cylinders, sandbag wall, tent canvas): owner moves them to camp-props.blend so the package keeps only model.glb + range.json
+- [ ] lighter vehicle versions for decor (tanks ~3 MB, drawn one by one); vehicle asset scales are inconsistent (empties carry the scale)
+- [ ] drivable tanks / trucks / motorbike / planes
+- [ ] motorbike asset: a stray wheel in the middle?

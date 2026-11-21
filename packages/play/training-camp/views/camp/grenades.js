@@ -17,7 +17,7 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     const audio = new ExplosionAudio({ mixer: player.feel.mixer, cast: (a, b) => range.cast(a, b), deaf: () => player.deaf });
     audio.load();
 
-    // ---- the pit: own world (static ground slab + sandbags, crates 20 kg, dummies 80 kg) ----
+    // ---- grenade crates (own world for anything the blast pushes; host props can join it later) ----
     const world = new World(), things = [];
     const gy = range.ground(PIT[0], PIT[1]);
     world.add(new RigidBody({ shape: new Box(60, 1, 60), position: { x: PIT[0], y: gy - .5, z: PIT[1] } }));
@@ -27,24 +27,7 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         const body = world.add(new RigidBody({ shape: new Box(...size), mass, position: { x: at[0], y: gy + size[1] / 2 + (at[1] ?? 0), z: at[2] }, friction: .7, restitution: .1 }));
         things.push({ body, mesh: meshOf(size, colour), matrix: new Float32Array(16) });
     };
-    const sandbags = [];
-    for (let i = 0; i < 16; i++)
-    {
-        const a = i / 16 * Math.PI * 2, r = 9;
-        if (i === 12) continue; // a gap facing the spawn
-        const at = [PIT[0] + Math.cos(a) * r, 0, PIT[1] + Math.sin(a) * r];
-        add([3.4, .9, .7], 0, at, '#b8a478');
-        sandbags.push(things[things.length - 1]);
-    }
-    const reset = () => {
-        for (const t of things.splice(sandbags.length)) world.remove?.(t.body);
-        for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + .3, r = 2.5 + (i % 2) * 2.5; add([.8, .8, .8], 20, [PIT[0] + Math.cos(a) * r, 0, PIT[1] + Math.sin(a) * r], '#a07a4a'); }
-        for (const [dx, dz] of [[-4, -3], [3, 4], [0, -6]]) add([.5, 1.8, .3], 80, [PIT[0] + dx, 0, PIT[1] + dz], '#b03a3a');
-        for (let i = 0; i < 60; i++) world.update(1 / 60);
-    };
-    reset();
-    // the pit's walls stop grenades too
-    const pitBoxes = sandbags.map(t => { const p = t.body.position; return { min: [p.x - 1.7, p.y - .45, p.z - .35], max: [p.x + 1.7, p.y + .45, p.z + .35] }; });
+    const reset = () => { };
 
     // ---- you as a target: pushed, dazed, deafened, knocked down ----
     const target = player.blastTarget;
@@ -75,13 +58,13 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
             .sphere(sp.colour, { scale: [sp.radius * 2, sp.radius * 2.4, sp.radius * 2] }, 1)
             .cylinder(sp.band, { at: [0, sp.radius * 1.2, 0], scale: [sp.radius, sp.radius * .8, sp.radius] }, 6)).build())).get(sp);
     const dot = upload(gl, new MeshBuilder().box('#ffffff', { scale: [.05, .05, .05] }).build());
-    const colliders = (x, z) => [...range.colliders(x, z), ...pitBoxes];
+    const colliders = (x, z) => range.colliders(x, z);
     const live = [];
     const setting = { ground: range.ground, colliders, onexplode: (at, power) => explosion.explode(at, { power }) };
     // carried: picked up at the crate (F), G takes one in hand (the gun goes away), G / a number takes the gun back.
     // In hand: hold fire = pin out + wind up (arc shows), let go = throw, the fuse starts as the lever flies off.
     // Right click while winding = pin back in.
-    // crates: each holds one kind (later: the owner's boxes in the .blend). The bag: count per kind (G throws the first kind you have; a selector later)
+    // crates: each holds one kind (later: the owner's boxes in the .blend). The bag: count per kind (H throws the first kind you have; a selector later)
     const crates = [{ at: [PIT[0] - 9, PIT[1] + 3], kind: 'frag', take: 4 }, { at: [PIT[0] - 9, PIT[1] + 5], kind: 'stick', take: 4 }];
     for (const c of crates) add([1, .5, .6], 0, [c.at[0], 0, c.at[1]], GRENADES[c.kind].colour);
     const bag = {};
@@ -94,20 +77,19 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         // a little up from the look: a natural lob
         return { from, dir: [f[0], f[1] + .25, f[2]] };
     };
-    // quick throw (the gun stays): hold G = the gun into the off hand, the grenade in the trigger hand, wound up (arc);
+    // quick throw (the gun stays): hold H = the gun into the off hand, the grenade in the trigger hand, wound up (arc);
     // let go = thrown (fuse starts), the hand back on the grip. Right click while winding = pin back. Kind: the first you have
     let weight = 0, thrown = false;
     const spot = () => { const back = Math.min(1, Math.max(0, holding) / spec.wind); return [.2 + back * .06, -.13 + back * .12, -.38 + back * .22]; };
     addEventListener('keydown', e => {
         if (e.repeat || !playing() || busy()) return;
         const k = e.key.toLowerCase();
-        if (k === 'g' && e.shiftKey) { reset(); return; } // Shift+G: new crates / dummies
         const c = k === 'f' && nearCrate();
         if (c) { bag[c.kind] = c.take; return; }
-        if (k === 'g' && !knock.active && have().length && holding < 0) { kind = have()[0]; spec = GRENADES[kind]; holding = 0; inHand = true; }
+        if (k === 'h' && !knock.active && have().length && holding < 0) { kind = have()[0]; spec = GRENADES[kind]; holding = 0; inHand = true; }
     });
     addEventListener('keyup', e => {
-        if (e.key.toLowerCase() !== 'g' || !inHand || holding < 0) return;
+        if (e.key.toLowerCase() !== 'h' || !inHand || holding < 0) return;
         const g = new Grenade(spec, setting), { from, dir } = hand();
         g.throw(from, dir, holding, player.mover.velocity);
         live.push(g);

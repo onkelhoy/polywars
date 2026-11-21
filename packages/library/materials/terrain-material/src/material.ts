@@ -1,3 +1,5 @@
+import { bindFog } from "@polywar/fog";
+import { bindShadows } from "@polywar/shadows";
 import type { Layer3D } from "@papit/game-engine";
 import { bindUnder } from "@polywar/water";
 import { GROUND_FRAGMENT, GROUND_VERTEX, NOISE_FRAGMENT, NOISE_SIZE, NOISE_VERTEX } from "./shaders";
@@ -177,8 +179,8 @@ export class TerrainMaterial {
         gl.uniform3fv(u("sky"), light.sky);
         gl.uniform3fv(u("ground"), light.ground);
         gl.uniform1f(u("ambient"), light.ambient);
-        gl.uniform3fv(u("fogColor"), light.fogColor);
-        gl.uniform1f(u("fogDensity"), light.fogDensity);
+        bindFog(gl, u, light);
+        bindShadows(gl, u, light.shadow);
         gl.uniform1f(u("bands"), o.bands);
         gl.uniform1f(u("wrap"), o.lighting.wrap);
         gl.uniform1f(u("steepness"), o.lighting.steepness);

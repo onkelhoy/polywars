@@ -226,9 +226,34 @@ export class Model {
         if (matrix) this.moved.set(index, matrix); else this.moved.delete(index);
     }
 
-    draw(renderer: Renderer, matrix: Matrix4 = Matrix4.create(), options: DrawOptions = {}) {
+    /** world space triangles (xyz per vertex, rest pose) of the unskinned nodes `pick` says yes to, e.g. to hand to another material */
+    trianglesOf(pick: (name: string) => boolean, matrix: Matrix4 = Matrix4.create()): number[] {
+        const out: number[] = [];
         for (const item of this.items)
         {
+            const node = this.gltf.nodes[item.node] as { name?: string; mesh?: number };
+            if (item.skinned || !pick(node.name ?? "")) continue;
+            const m = matrix.clone.multiply(item.world);
+            for (const p of this.gltf.meshes[node.mesh!].primitives)
+            {
+                const at = (i: number) => { const v = m.clone.multiply([p.positions[i * 3], p.positions[i * 3 + 1], p.positions[i * 3 + 2], 1]); out.push(v[0], v[1], v[2]); };
+                if (p.indices) for (const i of p.indices) at(i);
+                else for (let i = 0; i < p.positions.length / 3; i++) at(i);
+            }
+        }
+        return out;
+    }
+
+    /** `parts`: draw only the nodes named in `only`, or all but `skip` (glass after the see-through things behind it) */
+    draw(renderer: Renderer, matrix: Matrix4 = Matrix4.create(), options: DrawOptions = {}, parts?: { only?: string[]; skip?: string[] }) {
+        for (const item of this.items)
+        {
+            if (parts)
+            {
+                const name = (this.gltf.nodes[item.node] as { name?: string }).name ?? "";
+                if (parts.only && !parts.only.includes(name)) continue;
+                if (parts.skip?.includes(name)) continue;
+            }
             const meshIndex = this.gltf.nodes[item.node].mesh!;
             const moved = this.moved.get(item.node);
             const m = (moved ? matrix.clone.multiply(moved) : matrix.clone).multiply(item.skinned ? this.skeleton : item.world);

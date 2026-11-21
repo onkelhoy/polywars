@@ -18,18 +18,45 @@ import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 import { Lights, Glow } from '@polywar/light';
 import { grenades } from './grenades.js';
+import { Shadows } from '@polywar/shadows';
+import { Scatter } from '@polywar/scatter';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
 await demo.ready;
 const gl = demo.gl, layer = demo.layer, renderer = new Renderer(layer);
-renderer.light.fogDensity = .0004;
+// height fog (@polywar/fog): thicker in the low ground, thins going up; tune live: renderer.light.fog*
+renderer.light.fogDensity = .0009;
+renderer.light.fogFalloff = .015;
+renderer.light.fogBase = 0;
+window.renderer = renderer;
+// toon sun shadows (@polywar/shadows): sharp near, coarser further, gone by 45 m; tune live: shadows.*
+const shadows = new Shadows(gl);
+renderer.light.shadow = shadows;
+window.shadows = shadows;
 renderer.light.fogColor = [.62, .72, .84];
 const SKY = [.62, .72, .84, 1];
 
 const range = await TrainingCamp.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
+// the terrain is the painted grass floor (@polywar/grass ground): the model's `Ground` and its earth (berms, earth
+// banks / roofs) aren't drawn, their triangles are painted like the ground
+// convention: a node with "earth" in its name is ground (painted like the terrain); Berm* until they're renamed
+const EARTH = name => name === 'Ground' || /earth/i.test(name) || name.startsWith('Berm');
+const NO_TERRAIN = { skip: model.gltf.nodes.map(n => n.name ?? '').filter(EARTH) };
 window.range = range;
+// ---- props (range.json `props`): each model loaded once, all copies instanced (@polywar/scatter) ----
+const props = new Scatter(renderer, (name, lod) => lod ? undefined : range.propUrl(name), { lods: [], distance: { prop: 2500 }, fade: .05, surface: { bands: 0, soft: 0, grit: 0 } });
+await props.place(range.propBatches());
+window.props = props;
+// rigged props (tanks): a few, drawn one by one in rest pose
+const rigged = await Promise.all(range.riggedProps().map(async ([url, at]) => [await Model.load(gl, url), at.map(m => Matrix4.create(m))]));
+/** the range model (no terrain) and its props */
+const drawWorld = view => {
+    model.draw(renderer, identity, {}, NO_TERRAIN);
+    props.draw(view, performance.now() / 1000);
+    for (const [m, at] of rigged) for (const a of at) m.draw(renderer, a);
+};
 
 // ---- lamps: a point light per bulb (range.json `lights`); ?night dims the sun to see them ----
 renderer.lights = new Lights();
@@ -58,17 +85,12 @@ const covered = (x, z) => { const y = range.ground(x, z); return range.colliders
         grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
         window: 130,
     });
-    // the grass ground (patches, spots) on the range's own ground where grass grows: top, not too steep, lifted 2 cm
+    // the painted grass ground (patches, spots) over all of the range's ground: it IS the terrain (the model's
+    // `Ground` isn't drawn). Tufts follow the zones.
     const floor = [];
-    for (const t of range.data.ground)
-    {
-        const c = [0, 1, 2].map(k => (t[0][k] + t[1][k] + t[2][k]) / 3);
-        const u = t[1].map((v, k) => v - t[0][k]), w = t[2].map((v, k) => v - t[0][k]);
-        const n = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]], l = Math.hypot(...n) || 1;
-        if (Math.abs(n[1] / l) < .55 || Math.abs(range.ground(c[0], c[2]) - c[1]) > .05) continue;
-        if (GROW[inZone('none', c[0], c[2]) || covered(c[0], c[2]) ? 'none' : 'tall'].density === 0) continue;
-        for (const p of t) floor.push(p[0], p[1] + .02, p[2]);
-    }
+    for (const t of range.data.ground) for (const p of t) floor.push(p[0], p[1], p[2]);
+    // berms, earth banks and earth roofs too: same painted ground as the terrain
+    floor.push(...model.trianglesOf(name => name !== 'Ground' && EARTH(name)));
     grass.setGround(new Float32Array(floor));
 }
 function drawGrass(camera) {
@@ -95,9 +117,9 @@ window.fleet = fleet;
 let lastHit = '';
 const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: shots, surface: range.surface,
-    scene: view => { model.draw(renderer, identity); drawStands(); drawGrass(view); drawTufts(view); },
+    scene: view => { drawWorld(view); drawStands(); drawGrass(view); drawTufts(view); },
     character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
-    worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); },
+    worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); drawGlass(); },
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
     guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? Object.keys(GUNS),
 }, {
@@ -122,13 +144,14 @@ await player.ready;
 tuner = new WeaponEditor(player, document.body, { active: () => document.body.classList.contains('playing') });
 
 // ---- a gun over each case: turning slowly, muzzle along the case; F takes it ----
-const stands = range.stands.map((s, i) => ({ ...s, gun: i < player.carried.length ? i : -1 }));
+// the cases are empty now: every gun lies in the booths
+const stands = range.stands.map(s => ({ ...s, gun: -1 }));
 const matrix = Matrix4.create();
 function drawStands() {
     const t = performance.now() / 1000;
     for (const s of stands)
     {
-        if (s.gun < 0 || s.gun === player.current && document.body.classList.contains('playing')) continue;
+        if (s.gun < 0 || player.loose.has(s.gun) || s.gun === player.current && document.body.classList.contains('playing')) continue;
         const m = player.carried[s.gun].model, c = m.center, a = Math.sin(t * .6 + s.at[0]) * .4 - Math.PI / 2;
         const cos = Math.cos(a), sin = Math.sin(a);
         // rotation about y, then lift so the gun floats a hand over the lid
@@ -138,18 +161,35 @@ function drawStands() {
         m.draw(renderer, matrix);
     }
 }
+// ---- every gun out in the booths: one on each desk, the rest leant on the booth walls (F takes one) ----
+{
+    const booths = range.data.solids.filter(s => s.name.startsWith('Booths'));
+    const desks = booths.filter(s => s.max[1] - s.min[1] < .2), walls = booths.filter(s => s.max[0] - s.min[0] < .1);
+    const lay = [], lean = [];
+    for (const d of desks)
+    {
+        const xs = [d.min[0], ...walls.filter(w => w.min[0] > d.min[0] && w.max[0] < d.max[0]).map(w => (w.min[0] + w.max[0]) / 2), d.max[0]].sort((a, b) => a - b);
+        for (let i = 0; i + 1 < xs.length; i++) lay.push([(xs[i] + xs[i + 1]) / 2, d.max[1], (d.min[2] + d.max[2]) / 2]);
+        // each wall inside the desk's span: both faces, a few along it behind the desk
+        for (const w of walls) if (w.min[0] > d.min[0] && w.max[0] < d.max[0])
+            for (const z of [.85, 1.15, 1.45]) for (const side of [-1, 1])
+                lean.push({ at: [side < 0 ? w.min[0] : w.max[0], .9, z], n: [side, 0, 0] });
+    }
+    const loose = player.carried.map((_, i) => i).filter(i => i !== player.current);
+    loose.forEach((g, k) => {
+        if (k < lay.length) player.lay(g, lay[k], 0);
+        else if (k - lay.length < lean.length) { const l = lean[k - lay.length]; player.leanOn(g, l.at, l.n); }
+    });
+    // stands stay empty (their guns are out in the booths)
+}
 let near = -1, button;
 // the put-down gun within reach (F takes it back)
-const gunNear = () => { const d = player.downAt, f = player.mover.feet; return !!d && Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.5; };
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() !== 'f' || !document.body.classList.contains('playing')) return;
-    // leaving an optic, a desk button looked at, an optic near, then a gun case
-    if (player.looking) player.lookThrough();
-    else if (gunNear()) player.pickUp();
-    else if (button) range.lanes.press(button.lane, button.dir);
-    else if (nearOptic) useOptic(nearOptic);
-    else if (near >= 0) player.select(stands[near].gun);
+    // F does what the prompt says (set with it each frame)
+    fAction?.();
 });
+let fAction;
 
 // ---- optics: binoculars on the desks (F takes them, G raises them: shaky), spotting scopes in the nests (F: steady) ----
 let nearOptic, binoculars = false, binocularNode, binocularFrom;
@@ -160,7 +200,7 @@ function useOptic(o) {
     $('#optic').className = 'scope';
 }
 addEventListener('keydown', e => {
-    if (e.key.toLowerCase() !== 'g' || !binoculars || !document.body.classList.contains('playing')) return;
+    if (e.key.toLowerCase() !== 'h' || !binoculars || !document.body.classList.contains('playing')) return;
     const on = !player.looking;
     player.lookThrough(on ? new Optic({ zoom: 7, handheld: true }) : undefined);
     if (on) $('#optic').className = 'binoculars';
@@ -219,7 +259,7 @@ $('#body').onchange = e => { player.showBody = e.target.checked; };
 $('#clear').onclick = () => { player.impacts.clear(); player.feel.debris.clear(); };
 $('#play').onclick = () => {
     document.body.classList.add('playing');
-    layer.camera = new Camera({ near: .1, far: 3000, controllers: [player.controller] });
+    layer.camera = new Camera({ near: .25, far: 3000, controllers: [player.controller] });
 };
 demo.look([range.spawn[0] - 6, 3.5, range.spawn[2] + 1], [range.spawn[0], 1, -30]);
 
@@ -242,12 +282,16 @@ demo.tick = () => {
     button = buttonAt(range.data, [w[12], w[13], w[14]], [-w[8], -w[9], -w[10]]);
     const lane = button && range.lanes.of(button.lane);
     nearOptic = (range.data.optics ?? []).find(o => (o.kind === 'fixed' || !binoculars) && Math.hypot(o.at[0] - f[0], o.at[2] - f[2]) < 1.4);
-    $('#prompt').value = button ? `F  target ${button.dir < 0 ? 'nearer' : 'further'} (lane ${button.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`
-        : player.looking ? ($('#optic').className === 'binoculars' ? 'G  lower the binoculars · wheel zoom' : 'F  step back · wheel zoom')
-        : gunNear() ? `F  take ${player.carried[player.down.index].gun.spec.name} back`
-        : nearOptic ? (nearOptic.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars')
-        : binoculars ? 'G  look through the binoculars'
-        : near >= 0 ? `F  take ${player.carried[stands[near].gun].gun.spec.name}` : '';
+    // the first that applies: its prompt is shown, F runs its action (the two never disagree)
+    const loose = player.nearLoose(), b = button, o = nearOptic, st = near;
+    const [text, action] = player.looking ? [$('#optic').className === 'binoculars' ? 'G  lower the binoculars · wheel zoom' : 'F  step back · wheel zoom', () => player.lookThrough()]
+        : b ? [`F  target ${b.dir < 0 ? 'nearer' : 'further'} (lane ${b.lane}, at ${range.lanes.stops[lane?.stop ?? 0]} m)`, () => range.lanes.press(b.lane, b.dir)]
+        : loose >= 0 ? [`F  take ${player.carried[loose].gun.spec.name}${player.down ? '' : ' (swap)'}`, () => player.pickUp(loose)]
+        : o ? [o.kind === 'fixed' ? 'F  look through the spotting scope' : 'F  take the binoculars', () => useOptic(o)]
+        : binoculars ? ['G  look through the binoculars', undefined]
+        : st >= 0 ? [`F  take ${player.carried[stands[st].gun].gun.spec.name}`, () => player.select(stands[st].gun)] : ['', undefined];
+    $('#prompt').value = text;
+    fAction = action;
     $('#ammo').value = `${g.spec.name}\n${g.reloading > 0 ? 'reloading…' : `${g.rounds} / ${g.spec.magazine}`}${c.scope && g.aimed > .5 ? `\n${c.scope.zoom.toFixed(1)}×` : ''}`;
     $('#state').value = `shots ${player.shots} · hits ${player.hits}\n${lastHit}`;
 };
@@ -255,7 +299,7 @@ demo.draw = camera => {
     // binoculars in the hands while raised (hidden otherwise)
     if (binocularNode) { const m = player.binocularsAt(camera); model.move(binocularNode, m ? m.multiply(binocularFrom) : hidden); }
     renderer.begin(camera, SKY);
-    model.draw(renderer, identity);
+    drawWorld(camera);
     drawStands();
     if (document.body.classList.contains('playing')) player.draw(camera);
     else { player.impacts.draw(camera); renderer.reset(); }
@@ -293,14 +337,22 @@ const withCars = (x, z) => {
 };
 // the mover's colliders only (range.colliders stays boxes: surface / bullets use it)
 player.mover.setting.colliders = withCars;
+// the glass goes last (after the grass tufts): drawn earlier its depth would hide the grass behind it
+const GLASS = ['Window'];
 function drawCars() {
     for (const { car, spec, model: m } of cars)
     {
         car.wheels.forEach((w, i) => m.move(w.spec.node, car.wheel(i, Matrix4.create())));
         const sw = car.steeringWheel(Matrix4.create());
         if (sw) m.move(spec.steeringWheel.node, sw);
-        m.draw(renderer, car.matrix(carMatrix));
+        m.draw(renderer, car.matrix(carMatrix), {}, { skip: GLASS });
     }
+}
+function drawGlass() {
+    // after the SSAO pass / grass: blend + depth state back to the renderer's
+    renderer.begin(layer.camera, null);
+    for (const { car, model: m } of cars) m.draw(renderer, car.matrix(carMatrix), {}, { only: GLASS });
+    renderer.reset();
 }
 // the driver: hips on the seat, feet on the pedals, knees up, hands on the rim (car space offsets from the seat)
 const FEET = [[.17, -.42, -.62], [-.17, -.42, -.62]], KNEES = [[.22, .5, -1.2], [-.22, .5, -1.2]], ELBOWS = [[.8, -1, .3], [-.8, -1, .3]];
@@ -422,9 +474,9 @@ const seat = {
 };
 $('#play').onclick = () => {
     document.body.classList.add('playing');
-    layer.camera = new Camera({ near: .1, far: 3000, controllers: [seat] });
+    layer.camera = new Camera({ near: .2, far: 3000, controllers: [seat] });
 };
-// ---- grenades (G hold / let go, Shift+G new pit props): grenades.js ----
+// ---- grenades (H hold / let go, F at a crate): grenades.js ----
 const nades = await grenades({ layer, gl, renderer, range, player, playing: () => document.body.classList.contains('playing') && !driving, busy: () => binoculars || menuOpen || !!tuner?.open });
 window.nades = nades;
 const walkTick = demo.tick;
@@ -432,6 +484,7 @@ demo.tick = dt => {
     if (driving)
     {
         if (!document.body.classList.contains('playing')) return;
+        fAction = undefined;
         $('#prompt').value = `E  get out · V ${seatCam ? 'chase' : 'seat'} cam`;
         $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
         $('#cross').style.opacity = '0';
@@ -446,8 +499,10 @@ demo.tick = dt => {
     if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = 'E  drive';
 };
 demo.draw = camera => {
+    // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)
+    shadows.cast(camera, renderer.light.sunDirection, view => { renderer.begin(view, null); drawWorld(view); drawStands(); drawCars(); renderer.reset(); });
     renderer.begin(camera, SKY);
-    model.draw(renderer, identity);
+    drawWorld(camera);
     drawStands();
     drawGrass(camera);
     drawCars();
@@ -455,10 +510,21 @@ demo.draw = camera => {
     if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();
-    if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); drawTufts(camera); }
-    else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); }
+    if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); }
+    else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); }
     else player.draw(camera);
     nades.drawAir(camera);
     renderer.reset();
     nades.drawDaze();
 };
+
+// ---- FPS (top left): frames counted over half a second ----
+{
+    let frames = 0, from = performance.now();
+    const count = now => {
+        frames++;
+        if (now - from > 500) { $('#fps').value = `${Math.round(frames * 1000 / (now - from))} fps`; frames = 0; from = now; }
+        requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
+}

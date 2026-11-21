@@ -229,10 +229,14 @@ export class Grass {
         const gl = this.gl, g = this.ground;
         if (!g || !this.material.useGround(view, light, time, darken)) return;
         gl.enable(gl.DEPTH_TEST);
+        // the floor is the terrain: pushed back in depth steps, so roads / pads lying on it win (no z-fight)
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+        gl.polygonOffset(2, 8);
         gl.bindVertexArray(g.vao);
         if (g.indexed) gl.drawElements(gl.TRIANGLES, g.count, g.indexed, 0);
         else gl.drawArrays(gl.TRIANGLES, 0, g.count);
         gl.bindVertexArray(null);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
     }
 
     destroy() {

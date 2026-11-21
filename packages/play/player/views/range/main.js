@@ -137,7 +137,7 @@ let menuCamera;
 function play() {
     document.body.classList.add('playing');
     menuCamera ??= layer.camera;
-    layer.camera = new Camera({ near: .1, far: 3000, controllers: [player.controller] });
+    layer.camera = new Camera({ near: .25, far: 3000, controllers: [player.controller] });
 }
 function stop() {
     tuner.close();
