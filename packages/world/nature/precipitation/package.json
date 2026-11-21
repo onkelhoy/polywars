@@ -57,7 +57,9 @@
     "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@polywar/sky": "*",
-    "@papit/game-mesh": "*"
+    "@papit/game-mesh": "*",
+    "@papit/audio": "*",
+    "@polywar/weather-audio": "*"
   },
   "browserslist": [
     "defaults",

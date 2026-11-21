@@ -3,6 +3,8 @@ import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Renderer, DAYLIGHT } from '@polywar/renderer';
 import { Sky } from '@polywar/sky';
 import { Precipitation } from '@polywar/precipitation';
+import { AudioMixer } from '@papit/audio';
+import { WeatherAudio } from '@polywar/weather-audio';
 
 // rain / snow over a floor with a few boxes; the sky goes grey with it, the floor darkens as it gets wet
 const $ = s => document.querySelector(s);
@@ -13,6 +15,9 @@ const rain = new Precipitation(demo.layer, { ground: () => 0 });
 const clear = { ...DAYLIGHT, fogDensity: .002 };
 const box = upload(gl, new MeshBuilder().box([.36, .5, .26], {}).build());
 const at = (x, y, z, sx, sy, sz) => [sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, x, y, z, 1];
+const mixer = new AudioMixer();
+let sound;
+$('#sound').onclick = () => { mixer.unlock(); sound ??= new WeatherAudio({ mixer }); };
 Object.assign(window, { rain, sky });
 let last = performance.now();
 demo.draw = camera => {
@@ -20,6 +25,7 @@ demo.draw = camera => {
     const k = Number($('#intensity').value), snow = $('#snow').checked, w = Number($('#wind').value);
     Object.assign(rain.state, { intensity: k, snow, wind: [w, w * .3] });
     rain.update(dt);
+    if (sound) { Object.assign(sound.state, { rain: snow ? 0 : k, snow: snow ? k : 0, wind: Math.min(1, Math.abs(w) / 15 + .1) }); sound.update(dt); }
     Object.assign(sky.state, { cover: .75 + k * .25, grey: .6 + k * .4 });
     sky.light(clear, renderer.light);
     // wet floor darker, snow lying whiter
