@@ -16,7 +16,7 @@ import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
-import { TerrainMaterial, coverMap, coverAt } from '@polywar/terrain-material';
+import { TerrainMaterial, coverMap } from '@polywar/terrain-material';
 import { Lights, Glow } from '@polywar/light';
 import { grenades } from './grenades.js';
 import { Shadows } from '@polywar/shadows';
@@ -91,16 +91,14 @@ let bake = true;
 {
     const xs = range.data.ground.flat().map(p => p[0]), zs = range.data.ground.flat().map(p => p[2]);
     const lo = [Math.min(...xs), Math.min(...zs)], hi = [Math.max(...xs), Math.max(...zs)];
-    // one cover map (origin centred, 0.5 m texels) for the ground and the tufts: zones (none wins over short over tall)
+    // the cover map (origin centred): the ground is grassy all over (edge -1), so a coarse one; the tufts keep the
+    // exact zones (none wins over short over tall, not under solids)
     const size = 2 * Math.max(...lo.map(Math.abs), ...hi.map(Math.abs)) + 2;
-    ground.cover(coverMap(size, Math.min(4096, Math.ceil(size * 2)), (x, z, out) => {
-        Object.assign(out, GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall']);
-    }));
-    const out = { density: 0, height: 1, dry: 0, flowers: 0 };
+    ground.cover(coverMap(size, 64, (x, z, out) => { out.density = 1; }));
     grass.plant({
         area: { x: lo[0], z: lo[1], width: hi[0] - lo[0], depth: hi[1] - lo[1] },
         height: (x, z) => range.ground(x, z),
-        grow: (x, z) => coverAt(ground.coverData, x, z, out),
+        grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
         window: 130,
     });
 }
@@ -109,7 +107,7 @@ function drawGrass(camera) {
     if (!e) return;
     grass.follow(e[0] ?? e.x, e[2] ?? e.z);
     if (bake) {
-        const a = ground.bakeAlbedo(ground.coverData.size, 4096, () => earth.forEach(p => ground.drawPart(p.mesh, p.matrix)), renderer.light);
+        const a = ground.bakeAlbedo(ground.coverData.size, 2048, () => earth.forEach(p => ground.drawPart(p.mesh, p.matrix)), renderer.light);
         if (a) { grass.ground(a); bake = false; }
     }
     if (!ground.useGround(camera, renderer.light)) return;
