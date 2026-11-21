@@ -14,8 +14,8 @@ Everything is on `main` (farm, smoke, explosion, knockdown, grenades, camp upgra
 
 ## Motorbike (`feature/motorbike`): needs in-game check (owner)
 Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
-- Asset: `tools/blender/packs/motorbike.py` (reads the owner's model.blend, never saves it) -> model.glb (texture kept, star shows) + vehicle.json (`kind: "bike"`, `fork` raked 28°, `grips`, seat / eye / exit eyeballed). Camp: `Motorbike 0` added by hand to range.json `vehicles` (an exporter re-run drops it: add an empty in camp.blend).
-- Physics: `Vehicle` bike mode: balance torque leans into turns (`balance`, `balanceDamping`, `maxLean`), kickstand lean when parked, `fallen` + `oncrash` on tip over / hard hit, `raise()`. Drive view: `?v=ww2-motorcycle`.
+- Asset: `tools/blender/packs/motorbike.py` (reads the owner's model.blend, never saves it) -> model.glb (texture kept, star shows) + vehicle.json (`kind: "bike"`, `fork` raked 28°, `grips`, seat / eye / exit eyeballed). Camp: asset empties `vehicles/ww2-motorcycle/model` become vehicles in the exporter (`ASSET_VEHICLES` in training-camp.py).
+- Physics: `Vehicle` bike mode: balance torque leans into turns (`balance`, `balanceDamping`, `maxLean`), kickstand lean when parked (weak: a good shove tips it), no sideways glide when slow, tyre load straight up off the ground. Crash (`fallen` + `oncrash`): roll + spin kick, tyres skid, it tumbles and slides on its side; `raise()` (E at a fallen bike). Drive view: `?v=ww2-motorcycle`.
 - Fork + front wheel turn round the raked axis, wheels spin. Sound: `ENGINES.bike` (V-twin).
 - Camp: E ride / get off (hips swing over the seat, ~.9 s), rider on pegs + grips, rifle slung on the back (back in the hands on getting off). Crash: thrown with the speed, `nades.fling` -> knockdown + daze (hard = down long).
 
