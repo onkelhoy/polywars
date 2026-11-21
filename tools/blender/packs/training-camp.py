@@ -381,6 +381,9 @@ def props(owners):
                 print("skipped (tilted / uneven scale):", o.name)
                 continue
             key = "assets/models/" + o["asset"]
+            if not os.path.exists(os.path.join(pw.ROOT, key + ".glb")):
+                print("skipped (asset gone):", o.name, o["asset"])
+                continue
         elif o.type == "MESH" and o.data.polygons and role(o.name) in ("decor", "solid") \
                 and not re.search(r"earth|^berm|^ground", o.name, re.I) and not o.modifiers and t:
             lib = o.data.library and os.path.splitext(os.path.basename(o.data.library.filepath))[0]

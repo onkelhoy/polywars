@@ -4527,7 +4527,7 @@
     {
      "name": "range.json",
      "file": "/assets/grass/range.json",
-     "size": 1356
+     "size": 1357
     }
    ]
   },
@@ -5896,6 +5896,121 @@
          ]
         },
         {
+         "name": "fences",
+         "assets": [
+          {
+           "name": "birch_texture.png",
+           "file": "/assets/models/buildings/farm/fences/birch_texture.png",
+           "size": 115
+          },
+          {
+           "name": "fence.1.close.L.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.1.close.L.glb",
+           "size": 5476
+          },
+          {
+           "name": "fence.1.close.R.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.1.close.R.glb",
+           "size": 5496
+          },
+          {
+           "name": "fence.1.close.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.1.close.glb",
+           "size": 6012
+          },
+          {
+           "name": "fence.1.open.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.1.open.glb",
+           "size": 4952
+          },
+          {
+           "name": "fence.2.close.L.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.2.close.L.glb",
+           "size": 7720
+          },
+          {
+           "name": "fence.2.close.R.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.2.close.R.glb",
+           "size": 7716
+          },
+          {
+           "name": "fence.2.close.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.2.close.glb",
+           "size": 8544
+          },
+          {
+           "name": "fence.2.open.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.2.open.glb",
+           "size": 6852
+          },
+          {
+           "name": "fence.fancy.close.L.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.fancy.close.L.glb",
+           "size": 7616
+          },
+          {
+           "name": "fence.fancy.close.R.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.fancy.close.R.glb",
+           "size": 7616
+          },
+          {
+           "name": "fence.fancy.close.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.fancy.close.glb",
+           "size": 8156
+          },
+          {
+           "name": "fence.fancy.open.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.fancy.open.glb",
+           "size": 7616
+          },
+          {
+           "name": "fence.poor.close.L.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.poor.close.L.glb",
+           "size": 4188
+          },
+          {
+           "name": "fence.poor.close.R.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.poor.close.R.glb",
+           "size": 4188
+          },
+          {
+           "name": "fence.poor.close.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.poor.close.glb",
+           "size": 4888
+          },
+          {
+           "name": "fence.poor.open.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.poor.open.glb",
+           "size": 3288
+          },
+          {
+           "name": "fence.simple.close.L.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.simple.close.L.glb",
+           "size": 3940
+          },
+          {
+           "name": "fence.simple.close.R.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.simple.close.R.glb",
+           "size": 3940
+          },
+          {
+           "name": "fence.simple.close.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.simple.close.glb",
+           "size": 4804
+          },
+          {
+           "name": "fence.simple.open.glb",
+           "file": "/assets/models/buildings/farm/fences/fence.simple.open.glb",
+           "size": 3076
+          },
+          {
+           "name": "fences.blend",
+           "file": "/assets/models/buildings/farm/fences/fences.blend",
+           "size": 139925
+          }
+         ]
+        },
+        {
          "name": "Barn.blend",
          "file": "/assets/models/buildings/farm/Barn.blend",
          "size": 674776
@@ -5913,7 +6028,22 @@
         {
          "name": "Barn.lod2.glb",
          "file": "/assets/models/buildings/farm/Barn.lod2.glb",
-         "size": 35328
+         "size": 49168
+        },
+        {
+         "name": "Barn.lod3.glb",
+         "file": "/assets/models/buildings/farm/Barn.lod3.glb",
+         "size": 34488
+        },
+        {
+         "name": "Barn.lod4.glb",
+         "file": "/assets/models/buildings/farm/Barn.lod4.glb",
+         "size": 6632
+        },
+        {
+         "name": "Barn.lod5.glb",
+         "file": "/assets/models/buildings/farm/Barn.lod5.glb",
+         "size": 1132
         },
         {
          "name": "BigBarn.blend",
@@ -5933,7 +6063,22 @@
         {
          "name": "BigBarn.lod2.glb",
          "file": "/assets/models/buildings/farm/BigBarn.lod2.glb",
-         "size": 47836
+         "size": 68200
+        },
+        {
+         "name": "BigBarn.lod3.glb",
+         "file": "/assets/models/buildings/farm/BigBarn.lod3.glb",
+         "size": 46996
+        },
+        {
+         "name": "BigBarn.lod4.glb",
+         "file": "/assets/models/buildings/farm/BigBarn.lod4.glb",
+         "size": 6724
+        },
+        {
+         "name": "BigBarn.lod5.glb",
+         "file": "/assets/models/buildings/farm/BigBarn.lod5.glb",
+         "size": 1136
         },
         {
          "name": "ChickenCoop.blend",
@@ -5953,7 +6098,22 @@
         {
          "name": "ChickenCoop.lod2.glb",
          "file": "/assets/models/buildings/farm/ChickenCoop.lod2.glb",
+         "size": 17976
+        },
+        {
+         "name": "ChickenCoop.lod3.glb",
+         "file": "/assets/models/buildings/farm/ChickenCoop.lod3.glb",
          "size": 12996
+        },
+        {
+         "name": "ChickenCoop.lod4.glb",
+         "file": "/assets/models/buildings/farm/ChickenCoop.lod4.glb",
+         "size": 6412
+        },
+        {
+         "name": "ChickenCoop.lod5.glb",
+         "file": "/assets/models/buildings/farm/ChickenCoop.lod5.glb",
+         "size": 1136
         },
         {
          "name": "Fence.blend",
@@ -5973,7 +6133,22 @@
         {
          "name": "Fence.lod2.glb",
          "file": "/assets/models/buildings/farm/Fence.lod2.glb",
-         "size": 2560
+         "size": 3888
+        },
+        {
+         "name": "Fence.lod3.glb",
+         "file": "/assets/models/buildings/farm/Fence.lod3.glb",
+         "size": 2248
+        },
+        {
+         "name": "Fence.lod4.glb",
+         "file": "/assets/models/buildings/farm/Fence.lod4.glb",
+         "size": 1720
+        },
+        {
+         "name": "Fence.lod5.glb",
+         "file": "/assets/models/buildings/farm/Fence.lod5.glb",
+         "size": 1136
         },
         {
          "name": "Fence2.blend",
@@ -5993,7 +6168,22 @@
         {
          "name": "Fence2.lod2.glb",
          "file": "/assets/models/buildings/farm/Fence2.lod2.glb",
-         "size": 2872
+         "size": 5916
+        },
+        {
+         "name": "Fence2.lod3.glb",
+         "file": "/assets/models/buildings/farm/Fence2.lod3.glb",
+         "size": 2404
+        },
+        {
+         "name": "Fence2.lod4.glb",
+         "file": "/assets/models/buildings/farm/Fence2.lod4.glb",
+         "size": 2152
+        },
+        {
+         "name": "Fence2.lod5.glb",
+         "file": "/assets/models/buildings/farm/Fence2.lod5.glb",
+         "size": 1136
         },
         {
          "name": "OpenBarn.blend",
@@ -6013,7 +6203,22 @@
         {
          "name": "OpenBarn.lod2.glb",
          "file": "/assets/models/buildings/farm/OpenBarn.lod2.glb",
-         "size": 15508
+         "size": 25684
+        },
+        {
+         "name": "OpenBarn.lod3.glb",
+         "file": "/assets/models/buildings/farm/OpenBarn.lod3.glb",
+         "size": 12944
+        },
+        {
+         "name": "OpenBarn.lod4.glb",
+         "file": "/assets/models/buildings/farm/OpenBarn.lod4.glb",
+         "size": 5928
+        },
+        {
+         "name": "OpenBarn.lod5.glb",
+         "file": "/assets/models/buildings/farm/OpenBarn.lod5.glb",
+         "size": 1136
         },
         {
          "name": "Silo.blend",
@@ -6033,7 +6238,22 @@
         {
          "name": "Silo.lod2.glb",
          "file": "/assets/models/buildings/farm/Silo.lod2.glb",
-         "size": 15472
+         "size": 22964
+        },
+        {
+         "name": "Silo.lod3.glb",
+         "file": "/assets/models/buildings/farm/Silo.lod3.glb",
+         "size": 12244
+        },
+        {
+         "name": "Silo.lod4.glb",
+         "file": "/assets/models/buildings/farm/Silo.lod4.glb",
+         "size": 6756
+        },
+        {
+         "name": "Silo.lod5.glb",
+         "file": "/assets/models/buildings/farm/Silo.lod5.glb",
+         "size": 1140
         },
         {
          "name": "Silo_House.blend",
@@ -6053,7 +6273,22 @@
         {
          "name": "Silo_House.lod2.glb",
          "file": "/assets/models/buildings/farm/Silo_House.lod2.glb",
-         "size": 28040
+         "size": 41608
+        },
+        {
+         "name": "Silo_House.lod3.glb",
+         "file": "/assets/models/buildings/farm/Silo_House.lod3.glb",
+         "size": 24336
+        },
+        {
+         "name": "Silo_House.lod4.glb",
+         "file": "/assets/models/buildings/farm/Silo_House.lod4.glb",
+         "size": 6780
+        },
+        {
+         "name": "Silo_House.lod5.glb",
+         "file": "/assets/models/buildings/farm/Silo_House.lod5.glb",
+         "size": 1144
         },
         {
          "name": "SmallBarn.blend",
@@ -6073,7 +6308,22 @@
         {
          "name": "SmallBarn.lod2.glb",
          "file": "/assets/models/buildings/farm/SmallBarn.lod2.glb",
-         "size": 26656
+         "size": 38092
+        },
+        {
+         "name": "SmallBarn.lod3.glb",
+         "file": "/assets/models/buildings/farm/SmallBarn.lod3.glb",
+         "size": 25960
+        },
+        {
+         "name": "SmallBarn.lod4.glb",
+         "file": "/assets/models/buildings/farm/SmallBarn.lod4.glb",
+         "size": 5780
+        },
+        {
+         "name": "SmallBarn.lod5.glb",
+         "file": "/assets/models/buildings/farm/SmallBarn.lod5.glb",
+         "size": 1140
         },
         {
          "name": "TowerWindmill.blend",
@@ -6093,7 +6343,22 @@
         {
          "name": "TowerWindmill.lod2.glb",
          "file": "/assets/models/buildings/farm/TowerWindmill.lod2.glb",
+         "size": 137584
+        },
+        {
+         "name": "TowerWindmill.lod3.glb",
+         "file": "/assets/models/buildings/farm/TowerWindmill.lod3.glb",
          "size": 117260
+        },
+        {
+         "name": "TowerWindmill.lod4.glb",
+         "file": "/assets/models/buildings/farm/TowerWindmill.lod4.glb",
+         "size": 6800
+        },
+        {
+         "name": "TowerWindmill.lod5.glb",
+         "file": "/assets/models/buildings/farm/TowerWindmill.lod5.glb",
+         "size": 1148
         },
         {
          "name": "WaterTower.blend",
@@ -6116,6 +6381,21 @@
          "size": 50496
         },
         {
+         "name": "WaterTower.lod3.glb",
+         "file": "/assets/models/buildings/farm/WaterTower.lod3.glb",
+         "size": 50496
+        },
+        {
+         "name": "WaterTower.lod4.glb",
+         "file": "/assets/models/buildings/farm/WaterTower.lod4.glb",
+         "size": 6016
+        },
+        {
+         "name": "WaterTower.lod5.glb",
+         "file": "/assets/models/buildings/farm/WaterTower.lod5.glb",
+         "size": 1140
+        },
+        {
          "name": "Well.blend",
          "file": "/assets/models/buildings/farm/Well.blend",
          "size": 670132
@@ -6133,7 +6413,22 @@
         {
          "name": "Well.lod2.glb",
          "file": "/assets/models/buildings/farm/Well.lod2.glb",
-         "size": 30816
+         "size": 48508
+        },
+        {
+         "name": "Well.lod3.glb",
+         "file": "/assets/models/buildings/farm/Well.lod3.glb",
+         "size": 26368
+        },
+        {
+         "name": "Well.lod4.glb",
+         "file": "/assets/models/buildings/farm/Well.lod4.glb",
+         "size": 5900
+        },
+        {
+         "name": "Well.lod5.glb",
+         "file": "/assets/models/buildings/farm/Well.lod5.glb",
+         "size": 1128
         },
         {
          "name": "Windmill.blend",
@@ -6153,12 +6448,27 @@
         {
          "name": "Windmill.lod2.glb",
          "file": "/assets/models/buildings/farm/Windmill.lod2.glb",
+         "size": 32460
+        },
+        {
+         "name": "Windmill.lod3.glb",
+         "file": "/assets/models/buildings/farm/Windmill.lod3.glb",
          "size": 30200
+        },
+        {
+         "name": "Windmill.lod4.glb",
+         "file": "/assets/models/buildings/farm/Windmill.lod4.glb",
+         "size": 5208
+        },
+        {
+         "name": "Windmill.lod5.glb",
+         "file": "/assets/models/buildings/farm/Windmill.lod5.glb",
+         "size": 1140
         },
         {
          "name": "lod.json",
          "file": "/assets/models/buildings/farm/lod.json",
-         "size": 26
+         "size": 73
         }
        ]
       },
@@ -15451,79 +15761,9 @@
        "name": "tanks",
        "assets": [
         {
-         "name": "about",
-         "assets": [
-          {
-           "name": "License.txt",
-           "file": "/assets/models/vehicles/tanks/about/License.txt",
-           "size": 364
-          },
-          {
-           "name": "Preview.png",
-           "file": "/assets/models/vehicles/tanks/about/Preview.png",
-           "size": 1198893
-          }
-         ]
-        },
-        {
-         "name": "Tank.blend",
-         "file": "/assets/models/vehicles/tanks/Tank.blend",
-         "size": 1279620
-        },
-        {
-         "name": "Tank.glb",
-         "file": "/assets/models/vehicles/tanks/Tank.glb",
-         "size": 612036
-        },
-        {
-         "name": "Tank.rig.json",
-         "file": "/assets/models/vehicles/tanks/Tank.rig.json",
-         "size": 2812
-        },
-        {
-         "name": "Tank2.blend",
-         "file": "/assets/models/vehicles/tanks/Tank2.blend",
-         "size": 1654004
-        },
-        {
-         "name": "Tank2.glb",
-         "file": "/assets/models/vehicles/tanks/Tank2.glb",
-         "size": 671472
-        },
-        {
-         "name": "Tank2.rig.json",
-         "file": "/assets/models/vehicles/tanks/Tank2.rig.json",
-         "size": 2812
-        },
-        {
-         "name": "Tank3.blend",
-         "file": "/assets/models/vehicles/tanks/Tank3.blend",
-         "size": 1653716
-        },
-        {
-         "name": "Tank3.glb",
-         "file": "/assets/models/vehicles/tanks/Tank3.glb",
-         "size": 656916
-        },
-        {
-         "name": "Tank3.rig.json",
-         "file": "/assets/models/vehicles/tanks/Tank3.rig.json",
-         "size": 2812
-        },
-        {
-         "name": "Tank4.blend",
-         "file": "/assets/models/vehicles/tanks/Tank4.blend",
-         "size": 2008212
-        },
-        {
-         "name": "Tank4.glb",
-         "file": "/assets/models/vehicles/tanks/Tank4.glb",
-         "size": 1090600
-        },
-        {
-         "name": "Tank4.rig.json",
-         "file": "/assets/models/vehicles/tanks/Tank4.rig.json",
-         "size": 2812
+         "name": "Challenger A30 Cruiser.blend",
+         "file": "/assets/models/vehicles/tanks/Challenger A30 Cruiser.blend",
+         "size": 1283708
         }
        ]
       },
@@ -15638,7 +15878,12 @@
         {
          "name": "model.glb",
          "file": "/assets/models/vehicles/ww2-fighter/model.glb",
-         "size": 96448
+         "size": 96628
+        },
+        {
+         "name": "vehicle.json",
+         "file": "/assets/models/vehicles/ww2-fighter/vehicle.json",
+         "size": 1641
         }
        ]
       },
@@ -15646,19 +15891,24 @@
        "name": "ww2-motorcycle",
        "assets": [
         {
-         "name": "WW2MotorcycleTexture.png",
-         "file": "/assets/models/vehicles/ww2-motorcycle/WW2MotorcycleTexture.png",
-         "size": 3760
-        },
-        {
          "name": "model.blend",
          "file": "/assets/models/vehicles/ww2-motorcycle/model.blend",
-         "size": 956128
+         "size": 1295458
+        },
+        {
+         "name": "model.blend1",
+         "file": "/assets/models/vehicles/ww2-motorcycle/model.blend1",
+         "size": 1317579
         },
         {
          "name": "model.glb",
          "file": "/assets/models/vehicles/ww2-motorcycle/model.glb",
-         "size": 283952
+         "size": 208284
+        },
+        {
+         "name": "vehicle.json",
+         "file": "/assets/models/vehicles/ww2-motorcycle/vehicle.json",
+         "size": 1010
         }
        ]
       },
@@ -15713,7 +15963,12 @@
         {
          "name": "model.glb",
          "file": "/assets/models/vehicles/ww2-tank/model.glb",
-         "size": 185428
+         "size": 184600
+        },
+        {
+         "name": "vehicle.json",
+         "file": "/assets/models/vehicles/ww2-tank/vehicle.json",
+         "size": 4415
         }
        ]
       },
@@ -16251,6 +16506,11 @@
           {
            "name": "model.blend",
            "file": "/assets/models/weapons/guns/borchardt-c93/model.blend",
+           "size": 187784
+          },
+          {
+           "name": "model.blend1",
+           "file": "/assets/models/weapons/guns/borchardt-c93/model.blend1",
            "size": 191531
           },
           {
@@ -16646,7 +16906,7 @@
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/m1903a1-springfield/model.glb",
-           "size": 332488
+           "size": 332540
           },
           {
            "name": "model.rig.json",
@@ -16806,7 +17066,7 @@
           {
            "name": "model.glb",
            "file": "/assets/models/weapons/guns/mp40/model.glb",
-           "size": 419968
+           "size": 421552
           },
           {
            "name": "model.rig.json",
@@ -17446,6 +17706,16 @@
        "name": "target-rings.png",
        "file": "/assets/textures/range/target-rings.png",
        "size": 20601
+      }
+     ]
+    },
+    {
+     "name": "vehicle",
+     "assets": [
+      {
+       "name": "ww2motorcycle_texture.png",
+       "file": "/assets/textures/vehicle/ww2motorcycle_texture.png",
+       "size": 2275
       }
      ]
     }
