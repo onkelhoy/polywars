@@ -95,7 +95,7 @@ export function planes({ cars, player, shots, nades }) {
         /** a plane's HUD line */
         hud(c) {
             const p = list.get(c), a = p.air, h = c.car.body.position.y;
-            return `${(a.airspeed * 3.6).toFixed(0)} km/h · ${h.toFixed(0)} m · thr ${(a.controls.throttle * 100).toFixed(0)}% · ${a.g.toFixed(1)} g${a.stalled ? ' · STALL' : ''} · ammo ${p.guns.total}`;
+            return `${(a.airspeed * 3.6).toFixed(0)} km/h · ${h.toFixed(0)} m · thr ${(a.controls.throttle * 100).toFixed(0)}% · ${a.g.toFixed(1)} g${a.controls.flaps ? ' · flaps' : ''}${a.stalled ? ' · STALL' : ''} · ammo ${p.guns.total}`;
         },
     };
 }

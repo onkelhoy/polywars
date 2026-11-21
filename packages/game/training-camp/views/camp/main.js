@@ -515,7 +515,7 @@ function enter(c) {
     else if (c.spec.kind === 'tank' || c.spec.kind === 'plane') { if (player.held && !player.down) player.stow(c.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...c.spec.seat, 1]))); }
     else if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
-    if (c.spec.kind === 'plane') { const p = planes.of(c); p.air.engine(true); p.air.controls.throttle = 0; seatCam = true; }
+    if (c.spec.kind === 'plane') { const p = planes.of(c); p.air.engine(true); p.air.controls.throttle = 0; p.air.controls.flaps = 1; seatCam = true; }
     else c.engine ??= c.spec.kind === 'tank' ? new TankSound(player.feel.mixer, TANK_SOUND) : new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
     chase.yaw = forward(c.car);
     // tank: the look is the gun's aim (world yaw / pitch), starts along the turret
@@ -559,6 +559,7 @@ function thrown(c, speed, impact) {
 }
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
+    if (driving?.spec.kind === 'plane' && e.key.toLowerCase() === 'f') { const c = planes.of(driving).air.controls; c.flaps = c.flaps ? 0 : 1; return; }
     if (driving?.spec.kind === 'plane' && e.key.toLowerCase() === 'i') { const a = planes.of(driving).air; a.engine(!a.running); return; }
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
     if (driving?.spec.kind === 'tank' || driving?.spec.kind === 'plane') { if (Math.abs(driving.car.speed) < 2) leave(); return; }
@@ -763,7 +764,7 @@ demo.tick = dt => {
         $('#cross').style.opacity = '0';
         if (driving.spec.kind === 'plane')
         {
-            $('#prompt').value = `E get out (stopped) · V ${seatCam ? 'chase' : 'cockpit'} · Shift / Ctrl throttle · mouse, S / W pitch · A / D roll · Z / C rudder · B brakes · I engine · hold click fire`;
+            $('#prompt').value = `E get out (stopped) · V ${seatCam ? 'chase' : 'cockpit'} · Shift / Ctrl throttle · mouse, S / W pitch · A / D roll · Z / C rudder · B brakes · F flaps · I engine · hold click fire`;
             $('#ammo').value = planes.hud(driving);
             $('#cross').style.opacity = '1';
         }
