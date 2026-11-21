@@ -1,10 +1,10 @@
 import { Vector3 } from "@papit/vector";
 import type { Vehicle } from "./vehicle";
 
-export type Puff = { life: number; size: number; grow: number; colour: [number, number, number]; drag: number; gravity: number; /** 0..1, default 1 */ opacity?: number };
+export type Puff = { life: number; size: number; grow: number; colour: [number, number, number]; drag: number; gravity: number; /** 0..1, default 1 */ opacity?: number; /** seconds hidden before it shows (hot exhaust, dust lifting) */ delay?: number };
 
 /** what the ground throws up: colour, how much (times the rate), how see-through 0..1 */
-export type DustGround = { colour: [number, number, number]; amount: number; opacity: number };
+export type DustGround = { colour: [number, number, number]; amount: number; opacity: number; /** 0..1: drier ground throws bigger, longer dust */ dry?: number };
 
 export type DustSetting = {
     /** draws a puff (e.g. `@polywar/impacts` `emit`) */
@@ -46,9 +46,9 @@ export class Dust {
                 this.at.set(c); this.at.add(j() * .3, .05, j() * .3);
                 // thrown back and up off the tyre, drifting with the car a little
                 this.v[0] = bv.x * .25 + j() * 1.5; this.v[1] = .6 + Math.random() * (.8 + speed * .05); this.v[2] = bv.z * .25 + j() * 1.5;
-                const big = Math.min(1, speed / 20) + (w.slipping ? .4 : 0);
+                const big = Math.min(1, speed / 20) + (w.slipping ? .4 : 0), dry = g?.dry ?? .5;
                 this.setting.emit(this.at, this.v, {
-                    life: 1.2 + Math.random() * 1.3 + big, size: .25 + big * .3, grow: .7 + big * .8,
+                    life: (1.2 + Math.random() * 1.3 + big) * (.6 + dry * .8), size: (.25 + big * .3) * (.6 + dry * .9), grow: .7 + big * .8, delay: .08 + Math.random() * .12,
                     colour: [colour[0] * (.9 + Math.random() * .2), colour[1] * (.9 + Math.random() * .2), colour[2] * (.9 + Math.random() * .2)],
                     drag: 2.2, gravity: -.15, opacity: g?.opacity ?? 1,
                 });

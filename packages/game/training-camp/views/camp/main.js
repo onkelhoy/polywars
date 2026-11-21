@@ -339,22 +339,25 @@ const DUST = { dirt: [.5, .42, .32], stone: [.6, .58, .54], wood: undefined, met
 const puffOut = (at, v, puff) => {
     DUST_LAYER.life[0] = DUST_LAYER.life[1] = puff.life; DUST_LAYER.size[0] = puff.size * .6; DUST_LAYER.size[1] = puff.size * 1.4;
     DUST_LAYER.grow = puff.grow * 2; DUST_LAYER.drag = puff.drag;
+    DUST_LAYER.delay = [puff.delay ?? 0, puff.delay ?? 0];
+    // far away the trail reads bigger and lasts longer (a car seen driving in the distance)
+    const e = layer.camera.worldPosition, far = e ? Math.min(2.5, 1 + Math.max(0, Math.hypot(at[0] - (e.x ?? e[0]), at[2] - (e.z ?? e[2])) - 25) / 60) : 1;
+    DUST_LAYER.size[0] *= far; DUST_LAYER.size[1] *= far; DUST_LAYER.life[0] = DUST_LAYER.life[1] = puff.life * Math.sqrt(far);
     nades.smoke.burst(dustPuff, at, { velocity: [v[0], v[1], v[2]], colour: puff.colour, opacity: puff.opacity ?? 1 });
 };
 const exhaust = new Exhaust({ emit: puffOut });
 window.exhaust = exhaust;
 // wheel dust by the ground: dry dirt throws brownish dust, stone / gravel thin grey, grass hardly any; see-through (dither)
 const DUST_GROUND = {
-    dirt: { colour: [.5, .42, .32], amount: 1, opacity: .55 },
-    stone: { colour: [.6, .59, .57], amount: .6, opacity: .4 },
-    grass: { colour: [.45, .43, .34], amount: .15, opacity: .35 },
+    dirt: { colour: [.5, .42, .32], amount: 1, opacity: .55, dry: .85 },
+    stone: { colour: [.6, .59, .57], amount: .6, opacity: .4, dry: .6 },
+    grass: { colour: [.5, .41, .3], amount: .3, opacity: .4, dry: .3 },
 };
 const dust = new Dust({
     rate: 4,
     emit: (at, v, puff) => {
-        // smaller and closer to the wheel than the default
-        puff.size *= .6; puff.life *= .6; puff.grow *= .7;
-        v[0] *= .6; v[1] *= .6; v[2] *= .6;
+        // stays a bit closer to the wheel than the default; size / life come from how dry the ground is
+        v[0] *= .7; v[1] *= .7; v[2] *= .7;
         puffOut(at, v, puff);
     },
     ground: (x, z) => {
