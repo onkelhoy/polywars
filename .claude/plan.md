@@ -26,8 +26,8 @@ Later: fog on far smoke / clouds, weather package drives `sky` cover with noise.
 
 ## Grenade (confirmed, `feature/grenade`)
 Shooting range renamed: `@polywar/training-camp` (view `camp`, `tools/blender/packs/training-camp.py`).
-Done, needs look: `Grenade` + `GRENADES` (frag, stick) in `@polywar/weapons` (pull, throw by hold, fuse, own ball flight: bounce off ground + boxes, roll, `onexplode` / `onbounce`, `Grenade.arc` preview). Camp glue `views/camp/grenades.js`: hold G = wind up + arc dots, let go = throw (4 s fuse, starts on pull: hold too long and it goes off in the hand); explosion + smoke + force + sound + daze + knockdown (`knockGun` from .5). Pit at x 25 z 38: sandbag ring, crates + dummies (own rigidbody world), Shift+G resets them.
-Later: grenade glb (owner), throw animation / hand model, bounce sound, grenade slot / count, damage.
+Done, needs look: `Grenade` + `GRENADES` (frag, stick) in `@polywar/weapons` (pull, throw by hold, fuse, own ball flight: bounce off ground + boxes, roll, `onexplode` / `onbounce`, `Grenade.arc` preview). Camp glue `views/camp/grenades.js`: crates by the pit (one kind each: frag, stick; F takes 4), G = grenade in hand (`player.stowed`: gun away), G again = next kind / gun back, hold fire = pin out + wind up (arc dots), let go = throw (fuse starts on release), right click = pin back; explosion + smoke + force + sound + daze + knockdown (`knockGun` from .5). Pit at x 25 z 38: sandbag ring, crates + dummies (own rigidbody world), Shift+G resets them.
+Later: owner's grenade boxes in the .blend (kind per box),  grenade glb (owner), throw animation / hand model, bounce sound, grenade slot / count, damage.
 
 ## Explosion (confirmed, `feature/explosion`)
 Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything. All in `@polywar/explosion` (look, force, sound, daze); clouds split to `@polywar/clouds`.

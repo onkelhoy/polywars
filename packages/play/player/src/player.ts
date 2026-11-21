@@ -457,8 +457,12 @@ export class Player {
         return true;
     }
 
+    /** gun put away (hands free: a grenade, a tool): no trigger, no aim, not drawn. `select` takes a gun up again */
+    stowed = false;
+
     select(index: number) {
         if (!this.carried[index]) return;
+        this.stowed = false;
         if (this.down) { if (index === this.down.index) return this.takeBack(); this.down = undefined; }
         this.held?.gun.cancel();
         this.current = index;
@@ -561,7 +565,7 @@ export class Player {
         const pose = this.setting.pose?.(), control = pose?.control ?? 1;
         if (pressed.has("alt")) this.toggled = !this.toggled;
         const optic = this.optic;
-        const aiming = !optic && !this.down && (this.toggled || !!input?.buttons.has(2));
+        const aiming = !optic && !this.down && !this.stowed && (this.toggled || !!input?.buttons.has(2));
         const scoped = !!carried?.scope && (gun?.aimed ?? 0) > .5;
         // aimed down a scope, the mouse turns slower (by the zoom)
         // through an optic the mouse is not slowed: real hands don't get steadier with zoom
@@ -629,7 +633,7 @@ export class Player {
             // break actions: C pulls the hammers back, X the safety
             if (pressed.has("c")) gun.cock();
             if (gun.barrels && pressed.has("x")) gun.toggleSafety();
-            const event = sprint || optic || this.down || control < .3 ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
+            const event = sprint || optic || this.down || this.stowed || control < .3 ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
@@ -843,7 +847,7 @@ export class Player {
         {
             this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.rigArms) { if (carried && !this.down) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
+            if (skin && this.rigArms) { if (carried && !this.down && !this.stowed) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
             this.posed = skin ? skin.matrices.slice() : undefined;
             if (skin) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
@@ -855,7 +859,7 @@ export class Player {
         this.impacts.draw(camera);
         r.reset();
         this.setting.worldDrawn?.();
-        if (!carried || this.optic || this.down) return;
+        if (!carried || this.optic || this.down || this.stowed) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);

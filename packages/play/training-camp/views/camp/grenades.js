@@ -64,50 +64,76 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     explosion.onexplode = b => { force.blast(b.position, b.power); audio.play(b.position, b.power); };
 
     // ---- the grenades ----
-    const spec = GRENADES.frag;
-    const gMesh = upload(gl, new MeshBuilder()
-        .sphere(spec.colour, { scale: [spec.radius * 2, spec.radius * 2.4, spec.radius * 2] }, 1)
-        .cylinder(spec.band, { at: [0, spec.radius * 1.2, 0], scale: [spec.radius, spec.radius * .8, spec.radius] }, 6)
-        .build());
+    let spec = GRENADES.frag;
+    // low poly looks: frag = egg + fuse cap, stick = can on a wooden handle
+    const looks = new Map();
+    const gMesh = sp => looks.get(sp) ?? looks.set(sp, upload(gl, (sp === GRENADES.stick
+        ? new MeshBuilder()
+            .cylinder(sp.colour, { at: [0, .1, 0], scale: [sp.radius * 2, .1, sp.radius * 2] }, 8)
+            .cylinder(sp.band, { at: [0, -.07, 0], scale: [.028, .26, .028] }, 6)
+        : new MeshBuilder()
+            .sphere(sp.colour, { scale: [sp.radius * 2, sp.radius * 2.4, sp.radius * 2] }, 1)
+            .cylinder(sp.band, { at: [0, sp.radius * 1.2, 0], scale: [sp.radius, sp.radius * .8, sp.radius] }, 6)).build())).get(sp);
     const dot = upload(gl, new MeshBuilder().box('#ffffff', { scale: [.05, .05, .05] }).build());
     const colliders = (x, z) => [...range.colliders(x, z), ...pitBoxes];
     const live = [];
-    const setting = { ground: range.ground, colliders, onexplode: at => explosion.explode(at, { power: spec.power }) };
-    let holding = -1, held;
+    const setting = { ground: range.ground, colliders, onexplode: (at, power) => explosion.explode(at, { power }) };
+    // carried: picked up at the crate (F), G takes one in hand (the gun goes away), G / a number takes the gun back.
+    // In hand: hold fire = pin out + wind up (arc shows), let go = throw, the fuse starts as the lever flies off.
+    // Right click while winding = pin back in.
+    // crates: each holds one kind (later: the owner's boxes in the .blend). The bag: count per kind; G cycles kinds you have
+    const crates = [{ at: [PIT[0] - 9, PIT[1] + 3], kind: 'frag', take: 4 }, { at: [PIT[0] - 9, PIT[1] + 5], kind: 'stick', take: 4 }];
+    for (const c of crates) add([1, .5, .6], 0, [c.at[0], 0, c.at[1]], GRENADES[c.kind].colour);
+    const bag = {};
+    let kind = 'frag', inHand = false, holding = -1;
+    const nearCrate = () => { const f = player.mover.feet; return crates.find(c => Math.hypot(f[0] - c.at[0], f[2] - c.at[1]) < 1.5); };
+    const have = () => Object.keys(bag).filter(k => bag[k] > 0);
     const hand = () => {
         const w = layer.camera.worldMatrix, e = [w[12], w[13], w[14]], f = [-w[8], -w[9], -w[10]], r = [w[0], w[1], w[2]];
         const from = [e[0] + f[0] * .4 + r[0] * .25, e[1] - .15, e[2] + f[2] * .4 + r[2] * .25];
         // a little up from the look: a natural lob
         return { from, dir: [f[0], f[1] + .25, f[2]] };
     };
+    const putAway = () => { inHand = false; holding = -1; if (player.stowed) player.select(player.current); };
     addEventListener('keydown', e => {
-        if (e.repeat || e.key.toLowerCase() !== 'g' || !playing() || busy() || knock.active) return;
-        if (e.key === 'G' || e.shiftKey) { reset(); return; } // Shift+G: new crates / dummies
-        held = new Grenade(spec, setting);
-        held.pull();
-        holding = 0;
+        if (e.repeat || !playing() || busy()) return;
+        const k = e.key.toLowerCase();
+        if (k === 'g' && e.shiftKey) { reset(); return; } // Shift+G: new crates / dummies
+        const c = k === 'f' && nearCrate();
+        if (c) { bag[c.kind] = c.take; return; }
+        if (k === 'g' && !knock.active)
+        {
+            // G: grenade out, again: next kind you have, after the last: the gun back
+            const kinds = have(), i = inHand ? kinds.indexOf(kind) + 1 : 0;
+            if (i >= kinds.length) putAway();
+            else { kind = kinds[i]; spec = GRENADES[kind]; inHand = true; player.stowed = true; }
+        }
+        if (/^[1-9]$/.test(k) && inHand) { inHand = false; holding = -1; }
     });
-    addEventListener('keyup', e => {
-        if (e.key.toLowerCase() !== 'g' || !held) return;
-        const { from, dir } = hand(), m = player.mover;
-        held.throw(from, dir, holding, m.velocity ?? [0, 0, 0]);
-        live.push(held);
-        held = undefined; holding = -1;
+    addEventListener('mousedown', e => {
+        if (!inHand || !playing() || knock.active) return;
+        if (e.button === 0) holding = 0;
+        else if (e.button === 2) holding = -1;
     });
+    addEventListener('mouseup', e => {
+        if (e.button !== 0 || !inHand || holding < 0) return;
+        const g = new Grenade(spec, setting), { from, dir } = hand();
+        g.throw(from, dir, holding, player.mover.velocity);
+        live.push(g);
+        holding = -1;
+        if (--bag[kind] <= 0) { const next = have()[0]; if (next) { kind = next; spec = GRENADES[kind]; } else putAway(); }
+    });
+    // knocked down: it drops from the hand (pin still in)
+    const dropIfKnocked = () => { if (knock.active && inHand) putAway(); };
 
     const matrix = new Float32Array(16);
     let arc = [];
     return {
-        held: () => !!held,
-        prompt: () => held ? `G  throw · fuse ${held.left.toFixed(1)} s` : '',
+        held: () => inHand || nearCrate(),
+        prompt: () => inHand ? `${holding >= 0 ? `release to throw · ${Math.round(new Grenade(spec, setting).speedOf(holding))} m/s · right click: pin back` : 'hold fire to throw'} · ${spec.name} ${bag[kind]} · G next` : `F  take ${GRENADES[nearCrate().kind].name} grenades`,
         tick(dt) {
-            if (held)
-            {
-                holding += dt;
-                held.update(dt);
-                if (held.state === 'gone') held = undefined; // cooked off in the hand
-                else { const { from, dir } = hand(); arc = Grenade.arc(spec, setting, from, dir, holding); }
-            }
+            dropIfKnocked();
+            if (inHand && holding >= 0) { holding += dt; const { from, dir } = hand(); arc = Grenade.arc(spec, setting, from, dir, holding); }
             else arc = [];
             for (const g of live) g.update(dt);
             for (let i = live.length - 1; i >= 0; i--) if (live[i].state === 'gone') live.splice(i, 1);
@@ -122,7 +148,16 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         /** opaque: grenades, pit, arc */
         draw() {
             for (const t of things) renderer.draw(t.mesh, t.body.matrix(t.matrix));
-            for (const g of live) renderer.draw(gMesh, g.matrix(matrix));
+            for (const g of live) renderer.draw(gMesh(g.spec), g.matrix(matrix));
+            if (inHand && layer.camera?.worldMatrix)
+            {
+                // low right in view, pulled back while winding up
+                const w = layer.camera.worldMatrix, back = Math.min(1, Math.max(0, holding) / spec.wind);
+                const o = [.22 + back * .08, -.2 + back * .1, -.45 + back * .25];
+                const m = new Float32Array(w);
+                for (let k = 0; k < 3; k++) m[12 + k] = w[12 + k] + w[k] * o[0] + w[4 + k] * o[1] + w[8 + k] * o[2];
+                renderer.draw(gMesh(spec), m);
+            }
             for (let i = 2; i < arc.length; i += 2) { const p = arc[i]; renderer.draw(dot, Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])); }
         },
         /** after everything opaque */
