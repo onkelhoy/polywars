@@ -1,7 +1,7 @@
 // Road network audit on a generated world: prints defect counts + worst examples (x z) to look at.
 import { generate, type TerrainHooks } from "@polywar/terrain";
 import { hydrologyHooks } from "@polywar/hydrology";
-import { roadHooks, sampler } from "@polywar/roads";
+import { roadHooks, sampler } from "@polywar/ways";
 import { generateSites } from "@polywar/sites";
 import { STEEP, buildWays } from "@polywar/ways";
 import { Ground, triangulate } from "@polywar/terrain";

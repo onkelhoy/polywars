@@ -5,7 +5,7 @@ const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=sw
 const page = await browser.newPage({ viewport: { width: 1000, height: 750 } });
 page.on("pageerror", e => console.log("pageerror:", e.message));
 page.on("console", m => { if (m.type() === "error") console.log("console:", m.text()); });
-await page.goto("http://localhost:4000/packages/library/world/views/world/");
+await page.goto("http://localhost:4000/packages/world/world/views/world/");
 await page.waitForFunction(() => window.world?.data && window.world.roads?.roads, null, { timeout: 240000 });
 await page.evaluate(([WIRE, PROPS]) => { document.body.classList.add("folded"); window.world.setView({ grass: false, ...(WIRE ? { wire: WIRE } : {}), ...(PROPS === "0" ? { props: false } : {}) }); }, [process.env.WIRE ?? "", process.env.PROPS ?? ""]);
 await page.waitForTimeout(3000);
