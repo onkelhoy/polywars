@@ -13,7 +13,8 @@ export class Clouds {
     /** one cloud, `size` m. Kinds: `cumulus` a big lone tower, `fair` a small fluffy one, `bank` wide and low, `overcast` a dense grey layer */
     cloud(at: ArrayLike<number>, size: number, options: CloudOptions = {}) {
         const kind = options.kind ?? "cumulus", density = options.density ?? (kind === "overcast" ? .7 : .2);
-        const masses = skeleton(kind, size, options.height ?? 1, (options.lean ?? 0) * size);
+        const rnd = options.random ?? Math.random;
+        const masses = skeleton(kind, size, options.height ?? 1, (options.lean ?? 0) * size, rnd);
         const grey = kind === "overcast" ? .45 + density * .45 : density * .3;
         const colour = options.colour ?? [WHITE[0] - grey * .3, WHITE[1] - grey * .29, WHITE[2] - grey * .25] as Colour;
         const top = kind === "overcast" ? .6 - density * .2 : kind === "bank" ? .85 : 1, bright = 1 - grey * .6;
@@ -30,7 +31,7 @@ export class Clouds {
             centre = [m[0], m[1] - m[3] * .2, m[2]];
             put(m[0], m[1], m[2], m[3] * .95);
             // lobes evenly over the upper surface (fibonacci sphere), none under, none buried in a neighbour
-            const n = Math.round(4 + 7 * m[3] / size);
+            const n = Math.round(4 + 7 * Math.min(1, m[3] / size * (kind === "storm" ? 3 : 1)));
             for (let i = 0; i < n; i++)
             {
                 const y = 1 - (i + .5) / n * 2, ring = Math.sqrt(1 - y * y), a = i * 2.39996 + m[0];
@@ -38,7 +39,7 @@ export class Clouds {
                 if (u[1] < -.3) continue;
                 const p = [m[0] + u[0] * m[3] * .62, m[1] + u[1] * m[3] * .62, m[2] + u[2] * m[3] * .62];
                 if (masses.some(q => q !== m && Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < q[3] * .85)) continue;
-                put(p[0], p[1], p[2], m[3] * (.55 + Math.random() * .12));
+                put(p[0], p[1], p[2], m[3] * (.55 + rnd() * .12));
             }
         }
     }
@@ -57,8 +58,8 @@ export class Clouds {
 }
 
 /** the big masses a cloud is built on: [x, y, z, radius], y up from its bottom line */
-function skeleton(kind: CloudKind, size: number, height: number, lean: number): number[][] {
-    const r = () => Math.random(), S = size, out: number[][] = [];
+function skeleton(kind: CloudKind, size: number, height: number, lean: number, r: () => number): number[][] {
+    const S = size, out: number[][] = [];
     const add = (x: number, y: number, z: number, radius: number) => out.push([x, y, z, radius * S]);
     if (kind === "cumulus")
     {
@@ -67,6 +68,13 @@ function skeleton(kind: CloudKind, size: number, height: number, lean: number): 
         add(-.6 * S, .62 * S, (r() - .5) * .3 * S, .36); add(.6 * S, .58 * S, (r() - .5) * .3 * S, .34);
         add(lean * .3, .95 * S * height, 0, .52); add(lean * .65, 1.38 * S * height, (r() - .5) * .2 * S, .46);
         for (let i = 0; i < 3; i++) add(lean + (i - 1) * .34 * S, (1.78 + (i === 1 ? .16 : 0)) * S * height, (r() - .5) * .3 * S, .34 + (i === 1 ? .06 : 0));
+    }
+    else if (kind === "storm")
+    {
+        // cumulonimbus: a wide dark foot, a tall tower, a flat anvil spreading downwind at the top
+        for (let i = 0; i < 5; i++) { const t = i / 4 - .5; add(t * 1.4 * S, .1 * S, (r() - .5) * .4 * S, .24 + .06 * (1 - Math.abs(t))); }
+        for (let i = 0; i < 6; i++) { const t = i / 5; add(lean * t * .3 + (r() - .5) * .1 * S, (.25 + t * 1.5) * S * height, (r() - .5) * .15 * S, .3 - t * .06); }
+        for (let i = 0; i < 7; i++) { const t = i / 6 - .3; add(lean * .3 + t * 1.6 * S, (1.85 + r() * .05) * S * height, (r() - .5) * .5 * S, .2 + .06 * (1 - Math.abs(t))); }
     }
     else if (kind === "fair")
     {

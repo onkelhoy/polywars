@@ -55,9 +55,9 @@ Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B h
 Picked (no answer yet): hero puffs near + shader layer far, weather changes over minutes, world view first.
 - `@polywar/weather` (world/nature, headless): humidity = biome moisture + wind-blown noise + slow swing (`bias` knob); `at(x, z)` -> cover, grey, kind (clear / cirrus / fair / towering / storm / overcast), base / top, precipitation, snow (cold), storm. Seed + time only (same on every client). View `weather`: 60 km map, desert left -> wet cold right.
 - `@polywar/sky` (world/nature): gradient dome + sun, toon cloud layer to the horizon (noise always there, cover shows it, banded light, grey undersides), cirrus streaks. `sky.light(clear, out)` dims sun / greys ambient / fog = horizon. Draw right after `renderer.begin`. View `sky`: sliders.
+- Hero clouds: `CloudField` (`@polywar/smoke`, `clouds/field.ts`): seeded cloud per 2.5 km cell riding the wind drift, shows when the cover passes its threshold and grows from 0 (forms / dissolves), kind from the weather. New `storm` kind (cumulonimbus 1.1-1.7 km, tower + anvil), `CloudOptions.random` (seeded shapes). Rebuilds its own Smoke 8x/s. Sky view: `hero clouds` slider.
 
 ## Weather next
-4. Hero puff clouds (`@polywar/clouds`) grow / fade from the field, cloud types (HUGE cumulonimbus + anvils).
 5. `@polywar/precipitation`: rain mild..dense (streaks, splash points), snow, ground wetness.
 6. Weather sounds: rain by intensity + surface, drips, wind.
 7. Hook into world view, then camp.

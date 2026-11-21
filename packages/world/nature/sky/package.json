@@ -56,7 +56,8 @@
     "@polywar/viewport": "*",
     "@polywar/renderer": "*",
     "@polywar/weather": "*",
-    "@papit/game-mesh": "*"
+    "@papit/game-mesh": "*",
+    "@polywar/smoke": "*"
   },
   "browserslist": [
     "defaults",
