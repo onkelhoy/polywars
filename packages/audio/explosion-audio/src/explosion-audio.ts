@@ -48,7 +48,8 @@ export class ExplosionAudio {
     }
 
     /** a blast of `power` kg TNT at `at` */
-    play(at: ArrayLike<number>, power: number) {
+    /** `deep`: lower, heavier, a long rumble after (a tank gun, a shell): scarier than its size */
+    play(at: ArrayLike<number>, power: number, options: { deep?: boolean } = {}) {
         if (!this.files) return void this.load();
         const p: Vec3 = [at[0], at[1], at[2]], l = this.listener;
         const distance = Math.hypot(p[0] - l[0], p[1] - l[1], p[2] - l[2]), s = Math.cbrt(power);
@@ -61,31 +62,46 @@ export class ExplosionAudio {
         // louder and lower the bigger it is; heard over kilometres
         const volume = Math.min(2.6, 1.1 + .3 * Math.log10(power + 1)) * (1 - .35 * deaf);
         // a shell or bigger: a sub-bass thump under it (felt in the chest), close only
-        if (power >= 1 && distance < 400 * s) this.thump(p, power, distance, speed > 0 ? distance / speed : 0);
+        const deep = options.deep ? 1 : 0;
+        if ((power >= 1 || deep) && distance < 400 * s) this.thump(p, power * (1 + 3 * deep), distance, speed > 0 ? distance / speed : 0, deep);
         return this.mixer.play(`explosions/${variants[pick]}`, {
-            bus: this.options.bus ?? "sfx", volume,
-            rate: (1.12 - Math.min(.35, .06 * Math.log10(power + 1))) * (1 + (Math.random() - .5) * .06),
+            bus: this.options.bus ?? "sfx", volume: volume * (1 + .3 * deep),
+            rate: (1.12 - Math.min(.35, .06 * Math.log10(power + 1))) * (1 - .3 * deep) * (1 + (Math.random() - .5) * .06),
             when: speed > 0 ? this.mixer.context.currentTime + distance / speed : undefined,
             spatial: { position: { x: p[0], y: p[1], z: p[2] }, refDistance: 14 * s, rolloff: .45, maxDistance: 40000 },
         });
     }
 
     /** a low sine dropping in pitch (a pressure punch): louder the bigger and the closer */
-    thump(at: ArrayLike<number>, power: number, distance: number, delay = 0) {
+    thump(at: ArrayLike<number>, power: number, distance: number, delay = 0, rumble = 0) {
         const ctx = this.mixer.context, t = ctx.currentTime + delay, s = Math.cbrt(power);
         const level = Math.min(1.4, .9 * s / (1 + distance / (25 * s))) * (1 - .35 * (this.options.deaf?.() ?? 0));
         if (level < .02) return;
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.type = "sine";
-        o.frequency.setValueAtTime(70, t);
-        o.frequency.exponentialRampToValueAtTime(28, t + .35);
+        o.frequency.setValueAtTime(rumble ? 55 : 70, t);
+        o.frequency.exponentialRampToValueAtTime(rumble ? 19 : 28, t + (rumble ? .6 : .35));
         g.gain.setValueAtTime(0, t);
         g.gain.linearRampToValueAtTime(level, t + .008);
-        g.gain.setTargetAtTime(0, t + .03, .12 * Math.min(2, s));
+        g.gain.setTargetAtTime(0, t + .03, .12 * Math.min(2, s) * (1 + 1.5 * rumble));
         o.connect(g).connect(this.mixer.bus(this.options.bus ?? "sfx").gain);
         o.start(t);
         o.stop(t + 1.5);
         void at;
+        if (!rumble) return;
+        // the rumble: low noise rolling off over seconds (the blast echoing round the land)
+        const n = ctx.createBufferSource(), len = ctx.sampleRate * 4, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < len; i++) { last = last * .97 + (Math.random() * 2 - 1) * .03; d[i] = last * 8; }
+        n.buffer = buf;
+        const lp = ctx.createBiquadFilter(), rg = ctx.createGain();
+        lp.type = "lowpass"; lp.frequency.setValueAtTime(220, t); lp.frequency.exponentialRampToValueAtTime(60, t + 3);
+        rg.gain.setValueAtTime(0, t);
+        rg.gain.linearRampToValueAtTime(level * .9 * rumble, t + .05);
+        rg.gain.setTargetAtTime(0, t + .3, 1.1);
+        n.connect(lp).connect(rg).connect(this.mixer.bus(this.options.bus ?? "sfx").gain);
+        n.start(t);
+        n.stop(t + 4);
     }
 
     /**

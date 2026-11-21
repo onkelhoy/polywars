@@ -279,7 +279,7 @@ export class Explosion {
         const lw = Math.log10(power);
         const position: Vec3 = [at[0], at[1], at[2]];
         const blast: Live = {
-            position, power, scale: s, slow, age: 0, front: 0,
+            position, power, scale: s, slow, age: 0, front: 0, tag: options.tag,
             mushroom: smoothstep(2.3, 4, lw), volcano: smoothstep(2.1, 5, lw),
             shock: new ShockFront(power), fire: [], spikes: [], dust: options.dust ?? this.look.dust, kicked: 0, stages: new Set(),
             fireball: 1.5 * s, fireLife: .16 * slow, surge: 7 * s ** .9,
@@ -308,7 +308,7 @@ export class Explosion {
             blast.spikes.push([u.x, u.y, u.z, rand(.6, 1.2), rand(.05, .09) * slow]);
         }
         this.blasts.push(blast);
-        this.mark(position, s);
+        if (options.mark !== false) this.mark(position, s);
         this.onexplode?.(blast);
         return blast;
     }

@@ -52,6 +52,7 @@ export class EngineSound {
     private master: GainNode;
     readonly panner: PannerNode;
     private links?: OscillatorNode;
+    private teeth?: OscillatorNode;
     private clank?: GainNode;
     private squeal?: GainNode;
     private s: Required<Omit<EngineSoundSetting, "mixer">>;
@@ -92,29 +93,47 @@ export class EngineSound {
         noise.connect(hiss).connect(this.skid).connect(this.master);
 
         const sources: AudioScheduledSourceNode[] = [this.saw, this.sub, this.pulse, noise];
-        // track clatter: metallic noise gated at the link rate (a square wave on the gain), a rumble under it,
-        // and a squeal (two detuned tones) while the tracks skid round a turn
+        // tracks: each link hitting a wheel is a click (a narrow pulse wave gating metallic noise: three hard
+        // ringing bands), the sprocket teeth a slower heavy clunk, and a steel squeal (bending, wobbling) while
+        // the tracks skid round a turn
         if (this.s.clatter > 0)
         {
-            const ring = keep(new BiquadFilterNode(ctx, { type: "bandpass", frequency: 1900, Q: 3 }));
-            const thud = keep(new BiquadFilterNode(ctx, { type: "lowpass", frequency: 160 }));
+            const n = 24, re = new Float32Array(n + 1), im = new Float32Array(n + 1);
+            for (let i = 1; i <= n; i++) re[i] = 1 - i / (n + 2);
+            const click = ctx.createPeriodicWave(re, im, { disableNormalization: false });
             this.clank = keep(new GainNode(ctx, { gain: 0 }));
             const gate = keep(new GainNode(ctx, { gain: 0 }));
-            this.links = keep(new OscillatorNode(ctx, { type: "square", frequency: 1 }));
-            const depth = keep(new GainNode(ctx, { gain: .5 }));
+            this.links = keep(new OscillatorNode(ctx, { frequency: 1 }));
+            this.links.setPeriodicWave(click);
+            const depth = keep(new GainNode(ctx, { gain: 1 }));
             this.links.connect(depth).connect(gate.gain);
-            noise.connect(ring).connect(gate);
-            noise.connect(thud).connect(gate);
-            gate.connect(this.clank).connect(this.master);
-            this.squeal = keep(new GainNode(ctx, { gain: 0 }));
-            for (const f of [1720, 1795])
+            for (const [f, q, g] of [[880, 14, 1], [2350, 18, .8], [4100, 20, .5], [140, 1, .9]])
             {
-                const o = keep(new OscillatorNode(ctx, { type: "triangle", frequency: f }));
-                o.connect(this.squeal);
+                const band = keep(new BiquadFilterNode(ctx, { type: f < 200 ? "lowpass" : "bandpass", frequency: f, Q: q }));
+                const level = keep(new GainNode(ctx, { gain: g * (f < 200 ? 1 : 3) }));
+                noise.connect(band).connect(level).connect(gate);
+            }
+            gate.connect(this.clank).connect(this.master);
+            // sprocket: a low clunk at a fifth of the link rate
+            this.teeth = keep(new OscillatorNode(ctx, { frequency: .2 }));
+            this.teeth.setPeriodicWave(click);
+            const clunkGate = keep(new GainNode(ctx, { gain: 0 })), clunkBand = keep(new BiquadFilterNode(ctx, { type: "bandpass", frequency: 320, Q: 6 }));
+            this.teeth.connect(clunkGate.gain);
+            noise.connect(clunkBand).connect(clunkGate).connect(this.clank);
+            // squeal: two saws through a narrow band, the pitch wobbling and bending
+            this.squeal = keep(new GainNode(ctx, { gain: 0 }));
+            const squealBand = keep(new BiquadFilterNode(ctx, { type: "bandpass", frequency: 2600, Q: 6 }));
+            const wobble = keep(new OscillatorNode(ctx, { type: "sine", frequency: 5.5 })), wobbleDepth = keep(new GainNode(ctx, { gain: 70 }));
+            wobble.connect(wobbleDepth);
+            for (const f of [1380, 1415])
+            {
+                const o = keep(new OscillatorNode(ctx, { type: "sawtooth", frequency: f }));
+                wobbleDepth.connect(o.frequency);
+                o.connect(squealBand);
                 sources.push(o);
             }
-            this.squeal.connect(this.master);
-            sources.push(this.links);
+            squealBand.connect(this.squeal).connect(this.master);
+            sources.push(this.links, this.teeth, wobble);
         }
         for (const o of sources) o.start();
         this.master.gain.setTargetAtTime(this.s.volume, ctx.currentTime, .3);
@@ -140,8 +159,9 @@ export class EngineSound {
             const v = Math.abs(state.tracks ?? 0);
             // ~6 links per metre
             this.links.frequency.setTargetAtTime(Math.max(.5, v * 6), t, k);
-            this.clank.gain.setTargetAtTime(this.s.clatter * Math.min(1, v / 3), t, .08);
-            this.squeal.gain.setTargetAtTime(.03 * Math.min(1, state.turn ?? 0) * Math.min(1, v / 1.5 + .3), t, .15);
+            this.teeth?.frequency.setTargetAtTime(Math.max(.1, v * 1.2), t, k);
+            this.clank.gain.setTargetAtTime(this.s.clatter * Math.min(1, .15 + v / 2.5), t, .08);
+            this.squeal.gain.setTargetAtTime(.14 * Math.min(1, state.turn ?? 0) * Math.min(1, v / 1.5 + .4), t, .2);
         }
         if (state.position)
         {
@@ -181,5 +201,5 @@ export const ENGINES = {
     jeep: {},
     bike: { cylinders: 2, muffle: [750, 3800] as [number, number], volume: .5 },
     /** WW2 tank: a big slow V12 (low, heavy muffled), steel tracks clattering */
-    tank: { cylinders: 12, muffle: [260, 1300] as [number, number], volume: 1, clatter: .55, revs: [500, 2600] as [number, number] },
+    tank: { cylinders: 12, muffle: [170, 950] as [number, number], volume: 1.15, clatter: .7, revs: [500, 2600] as [number, number] },
 } satisfies Record<string, Partial<EngineSoundSetting>>;

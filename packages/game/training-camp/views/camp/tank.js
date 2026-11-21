@@ -8,7 +8,7 @@ import { Bullets } from '@polywar/ballistics';
 import { Turret } from '@polywar/vehicle';
 
 /** a WW2 75 mm gun: shell kg, m/s, drag per metre, reload s; blast kg TNT at the muzzle / the hit */
-export const GUN = { shell: 6.8, speed: 790, drag: .00012, reload: 6, muzzle: 1.2, impact: 2.5, recoil: 1.6 };
+export const GUN = { shell: 6.8, speed: 790, drag: .00012, reload: 6, muzzle: 1.2, impact: 2.5, recoil: 3 };
 
 export function tankGun({ gl, renderer, nades, shots, dust }) {
     const turrets = new Map();
@@ -18,7 +18,7 @@ export function tankGun({ gl, renderer, nades, shots, dust }) {
 
     bullets.onhit = (b, hit) => {
         // AP: no charge, but the hit packs ~2 MJ: chunks + dust burst out like a blast
-        nades.explosion.explode(hit.point, { power: GUN.impact });
+        nades.explosion.explode(hit.point, { power: GUN.impact, tag: 'tank' });
         const car = hit.vehicle;
         if (car)
         {
@@ -32,7 +32,7 @@ export function tankGun({ gl, renderer, nades, shots, dust }) {
     const turretOf = c => {
         if (!c.spec.turret) return undefined;
         let t = turrets.get(c);
-        if (!t) turrets.set(c, t = new Turret(c.car));
+        if (!t) turrets.set(c, t = new Turret(c.car, { elevate: 9, traverse: 20 }));
         return t;
     };
 
@@ -59,7 +59,7 @@ export function tankGun({ gl, renderer, nades, shots, dust }) {
             c.car.kick(g, [-dir[0] * k, -dir[1] * k, -dir[2] * k], .05);
             // muzzle blast just in front of the barrel (flash, smoke, shock wave, sound)
             const at = [from[0] + dir[0] * .6, from[1] + dir[1] * .6, from[2] + dir[2] * .6];
-            nades.explosion.explode(at, { power: GUN.muzzle });
+            nades.explosion.explode(at, { power: GUN.muzzle, mark: false, tag: 'tank' });
             // the blast hits the ground round the tank: a ring of dust thrown out, heaviest under the muzzle
             const p = c.car.body.position;
             for (let i = 0; i < 14; i++)

@@ -23,6 +23,10 @@ export type ExplodeOptions = {
     power?: number;
     /** ground dust colour */
     dust?: Colour;
+    /** leave a mark on the ground (default true; a gun's muzzle blast doesn't) */
+    mark?: boolean;
+    /** anything for the host, handed back on the blast (`onexplode`): what made it */
+    tag?: string;
 };
 
 /** one explosion going on */
@@ -40,6 +44,8 @@ export type Blast = {
     /** 0..1 how much of a mushroom it grows, 0..1 how much rock it throws */
     mushroom: number;
     volcano: number;
+    /** the `ExplodeOptions.tag` */
+    tag?: string;
 };
 
 /** a live light for the host's renderer */

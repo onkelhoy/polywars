@@ -60,7 +60,7 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         // the last blast on you (console: `nades.lastHit()`)
         onhit: (t, hit) => { if (t === you) lastHit = hit; } });
     let lastHit;
-    explosion.onexplode = b => { force.blast(b.position, b.power); audio.play(b.position, b.power); };
+    explosion.onexplode = b => { force.blast(b.position, b.power); audio.play(b.position, b.power, { deep: b.tag === 'tank' }); };
 
     // ---- the grenades: the owner's models (assets/models/weapons/grenades/<model>/model.glb), long axis y, centred ----
     const models = {};

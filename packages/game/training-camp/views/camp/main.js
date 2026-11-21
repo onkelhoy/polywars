@@ -330,7 +330,7 @@ demo.draw = camera => {
 // bike: lighter, revs higher, 4 gears
 const BIKE = { accel: 4.5, gears: [.25, .45, .7, 1], pull: [1.8, 1.3, 1, .75], idle: 900, redline: 5200, steer: 30, steerFade: 4 };
 // tank: 30 t, slow to pull away, 4 gears, a low revving diesel; stiff, well damped suspension (the hull pitches a little)
-const TANK = { accel: 2.2, gears: [.22, .45, .72, 1], pull: [1.7, 1.25, 1, .8], idle: 500, redline: 2600, travel: .25, frequency: 1.4, damping: .55, grip: 1.3, brake: 5, reverse: 3, centre: .5, antiRoll: .3, roll: .7, shiftTime: .9 };
+const TANK = { accel: 2.2, gears: [.22, .45, .72, 1], pull: [1.7, 1.25, 1, .8], idle: 500, redline: 2600, travel: .38, frequency: 1, damping: .32, grip: 1.3, brake: 5, reverse: 3, centre: .5, antiRoll: .3, roll: 1, shiftTime: .9 };
 // the tank isn't in the exported layout yet: parked on the open ground east of the spawn
 const VEHICLES = [...(range.data.vehicles ?? []), { name: 'Tank 0', kind: 'ww2-tank', at: [16, 0, 22], yaw: 0 }];
 const SETTINGS = { bike: BIKE, tank: TANK };

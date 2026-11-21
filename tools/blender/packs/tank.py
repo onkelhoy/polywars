@@ -95,7 +95,7 @@ def main():
         "wheels": spec_wheels,
         "body": {"min": [round(hlo.x, 4), round(hlo.z + .15, 4), round(-hhi.y, 4)], "max": [round(hhi.x, 4), round(thi.z, 4), round(-hlo.y, 4)]},
         "turret": {"node": "Turret", "position": gl(ring)},
-        "gun": {"node": "Barrel", "position": gl(trunnion), "muzzle": gl(muzzle), "elevation": [-8, 20]},
+        "gun": {"node": "Barrel", "position": gl(trunnion), "muzzle": gl(muzzle), "elevation": [-10, 25]},
         "seat": gl(ring + Vector((0, 0, -.6))),
         "eye": gl(ring + Vector((.3, -.2, .55))),
         "exit": gl(Vector((hlo.x - .8, (hlo.y + hhi.y) / 2, 0))),

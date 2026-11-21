@@ -33,6 +33,12 @@ Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
 - Camp `views/camp/tank.js`: E climb in / out (< 2 km/h), mouse aims, V gunner sight / chase, click fires (6 s reload). Shell 6.8 kg 790 m/s (`GUN`), recoil kick, muzzle blast (explosion 1.2 kg) + dust ring, hit = 2.5 kg shatter blast, cars hit get shoved. Crew inside gets 15% of any blast (`armour` in grenades.js): daze / muffle, no knock down.
 - Sound: `ENGINES.tank` (V12, track clatter + squeal, `clatter` / `revs` settings). Explosions louder + carry further, less hidden when deafened, `ExplosionAudio.thump` (sub bass) for 1 kg+.
 
+## Tank round 2 (feature/tank): needs in-game check (owner)
+- Gun up / down: elevation 9°/s, -10..25° (math checked headless, no bug found: was just slow + narrow).
+- Sound: `ENGINES.tank` deeper (muffle 170-950), tracks = link clicks through 3 ringing metal bands + sprocket clunk, steel squeal (wobbling) in turns.
+- Tank blasts `deep` (`ExplosionAudio.play(..., { deep })`): pitched down, bigger sub thump + 3 s rumble. `ExplodeOptions.mark` (muzzle: no mark, impact: mark) + `tag` back on the blast.
+- Recoil x3 (hull slides ~10 cm, rocks ~3°), softer suspension (1 Hz, damping .32, travel .38, roll 1: squats / dives).
+
 ## Notes
 - Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).
