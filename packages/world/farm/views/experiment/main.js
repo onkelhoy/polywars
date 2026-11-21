@@ -35,9 +35,9 @@ const url = (name, lod) => {
 };
 const scatter = new Scatter(renderer, url, { quality: $('#quality').value, distance: { building: 1500, tree: 900, rock: 400, bush: 300, prop: 250, crop: 120, default: 300 } });
 // the world's grass look (bigger, fuller), see @polywar/world GRASS
-const GRASS = { settings: { density: 32, sizeScale: 2.6, softBands: .25, lod: 0, falloff: 3 }, look: { bands: 3 }, bladeShare: .25, variation: .16 };
+const GRASS = { settings: { density: 32, sizeScale: 2.6, softBands: .25, lod: 0, falloff: 2 }, look: { bands: 3 }, bladeShare: .25, variation: .16 };
 // the world's grass, planted from the terrain's cover map; tufts take the ground's colour (terrain.bakeAlbedo)
-const grass = new Grass(layer, { ...GRASS, settings: { ...GRASS.settings, distance: 120, maxTufts: 300_000 }, quality: $('#quality').value });
+const grass = new Grass(layer, { ...GRASS, settings: { ...GRASS.settings, distance: 200, maxTufts: 700_000 }, quality: $('#quality').value });
 
 // fence pieces (assets/models/buildings/farm/fences): per style close / close.L / close.R / open, along -x from the origin
 const FENCE_URL = (style, kind) => `/assets/models/buildings/farm/fences/fence.${style}.${kind}.glb`;
@@ -226,8 +226,8 @@ function plant(data) {
         seed: 1,
         height: (x, z) => terrain.groundAt(x, z),
         grow: (x, z) => terrain.coverAt(x, z, out),
-        // planted round the camera: full density close, the falloff thins it out to 120 m
-        window: 135,
+        // planted round the camera: full density close, the falloff thins it out to 200 m
+        window: 215,
     });
 }
 

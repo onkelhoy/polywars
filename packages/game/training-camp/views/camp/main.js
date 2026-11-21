@@ -99,7 +99,7 @@ let bake = true;
         area: { x: lo[0], z: lo[1], width: hi[0] - lo[0], depth: hi[1] - lo[1] },
         height: (x, z) => range.ground(x, z),
         grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
-        window: 130,
+        window: 215,
     });
 }
 function drawGrass(camera) {

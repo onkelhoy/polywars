@@ -50,15 +50,15 @@ const PAINT = { low: 1024, medium: 2048, high: 3072 };
 const COVER = { low: 512, medium: 1024, high: 2048 };
 const ALBEDO = { low: 1024, medium: 2048, high: 4096 };
 /** grass draw distance per quality, metres: full density close, eased out with `falloff` (the camp's way), so far reach is cheap */
-const DISTANCE = { low: 60, medium: 110, high: 160 };
+const DISTANCE = { low: 120, medium: 200, high: 260 };
 /** grass planting window per quality, metres (a bit past the draw distance) */
-const WINDOW = { low: 70, medium: 125, high: 180 };
+const WINDOW = { low: 130, medium: 215, high: 275 };
 /** tuft cap per quality: the window is big, so more than the grass presets */
-const MAX_TUFTS = { low: 50_000, medium: 220_000, high: 450_000 };
+const MAX_TUFTS = { low: 250_000, medium: 700_000, high: 1_200_000 };
 
 /** the world's grass look (owner's code `g2.eyJ…`): bigger, fuller; density still follows the cover maps */
 export const GRASS: Partial<GrassOptions> = {
-    settings: { density: 32, sizeScale: 2.6, softBands: .25, lod: 0, falloff: 3 },
+    settings: { density: 32, sizeScale: 2.6, softBands: .25, lod: 0, falloff: 2 },
     look: { bands: 3 },
     bladeShare: .25,
     variation: .16,

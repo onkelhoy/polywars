@@ -2,10 +2,10 @@
   "quality": "medium",
   "style": "pixel",
   "settings": {
-    "distance": 120,
+    "distance": 200,
     "lod": 0,
-    "falloff": 3,
-    "maxTufts": 400000
+    "falloff": 2,
+    "maxTufts": 700000
   },
   "look": {},
   "size": [
