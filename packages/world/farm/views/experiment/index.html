@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>farm | experiment</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <pw-viewport near=".3" far="2000" speed="20">
+    <aside>
+        <h1>farm</h1>
+        <output id="info">growing…</output>
+        <label>terrain seed <input id="tseed" type="number" min="0" step="1" value="1" /></label>
+        <label>size m <input id="size" type="range" min="200" max="800" step="20" value="320" /></label>
+        <label>hills m <input id="height" type="range" min="0" max="80" step="2" value="24" /></label>
+        <label>farm seed <input id="seed" type="number" min="0" step="1" value="1" /></label>
+        <label>farm radius <input id="radius" type="range" min="40" max="300" step="10" value="120" /></label>
+        <label>grass <input id="grass" type="checkbox" checked /></label>
+        <label>quality <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select></label>
+        <div class="row"><button id="top">top</button><button id="yard">yard</button><button id="bench">bench</button></div>
+    </aside>
+    </pw-viewport>
+</body>
+</html>

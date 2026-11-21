@@ -6,12 +6,12 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 const ROOT = join(dirname(new URL(import.meta.url).pathname), "../..");
-const med = await import(join(ROOT, "packages/library/building-builder/lib/bundle.js"));
+const med = await import(join(ROOT, "packages/world/building-builder/lib/bundle.js"));
 const args = process.argv.slice(2);
 let pieces, name;
 if (args[0] === "--city")
 {
-    const { city, registerStyle } = await import(join(ROOT, "packages/library/city/lib/bundle.js"));
+    const { city, registerStyle } = await import(join(ROOT, "packages/world/city/lib/bundle.js"));
     registerStyle(med.medievalStyle(med.kitSource("")));
     pieces = city({ style: "medieval", ...JSON.parse(args[1]) }).pieces;
     name = "village";

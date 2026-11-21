@@ -24,12 +24,20 @@ One rule per folder; put a new package where its role says.
 
 | folder | holds |
 | --- | --- |
-| `packages/library/` | the asset library: `catalog` (`@polywar/assets`, the one gallery of all assets), materials, grass, city, building-builder, characters |
+| `packages/game/` | playable content: training-camp (later maps, modes) |
+| `packages/play/` | gameplay systems: player, mover, viewmodel, weapons (specs, state, weapon.json data), ballistics, vehicle |
+| `packages/world/` | map generation: sites, bridges, rail, city, building-builder, ways (roads + meshes + trails), world (composer) |
+| `packages/world/nature/` | terrain, hydrology, water, ecosystem, grass, smoke (+ clouds) |
+| `packages/world/fx/` | explosion, impacts, debris |
+| `packages/audio/` | sound packages: weapon-audio, vehicle-audio, explosion-audio |
+| `packages/library/` | asset data: `catalog` (`@polywar/assets`, the one gallery of all assets), materials, characters, nature-assets |
 | `packages/ui/game/` | game UI (lobby, room, share) |
 | `packages/ui/viewport/` | viewing: viewport-camera (controllers), viewport (stage element), asset preview, gallery, renderer |
 | `packages/utils/` | offline/dev tools and pure helpers (bakers, exporters, noise) |
 | `packages/network/` | networking |
 | `packages/animation/` | skeleton: rigs, IK, clips, bone drawing |
+
+Rule: headless logic and client-only parts (audio, drawing) stay in separate packages.
 
 ## Assets
 All assets live in root `assets/` (models, audio, textures, animations) so the owner edits them in one place. Packages reference them, never copy. Target format glTF 2.0 (rigged, animations baked in the file).

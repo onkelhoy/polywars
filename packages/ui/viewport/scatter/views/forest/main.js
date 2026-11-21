@@ -1,7 +1,7 @@
 import '@polywar/viewport';
 import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Renderer } from '@polywar/renderer';
-import { loadNature, modelUrl } from '@polywar/nature';
+import { loadNature, modelUrl } from '@polywar/nature-assets';
 import { Scatter } from '@polywar/scatter';
 
 // random nature props on a flat field: every family, by its scale range

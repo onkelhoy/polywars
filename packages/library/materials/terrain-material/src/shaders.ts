@@ -173,7 +173,7 @@ void main() {
         vec2 pm = texture(pathMap, cell / pathSize + .5).rg;
         float wear = fbm(cell * .35 + 5.3) - .5;
         way = step(.5, pm.r + wear * .25);
-        c = mix(c, mix(dirtColor, gravelColor, pm.g) * (1.0 + wear * .25), way);
+        c = mix(c, mix(dirtColor, gravelColor, step(.5, pm.g)) * (1.0 + wear * .25), way);
     }
     // patches: layered blotches, each overlap one flat colour (deeper and cooler), warm between; optional rims / grain
     if (painted) {

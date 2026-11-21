@@ -1,6 +1,6 @@
 import type { Model } from "@polywar/renderer";
 import type { GunSpec } from "@polywar/weapons";
-import { onGun, scopeOffset, type ScopeData, type WeaponFile } from "@polywar/armory";
+import { onGun, scopeOffset, type ScopeData, type WeaponFile } from "@polywar/weapons";
 import type { Hold, ScopeMount, Vec3 } from "@polywar/viewmodel";
 
 /** a bone's head in model space (rest pose) */
@@ -78,7 +78,7 @@ export function holdFromPoints(weapon: WeaponFile, spec: GunSpec): Hold | undefi
 }
 
 /**
- * A scope from `@polywar/armory` on a gun: eyepiece / objective in gun space (the rings on the gun's mount),
+ * A scope from `@polywar/weapons` on a gun: eyepiece / objective in gun space (the rings on the gun's mount),
  * the glass radius a guess from the tube (`lens`).
  */
 export function scopeMountFor(weapon: WeaponFile, scope: ScopeData, lens = .018, adjust: Vec3 = [0, 0, 0]): ScopeMount & { offset: Vec3 } {

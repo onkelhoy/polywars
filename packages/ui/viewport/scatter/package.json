@@ -55,7 +55,7 @@
   "devDependencies": {
     "typescript": "5.9.3",
     "@polywar/viewport": "*",
-    "@polywar/nature": "*",
+    "@polywar/nature-assets": "*",
     "@papit/game-mesh": "*",
     "@papit/theme": "*"
   },

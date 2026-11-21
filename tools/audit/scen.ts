@@ -1,7 +1,7 @@
 // scenarios headless: roads per scenario (`node tools/audit-ways.mjs scen`)
-import { Roads } from "@polywar/roads";
+import { Roads } from "@polywar/ways";
 // @ts-ignore
-import { SCENARIOS, ground } from "../../packages/library/roads/views/scenarios/scenarios.js";
+import { SCENARIOS, ground } from "../../packages/world/ways/views/road-scenarios/scenarios.js";
 for (const sc of SCENARIOS)
 {
     const g = ground(sc), roads = new Roads(g, { cell: 4 }), byId = new Map(sc.sites.map((s: any) => [s.id, s]));

@@ -83,7 +83,8 @@ def principled_materials():
         nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
 
 
-def textures_to_vertex_colours():
+def textures_to_vertex_colours(per_corner=False):
+    """`per_corner`: sample the image at each corner's uv (keeps small marks, e.g. birch bark), else one colour per face."""
     for obj in [o for o in bpy.context.scene.objects if o.type == "MESH"]:
         me = obj.data
         if not me.uv_layers.active:
@@ -102,8 +103,20 @@ def textures_to_vertex_colours():
         uv = me.uv_layers.active.data
         for poly in me.polygons:
             if poly.material_index not in pixels:
+                # plain material in a textured mesh: its base colour, so it is not left white
+                mat = me.materials[poly.material_index] if poly.material_index < len(me.materials) else None
+                bsdf = mat and mat.node_tree and next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+                c = list(bsdf.inputs["Base Color"].default_value) if bsdf else list(mat.diffuse_color) if mat else [1, 1, 1, 1]
+                for l in poly.loop_indices:
+                    col.data[l].color = c
                 continue
             w, h, px = pixels[poly.material_index]
+            if per_corner:
+                for l in poly.loop_indices:
+                    x, y = int((uv[l].uv.x % 1) * w) % w, int((uv[l].uv.y % 1) * h) % h
+                    k = (y * w + x) * 4
+                    col.data[l].color = px[k:k + 4]
+                continue
             u = sum(uv[l].uv.x for l in poly.loop_indices) / poly.loop_total
             v = sum(uv[l].uv.y for l in poly.loop_indices) / poly.loop_total
             x, y = int((u % 1) * w) % w, int((v % 1) * h) % h

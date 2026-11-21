@@ -25,7 +25,7 @@ Few shaders, one palette texture: every model UV-maps its faces onto swatches of
 ## Gun animation map (proposed)
 Gun animation map: `animation` property in each gun's weapon.json (format in `.claude/skills/map-gun/SKILL.md`).
 0. Rename per gun: `model.blend` / `model.glb` / `weapon.json` -> `<id>.model.blend` / `<id>.model.glb` / `<id>.weapon.json` (all guns; armory, player, manifest, tools/blender + tools/weapons follow).
-1. `@polywar/armory`: `animation` in the WeaponFile type.
+1. `@polywar/weapons` (armory part): `animation` in the WeaponFile type.
 2. Player: `gunClip` + toggles + empty from the file; drop the hardcoded names, shares and MP40 frames. Fallback: today's name convention.
 3. Cues (eject, mag-in, ...) from the file instead of `actions.ts` fractions when present.
 4. Points from the owner's empties (`exit.bullet` / `exit.barrel`, `exit.shell`) into weapon.json on export (gun-clips.py), replacing guessed muzzle / eject.
