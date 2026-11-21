@@ -16,7 +16,7 @@ export function planes({ cars, player, shots, nades, range }) {
     for (const c of cars)
     {
         if (c.spec.kind !== 'plane') continue;
-        const air = new Aircraft(c.car, { wing: c.spec.wing, gust: 1 });
+        const air = new Aircraft(c.car, { wing: c.spec.wing, gust: 1, assist: 1 });
         const guns = new Guns(c.car, { muzzles: c.spec.guns });
         guns.onshot = s => bullets.fire({ ...s, ...BULLET });
         list.set(c, { air, guns, sound: undefined });
@@ -56,7 +56,7 @@ export function planes({ cars, player, shots, nades, range }) {
                     // flaps by speed: down slow (take off, landing), up fast
                     const high = c.car.body.position.y - range.ground(c.car.body.position.x, c.car.body.position.z);
                     ctl.flaps = grounded || (high < 25 && a.airspeed < 60) ? 1 : 0;
-                    if (grounded && a.airspeed < 40)
+                    if (grounded && a.airspeed < 30)
                     {
                         // taxi / take off run: W holds the throttle up (full on a long press), S brakes then backs up
                         ctl.throttle = k('w') ? Math.min(1, ctl.throttle + dt * .7) : Math.max(0, ctl.throttle - dt * 2);
@@ -65,7 +65,7 @@ export function planes({ cars, player, shots, nades, range }) {
                         // lift off: once fast enough the aim (mouse up) pulls the nose
                         instruct(a, this.aimDir());
                         ctl.roll = 0; ctl.yaw = side;
-                        if (a.airspeed < 45) ctl.pitch = Math.max(0, ctl.pitch);
+                        if (a.airspeed < 32) ctl.pitch = Math.max(0, ctl.pitch);
                         p.reverse = k('s') && Math.abs(c.car.speed) < 1.5 || (p.reverse && k('s'));
                     }
                     else

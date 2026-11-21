@@ -51,7 +51,7 @@ export class Aircraft {
     constructor(readonly vehicle: Vehicle, setting: AircraftSetting) {
         this.s = {
             power: 1.1e6, staticThrust: 20000, drag: .019, liftSlope: 5.2, stall: 15, incidence: 1.5,
-            flapLift: .9, elevator: 3, aileron: 5, rudder: 1.6, gust: 2, idle: 700, redline: 3000, ...setting,
+            flapLift: .9, elevator: 3, aileron: 5, rudder: 1.6, gust: 2, assist: 0, rates: [1.4, 3, .5], grip: 2.5, idle: 700, redline: 3000, ...setting,
         };
         this.wind = new Vector3(...(setting.wind ?? [0, 0, 0]));
         this.rpm = 0;
@@ -64,7 +64,8 @@ export class Aircraft {
     drive(occupied = true): DriveInput {
         const c = this.controls, v = this.vehicle;
         if (!occupied || (c.brake && Math.abs(v.speed) < .5 && c.throttle < .3)) return { throttle: 0, steer: 0, parked: true };
-        return { throttle: c.brake && v.speed > .5 ? -1 : 0, steer: c.yaw };
+        // the tail wheel steers from behind: turned the other way to turn the nose the rudder's way
+        return { throttle: c.brake && v.speed > .5 ? -1 : 0, steer: -c.yaw };
     }
 
     /** the engine runs (rpm > 0) */
@@ -124,6 +125,13 @@ export class Aircraft {
                 z: ld[2] * L - air[2] / V * D + right[2] * Y,
             });
             this.g = L / (m * G);
+            // arcade: lift enough to hold it up above the stall speed (the flight path follows the nose, so alpha stays small)
+            if (s.assist)
+            {
+                const hold = m * G * Math.min(1.15, (V / 50) ** 2) * s.assist, extra = Math.max(0, hold - L) * Math.max(0, Math.cos(this.alpha));
+                b.applyForce({ x: up[0] * extra, y: up[1] * extra, z: up[2] * extra });
+                this.g = Math.max(this.g, (L + extra) / (m * G));
+            }
         }
         else this.g = 1;
         // thrust: the prop's power over the speed, capped standing still
@@ -141,9 +149,23 @@ export class Aircraft {
         const pitch = fc * c.pitch * s.elevator - f * 10 * (this.alpha - .03) - 3 * fs * pr + f * bump(2);
         const roll = fc * c.roll * s.aileron - 3 * fs * p - f * 1.5 * this.beta + f * this.drop * 2.5 + f * bump(6) * 4;
         const yaw = -fc * c.yaw * s.rudder - f * 4 * this.beta - 1.5 * fs * r + f * bump(9);
-        om.x += (fwd[0] * roll + right[0] * pitch + up[0] * yaw) * dt;
-        om.y += (fwd[1] * roll + right[1] * pitch + up[1] * yaw) * dt;
-        om.z += (fwd[2] * roll + right[2] * pitch + up[2] * yaw) * dt;
+        const help = s.assist * clamp((V - 22) / 30, 0, 1);
+        // arcade: the controls ask for turn rates (pitch / roll / yaw rad/s), reached fast; the real moments fade out
+        const tp = c.pitch * s.rates[0], tr = c.roll * s.rates[1], ty = -c.yaw * s.rates[2], snap = Math.min(1, dt * 9);
+        const dp = (1 - help) * pitch * dt + help * (tp - pr) * snap, dr = (1 - help) * roll * dt + help * (tr - p) * snap, dy = (1 - help) * yaw * dt + help * (ty - r) * snap;
+        om.x += fwd[0] * dr + right[0] * dp + up[0] * dy;
+        om.y += fwd[1] * dr + right[1] * dp + up[1] * dy;
+        om.z += fwd[2] * dr + right[2] * dp + up[2] * dy;
+        // arcade: the flight path swings onto the nose (no mushing, no skids); a bit of the turn is lost as speed
+        if (help > 0 && V > 5)
+        {
+            const t = Math.min(1, dt * s.grip * help), sp = Math.hypot(v.x, v.y, v.z);
+            const nx = v.x + (fwd[0] * sp - v.x) * t, ny = v.y + (fwd[1] * sp - v.y) * t, nz = v.z + (fwd[2] * sp - v.z) * t;
+            // speed lost only for the part of the path turned (a hard turn bleeds, straight flight none)
+            const off = 1 - (v.x * fwd[0] + v.y * fwd[1] + v.z * fwd[2]) / sp;
+            const nl = Math.hypot(nx, ny, nz) || 1, keep = sp * (1 - off * t * .5) / nl;
+            v.x = nx * keep; v.y = ny * keep; v.z = nz * keep;
+        }
 
         // wing tip vapour: a hard pull at speed
         this.vapour = clamp((this.g - 2.8) / 2, 0, 1) * clamp((V - 70) / 40, 0, 1);

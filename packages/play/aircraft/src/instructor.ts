@@ -24,12 +24,12 @@ export function instruct(air: Aircraft, aim: Vec3, roll = 0) {
     const k = clamp((Math.abs(lx) - .015) / .2, 0, 1);
     // aim behind: bank hard toward its side
     const rollErr = lz < 0 && Math.abs(lx) < .2 ? Math.sign(lx || 1) * 1.4 : bank * (1 - k) + turn * k;
-    c.roll = roll ? clamp(roll, -1, 1) : clamp(rollErr * 1.6 - rate(f) * .6, -1, 1);
+    c.roll = roll ? clamp(roll, -1, 1) : clamp(rollErr * 2.5 - rate(f) * .3, -1, 1);
     // pull onto the aim (a little push allowed), less near the stall
     const stallNear = clamp((air.alpha * 180 / Math.PI - 9) / 5, 0, 1);
     // the flight path, not the nose, goes onto the aim: the nose sits the angle of attack above it
     const pitch = Math.atan2(ly, Math.max(lz, .05)) + air.alpha * Math.max(0, Math.cos(bank));
-    c.pitch = clamp(pitch * 5 - rate(r) * .6, -.5, 1) * (1 - stallNear * .8);
+    c.pitch = clamp(pitch * 4 - rate(r) * .2, -.6, 1) * (1 - stallNear * .8);
     // rudder: the last few degrees sideways
     c.yaw = clamp(Math.atan2(lx, Math.max(lz, .05)) * 4 * (1 - k * .7) + rate(u) * .3, -1, 1);
 }

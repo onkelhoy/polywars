@@ -46,6 +46,13 @@ export type AircraftSetting = {
     elevator?: number;
     aileron?: number;
     rudder?: number;
+    /** arcade help 0..1: controls are turn rates (tight, snappy), the flight path follows the nose, lift holds it
+     * up above the stall speed. Default 0 (the plain flight model) */
+    assist?: number;
+    /** with `assist`: most pitch / roll / yaw rate, rad/s. Default [1.4, 3, .5] */
+    rates?: [number, number, number];
+    /** with `assist`: how fast the flight path swings onto the nose, 1/s. Default 2.5 */
+    grip?: number;
     /** steady wind, m/s (world) */
     wind?: Vec3;
     /** gusts, m/s: turbulence on top of the wind (light planes get bumped). Default 2 */

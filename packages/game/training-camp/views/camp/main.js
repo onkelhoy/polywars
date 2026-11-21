@@ -614,7 +614,8 @@ function driveCamera(camera, dt) {
         {
             const want = [p.x - d[0] * 18, p.y - d[1] * 18 + 4.5, p.z - d[2] * 18];
             want[1] = Math.max(want[1], range.ground(want[0], want[2]) + 1);
-            for (let i = 0; i < 3; i++) chase.pos[i] += (want[i] - chase.pos[i]) * Math.min(1, dt * 8);
+            // fixed to the plane (no easing: no lag)
+            for (let i = 0; i < 3; i++) chase.pos[i] = want[i];
             eye = chase.pos;
         }
         camera.position.set(eye); camera.rotation.set([pitch, yaw, 0]);
