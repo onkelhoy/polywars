@@ -128,3 +128,7 @@ Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view 
 ## Optics / gun handling (follow ups)
 - [ ] Put-down gun: real rigidbody drop (now a straight fall), hand IK to the grip on take back.
 - [ ] Steel plates: ring sound on hit; metal cans as targets.
+
+## Grenades
+- [ ] in-game selector: which kind G throws, how many you carry (slots)
+- [ ] shield the eyes: forearm over the eyes on a bright thing (explosion at mid distance = quick reflex, staring at a lamp / the sun ~1.5 s = slowly up). Needs line of sight (not inside a house). Own small package (`@polywar/reflex`), brightness like `explosion.glare` + lamps

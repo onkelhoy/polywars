@@ -141,7 +141,17 @@ export class ViewModel {
         const [by, bb, bt] = this.blocked.value, tk = Math.abs(bt);
         const push = multiply(mat4(), compose(mat4(), g[0], g[1] - tk * .04, g[2] + bb + tk * .06, by, bt * 1.05, -tk * .35 * Math.sign(bt || 1)), compose(mat4(), -g[0], -g[1], -g[2]));
         multiply(this.matrix, this.matrix, push);
+        // the off hand alone (the other hand busy: a grenade): dipped low left, rolled in, round the fore hand
+        const o = this.offhand;
+        if (o > .001)
+        {
+            const f = point(this.matrix, h.fore ?? h.grip), e = o * o * (3 - 2 * o);
+            const D = multiply(mat4(), compose(mat4(), f[0] - .1 * e, f[1] - .16 * e, f[2] + .08 * e, .35 * e, -.25 * e, .7 * e), compose(mat4(), -f[0], -f[1], -f[2]));
+            multiply(this.matrix, D, this.matrix);
+        }
     }
+    /** 0..1 the gun in the off hand only (dipped low left): the host eases it */
+    offhand = 0;
     /** the pose before the world pushed it (for `Obstruction`) */
     readonly base: Mat4 = mat4();
     /** yaw aside, back (m), tuck (+1 up, -1 down) */

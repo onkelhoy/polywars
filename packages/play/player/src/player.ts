@@ -457,6 +457,12 @@ export class Player {
         return true;
     }
 
+    /**
+     * The trigger hand busy (a grenade): `weight` 0..1 eases the gun into the off hand (dipped low left) and the trigger
+     * hand to `at` (camera space). No shooting, no aiming while on. The host eases `weight`.
+     */
+    busyHand?: { weight: number; at: Vec3 };
+
     /** gun put away (hands free: a grenade, a tool): no trigger, no aim, not drawn. `select` takes a gun up again */
     stowed = false;
 
@@ -565,7 +571,7 @@ export class Player {
         const pose = this.setting.pose?.(), control = pose?.control ?? 1;
         if (pressed.has("alt")) this.toggled = !this.toggled;
         const optic = this.optic;
-        const aiming = !optic && !this.down && !this.stowed && (this.toggled || !!input?.buttons.has(2));
+        const aiming = !optic && !this.down && !this.stowed && !this.busyHand?.weight && (this.toggled || !!input?.buttons.has(2));
         const scoped = !!carried?.scope && (gun?.aimed ?? 0) > .5;
         // aimed down a scope, the mouse turns slower (by the zoom)
         // through an optic the mouse is not slowed: real hands don't get steadier with zoom
@@ -633,7 +639,7 @@ export class Player {
             // break actions: C pulls the hammers back, X the safety
             if (pressed.has("c")) gun.cock();
             if (gun.barrels && pressed.has("x")) gun.toggleSafety();
-            const event = sprint || optic || this.down || this.stowed || control < .3 ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
+            const event = sprint || optic || this.down || this.stowed || (this.busyHand?.weight ?? 0) > 0 || control < .3 ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
@@ -650,6 +656,7 @@ export class Player {
             this.spread = gun.spread(m.speed / 4.2);
         }
         const strafe = m.velocity[0] * rx + m.velocity[2] * rz;
+        this.vm.offhand = this.busyHand?.weight ?? 0;
         this.vm.update(dt, { yaw: turnYaw, pitch: turnPitch, speed: m.speed, strafe, grounded: m.grounded, landed: m.landed, aimed: gun?.aimed ?? 0, reload: gun && gun.reloading > 0 ? gun.progress : -1, sprint });
         // the barrel against the world (from last frame's camera)
         if (gun) { const f = this.vm.free, o = this.obstruction.update(camera.worldMatrix, f.grip, f.muzzle, this.pitch); this.vm.obstruct(this.room && o.tuck ? { yaw: 0, back: o.back, tuck: 0 } : o); }
@@ -801,7 +808,16 @@ export class Player {
         };
         // pistols and pistol grip guns (smgs) by their grip, rifles by the stock's wrist; the index on the trigger
         const trigger = carried.weapon?.points?.trigger ?? bonePoint(carried.model, "trigger");
-        hand(0, hands.grip, carried.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP, trigger);
+        const busy = this.busyHand;
+        if (busy && busy.weight > .01)
+        {
+            // the trigger hand off the grip to the busy point (a fist round the grenade)
+            const f = turnFrame(PISTOL_GRIP, 0, 0), arm = this.rigArms![0];
+            const from = new Vector3(...at(hands.grip)), to = local(point(cam, busy.at));
+            reach(skin, arm, from.lerp(new Vector3(to[0], to[1], to[2]), busy.weight), holdRotation(arm, along(camDir([0, 1, 0])), along(camDir([-1, 0, 0]))), pole(0));
+            grip(skin, arm, f.radius * .8);
+        }
+        else hand(0, hands.grip, carried.gun.spec.kind === "rifle" ? WRIST_GRIP : PISTOL_GRIP, trigger);
         const b = this.brace.value;
         if (b.weight > .01)
         {
