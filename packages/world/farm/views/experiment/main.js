@@ -20,15 +20,20 @@ renderer.light.sunDirection = [.45, .64, .62];
 // names: "Barn" (farm folder), "props/village/bale" (path under models), nature models by name
 const TREES = { hedge: ['CommonTree_1', 'CommonTree_2', 'BirchTree_1', 'Bush_1'], bank: ['Willow_1', 'Willow_2', 'Bush_1', 'BushBerries_1'], wild: ['CommonTree_1', 'CommonTree_3', 'PineTree_1', 'BirchTree_2', 'Bush_2'] };
 const ROCKS = ['Rock_1', 'Rock_2', 'Rock_3', 'Rock_4', 'Rock_5'];
-const CROPS = { wheat: { models: ['Wheat'], scale: 1.4, spacing: [.9, .6] }, corn: { models: ['Corn_1', 'Corn_2'], scale: 1, spacing: [1.1, .8] } };
+// crops: [between rows, along a row] metres, `jitter` metres off the row, `skip` chance a plant is missing, `cap` plants per farm
+const CROPS = { wheat: { models: ['Wheat'], scale: 1.4, spacing: [1.4, 1], jitter: .35, skip: .15, sway: 2 }, corn: { models: ['Corn_1', 'Corn_2'], scale: 1, spacing: [1.6, 1.2], jitter: .3, skip: .1, sway: 1.2 } };
+const CROP_CAP = 40000;
 const NATURE = new Set([...Object.values(TREES).flat(), ...ROCKS, ...Object.values(CROPS).flatMap(c => c.models)]);
 const url = (name, lod) => {
     const path = name.includes('/') ? name : NATURE.has(name) ? `nature/${name}` : `buildings/farm/${name}`;
     if (lod && path.startsWith('props/')) return undefined;
+    if (lod > 2 && path.startsWith('buildings/')) return undefined;
     return `/assets/models/${path}${lod ? `.lod${lod}` : ''}.glb`;
 };
-const scatter = new Scatter(renderer, url, { quality: $('#quality').value, distance: { building: 1500, tree: 900, rock: 400, bush: 300, prop: 250, crop: 400, default: 300 } });
-const grass = new Grass(layer, { quality: $('#quality').value });
+const scatter = new Scatter(renderer, url, { quality: $('#quality').value, distance: { building: 1500, tree: 900, rock: 400, bush: 300, prop: 250, crop: 120, default: 300 } });
+// the world's grass look (bigger, fuller), see @polywar/world GRASS
+const GRASS = { settings: { density: 32, sizeScale: 2.6, softBands: .25 }, look: { bands: 3 }, bladeShare: .25, variation: .16 };
+const grass = new Grass(layer, { ...GRASS, settings: { ...GRASS.settings, distance: 60, maxTufts: 220_000 }, quality: $('#quality').value });
 
 // fence pieces (assets/models/buildings/farm/fences): per style close / close.L / close.R / open, along -x from the origin
 const FENCE_URL = (style, kind) => `/assets/models/buildings/farm/fences/fence.${style}.${kind}.glb`;
@@ -144,9 +149,16 @@ async function dress(data, t0) {
         add(m, bush ? 'bush' : 'tree', t.x, t.z, bush ? .8 + rand() * .6 : 2 + rand() * 1.4, rand() * 6.28, .4);
     }
     let crops = 0;
-    for (const [crop, xz] of cropRows(farm, Object.fromEntries(Object.entries(CROPS).map(([k, c]) => [k, c.spacing])))) {
+    const rows = cropRows(farm, Object.fromEntries(Object.entries(CROPS).map(([k, c]) => [k, c.spacing])));
+    let total = 0; for (const xz of rows.values()) total += xz.length / 3;
+    const keep = Math.min(1, CROP_CAP / Math.max(1, total));
+    for (const [crop, xz] of rows) {
         const c = CROPS[crop];
-        for (let i = 0; i < xz.length; i += 3) { add(c.models[Math.floor(rand() * c.models.length)], 'crop', xz[i], xz[i + 1], c.scale * (.9 + rand() * .2), xz[i + 2] + (rand() - .5) * .6, .6); crops++; }
+        for (let i = 0; i < xz.length; i += 3) {
+            if (rand() < c.skip || rand() > keep) continue;
+            const x = xz[i] + (rand() - .5) * 2 * c.jitter, z = xz[i + 1] + (rand() - .5) * 2 * c.jitter;
+            add(c.models[Math.floor(rand() * c.models.length)], 'crop', x, z, c.scale * (.8 + rand() * .4), rand() * 6.28, c.sway); crops++;
+        }
     }
     // the land round the farm: wild trees and rocks outside it, in its wood and unused cells
     const zone = zoneAt(farm);
@@ -168,12 +180,20 @@ async function dress(data, t0) {
 }
 
 function plant(data) {
-    const h0 = data.size / 2;
+    const h0 = data.size / 2, zone = zoneAt(farm), out = { density: 0, height: 1, dry: 0, flowers: 0 };
     grass.plant({
         area: { x: -h0, z: -h0, width: data.size, depth: data.size },
         seed: 1,
         height: (x, z) => terrain.groundAt(x, z),
-        mask: (x, z) => data.water[Math.round((z + h0) / data.cell) * data.n + Math.round((x + h0) / data.cell)] ? 0 : edits.grass(x, z),
+        // full cover, taller in pastures (and on unused land), none where the farm asked
+        grow: (x, z) => {
+            out.density = data.water[Math.round((z + h0) / data.cell) * data.n + Math.round((x + h0) / data.cell)] ? 0 : edits.grass(x, z);
+            const zn = zone(x, z);
+            out.height = zn === 'pasture' ? 1.9 : zn === 'none' || zn === 'wood' ? 1.3 : 1;
+            out.dry = zn === 'pasture' ? .25 : .1;
+            out.flowers = zn === 'pasture' ? .15 : .05;
+            return out;
+        },
     });
 }
 
