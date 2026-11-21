@@ -12,7 +12,7 @@ const key = (i: number, j: number) => i * 65536 + j;
 /** targets this far out (m) and beyond are steel */
 const STEEL_FROM = 200;
 
-export class ShootingRange {
+export class TrainingCamp {
     readonly solids: Solid[];
     readonly targets: Target[];
     readonly stands: Stand[];
@@ -21,10 +21,10 @@ export class ShootingRange {
     private grid = new Map<number, Solid[]>();
     private targetOf = new Map<string, Target>();
 
-    /** loads `range.json` from `base` (default the package asset `/shooting-range/`); the model is `${base}model.glb` */
-    static async load(base = "/shooting-range/") {
+    /** loads `range.json` from `base` (default the package asset `/training-camp/`); the model is `${base}model.glb` */
+    static async load(base = "/training-camp/") {
         const data: RangeData = await (await fetch(`${base}range.json`)).json();
-        return new ShootingRange(data, `${base}model.glb`);
+        return new TrainingCamp(data, `${base}model.glb`);
     }
 
     constructor(readonly data: RangeData, readonly model = "") {

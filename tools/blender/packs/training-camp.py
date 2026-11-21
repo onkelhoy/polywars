@@ -1,8 +1,8 @@
-"""The shooting range (owner's ~/Developer/3d/shooting-range/camp.blend, made by camp-layout.py) -> @polywar/shooting-range asset.
+"""The shooting range (owner's ~/Developer/3d/shooting-range/camp.blend, made by camp-layout.py) -> @polywar/training-camp asset.
 
   blender -b --disable-autoexec ~/Developer/3d/shooting-range/camp.blend -P tools/blender/packs/shooting-range.py
 
-The .blend is never saved. Writes packages/play/shooting-range/asset/shooting-range/model.glb (via export.py) and range.json:
+The .blend is never saved. Writes packages/play/training-camp/asset/training-camp/model.glb (via export.py) and range.json:
   { ground: [[x,y,z]*3, ...] triangles, solids: [{ min, max, surface, name }], stands: [{ at, yaw }],
     targets: [{ name, distance, min, max }], vehicles: [{ kind, at, yaw }], spawn: [x,y,z] }   (game space: y up, the range runs down -z)
 Roles come from object names (ROLES below): rename in Blender, export again.
@@ -14,7 +14,7 @@ from mathutils import Vector
 import pw
 import export as exporter
 
-OUT = os.path.join(pw.ROOT, "packages/play/shooting-range/asset/shooting-range")
+OUT = os.path.join(pw.ROOT, "packages/play/training-camp/asset/training-camp")
 
 # object name (prefix) -> role. ground: walkable height; stand: a gun case (a gun floats over it); target: scored
 # steps: walkable stairs (a box per step); anything else is solid

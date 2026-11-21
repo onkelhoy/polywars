@@ -10,7 +10,7 @@ Optics notes (rough first pass):
 - `Focus` (`@polywar/viewmodel`): `player.focus.start({ eye, look })` / `stop()`.
 - Gun put down before an optic: `player.putDown()` / `pickUp()` (F bends to it) / `down`. Straight fall, laid on its side.
 - Spotting scope: F eases the eye to the eyepiece (.7 s), view blends in. Binoculars: G raises the desk model (`player.binocularsAt`), view blends in.
-- Steel targets from 200 m (`STEEL_FROM` in shooting-range.ts), metal sparks seen to 900 m.
+- Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.
 - Grass: `falloff` quality setting; range look = `assets/grass/range.json` (saved from the grass view; 120 m, falloff 3).
 
 ## Tasks (confirmed, `feature/arms-grip`)

@@ -1,4 +1,4 @@
-# @polywar/shooting-range
+# @polywar/training-camp
 
 Shooting range: the model (glb + range.json points), ground, colliders, bullet hits and gun stands.
 
@@ -8,21 +8,21 @@ Shooting range: the model (glb + range.json points), ground, colliders, bullet h
 
 ![Type](https://img.shields.io/badge/Type-play-orange)
 [![Tests](https://github.com/henry/polywar/actions/workflows/pull-request.yml/badge.svg)](https://github.com/henry/polywar/actions/workflows/pull-request.yml)
-[![NPM version](https://img.shields.io/npm/v/@polywar/shooting-range.svg?logo=npm)](https://www.npmjs.com/package/@polywar/shooting-range)
+[![NPM version](https://img.shields.io/npm/v/@polywar/training-camp.svg?logo=npm)](https://www.npmjs.com/package/@polywar/training-camp)
 
 ---
 
 ## installation
 
 ```bash
-npm install @polywar/shooting-range
+npm install @polywar/training-camp
 ```
 
 ## usage
 
 ```js
-const range = await ShootingRange.load();            // asset /shooting-range/range.json
-const model = await Model.load(gl, range.model);     // /shooting-range/model.glb
+const range = await TrainingCamp.load();            // asset /training-camp/range.json
+const model = await Model.load(gl, range.model);     // /training-camp/model.glb
 new Player(layer, renderer, { ground: range.ground, colliders: range.colliders, cast: range.cast, surface: range.surface, ... }, range.spawn);
 range.standNear(x, z);                               // gun case in reach, or -1
 ```
@@ -34,10 +34,10 @@ range.standNear(x, z);                               // gun case in reach, or -1
 Made in Blender (`~/Developer/3d/shooting-range/model.blend`). Export after editing:
 
 ```bash
-/Applications/Blender.app/Contents/MacOS/Blender -b --disable-autoexec ~/Developer/3d/shooting-range/model.blend -P tools/blender/packs/shooting-range.py
+/Applications/Blender.app/Contents/MacOS/Blender -b --disable-autoexec ~/Developer/3d/shooting-range/model.blend -P tools/blender/packs/training-camp.py
 ```
 
-Writes `asset/shooting-range/model.glb` + `range.json` (ground triangles, solid boxes, gun stands, targets, spawn). Roles come from object names (`ROLES` in the script): ground, stand (gun case), target, steps (stairs: a box per step), hollow (a box per face), else solid (a box per loose part). The .blend is never saved.
+Writes `asset/training-camp/model.glb` + `range.json` (ground triangles, solid boxes, gun stands, targets, spawn). Roles come from object names (`ROLES` in the script): ground, stand (gun case), target, steps (stairs: a box per step), hollow (a box per face), else solid (a box per loose part). The .blend is never saved.
 
 ## views
 

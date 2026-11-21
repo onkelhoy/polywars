@@ -9,7 +9,7 @@ import { CHARACTERS } from '@polywar/characters';
 const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
-import { ShootingRange, buttonAt } from '@polywar/shooting-range';
+import { TrainingCamp, buttonAt } from '@polywar/training-camp';
 import { Vehicles, Dust, SteeringHands } from '@polywar/vehicle';
 import { nearest } from '@polywar/ballistics';
 import { EngineSound } from '@polywar/vehicle-audio';
@@ -26,7 +26,7 @@ renderer.light.fogDensity = .0004;
 renderer.light.fogColor = [.62, .72, .84];
 const SKY = [.62, .72, .84, 1];
 
-const range = await ShootingRange.load();
+const range = await TrainingCamp.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
 window.range = range;
 

@@ -74,8 +74,8 @@ Gun animation map: `animation` property in each gun's weapon.json (format in `.c
 - Reloads in detail: rounds into the magazine, magazine swap, stripper clips.
 - Fatigue lowers recoil `control`.
 
-## Shooting range (`@polywar/shooting-range`)
-Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view `range`. Ideas from the owner:
+## Training camp (`@polywar/training-camp`)
+Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view `camp`. Ideas from the owner:
 - [x] button to move the targets nearer / further (moving targets on the rails)
 - [x] binoculars ("kikare") on the roof to look down the range
 - [x] lamps

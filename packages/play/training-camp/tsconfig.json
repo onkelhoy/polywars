@@ -26,7 +26,7 @@
         "allowJs": true,
         "baseUrl": "src",
         "paths": {
-            "@polywar/shooting-range": [
+            "@polywar/training-camp": [
                 "./index"
             ]
         },

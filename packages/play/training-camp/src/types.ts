@@ -9,7 +9,7 @@ export type Target = { name: string; distance: number; min: Vec3; max: Vec3 };
 /** a gun case: a gun floats over `at` (its top middle) */
 export type Stand = { name: string; at: Vec3; yaw: number };
 
-/** `asset/range.json`, written by `tools/blender/packs/shooting-range.py`. Game space: y up, the range runs down -z. */
+/** `asset/range.json`, written by `tools/blender/packs/training-camp.py`. Game space: y up, the range runs down -z. */
 export type RangeData = {
     ground: [Vec3, Vec3, Vec3][];
     solids: Omit<Solid, "kind">[];
