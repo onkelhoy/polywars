@@ -3,7 +3,7 @@ import { farmGrid } from "./grid";
 import { zone } from "./zones";
 import { placeYard } from "./yard";
 import { fences, yardFence, cutFences } from "./fences";
-import { paths } from "./paths";
+import { paths, trail } from "./paths";
 import { hedges } from "./hedges";
 import { dress } from "./props";
 import type { FarmArea, FarmGround, FarmLayout, FarmOptions, FarmPiece } from "./types";
@@ -48,6 +48,8 @@ export function generateFarm(area: FarmArea, ground: FarmGround, options: Partia
     hedges(layout, z.banks, o, rnd.fork("hedges"));
     yardFence(layout, z.yard, o);
     paths(layout, z.yard, gates, o);
+    // a trail up to each landmark
+    for (const b of layout.buildings) if (o.landmark.some(p => p.asset === b.asset)) trail(layout, [b.x + Math.cos(b.yaw) * (b.w / 2 + 4), b.z + Math.sin(b.yaw) * (b.w / 2 + 4)], o);
     cutFences(layout, o);
     dress(layout, ground, o, rnd.fork("props"));
     // fields: soil, no grass

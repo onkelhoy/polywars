@@ -92,10 +92,16 @@ function view(layout: FarmLayout, ground: FarmGround, put: (a: string, x: number
     const { cells } = layout, court = layout.court, P = o.props.view;
     if (!court) return;
     let best = -1, bs = -Infinity, look = 0;
+    // strict first (no fence near, no field), then anything clear of buildings
+    for (const strict of [true, false]) {
+    if (best >= 0) break;
     for (const c of cells) {
-        if (!c.inside || c.water || c.blocked || c.zone === "yard" || c.zone === "field" || c.zone === "pasture") continue;
+        if (!c.inside || c.water || c.blocked || c.zone === "yard") continue;
+        if (strict && (c.zone === "field" || c.zone === "pasture")) continue;
         // nothing fenced right in front: no fence within 8 m
-        if (layout.fences.some(f => f.some(([x, z]) => Math.hypot(x - c.x, z - c.z) < 8))) continue;
+        if (strict && layout.fences.some(f => f.some(([x, z]) => Math.hypot(x - c.x, z - c.z) < 8))) continue;
+        // and clear of buildings (the windmill also likes the high ground)
+        if (layout.buildings.some(b => Math.hypot(b.x - c.x, b.z - c.z) < Math.max(b.w, b.d) + 6)) continue;
         const d = Math.hypot(c.x - court.x, c.z - court.z);
         if (d < 30) continue;
         // sample the drop in 8 directions at 40 m: the deepest one is the view
@@ -106,6 +112,7 @@ function view(layout: FarmLayout, ground: FarmGround, put: (a: string, x: number
         }
         const s = drop + c.y * .2 - d * .02 - c.slope * 20;
         if (s > bs) { bs = s; best = c.id; look = dir; }
+    }
     }
     if (best < 0) return;
     const c = cells[best], fx = Math.cos(look), fz = Math.sin(look);

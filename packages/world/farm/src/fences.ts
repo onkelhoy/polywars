@@ -1,4 +1,5 @@
 import type { Random } from "@papit/random";
+import { rect } from "./yard";
 import type { FarmLayout, FarmOptions, Line } from "./types";
 
 const key = ([x, z]: [number, number]) => `${x.toFixed(2)},${z.toFixed(2)}`;
@@ -83,6 +84,12 @@ export function fencePosts(line: Line, spacing = 2.9): Line {
 
 /** a low fancy fence round the yard, only on its outer edges that no other fence uses (the house front) */
 export function yardFence(layout: FarmLayout, yard: number[], o: FarmOptions) {
+    // landmarks (windmill) get a small square fence round them
+    for (const b of layout.buildings) {
+        if (!o.landmark.some(p => p.asset === b.asset)) continue;
+        const r = rect(b.x, b.z, b.w + 6, b.d + 6, b.yaw);
+        layout.fences.push([...r, r[0]]); layout.fenceStyles.push(o.fence.styles.pasture[0]);
+    }
     const { cells, neighbours: nb } = layout, own = new Set(yard), style = o.fence.styles.yard[0];
     const fenced = new Set<string>();
     for (const l of layout.fences) for (const p of l) fenced.add(key(p));
@@ -90,9 +97,7 @@ export function yardFence(layout: FarmLayout, yard: number[], o: FarmOptions) {
         const n = nb[c * 4 + i];
         if (own.has(n)) continue;
         const a = cells[c].corners[i], b = cells[c].corners[(i + 1) % 4];
-        if (fenced.has(key(a)) || fenced.has(key(b))) continue;
-        // only toward open land (not fields, pastures), like a front garden
-        if (n >= 0 && cells[n].zone !== "none") continue;
+        if (fenced.has(key(a)) && fenced.has(key(b))) continue;
         layout.fences.push([a, b]); layout.fenceStyles.push(style);
     }
 }
