@@ -1,5 +1,6 @@
 import '@polywar/viewport';
 import { upload, loadGLTF } from '@papit/game-mesh';
+import { loadTexture } from '@polywar/textured';
 import { Renderer } from '@polywar/renderer';
 import { Scatter } from '@polywar/scatter';
 import { Terrain, MAPS } from '@polywar/terrain';
@@ -47,35 +48,51 @@ async function piece(style, kind) {
     }).catch(() => null));
     return pieces.get(k);
 }
-/** a fence line from pieces: one per post gap, stretched to it, sheared to the ground (posts stay upright), all in one mesh */
+/**
+ * Fence lines from pieces: per edge (corner to corner) as many pieces as fit at about their own length (never squashed
+ * below 85% or stretched past 120%; an edge too short for one is left out), sheared to the ground so posts stay upright.
+ * Textured pieces (birch) go into a second mesh drawn with their texture.
+ */
 async function fenceMesh(lines, styles, g) {
-    const pos = [], nor = [], col = [], idx = [];
+    const plain = { pos: [], nor: [], col: [], uv: [], idx: [] }, tex = { pos: [], nor: [], col: [], uv: [], idx: [] };
     for (let l = 0; l < lines.length; l++) {
-        const posts = fencePosts(lines[l], 3), style = styles[l] ?? '1';
-        for (let s = 1; s < posts.length; s++) {
-            // first gap: posts both ends, then a post only at the far end
-            const p = await piece(style, s === 1 ? 'close' : 'close.R') ?? await piece(style, 'close');
-            if (!p) continue;
-            const [ax, az] = posts[s - 1], [bx, bz] = posts[s], ay = g(ax, az), by = g(bx, bz);
-            const len = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / len, uz = (bz - az) / len;
-            for (const m of p.prims) {
-                const base = pos.length / 3;
-                for (let i = 0; i < m.positions.length; i += 3) {
-                    const t = (m.positions[i] - p.x0) / (p.x1 - p.x0), y = m.positions[i + 1], z = m.positions[i + 2];
-                    // along the gap (t), across it (z), up (y) over the ground line between the two posts
-                    pos.push(ax + (bx - ax) * t - uz * z, ay + (by - ay) * t + y, az + (bz - az) * t + ux * z);
-                    const nx = m.normals[i], ny = m.normals[i + 1], nz = m.normals[i + 2];
-                    nor.push(nx * ux - nz * uz, ny, nx * uz + nz * ux);
-                    if (m.colors) col.push(m.colors[i / 3 * 4], m.colors[i / 3 * 4 + 1], m.colors[i / 3 * 4 + 2], 1); else col.push(.45, .3, .2, 1);
+        const style = styles[l] ?? '1', line = lines[l];
+        const ref = await piece(style, 'close');
+        if (!ref) continue;
+        const L = ref.x1 - ref.x0;
+        let first = true;
+        for (let e = 1; e < line.length; e++) {
+            const [ex0, ez0] = line[e - 1], [ex1, ez1] = line[e], len = Math.hypot(ex1 - ex0, ez1 - ez0);
+            let n = Math.round(len / L);
+            if (n < 1 || len / n < L * .85) n = Math.floor(len / (L * .85));
+            if (n < 1 || len / n > L * 1.2) continue;
+            for (let k = 0; k < n; k++) {
+                const ax = ex0 + (ex1 - ex0) * k / n, az = ez0 + (ez1 - ez0) * k / n, bx = ex0 + (ex1 - ex0) * (k + 1) / n, bz = ez0 + (ez1 - ez0) * (k + 1) / n;
+                // first piece of a line has both posts, then one post at the far end
+                const p = await piece(style, first ? 'close' : 'close.R') ?? ref;
+                first = false;
+                const ay = g(ax, az), by = g(bx, bz), gl_ = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / gl_, uz = (bz - az) / gl_;
+                for (const m of p.prims) {
+                    const out = m.uvs ? tex : plain, base = out.pos.length / 3;
+                    for (let i = 0; i < m.positions.length; i += 3) {
+                        const t = (m.positions[i] - p.x0) / (p.x1 - p.x0), y = m.positions[i + 1], z = m.positions[i + 2];
+                        out.pos.push(ax + (bx - ax) * t - uz * z, ay + (by - ay) * t + y, az + (bz - az) * t + ux * z);
+                        const nx = m.normals[i], ny = m.normals[i + 1], nz = m.normals[i + 2];
+                        out.nor.push(nx * ux - nz * uz, ny, nx * uz + nz * ux);
+                        const v = i / 3;
+                        if (m.colors) out.col.push(m.colors[v * 4], m.colors[v * 4 + 1], m.colors[v * 4 + 2], 1); else out.col.push(1, 1, 1, 1);
+                        if (m.uvs) out.uv.push(m.uvs[v * 2], m.uvs[v * 2 + 1]);
+                    }
+                    if (m.indices) for (const q of m.indices) out.idx.push(base + q);
+                    else for (let q = 0; q < m.positions.length / 3; q++) out.idx.push(base + q);
                 }
-                if (m.indices) for (const k of m.indices) idx.push(base + k);
-                else for (let k = 0; k < m.positions.length / 3; k++) idx.push(base + k);
             }
         }
     }
-    if (!pos.length) return null;
-    return upload(gl, { positions: new Float32Array(pos), normals: new Float32Array(nor), colors: new Float32Array(col), indices: new Uint32Array(idx) });
+    const up = b => b.pos.length ? upload(gl, { positions: new Float32Array(b.pos), normals: new Float32Array(b.nor), colors: new Float32Array(b.col), ...(b.uv.length ? { uvs: new Float32Array(b.uv) } : {}), indices: new Uint32Array(b.idx) }) : null;
+    return { plain: up(plain), tex: up(tex) };
 }
+const birch = { albedo: await loadTexture(gl, '/assets/models/buildings/farm/fences/birch_texture.png', true) };
 
 let terrain, farm, edits, fences, info = '';
 const settings = () => {
@@ -130,7 +147,7 @@ async function dress(data, t0) {
     }
     terrain.material.paths({ data: paint, n, size: data.size });
     // fences: posts on the ground, rails follow the slope
-    fences?.destroy();
+    fences?.plain?.destroy(); fences?.tex?.destroy();
     fences = await fenceMesh(farm.fences, farm.fenceStyles, g);
     // instances: x y z scale yaw tint sway _ (shader yaw turns the other way)
     const batches = new Map();
@@ -218,7 +235,8 @@ const I = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 demo.draw = camera => {
     renderer.begin(camera, [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
     terrain.draw(camera, renderer.light, demo.time);
-    if (fences) renderer.draw(fences, I);
+    if (fences?.plain) renderer.draw(fences.plain, I);
+    if (fences?.tex) renderer.draw(fences.tex, I, { maps: birch });
     scatter.draw(camera, demo.time);
     if ($('#grass').checked) grass.draw(camera, renderer.light, demo.time);
 };

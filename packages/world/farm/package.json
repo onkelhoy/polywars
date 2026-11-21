@@ -64,7 +64,8 @@
     "@polywar/terrain-material": "*",
     "@polywar/grass": "*",
     "@polywar/bridges": "*",
-    "@polywar/sweep": "*"
+    "@polywar/sweep": "*",
+    "@polywar/textured": "*"
   },
   "browserslist": [
     "defaults",

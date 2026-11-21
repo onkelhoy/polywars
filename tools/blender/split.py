@@ -13,6 +13,10 @@ import export as ex
 out = [x for x in pw.args() if not x.startswith("--")][0]
 ex.realize_instances()
 ex.principled_materials()
+# textured materials keep their image + uvs (the game draws the texture), the rest get vertex colours
+for m in bpy.data.materials:
+    if m.node_tree and any(n.type == "TEX_IMAGE" and n.image for n in m.node_tree.nodes):
+        m["texture"] = 1
 ex.textures_to_vertex_colours(per_corner=True)
 meshes = [o for o in bpy.context.scene.objects if o.type == "MESH" and o.parent is None]
 for o in meshes:

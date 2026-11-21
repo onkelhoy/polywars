@@ -96,11 +96,11 @@ export function yardFence(layout: FarmLayout, yard: number[], o: FarmOptions) {
 }
 
 /**
- * Fences resampled to post gaps (`spacing` m), then gaps dropped where a path crosses (path width + 1 m)
- * or where an earlier fence already runs (no crossings, no doubles).
+ * No doubles, no crossings: an edge (corner to corner) is dropped when it runs along or crosses a fence kept before it
+ * (its middle or both ends within `near` m). Edges are not resampled, so pieces keep their length.
  */
-export function cutFences(layout: FarmLayout, o: FarmOptions, spacing = 3) {
-    const near = (l: Line, x: number, z: number) => {
+export function cutFences(layout: FarmLayout, o: FarmOptions, near = 1.5) {
+    const dist = (l: Line, x: number, z: number) => {
         let d = Infinity;
         for (let i = 1; i < l.length; i++) {
             const [ax, az] = l[i - 1], [bx, bz] = l[i], dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
@@ -108,16 +108,19 @@ export function cutFences(layout: FarmLayout, o: FarmOptions, spacing = 3) {
         }
         return d;
     };
+    const cross = (a: [number, number], b: [number, number], c: [number, number], d: [number, number]) => {
+        const s = (p: [number, number], q: [number, number], r: [number, number]) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
+        return s(a, b, c) * s(a, b, d) < 0 && s(c, d, a) * s(c, d, b) < 0;
+    };
     const kept: Line[] = [], styles: string[] = [];
     layout.fences.forEach((line, f) => {
-        const posts = fencePosts(line, spacing);
-        let run: Line = [posts[0]];
+        let run: Line = [line[0]];
         const flush = () => { if (run.length > 1) { kept.push(run); styles.push(layout.fenceStyles[f]); } };
-        for (let i = 1; i < posts.length; i++) {
-            const a = posts[i - 1], b = posts[i], mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
-            const onPath = layout.paths.some(p => near(p.line, mx, mz) < p.width / 2 + 1);
-            const onFence = kept.some(k => near(k, mx, mz) < .8);
-            if (onPath || onFence) { flush(); run = [b]; continue; }
+        for (let i = 1; i < line.length; i++) {
+            const a = line[i - 1], b = line[i], m: [number, number] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+            const along = kept.some(k => dist(k, m[0], m[1]) < near || (dist(k, a[0], a[1]) < near && dist(k, b[0], b[1]) < near));
+            const crosses = kept.some(k => k.some((p, j) => j > 0 && cross(a, b, k[j - 1], p)));
+            if (along || crosses) { flush(); run = [b]; continue; }
             run.push(b);
         }
         flush();
