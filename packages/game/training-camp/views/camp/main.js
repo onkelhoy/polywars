@@ -340,7 +340,9 @@ const TANK = { accel: 2.2, gears: [.22, .45, .72, 1], pull: [1.7, 1.25, 1, .8], 
 // fighter on its wheels: soft long legs, free rolling (the prop pulls it), a steerable tail wheel, gentle brakes
 const PLANE = { travel: .3, frequency: 1.4, damping: .45, grip: 1, brake: 3.5, steer: 30, steerFade: 8, freeRoll: .005, roll: .6, antiRoll: 0 };
 // every vehicle comes from the camp layout (range.json `vehicles`: jeeps, bikes, the tank, fighters)
-const VEHICLES = range.data.vehicles ?? [];
+const VEHICLES = [...(range.data.vehicles ?? [])];
+// not placed in the layout yet: parked next to the ww2 tank
+if (!VEHICLES.some(v => v.kind === 'tanks/challenger-a30')) VEHICLES.push({ name: 'Challenger 0', kind: 'tanks/challenger-a30', at: [-96, 0, 28], yaw: 0 });
 const SETTINGS = { bike: BIKE, tank: TANK, plane: PLANE };
 const cars = await Promise.all(VEHICLES.map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;

@@ -15761,6 +15761,21 @@
        "name": "tanks",
        "assets": [
         {
+         "name": "challenger-a30",
+         "assets": [
+          {
+           "name": "model.glb",
+           "file": "/assets/models/vehicles/tanks/challenger-a30/model.glb",
+           "size": 519140
+          },
+          {
+           "name": "vehicle.json",
+           "file": "/assets/models/vehicles/tanks/challenger-a30/vehicle.json",
+           "size": 4466
+          }
+         ]
+        },
+        {
          "name": "Challenger A30 Cruiser.blend",
          "file": "/assets/models/vehicles/tanks/Challenger A30 Cruiser.blend",
          "size": 1283708

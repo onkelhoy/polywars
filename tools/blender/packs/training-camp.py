@@ -65,6 +65,8 @@ ASSET_VEHICLES = {
     "vehicles/ww2-motorcycle/model": ("ww2-motorcycle", -math.pi / 2),
     "vehicles/ww2-tank/model": ("ww2-tank", -math.pi / 2),
     "vehicles/ww2-fighter/model": ("ww2-fighter", math.pi / 2),
+    # new exports (packs/challenger.py) already have the nose on +y
+    "vehicles/tanks/challenger-a30/model": ("tanks/challenger-a30", 0),
 }
 # one box per object, whatever its parts
 LUMPS = ("Rock.", "Sandbag", "Crate", "Barrel", "Flag stone", "Fence barbed", "Tank ", "Truck ", "Motorbike ", "Artillery ", "Fighter ", "Bomber")

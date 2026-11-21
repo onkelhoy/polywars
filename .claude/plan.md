@@ -69,3 +69,8 @@ Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B h
 - Camp `views/camp/plane.js`: E in / out (stopped), Shift / Ctrl throttle, mouse or S / W pitch, A / D roll, Z / C rudder, B brakes, I engine, hold click fires, V cockpit / chase (banks). HUD: speed, height, throttle, g, stall, ammo. Crash > 14 m/s: blast + thrown out.
 - Sound: `PlaneSound` (`@polywar/vehicle-audio`): V12 + 3 blade buzz + wind roar.
 - Next: bomber (bomb whistle + big blasts), star textures, enemy plane, damage.
+
+## Challenger A30 (feature/fighter): needs in-game check (owner)
+- `tools/blender/packs/challenger.py` -> `vehicles/tanks/challenger-a30/` (model.glb + vehicle.json, 33 t, 16 wheels, turret + gun). No materials in the blend: olive drab / dark tracks / gun metal given. `Human` figure dropped.
+- Camp: placeable as an asset empty `vehicles/tanks/challenger-a30/model` (`ASSET_VEHICLES`); until placed it parks at x -96 z 28 (main.js). Drives like the ww2 tank (same TANK setting, gun, sound). Headless: ~38 km/h.
+- Later: ww2-tank into `tanks/`.
