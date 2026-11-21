@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gun drop, fx fixes). Smoke 4 done, jeep 7 was already done. Open: arms-grip 5 (grab animation: owner designs).
+Everything is on `main` (farm, smoke, explosion, knockdown, grenades, camp upgrade, gun drop, fx fixes). Smoke 4 done, jeep 7 was already done. Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 - Camp: range rework (ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, lights + glow, doors, grass (falloff, no SSAO on tufts, grass in the scope), optics 1-6.
@@ -17,7 +17,7 @@ Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gu
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).
 - Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
 
-## Farm (`@polywar/farm`, feature/farm): needs in-game check (owner)
+## Farm (`@polywar/farm`, on main): needs in-game check (owner)
 All 7 done (first pass) + owner round 1 (gates, doors, chicken run, crops, props, view spot). Views: `farm/views/experiment` (top down, show = edits), `world/views/farm` (one farm on a 640 m real world, buttons top / yard / bench). World: `settings.farms` adds farm areas; farm sites get a farm (up to 220 m, heaviest first, clear of towns). Flatten pads into the height grid, paint into the ways paint grid, no grass / no trees on yard / fields / pastures, hedgerows + bank trees (`FARM_TREES`), crops (`CROPS`, `cropRows`), fences generated (bridges `fence`, follow the slope), buildings + props in `world.farmBuilt` (farm lods via `assets/models/buildings/farm/lod.json`).
 Known rough: yard + fields paint all brown, edits per field cell, few fields on steep maps, no animals, props/village has no lods.
 
