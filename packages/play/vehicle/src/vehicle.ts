@@ -42,6 +42,18 @@ export class Vehicle {
         const v = this.body.velocity;
         return n / this.wheels.length * Math.min(1, Math.hypot(v.x, v.z) / 6);
     }
+    /** bike: lean, rad (+ right side down) */
+    lean = 0;
+    /** bike: on its side (balance off until `raise`) */
+    fallen = false;
+    /** hit hard (bike: also tipped over); `speed` m/s just before, `impact` the speed lost in one step, m/s.
+     * `crashVelocity` is the velocity just before (throw the rider with it) */
+    oncrash?: (speed: number, impact: number) => void;
+    readonly crashVelocity = new Vector3(0, 0, 0);
+    /** car: speed lost in one step (m/s) that counts as a crash. Default 7 */
+    crashAt = 7;
+    private impact = 0;
+    private calm = 0;
     /** called on every gear change (sound, a camera nudge) */
     onshift?: (gear: number, up: boolean) => void;
 
@@ -71,13 +83,17 @@ export class Vehicle {
     private sag: number;
     private lock: number;
     private left = 0;
+    private bike: boolean;
+    private last = new Vector3(0, 0, 0);
+    private right = new Vector3(0, 0, 0);
 
     constructor(setting: VehicleSetting, at: Point = [0, 0, 0], yaw = 0) {
         this.s = {
             travel: .3, frequency: 1.3, damping: .3, grip: 1.1, slide: .35, accel: 3.5, brake: 8, reverse: 5,
-            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: .3, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
+            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: setting.spec.kind === "bike" ? 1 : .3, balance: 30, balanceDamping: 8, maxLean: 45, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
         };
         const spec = this.spec = setting.spec;
+        this.bike = spec.kind === "bike";
         const n = spec.wheels.length, quarter = spec.mass / n;
         const w = 2 * Math.PI * this.s.frequency;
         this.k = quarter * w * w;
@@ -128,7 +144,15 @@ export class Vehicle {
         b.angularVelocity.x = b.angularVelocity.y = b.angularVelocity.z = 0;
         b.updateInertia();
         b.wake();
+        this.fallen = false;
+        this.last.set(b.velocity);
         if (this.owned) this.solids.gather([b.position]);
+    }
+
+    /** bike: stand it back up where it lies, nose kept */
+    raise() {
+        const q = this.body.rotation, n = q.rotate(set(this.nose, 0, 0, -1));
+        this.place(this.body.position.x, this.body.position.z, Math.atan2(-n[0], -n[2]));
     }
 
     /** alone: steps its own world. Shared: use `Vehicles.update` */
@@ -166,7 +190,22 @@ export class Vehicle {
         out[0] = cy; out[1] = 0; out[2] = -sy; out[3] = 0;
         out[4] = sy * sx; out[5] = cx; out[6] = cy * sx; out[7] = 0;
         out[8] = sy * cx; out[9] = -sx; out[10] = cy * cx; out[11] = 0;
-        return pivot(out, p, this.sag - w.length);
+        pivot(out, p, this.sag - w.length);
+        if (!(w.spec.steer && this.spec.fork)) return out;
+        // bike: the wheel only spins + travels in the fork; the fork turns it
+        const r = Math.cos(w.spin), t = Math.sin(w.spin);
+        out[0] = 1; out[1] = 0; out[2] = 0; out[4] = 0; out[5] = r; out[6] = t; out[8] = 0; out[9] = -t; out[10] = r;
+        pivot(out, p, this.sag - w.length);
+        const f = this.fork(FORK)!;
+        return multiply(f, out, out);
+    }
+
+    /** bike fork node move (model space): turn round the raked axis; undefined without a fork */
+    fork<T extends M16>(out: T): T | undefined {
+        const f = this.spec.fork;
+        if (!f) return undefined;
+        this.turn.setAxisAngle(f.axis[0], f.axis[1], f.axis[2], -this.steering).writeMatrix(out);
+        return pivot(out, f.position, 0);
     }
 
     /** the steering wheel's turn round its axis, rad */
@@ -224,7 +263,7 @@ export class Vehicle {
         const pull = this.gear < 0 ? 1.4 : s.pull[Math.max(0, this.gear - 1)] ?? 1;
         // full pull until near the gear's top, then the governor / rev limit eases it off
         const fade = clamp((1 - Math.abs(this.speed) / gearTop) / .12, 0, 1);
-        const drive = braking ? 0 : Math.sign(throttle) * this.power * spec.mass * s.accel * pull * fade / driven;
+        const drive = braking || this.fallen ? 0 : Math.sign(throttle) * this.power * spec.mass * s.accel * pull * fade / driven;
         const brake = braking ? spec.mass * s.brake / this.wheels.length : 0;
         const rearZ = Math.max(...this.wheels.map(w => w.spec.position[2]));
 
@@ -275,15 +314,19 @@ export class Vehicle {
             else if (brake) fLong = -Math.sign(vLong) * Math.min(brake, Math.abs(vLong) * quarter * LOCK);
             else fLong = (ws.drive !== false ? drive : 0) - vLong * quarter * (throttle ? .02 : .08);
             if (locked && !input.parked) fLat = clamp(fLat, -limit * s.slide, limit * s.slide);
+            // down: the tyres skid (a lying bike slides on, spinning)
+            if (this.fallen) { fLat = clamp(fLat, -limit * .25, limit * .25); fLong = clamp(fLong, -limit * .25, limit * .25); }
             const total = Math.hypot(fLong, fLat);
             w.slipping = total > limit;
             if (w.slipping) { fLong *= limit / total; fLat *= limit / total; }
 
             w.omega = locked ? 0 : vLong / ws.radius;
             w.spin -= w.omega * dt;
-            this.push(r, set(force, up[0] * load, up[1] * load, up[2] * load));
+            // bike: the tyre's load stands straight up off the ground (a leaned bike tips by it), car: along the body
+            const ld = this.bike ? w.normal : up;
+            this.push(r, set(force, ld[0] * load, ld[1] * load, ld[2] * load));
             // tyre forces act part way up to the centre of mass height: less roll / trip (arcade, `roll`)
-            const lift = -r.dot(up) * (1 - s.roll);
+            const lift = -r.dot(up) * (1 - (this.fallen ? 1 : s.roll));
             set(rt, r[0] + up[0] * lift, r[1] + up[1] * lift, r[2] + up[2] * lift);
             this.push(rt, set(force, fwd[0] * fLong + side[0] * fLat, fwd[1] * fLong + side[1] * fLat, fwd[2] * fLong + side[2] * fLat));
         }
@@ -302,9 +345,72 @@ export class Vehicle {
             this.push(r, set(force, -pv[0] * rub, fy, -pv[2] * rub));
         }
 
+        // a hard hit: speed lost in one step
+        const bv = b.velocity;
+        this.impact = Math.hypot(bv.x - this.last[0], bv.y - this.last[1], bv.z - this.last[2]);
+        if (this.impact > 3) this.crashVelocity.set(this.last);
+        this.last.set(bv);
+        this.calm = Math.max(0, this.calm - dt);
+        if (this.bike) this.balance(dt, input);
+        else if (this.impact > this.crashAt && this.calm <= 0)
+        {
+            this.calm = 1;
+            this.oncrash?.(Math.hypot(this.crashVelocity[0], this.crashVelocity[1], this.crashVelocity[2]), this.impact);
+        }
+
         // air drag
         const sp = Math.hypot(v.x, v.y, v.z), drag = .5 * sp;
         b.applyForce({ x: -v.x * drag, y: -v.y * drag, z: -v.z * drag });
+    }
+
+    /** bike: rider's balance (a capped roll torque towards the lean the turn wants), the kickstand (
+     * leans it left, weakly) when nobody rides it, feet down when ridden and stopped; nothing once down (it falls, slides, spins) */
+    private balance(dt: number, input: DriveInput) {
+        const b = this.body, s = this.s, q = b.rotation, spec = this.spec, m = spec.mass;
+        const nose = q.rotate(set(this.nose, 0, 0, -1)), right = q.rotate(set(this.right, 1, 0, 0));
+        this.lean = Math.asin(clamp(-right[1], -1, 1));
+        const max = s.maxLean * Math.PI / 180;
+        // a hard hit: speed lost in one step
+        const v = b.velocity, impact = this.impact;
+        // lean alone can't tell upside down (lean ~0 again): the body's up pointing down counts too
+        const up = q.rotate(set(this.up, 0, 1, 0));
+        if (!this.fallen && (Math.abs(this.lean) > max + .35 || up[1] < .3 || impact > this.crashAt)) this.crash(impact);
+        if (this.fallen)
+        {
+            // landed on its back (bars + seat): tips onto a side and lies there, never back up by itself
+            if (up[1] < -.2 && b.position.y - this.s.ground(b.position.x, b.position.z) < 1.2)
+            {
+                const side = right[1] >= 0 ? 1 : -1, t = m * G * .5 * side;
+                b.applyTorque({ x: nose[0] * t, y: nose[1] * t, z: nose[2] * t });
+            }
+            return;
+        }
+        const rate = b.angularVelocity.x * nose[0] + b.angularVelocity.y * nose[1] + b.angularVelocity.z * nose[2];
+        // ridden: lean into the turn; stopped, the feet hold it up; slow, nothing slides sideways (no glide)
+        const ws = spec.wheels, base = Math.abs(ws[0].position[2] - ws[1].position[2]) || 1.4;
+        // nobody on it + slow: on the kickstand (leans left, holds weakly: a good shove tips it over)
+        const stand = !input.ridden && Math.abs(this.speed) < 1.5;
+        const target = stand ? -.2 : clamp(Math.atan(this.speed * this.speed * Math.tan(this.steering) / (base * G)), -max, max);
+        const cap = m * G * (stand ? .18 : Math.abs(this.speed) < 1.5 ? .6 : .4);
+        const t = clamp(m * (s.balance * (target - this.lean) - s.balanceDamping * rate), -cap, cap);
+        b.applyTorque({ x: nose[0] * t, y: nose[1] * t, z: nose[2] * t });
+        if (Math.abs(this.speed) < 1.5)
+        {
+            const side = right[0] * v.x + right[2] * v.z, k = m * 8;
+            b.applyForce({ x: -right[0] * side * k, y: 0, z: -right[2] * side * k });
+        }
+        void dt;
+    }
+
+    /** down: balance off, a roll + spin kick from the speed (it tumbles, then slides on its side) */
+    private crash(impact: number) {
+        const b = this.body, v = impact > 3 ? this.crashVelocity : b.velocity, speed = Math.hypot(v[0], v[1], v[2]);
+        if (impact <= 3) this.crashVelocity.set(b.velocity);
+        this.fallen = true;
+        const side = this.lean !== 0 ? Math.sign(this.lean) : Math.random() < .5 ? -1 : 1;
+        const n = this.nose, w = b.angularVelocity, kick = 1.5 + Math.min(4, (speed + impact) * .15), spin = (Math.random() - .5) * Math.min(5, speed * .25);
+        w.x += n[0] * kick * side; w.y += n[1] * kick * side + spin; w.z += n[2] * kick * side;
+        this.oncrash?.(speed, impact);
     }
 
     private shift(to: number) {
@@ -365,6 +471,16 @@ export class Vehicle {
     }
 }
 
+const FORK = new Float32Array(16);
+/** a * b (column major 4x4) into out (out may be b) */
+function multiply<T extends M16>(a: M16, b: M16, out: T): T {
+    const t = TMP;
+    for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++)
+        t[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+    for (let i = 0; i < 16; i++) out[i] = t[i];
+    return out;
+}
+const TMP = new Float32Array(16);
 function clamp(x: number, lo: number, hi: number) { return x < lo ? lo : x > hi ? hi : x; }
 /** fill a scratch vector (no allocation, unlike `new Vector3`) */
 function set(v: Vector3, x: number, y: number, z: number) { v[0] = x; v[1] = y; v[2] = z; return v; }

@@ -5,8 +5,8 @@ import type { BurstOptions, Colour, Emitter, Field, FieldOptions, Layer, PlaceOp
 // puff fields (one Float32Array, STRIDE per puff)
 const PX = 0, PY = 1, PZ = 2, VX = 3, VY = 4, VZ = 5, AGE = 6, LIFE = 7, R0 = 8, R1 = 9, GROW = 10, DRAG = 11, LIFT = 12,
     SWIRL = 13, STRETCH = 14, CR = 15, CG = 16, CB = 17, BRIGHT = 18, DIM = 19, SHRINK = 20, GROUND = 21, SEED = 22,
-    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30, TOP = 31, SKY = 32, DETAIL = 33, CX = 34, CY = 35, CZ = 36, TUMBLE = 37;
-const STRIDE = 38;
+    ID = 23, PARENT = 24, OX = 25, OZ = 26, GROUP = 27, ROLL = 28, SPIN = 29, FLAT = 30, TOP = 31, SKY = 32, DETAIL = 33, CX = 34, CY = 35, CZ = 36, TUMBLE = 37, OPACITY = 38;
+const STRIDE = 39;
 // puff instance: x y z radius | stretch xyz seed | r g b bright | angle, bottom squash, top squash, sky shade | eaten 0..1
 const PUFF = 20;
 // tube instance: a xyz radius | b xyz radius | r g b bright | eaten 0..1
@@ -218,6 +218,7 @@ export class Smoke {
             {
                 const slot = this.spawn(layer, at, options.scale ?? 1, options.velocity, options.colour, group);
                 if (slot < 0) return;
+                this.data[slot * STRIDE + OPACITY] = options.opacity ?? 1;
                 if (layer.link !== false)
                 {
                     const d = this.data, o = slot * STRIDE;
@@ -321,6 +322,7 @@ export class Smoke {
         d[o + LIFT] = (layer.lift ?? 0) * scale;
         d[o + SWIRL] = (layer.swirl ?? .5) * scale;
         d[o + STRETCH] = layer.stretch ?? .05;
+        d[o + OPACITY] = 1;
         const c = colour ?? layer.colour ?? WHITE, shade = 1 + (Math.random() - .5) * .05;
         d[o + CR] = c[0] * shade; d[o + CG] = c[1] * shade; d[o + CB] = c[2] * shade;
         d[o + BRIGHT] = layer.bright ?? 1;
@@ -453,7 +455,7 @@ export class Smoke {
             P[k + 13] = d[o + FLAT];
             P[k + 14] = d[o + TOP];
             P[k + 15] = d[o + SKY];
-            P[k + 16] = eat; P[k + 17] = smoothstep(this.look.fade, 1, t);
+            P[k + 16] = eat; P[k + 17] = Math.max(smoothstep(this.look.fade, 1, t), 1 - d[o + OPACITY]);
         }
         if (!n && !n1) return;
         // tubes: puff to parent while both show and they are close
@@ -474,7 +476,7 @@ export class Smoke {
             T[k + 4] = d[q + PX]; T[k + 5] = d[q + PY]; T[k + 6] = d[q + PZ]; T[k + 7] = rb;
             T[k + 8] = (d[o + CR] + d[q + CR]) / 2; T[k + 9] = (d[o + CG] + d[q + CG]) / 2; T[k + 10] = (d[o + CB] + d[q + CB]) / 2;
             T[k + 12] = Math.max(eaten[i], eaten[parent]);
-            T[k + 13] = smoothstep(this.look.fade, 1, Math.max(d[o + AGE] / d[o + LIFE], d[q + AGE] / d[q + LIFE]));
+            T[k + 13] = Math.max(smoothstep(this.look.fade, 1, Math.max(d[o + AGE] / d[o + LIFE], d[q + AGE] / d[q + LIFE])), 1 - Math.min(d[o + OPACITY], d[q + OPACITY]));
             T[k + 11] = Math.min(d[o + BRIGHT] * (1 - smoothstep(0, d[o + DIM], d[o + AGE] / d[o + LIFE])), d[q + BRIGHT] * (1 - smoothstep(0, d[q + DIM], d[q + AGE] / d[q + LIFE])));
         }
 

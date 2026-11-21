@@ -19,6 +19,8 @@ export type WheelSpec = {
 /** what an asset's `vehicle.json` holds (see tools/blender/packs/jeep.py) */
 export type VehicleSpec = {
     model?: string;
+    /** "bike": two wheels in line, kept upright by a balance (leans into turns, kickstand when parked, falls on a crash) */
+    kind?: "car" | "bike";
     /** kg */
     mass: number;
     /** m/s */
@@ -28,9 +30,15 @@ export type VehicleSpec = {
     body?: { min: Point; max: Point };
     /** `axis` points from the rim to the driver; `radius` the rim's (m) */
     steeringWheel?: { node: string; position: Point; axis: Point; turns?: number; radius?: number };
+    /** bike front: fork node turning round `axis` (up, raked back) through `position` (the front axle); the steering wheel rides it */
+    fork?: { node: string; position: Point; axis: Point };
+    /** handlebar ends [left, right], model space (rest, straight ahead) */
+    grips?: Point[];
     seat?: Point;
     eye?: Point;
     exit?: Point;
+    /** exhaust pipe end, model space (`Exhaust`); default low at the back, right side */
+    exhaust?: Point;
 };
 
 /** a static axis aligned box the chassis bumps into and wheels drive onto (same shape as `@polywar/mover` boxes) */
@@ -84,6 +92,11 @@ export type VehicleSetting = {
     redline?: number;
     /** how much of the tyre force's lean it keeps: 1 real (tips easily), 0 none. Default .3 */
     roll?: number;
+    /** bike balance: lean spring (1/s²) and damping (1/s). Defaults 30 / 8 */
+    balance?: number;
+    balanceDamping?: number;
+    /** bike: most lean, degrees. Default 45 */
+    maxLean?: number;
 };
 
 export type DriveInput = {
@@ -94,6 +107,8 @@ export type DriveInput = {
     handbrake?: boolean;
     /** parking brake: every wheel held (cars nobody drives) */
     parked?: boolean;
+    /** bike: someone rides it (no rider + parked = on the kickstand) */
+    ridden?: boolean;
 };
 
 export type WheelState = {

@@ -9,7 +9,7 @@ import type { GrassOptions, GrassSettings, Light, Planting, Pusher, Quality, Vie
 type Geometry = { vao: WebGLVertexArrayObject; buffers: WebGLBuffer[]; count: number; indexed?: number };
 
 /**
- * GPU grass. Plant an area, then `draw` each frame (and `drawGround` for the matching floor).
+ * GPU grass. Plant an area, then `draw` each frame. On a terrain, `ground(albedo)` gives the tufts the ground's colour.
  * Everything visual is in `options`; `quality` picks a preset of the costly parts.
  * The look is a `GrassMaterial` (`@polywar/grass-material`); this places, chunks and culls the tufts.
  */
@@ -20,7 +20,6 @@ export class Grass {
     private instances: WebGLBuffer;
     private planting?: Planting;
     private placed?: Placed;
-    private ground?: Geometry;
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     /** tufts drawn last frame */
     drawn = 0;
@@ -91,7 +90,6 @@ export class Grass {
             return;
         }
         this.upload(place(planting, this.o.q.density, this.o.chunk, this.o.q.maxTufts, this.o.sizeJitter));
-        this.buildGround();
     }
 
     /**
@@ -224,24 +222,17 @@ export class Grass {
         if (cull) gl.enable(gl.CULL_FACE);
     }
 
-    /** The floor under the grass with the same patches, light and clouds. `darken` scales its colour. */
-    drawGround(view: View, light: Light, time: number, darken = .8) {
-        const gl = this.gl, g = this.ground;
-        if (!g || !this.material.useGround(view, light, time, darken)) return;
-        gl.enable(gl.DEPTH_TEST);
-        // the floor is the terrain: pushed back in depth steps, so roads / pads lying on it win (no z-fight)
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-        gl.polygonOffset(2, 8);
-        gl.bindVertexArray(g.vao);
-        if (g.indexed) gl.drawElements(gl.TRIANGLES, g.count, g.indexed, 0);
-        else gl.drawArrays(gl.TRIANGLES, 0, g.count);
-        gl.bindVertexArray(null);
-        gl.disable(gl.POLYGON_OFFSET_FILL);
+    /**
+     * Tufts take the colour of the ground under them: `albedo` from `@polywar/terrain-material` `bakeAlbedo` (the terrain's
+     * cover map makes that ground grassy). `strength` 0..1, `lift` brightens. null: the grass's own colours.
+     */
+    ground(albedo: { texture: WebGLTexture; size: number } | null, strength = 1, lift = 1.25) {
+        this.material.ground(albedo, strength, lift);
     }
 
     destroy() {
         const gl = this.gl;
-        for (const g of [this.geometry, this.ground]) if (g) { gl.deleteVertexArray(g.vao); g.buffers.forEach(b => gl.deleteBuffer(b)); }
+        for (const g of [this.geometry]) if (g) { gl.deleteVertexArray(g.vao); g.buffers.forEach(b => gl.deleteBuffer(b)); }
         gl.deleteBuffer(this.instances);
         this.material.destroy();
     }
@@ -307,54 +298,6 @@ export class Grass {
         }
         gl.bindVertexArray(null);
         this.geometry = { vao, buffers, count: indices ? indices.length : positions.length / 3, indexed };
-    }
-
-    /** grid over the planted area, following `height`, about 1 m cells */
-    /**
-     * Use your own floor for `drawGround` (world space triangles, xyz per vertex, e.g. the level's ground where grass grows)
-     * instead of the planted area's height grid. Kept until the next call; `plant` over a non window area rebuilds the grid.
-     */
-    setGround(positions: Float32Array) {
-        const gl = this.gl;
-        if (this.ground) { gl.deleteVertexArray(this.ground.vao); this.ground.buffers.forEach(b => gl.deleteBuffer(b)); }
-        const vao = gl.createVertexArray()!, pb = gl.createBuffer()!;
-        gl.bindVertexArray(vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, pb);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-        gl.bindVertexArray(null);
-        this.ground = { vao, buffers: [pb], count: positions.length / 3 };
-    }
-
-    private buildGround() {
-        const gl = this.gl, pl = this.planting!, a = pl.area;
-        const nx = Math.min(256, Math.max(1, Math.ceil(a.width))), nz = Math.min(256, Math.max(1, Math.ceil(a.depth)));
-        const positions = new Float32Array((nx + 1) * (nz + 1) * 3);
-        for (let j = 0, k = 0; j <= nz; j++) for (let i = 0; i <= nx; i++)
-        {
-            const x = a.x + a.width * i / nx, z = a.z + a.depth * j / nz;
-            positions.set([x, pl.height ? pl.height(x, z) : 0, z], k);
-            k += 3;
-        }
-        const indices = new Uint32Array(nx * nz * 6);
-        for (let j = 0, k = 0; j < nz; j++) for (let i = 0; i < nx; i++)
-        {
-            const v = j * (nx + 1) + i;
-            indices.set([v, v + nx + 1, v + 1, v + 1, v + nx + 1, v + nx + 2], k);
-            k += 6;
-        }
-        if (this.ground) { gl.deleteVertexArray(this.ground.vao); this.ground.buffers.forEach(b => gl.deleteBuffer(b)); }
-        const vao = gl.createVertexArray()!, pb = gl.createBuffer()!, ib = gl.createBuffer()!;
-        gl.bindVertexArray(vao);
-        gl.bindBuffer(gl.ARRAY_BUFFER, pb);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-        gl.bindVertexArray(null);
-        this.ground = { vao, buffers: [pb, ib], count: indices.length, indexed: gl.UNSIGNED_INT };
     }
 }
 

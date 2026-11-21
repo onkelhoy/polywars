@@ -63,7 +63,8 @@
     "@polywar/viewport": "*",
     "playwright": "1.64.1",
     "typescript": "5.9.3",
-    "@polywar/renderer": "*"
+    "@polywar/renderer": "*",
+    "@polywar/terrain-material": "*"
   },
   "browserslist": [
     "defaults",

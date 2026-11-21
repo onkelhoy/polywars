@@ -51,7 +51,9 @@
     "@polywar/ballistics": "*",
     "@polywar/gun-menu": "*",
     "@papit/vector": "*",
-    "@polywar/explosion-audio": "*"
+    "@polywar/explosion-audio": "*",
+    "@polywar/close-dark": "*",
+    "@polywar/ragdoll": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",
@@ -68,6 +70,7 @@
     "@polywar/vehicle-audio": "*",
     "@papit/audio": "*",
     "@polywar/grass": "*",
+    "@polywar/terrain-material": "*",
     "@polywar/light": "*",
     "@polywar/explosion": "*",
     "@polywar/smoke": "*",

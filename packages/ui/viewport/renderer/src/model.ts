@@ -212,10 +212,11 @@ export class Model {
         this.rig.update();
     }
 
-    get parts(): { mesh: GPUMesh; matrix: Matrix4; maps?: Maps; data: Mesh }[] {
+    get parts(): { name: string; mesh: GPUMesh; matrix: Matrix4; maps?: Maps; data: Mesh }[] {
         return this.items.filter(item => !item.skinned).flatMap(item => {
             const meshIndex = this.gltf.nodes[item.node].mesh!;
-            return this.gpu[meshIndex].map((mesh, i) => ({ mesh, matrix: item.world, maps: this.textures[meshIndex]?.[i], data: this.gltf.meshes[meshIndex].primitives[i] }));
+            const name = (this.gltf.nodes[item.node] as { name?: string }).name ?? "";
+            return this.gpu[meshIndex].map((mesh, i) => ({ name, mesh, matrix: item.world, maps: this.textures[meshIndex]?.[i], data: this.gltf.meshes[meshIndex].primitives[i] }));
         });
     }
 

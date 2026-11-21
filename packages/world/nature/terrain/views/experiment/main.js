@@ -3,7 +3,7 @@ import { MeshBuilder, upload } from '@papit/game-mesh';
 import { Renderer } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 import { BIOMES, DEFAULTS, MAPS, Terrain } from '@polywar/terrain';
-import { TERRAIN_LOOKS, linear } from '@polywar/terrain-material';
+import { TERRAIN_LOOKS, coverMap, linear } from '@polywar/terrain-material';
 import { WaterScreen } from '@polywar/water';
 
 const $ = s => document.querySelector(s);
@@ -207,17 +207,28 @@ let cityIndex = -1;
 $('#overview').onclick = overview;
 $('#city').onclick = () => { const c = terrain.cities; if (!c.length) return; cityIndex = (cityIndex + 1) % c.length; focus(c[cityIndex].x, c[cityIndex].z, c[cityIndex].radius * 3); };
 
-// ---- grass on grassland around the first city: terrain heights and biomes drive the planting ----
+// ---- grass on grassland around the first city: the cover map (from the biomes) paints the grass ground and plants
+// the tufts; the tufts take the ground's baked colour ----
+let bake = false;
+const GRASSY = ['grassland', 'plateau', 'savanna'];
 const plantGrass = () => {
     grass?.destroy(); grass = undefined;
+    terrain.cover(null);
     const c = terrain.cities[0];
-    if (!$('#grass').checked || !c) return;
+    if (!$('#grass').checked || !c || !terrain.data) return;
+    const size = terrain.data.size;
+    terrain.cover(coverMap(size, Math.min(2048, Math.ceil(size / 2)), (x, z, out) => {
+        const b = terrain.biomeAt(x, z);
+        out.density = GRASSY.includes(b) ? 1 : 0;
+        out.dry = b === 'savanna' ? .6 : 0;
+    }));
+    bake = true;
     grass = new Grass(layer, { quality: 'low' });
-    const r = 40;
+    const r = 40, out = { density: 0, height: 1, dry: 0, flowers: 0 };
     grass.plant({
         area: { x: c.x - r, z: c.z - r, width: r * 2, depth: r * 2 }, seed: 1,
-        height: (x, z) => terrain.heightAt(x, z),
-        mask: (x, z) => ['grassland', 'plateau', 'savanna'].includes(terrain.biomeAt(x, z)) ? 1 : 0,
+        height: (x, z) => terrain.groundAt(x, z),
+        grow: (x, z) => terrain.coverAt(x, z, out),
     });
 };
 $('#grass').onchange = plantGrass;
@@ -249,8 +260,9 @@ demo.tick = dt => {
 demo.draw = camera => {
     const under = camera.worldPosition && terrain.underwater(camera.worldPosition);
     renderer.begin(camera, under ? [...linear(terrain.water.look.under.shallow).map(c => Math.pow(c, 1 / 2.2)), 1] : [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
+    if (bake && grass) { const a = terrain.bakeAlbedo(2048, renderer.light); if (a) { grass.ground(a); bake = false; } }
     terrain.draw(camera, renderer.light, demo.time);
-    if (grass) { grass.drawGround(camera, renderer.light, demo.time); grass.draw(camera, renderer.light, demo.time); }
+    if (grass) grass.draw(camera, renderer.light, demo.time);
     if ($('#markers').checked) for (const c of terrain.cities)
     {
         const k = Math.max(3, c.radius * .08);

@@ -2,6 +2,7 @@ import '@polywar/viewport';
 import { MeshBuilder, loadGLTF, upload } from '@papit/game-mesh';
 import { Renderer } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
+import { TerrainMaterial } from '@polywar/terrain-material';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -164,10 +165,18 @@ demo.tick = dt => {
         $('#info').value = `${grass.count} planted · ${grass.drawn} drawn${grass.capped ? ` · capped (${grass.density.toFixed(1)}/m²)` : ''}\n${rate.toFixed(0)} fps`;
     }
 };
+// the floor: a flat terrain, its grass ground in the grass look's colours (how a terrain shows this look)
+const floor = upload(gl, { positions: new Float32Array([-500, 0, -500, 500, 0, -500, 500, 0, 500, -500, 0, 500]), normals: new Float32Array([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]), indices: new Uint32Array([0, 2, 1, 0, 3, 2]) });
+const ground = new TerrainMaterial(layer, { flat: true, variation: 0, paint: { edge: 0, size: 30, washes: .001, rim: 0, warmth: 0, grain: 0, pixel: 0 } });
+ground.cover({ data: new Uint8Array([255, 0, 128, 0]), n: 1, size: 1e4 });
+const I = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 demo.draw = camera => {
     {
         renderer.begin(camera, demo.background);
-        grass.drawGround(camera, renderer.light, demo.time);
+        const o = grass.options;
+        ground.set({ colors: { grassland: o.color }, grass: { color: o.color, dry: o.dry, patches: o.patches, blend: 1, darken: .8, edge: -1 }, bands: grass.material.look.bands, lighting: o.lighting });
+        ground.set({ paint: { ...ground.look.paint, pixel: grass.material.look.pixelated ? o.size[0] / grass.material.look.pixels : 0 } });
+        if (ground.useGround(camera, renderer.light)) ground.drawPart(floor, I);
         grass.draw(camera, renderer.light, demo.time);
         if ($('#pushing').checked) for (const [x, y, z, r] of placed)
         {

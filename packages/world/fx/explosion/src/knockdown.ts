@@ -54,6 +54,8 @@ export class Knockdown {
     private shut = false;
     private time = 0;
     private fallTime = .45;
+    /** s out cold (eyes shut) after landing */
+    private out = 0;
     private downTime = 2;
     private rollTime = 0;
     private groggyTime = 4;
@@ -73,9 +75,10 @@ export class Knockdown {
 
     /**
      * A blast reached you: `shock` 0..1, `direction` the push (world), `yaw` / `pitch` your look now.
-     * Goes down if over the threshold (lying already: a bit longer). Returns if it did.
+     * Goes down if over the threshold (lying already: a bit longer); `out` s out cold (eyes shut) first. Returns if it did.
      */
-    hit(shock: number, direction: ArrayLike<number>, yaw: number, pitch: number) {
+    hit(shock: number, direction: ArrayLike<number>, yaw: number, pitch: number, out = 0) {
+        this.out = out;
         if (shock < (this.setting.threshold ?? .2)) return false;
         const l = Math.hypot(direction[0], direction[2]) || 1, dx = direction[0] / l, dz = direction[2] / l;
         this.direction = [dx, 0, dz];
@@ -106,7 +109,8 @@ export class Knockdown {
      * blink or two (snap shut, snap open). Lying lasts till they are done.
      */
     private plan(shock: number) {
-        let t = .5 + .6 * shock + Math.random() * .3;
+        // out cold: the eyes stay shut `out` s longer before they first open
+        let t = .5 + .6 * shock + Math.random() * .3 + this.out;
         const keys: [number, number][] = [[0, 1], [t, 1]];
         const at = (dt: number, v: number) => { t += dt; keys.push([t, v]); };
         at(.6, .5); at(.25 + Math.random() * .3, .45); at(.45, 0);

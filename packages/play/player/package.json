@@ -63,7 +63,8 @@
     "@polywar/weapon-audio": "*",
     "@polywar/debris": "*",
     "@papit/quaternion": "*",
-    "@papit/vector": "*"
+    "@papit/vector": "*",
+    "@polywar/ragdoll": "*"
   },
   "devDependencies": {
     "typescript": "5.9.3",

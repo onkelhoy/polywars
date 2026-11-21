@@ -3,12 +3,13 @@ import { bindShadows } from "@polywar/shadows";
 import type { Layer3D } from "@papit/game-engine";
 import { bindUnder } from "@polywar/water";
 import { GROUND_FRAGMENT, GROUND_VERTEX, NOISE_FRAGMENT, NOISE_SIZE, NOISE_VERTEX } from "./shaders";
-import { BIOMES, type BiomeMap, type Light, type TerrainLook, type Underwater, type View } from "./types";
+import { BIOMES, type Albedo, type BiomeMap, type CoverMap, type Light, type TerrainLook, type Underwater, type View } from "./types";
 
 type Program = { name: string; program: WebGLProgram; u: (name: string) => WebGLUniformLocation | null };
 
 let ids = 0;
-const DEBUG = { "": 0, biome: 1, height: 2, slope: 3, moisture: 4, temperature: 5, flow: 6 } as const;
+const IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+const DEBUG = { "": 0, biome: 1, height: 2, slope: 3, moisture: 4, temperature: 5, flow: 6, cover: 7, albedo: 8 } as const;
 
 /** Low poly earthy palette; any field can be overridden. */
 export const TERRAIN_LOOK: TerrainLook = {
@@ -20,6 +21,10 @@ export const TERRAIN_LOOK: TerrainLook = {
     snow: { color: "#f2f4f7", height: 260, softness: 25, slope: .6 },
     paint: { edge: 10, size: 30, washes: .5, rim: 0, warmth: .5, grain: 0, pixel: .3 },
     paths: { dirt: "#8a6e4e", gravel: "#a59a86" },
+    grass: {
+        color: "#5d9a3a", dry: "#c4ad62", blend: .5, darken: .8, edge: .3,
+        patches: [{ color: "#7bb045", scale: .02, threshold: .58, softness: .08 }, { color: "#4a7d33", scale: .015, threshold: .62, softness: .08 }],
+    },
     variation: 0,
     flat: false,
     bands: 3,
@@ -57,6 +62,9 @@ export class TerrainMaterial {
     private id = ids++;
     private map?: { texture: WebGLTexture; n: number; size: number };
     private pathMap?: { texture: WebGLTexture; n: number; size: number };
+    private coverTex?: { texture: WebGLTexture; size: number };
+    /** the cover map last given (CPU side: `coverAt` reads it) */
+    coverData: CoverMap | null = null;
 
     /** Programs come from the layer (async); `useGround` returns false until they are linked. */
     constructor(readonly layer: Layer3D, look: Partial<TerrainLook> = {}) {
@@ -110,6 +118,94 @@ export class TerrainMaterial {
         this.pathMap = { texture, n: map.n, size: map.size };
     }
 
+    /** Control map (grass density, dry, height, flowers), see `CoverMap`. The ground turns grassy where R is. null: none. */
+    cover(map: CoverMap | null) {
+        const gl = this.gl;
+        if (this.coverTex) gl.deleteTexture(this.coverTex.texture);
+        this.coverTex = undefined;
+        this.coverData = map;
+        if (!map) return;
+        const texture = gl.createTexture()!;
+        gl.activeTexture(gl.TEXTURE10);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, map.n, map.n, 0, gl.RGBA, gl.UNSIGNED_BYTE, map.data);
+        for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR);
+        for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+        gl.activeTexture(gl.TEXTURE0);
+        this.coverTex = { texture, size: map.size };
+    }
+
+    /**
+     * The ground's colour seen from straight above, unlit (`n`² texels over `size` metres): grass tufts take their colour
+     * from it, so they always match the ground. `draw(view)` draws the ground geometry (after `useGround(view, ...)`, which
+     * this calls). Null while the programs still link. Pass the last result as `into` to reuse its texture.
+     */
+    bakeAlbedo(size: number, n: number, draw: (view: View) => void, light: Light, into?: Albedo | null): Albedo | null {
+        const gl = this.gl, h = size / 2, Y = 1e4;
+        // straight down: clip x = x / h, clip y = -z / h (so faces still face the viewer), depth from y
+        const view: View = {
+            viewMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            projectionMatrix: [1 / h, 0, 0, 0, 0, 0, -1 / Y, 0, 0, -1 / h, 0, 0, 0, 0, 0, 1],
+            worldPosition: { x: 0, y: Y, z: 0 },
+        };
+        const debug = this.o.debug;
+        this.o.debug = "albedo";
+        const ok = this.useGround(view, light);
+        this.o.debug = debug;
+        if (!ok) return null;
+        const texture = into?.texture ?? gl.createTexture()!;
+        gl.activeTexture(gl.TEXTURE11);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, n, n, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST);
+        for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T]) gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE);
+        gl.activeTexture(gl.TEXTURE0);
+        const target = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null, vp = gl.getParameter(gl.VIEWPORT) as Int32Array;
+        const clear = gl.getParameter(gl.COLOR_CLEAR_VALUE) as Float32Array;
+        const fbo = gl.createFramebuffer()!, depth = gl.createRenderbuffer()!;
+        gl.bindRenderbuffer(gl.RENDERBUFFER, depth);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, n, n);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth);
+        gl.viewport(0, 0, n, n);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
+        draw(view);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target);
+        gl.viewport(vp[0], vp[1], vp[2], vp[3]);
+        gl.clearColor(clear[0], clear[1], clear[2], clear[3]);
+        gl.deleteFramebuffer(fbo);
+        gl.deleteRenderbuffer(depth);
+        return { texture, size };
+    }
+
+    /**
+     * Draw any mesh as this ground (after `useGround`): e.g. a level model's earth, painted and grassed by the cover map,
+     * no copy of it needed. `mesh` is a `@papit/game-mesh` `GPUMesh` (position 0, normal 1; its other attributes are
+     * ignored), `matrix` model to world (column major), `biome` the palette index it shows.
+     */
+    drawPart(mesh: { vao: WebGLVertexArrayObject; draw(): void }, matrix: ArrayLike<number>, biome = BIOMES.indexOf("grassland")) {
+        const gl = this.gl, p = this.groundProgram;
+        if (!p) return;
+        gl.uniformMatrix4fv(p.u("model"), false, Float32Array.from(matrix));
+        gl.bindVertexArray(mesh.vao);
+        // the mesh's own colour / uv / joints sit where the ground wants data, flow, surface: constants for this draw
+        const on = [2, 3, 4].map(l => gl.getVertexAttrib(l, gl.VERTEX_ATTRIB_ARRAY_ENABLED) as boolean);
+        [2, 3, 4].forEach(l => gl.disableVertexAttribArray(l));
+        gl.vertexAttrib4f(2, biome, 0, .5, .5);
+        gl.vertexAttrib1f(3, 0);
+        gl.vertexAttrib1f(4, -1e5);
+        mesh.draw();
+        gl.bindVertexArray(mesh.vao);
+        on.forEach((e, i) => e && gl.enableVertexAttribArray(2 + i));
+        gl.bindVertexArray(null);
+        gl.uniformMatrix4fv(p.u("model"), false, IDENTITY);
+    }
+
     /** How far chunk walls (flow -2 vertices) hang down, metres, for the next ground draws. Call after `useGround`. */
     wallDrop(metres: number) {
         const p = this.groundProgram;
@@ -124,6 +220,7 @@ export class TerrainMaterial {
         gl.useProgram(p.program);
         this.common(p, view, light);
         gl.uniform1f(u("wallDrop"), 0);
+        gl.uniformMatrix4fv(u("model"), false, IDENTITY);
         gl.uniform3fv(u("palette"), BIOMES.flatMap(b => linear(o.colors[b])));
         gl.uniform3fv(u("rockColor"), linear(o.rock.color));
         gl.uniform2f(u("rock"), o.rock.slope, o.rock.softness);
@@ -149,6 +246,17 @@ export class TerrainMaterial {
         gl.uniform3fv(u("dirtColor"), linear(o.paths.dirt));
         gl.uniform3fv(u("gravelColor"), linear(o.paths.gravel));
         gl.uniform1i(u("biomeMap"), 5);
+        gl.activeTexture(gl.TEXTURE10);
+        gl.bindTexture(gl.TEXTURE_2D, this.coverTex?.texture ?? null);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.uniform1i(u("coverMap"), 10);
+        gl.uniform1f(u("coverSize"), this.coverTex?.size ?? 0);
+        const g = o.grass, pa = [g.patches[0], g.patches[1]];
+        gl.uniform3fv(u("grassColor"), linear(g.color));
+        gl.uniform3fv(u("grassDry"), linear(g.dry));
+        gl.uniform3fv(u("grassPatchColor"), [...linear(pa[0]?.color ?? g.color), ...linear(pa[1]?.color ?? g.color)]);
+        gl.uniform3fv(u("grassPatch"), [pa[0]?.scale ?? 0, pa[0]?.threshold ?? 2, pa[0]?.softness ?? 0, pa[1]?.scale ?? 0, pa[1]?.threshold ?? 2, pa[1]?.softness ?? 0]);
+        gl.uniform4f(u("grassLook"), g.blend, g.darken, g.edge, 0);
         gl.uniform1f(u("contours"), o.contours);
         gl.uniform1i(u("flatShade"), o.flat ? 1 : 0);
         gl.uniform2f(u("range"), o.range[0], o.range[1]);
@@ -161,6 +269,7 @@ export class TerrainMaterial {
     destroy() {
         this.biomes(null);
         this.paths(null);
+        this.cover(null);
         if (this.noise) this.gl.deleteTexture(this.noise);
         if (this.groundProgram) this.layer.deleteProgram(this.groundProgram.name);
     }

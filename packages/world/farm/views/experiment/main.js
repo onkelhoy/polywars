@@ -4,7 +4,7 @@ import { loadTexture } from '@polywar/textured';
 import { Renderer } from '@polywar/renderer';
 import { Scatter } from '@polywar/scatter';
 import { Terrain, MAPS } from '@polywar/terrain';
-import { linear } from '@polywar/terrain-material';
+import { linear, coverMap } from '@polywar/terrain-material';
 import { Grass } from '@polywar/grass';
 import { generateFarm, groundEdits, fencePosts, cropRows, zoneAt } from '@polywar/farm';
 
@@ -35,9 +35,9 @@ const url = (name, lod) => {
 };
 const scatter = new Scatter(renderer, url, { quality: $('#quality').value, distance: { building: 1500, tree: 900, rock: 400, bush: 300, prop: 250, crop: 120, default: 300 } });
 // the world's grass look (bigger, fuller), see @polywar/world GRASS
-const GRASS = { settings: { density: 32, sizeScale: 2.6, softBands: .25 }, look: { bands: 3 }, bladeShare: .25, variation: .16 };
-// the camp's look (assets/grass/range.json), with the world's reach; its ground (drawGround) is drawn under the tufts
-const grass = new Grass(layer, { ...GRASS, settings: { ...GRASS.settings, distance: 60, maxTufts: 220_000 }, quality: $('#quality').value });
+const GRASS = { settings: { density: 32, sizeScale: 2.6, softBands: .25, lod: 0, falloff: 2 }, look: { bands: 3 }, bladeShare: .25, variation: .16 };
+// the world's grass, planted from the terrain's cover map; tufts take the ground's colour (terrain.bakeAlbedo)
+const grass = new Grass(layer, { ...GRASS, settings: { ...GRASS.settings, distance: 200, maxTufts: 700_000 }, quality: $('#quality').value });
 
 // fence pieces (assets/models/buildings/farm/fences): per style close / close.L / close.R / open, along -x from the origin
 const FENCE_URL = (style, kind) => `/assets/models/buildings/farm/fences/fence.${style}.${kind}.glb`;
@@ -207,21 +207,27 @@ async function dress(data, t0) {
     info = `terrain ${((t1 - t0) | 0)} ms, dress ${((performance.now() - t1) | 0)} ms\nbuildings ${farm.buildings.length}, props ${farm.props.length}\nfields ${farm.fields.map(f => f.crop[0]).join('')}, crops ${crops}\ntrees ${farm.trees.length}, pastures ${farm.pastures.map(p => p.animal).join(' ')}`;
 }
 
+let bake = false;
 function plant(data) {
-    const h0 = data.size / 2, zone = zoneAt(farm), out = { density: 0, height: 1, dry: 0, flowers: 0 };
+    const h0 = data.size / 2, zone = zoneAt(farm);
+    // the cover map: full cover, taller in pastures (and on unused land), none where the farm asked; the ground paints
+    // its grass from it and the tufts plant from it
+    terrain.cover(coverMap(data.size, Math.min(2048, Math.ceil(data.size)), (x, z, out) => {
+        out.density = data.water[Math.round((z + h0) / data.cell) * data.n + Math.round((x + h0) / data.cell)] ? 0 : edits.grass(x, z);
+        const zn = zone(x, z);
+        out.height = zn === 'pasture' ? 1.9 : zn === 'none' || zn === 'wood' ? 1.3 : 1;
+        out.dry = zn === 'pasture' ? .25 : .1;
+        out.flowers = zn === 'pasture' ? .15 : .05;
+    }));
+    bake = true;
+    const out = { density: 0, height: 1, dry: 0, flowers: 0 };
     grass.plant({
         area: { x: -h0, z: -h0, width: data.size, depth: data.size },
         seed: 1,
         height: (x, z) => terrain.groundAt(x, z),
-        // full cover, taller in pastures (and on unused land), none where the farm asked
-        grow: (x, z) => {
-            out.density = data.water[Math.round((z + h0) / data.cell) * data.n + Math.round((x + h0) / data.cell)] ? 0 : edits.grass(x, z);
-            const zn = zone(x, z);
-            out.height = zn === 'pasture' ? 1.9 : zn === 'none' || zn === 'wood' ? 1.3 : 1;
-            out.dry = zn === 'pasture' ? .25 : .1;
-            out.flowers = zn === 'pasture' ? .15 : .05;
-            return out;
-        },
+        grow: (x, z) => terrain.coverAt(x, z, out),
+        // planted round the camera: full density close, the falloff thins it out to 200 m
+        window: 215,
     });
 }
 
@@ -246,10 +252,13 @@ demo.tick = dt => {
 const I = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 demo.draw = camera => {
     renderer.begin(camera, [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
+    if (bake) { const a = terrain.bakeAlbedo(2048, renderer.light); if (a) { grass.ground(a); bake = false; } }
     terrain.draw(camera, renderer.light, demo.time);
     if (fences?.plain) renderer.draw(fences.plain, I);
     if (fences?.tex) renderer.draw(fences.tex, I, { maps: birch });
     scatter.draw(camera, demo.time);
+    const e = camera.worldPosition;
+    if (e) grass.follow(e.x ?? e[0], e.z ?? e[2]);
     if ($('#grass').checked) grass.draw(camera, renderer.light, demo.time);
 };
 build();

@@ -132,3 +132,9 @@ function noiseBuffer(ctx: BaseAudioContext) {
     for (let i = 0; i < d.length; i++) { last = last * .6 + (Math.random() * 2 - 1) * .4; d[i] = last * 1.6; }
     return shared = b;
 }
+
+/** presets (spread into the setting): a WW2 V-twin bike (2 cylinders, thin muffler, brighter) */
+export const ENGINES = {
+    jeep: {},
+    bike: { cylinders: 2, muffle: [750, 3800] as [number, number], volume: .5 },
+} satisfies Record<string, Partial<EngineSoundSetting>>;

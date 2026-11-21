@@ -10,12 +10,14 @@ const CHARACTER = 'polywar.character';
 const characterId = localStorage.getItem(CHARACTER) ?? 'ww2-soldier-us';
 import { RigidBody, Box } from '@papit/rigidbody';
 import { TrainingCamp, buttonAt } from '@polywar/training-camp';
-import { Vehicles, Dust, SteeringHands } from '@polywar/vehicle';
+import { Vehicles, Dust, Exhaust, SteeringHands } from '@polywar/vehicle';
 import { nearest } from '@polywar/ballistics';
-import { EngineSound } from '@polywar/vehicle-audio';
+import { EngineSound, ENGINES } from '@polywar/vehicle-audio';
+import { CloseDark } from '@polywar/close-dark';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
+import { TerrainMaterial, coverMap } from '@polywar/terrain-material';
 import { Lights, Glow } from '@polywar/light';
 import { grenades } from './grenades.js';
 import { Shadows } from '@polywar/shadows';
@@ -39,8 +41,8 @@ const SKY = [.62, .72, .84, 1];
 
 const range = await TrainingCamp.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
-// the terrain is the painted grass floor (@polywar/grass ground): the model's `Ground` and its earth (berms, earth
-// banks / roofs) aren't drawn, their triangles are painted like the ground
+// the model's `Ground` and its earth (berms, earth banks / roofs) are drawn once, by the terrain material (its grass
+// ground from a cover map), not by the model's own shader
 // convention: a node with "earth" in its name is ground (painted like the terrain); Berm* until they're renamed
 const EARTH = name => name === 'Ground' || /earth/i.test(name) || name.startsWith('Berm');
 const NO_TERRAIN = { skip: model.gltf.nodes.map(n => n.name ?? '').filter(EARTH) };
@@ -73,32 +75,48 @@ const zones = range.data.grass ?? [];
 const inZone = (kind, x, z) => zones.some(g => g.kind === kind && x >= g.min[0] && x <= g.max[0] && z >= g.min[1] && z <= g.max[1]);
 const GROW = { tall: { density: 1, height: 1, dry: 0, flowers: 0 }, short: { density: .7, height: .4, dry: 0, flowers: 0 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
 // the look: exactly the grass view's (saved from it: assets/grass/range.json)
-const grass = new Grass(layer, await (await fetch('/assets/grass/range.json')).json());
+const grassLook = await (await fetch('/assets/grass/range.json')).json();
+const grass = new Grass(layer, grassLook);
 // everywhere on the ground (hills, banks too), tall by default; not under solids (buildings, sandbags, floors)
 const covered = (x, z) => { const y = range.ground(x, z); return range.colliders(x, z).some(b => x >= b.min[0] && x <= b.max[0] && z >= b.min[2] && z <= b.max[2] && b.max[1] > y - .1 && b.min[1] < y + 1); };
+// the ground: the model's earth parts with the terrain material, grassy all over (edge -1) in the grass look's colours
+const earth = model.parts.filter(p => EARTH(p.name));
+const ground = new TerrainMaterial(layer, {
+    colors: { grassland: grassLook.color },
+    grass: { color: grassLook.color, dry: grassLook.dry, patches: grassLook.patches, blend: 1, darken: .8, edge: -1 },
+    paint: { edge: 0, size: 30, washes: .001, rim: 0, warmth: 0, grain: 0, pixel: grassLook.size[0] / 24 },
+    flat: true, variation: 0, bands: grassLook.bands ?? 3, lighting: grassLook.lighting ?? { wrap: 0, steepness: 1 },
+});
+window.ground = ground;
+let bake = true;
 {
     const xs = range.data.ground.flat().map(p => p[0]), zs = range.data.ground.flat().map(p => p[2]);
     const lo = [Math.min(...xs), Math.min(...zs)], hi = [Math.max(...xs), Math.max(...zs)];
+    // the cover map (origin centred): the ground is grassy all over (edge -1), so a coarse one; the tufts keep the
+    // exact zones (none wins over short over tall, not under solids)
+    const size = 2 * Math.max(...lo.map(Math.abs), ...hi.map(Math.abs)) + 2;
+    ground.cover(coverMap(size, 64, (x, z, out) => { out.density = 1; }));
     grass.plant({
         area: { x: lo[0], z: lo[1], width: hi[0] - lo[0], depth: hi[1] - lo[1] },
         height: (x, z) => range.ground(x, z),
         grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
-        window: 130,
+        window: 215,
     });
-    // the painted grass ground (patches, spots) over all of the range's ground: it IS the terrain (the model's
-    // `Ground` isn't drawn). Tufts follow the zones.
-    const floor = [];
-    for (const t of range.data.ground) for (const p of t) floor.push(p[0], p[1], p[2]);
-    // berms, earth banks and earth roofs too: same painted ground as the terrain
-    floor.push(...model.trianglesOf(name => name !== 'Ground' && EARTH(name)));
-    grass.setGround(new Float32Array(floor));
 }
 function drawGrass(camera) {
     const e = camera.worldPosition;
     if (!e) return;
     grass.follow(e[0] ?? e.x, e[2] ?? e.z);
-    const t = performance.now() / 1000;
-    grass.drawGround(camera, renderer.light, t);
+    if (bake) {
+        const a = ground.bakeAlbedo(ground.coverData.size, 2048, () => earth.forEach(p => ground.drawPart(p.mesh, p.matrix)), renderer.light);
+        if (a) { grass.ground(a); bake = false; }
+    }
+    if (!ground.useGround(camera, renderer.light)) return;
+    // the earth: pushed back in depth steps, so roads / pads lying on it win (no z-fight)
+    gl.enable(gl.POLYGON_OFFSET_FILL);
+    gl.polygonOffset(2, 8);
+    for (const p of earth) ground.drawPart(p.mesh, p.matrix);
+    gl.disable(gl.POLYGON_OFFSET_FILL);
     renderer.reset();
 }
 // the tufts: after the SSAO pass (no AO on grass; depth is back on the canvas), and in the gun scope's picture
@@ -113,6 +131,8 @@ window.grass = grass;
 // cars share one world (they hit each other); bullets hit them too
 const fleet = new Vehicles({ ground: range.ground, solids: range.colliders });
 const shots = nearest(range.cast, fleet.cast);
+const closeDark = new CloseDark(layer);
+window.closeDark = closeDark;
 window.fleet = fleet;
 let lastHit = '';
 const player = new Player(layer, renderer, {
@@ -306,27 +326,56 @@ demo.draw = camera => {
 };
 
 // ---- vehicles: parked jeeps, E in / out, W / S, A / D, Space handbrake, V seat / chase cam ----
+// bike: lighter, revs higher, 4 gears
+const BIKE = { accel: 4.5, gears: [.25, .45, .7, 1], pull: [1.8, 1.3, 1, .75], idle: 900, redline: 5200, steer: 30, steerFade: 4 };
 const cars = await Promise.all((range.data.vehicles ?? []).map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;
     const spec = await (await fetch(base + 'vehicle.json')).json();
-    const car = fleet.add({ spec }, v.at, v.yaw);
+    const car = fleet.add({ spec, ...(spec.kind === 'bike' ? BIKE : {}) }, v.at, v.yaw);
     const hands = spec.steeringWheel && new SteeringHands(spec.steeringWheel);
     return { car, spec, hands, model: await Model.load(gl, base + spec.model), awake: 0, engine: undefined };
 }));
 let driving, seatCam = true, nearCar;
-// dust behind the wheels, coloured by what the ground is made of; drawn by @polywar/smoke (the grenades' smoke)
+// exhaust puffs while the engine runs, a little dust only when the tyres slide (coloured by the ground); both drawn by
+// @polywar/smoke (the grenades' smoke)
 const DUST_LAYER = { count: 1, shape: 'sphere', radius: .1, direction: [0, 1, 0], spread: .4, speed: [0, .2], life: [1, 1], size: [.3, .3], grow: 2, drag: 2, lift: .1, swirl: .4, stretch: .06, colour: [.5, .42, .32], bright: .7, dim: .4 };
 const dustPuff = { layers: [DUST_LAYER] };
 const DUST = { dirt: [.5, .42, .32], stone: [.6, .58, .54], wood: undefined, metal: undefined };
+const puffOut = (at, v, puff) => {
+    DUST_LAYER.life[0] = DUST_LAYER.life[1] = puff.life; DUST_LAYER.size[0] = puff.size * .6; DUST_LAYER.size[1] = puff.size * 1.4;
+    DUST_LAYER.grow = puff.grow * 2; DUST_LAYER.drag = puff.drag;
+    DUST_LAYER.delay = [puff.delay ?? 0, puff.delay ?? 0];
+    // far away the trail reads bigger and lasts longer (a car seen driving in the distance)
+    const e = layer.camera.worldPosition, far = e ? Math.min(2.5, 1 + Math.max(0, Math.hypot(at[0] - (e.x ?? e[0]), at[2] - (e.z ?? e[2])) - 25) / 60) : 1;
+    DUST_LAYER.size[0] *= far; DUST_LAYER.size[1] *= far; DUST_LAYER.life[0] = DUST_LAYER.life[1] = puff.life * Math.sqrt(far);
+    nades.smoke.burst(dustPuff, at, { velocity: [v[0], v[1], v[2]], colour: puff.colour, opacity: puff.opacity ?? 1 });
+};
+const exhaust = new Exhaust({ emit: puffOut });
+window.exhaust = exhaust;
+// wheel dust by the ground: dry dirt throws brownish dust, stone / gravel thin grey, grass hardly any; see-through (dither)
+const DUST_GROUND = {
+    dirt: { colour: [.5, .42, .32], amount: 1, opacity: .55, dry: .85 },
+    stone: { colour: [.6, .59, .57], amount: .6, opacity: .4, dry: .6 },
+    grass: { colour: [.5, .41, .3], amount: .3, opacity: .4, dry: .3 },
+};
 const dust = new Dust({
+    rate: 4,
     emit: (at, v, puff) => {
-        DUST_LAYER.life[0] = DUST_LAYER.life[1] = puff.life; DUST_LAYER.size[0] = puff.size * .6; DUST_LAYER.size[1] = puff.size * 1.4;
-        DUST_LAYER.grow = puff.grow * 2; DUST_LAYER.drag = puff.drag;
-        nades.smoke.burst(dustPuff, at, { velocity: [v[0], v[1], v[2]], colour: puff.colour });
+        // stays a bit closer to the wheel than the default; size / life come from how dry the ground is
+        v[0] *= .7; v[1] *= .7; v[2] *= .7;
+        puffOut(at, v, puff);
     },
-    colour: (x, z) => { const s = range.surface([x, range.ground(x, z) + .05, z]); return s in DUST ? DUST[s] : DUST.dirt; },
+    ground: (x, z) => {
+        const s = range.surface([x, range.ground(x, z) + .05, z]);
+        if (s === 'wood' || s === 'metal') return undefined;
+        if (s === 'stone') return DUST_GROUND.stone;
+        // grass grows everywhere but the 'none' zones (lanes, yards): those are the bare dirt
+        return inZone('none', x, z) ? DUST_GROUND.dirt : DUST_GROUND.grass;
+    },
 });
+window.dust = dust;
 window.cars = cars;
+for (const c of cars) c.car.oncrash = (speed, impact) => thrown(c, speed, impact);
 const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
 const carMatrix = Matrix4.create();
 const forward = c => { const f = c.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
@@ -337,7 +386,8 @@ const withCars = (x, z) => {
     const extra = cars.filter(c => c !== driving).flatMap(({ car }) => {
         const p = car.body.position, f = car.toWorld([0, 0, -1], undefined, 0);
         if (Math.hypot(p.x - x, p.z - z) > 6) return [];
-        return [-.85, .85].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: .85, bottom: p.y - 1, top: p.y + .6 }));
+        const bike = car.spec.kind === 'bike', r = bike ? .35 : .85, d = bike ? .6 : .85;
+        return [-d, d].map(d => ({ kind: 'cylinder', x: p.x + f[0] * d, z: p.z + f[2] * d, radius: r, bottom: p.y - 1, top: p.y + (bike ? .2 : .6) }));
     });
     return extra.length ? list.concat(extra) : list;
 };
@@ -351,6 +401,8 @@ function drawCars() {
         car.wheels.forEach((w, i) => m.move(w.spec.node, car.wheel(i, Matrix4.create())));
         const sw = car.steeringWheel(Matrix4.create());
         if (sw) m.move(spec.steeringWheel.node, sw);
+        const fork = car.fork(Matrix4.create());
+        if (fork) m.move(spec.fork.node, fork);
         m.draw(renderer, car.matrix(carMatrix), {}, { skip: GLASS });
     }
 }
@@ -362,7 +414,55 @@ function drawGlass() {
 }
 // the driver: hips on the seat, feet on the pedals, knees up, hands on the rim (car space offsets from the seat)
 const FEET = [[.17, -.42, -.62], [-.17, -.42, -.62]], KNEES = [[.22, .5, -1.2], [-.22, .5, -1.2]], ELBOWS = [[.8, -1, .3], [-.8, -1, .3]];
+// the rider: feet on the pegs, knees bent to the tank, hands on the grips (which turn with the fork)
+const PEGS = [[.2, -.55, -.3], [-.2, -.55, -.3]], BIKE_KNEES = [[.18, -.1, -.55], [-.18, -.1, -.55]], BIKE_ELBOWS = [[.8, -.6, .2], [-.8, -.6, .2]];
+const lerp3 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+/** getting on / off: 0 standing by the exit spot .. 1 seated; the hips swing up and over */
+let mount = 1, mounting = 0;
+const MOUNT = .9;
+function seatOffset(spec) {
+    // hips start standing at the exit spot, arc up over the seat
+    const t = smooth(mount), s = spec.seat, from = [spec.exit[0], spec.exit[1] + .95, spec.exit[2]];
+    const p = lerp3(from, s, t);
+    p[1] += Math.sin(Math.PI * t) * .3;
+    return p;
+}
+function drawRider(camera) {
+    const { car, spec } = driving, s = seatOffset(spec), t = smooth(mount);
+    const at = o => { const p = car.toWorld(o); return [p[0], p[1], p[2]]; };
+    const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
+    const seatM = car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1], s[2], 1]));
+    // feet: the near (left) foot stays down then steps onto its peg; the right leg swings up high and over the seat
+    const swing = smooth(Math.min(1, mount * 1.4)), step = smooth(Math.max(0, mount * 1.6 - .6));
+    const feet = PEGS.map((p, i) => {
+        const peg = [spec.seat[0] + p[0], spec.seat[1] + p[1], spec.seat[2] + p[2]];
+        const ground = [spec.exit[0] + (i ? 0 : .3), spec.exit[1] + .05, spec.exit[2] + (i ? .1 : -.1)];
+        if (i) return at(lerp3(ground, peg, step));
+        const f = lerp3(ground, peg, swing);
+        f[1] += Math.sin(Math.PI * swing) * (spec.seat[1] + .25);
+        f[2] += Math.sin(Math.PI * swing) * .35;
+        return at(f);
+    });
+    const knees = BIKE_KNEES.map(k => at([s[0] + k[0], s[1] + k[1], s[2] + k[2]]));
+    const F = car.fork(Matrix4.create()), turn = q => [F[0] * q[0] + F[4] * q[1] + F[8] * q[2] + F[12], F[1] * q[0] + F[5] * q[1] + F[9] * q[2] + F[13], F[2] * q[0] + F[6] * q[1] + F[10] * q[2] + F[14]];
+    const grips = spec.grips.map((g, i) => {
+        const bar = turn(g), side = turn([g[0] + (i ? 1 : -1), g[1], g[2]]);
+        return { at: at(bar), axis: dir([side[0] - bar[0], side[1] - bar[1], side[2] - bar[2]]), palm: dir([0, -.7, -.7]) };
+    });
+    // drawSeated takes the hands [right, left]; grips are [left, right]
+    player.drawSeated(camera, seatM, { feet, knees, elbows: BIKE_ELBOWS.map(dir), hands: [grips[1], grips[0]], take: 0 }, seatCam);
+    if (player.down?.fixed) stowBack();
+}
+/** the rifle slung across the rider's back, muzzle up over the right shoulder (stow lays a gun flat: undo its turn + lift) */
+function stowBack() {
+    const { car, spec } = driving, s = seatOffset(spec), size = (player.held ?? player.carried[player.current]).model.size;
+    player.stow(car.matrix(Matrix4.create())
+        .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, s[0], s[1] + .42, s[2] + .17, 1]))
+        .multiply(Matrix4.rotationZ(-.64)).multiply(Matrix4.rotationX(Math.PI / 2))
+        .multiply(Matrix4.rotationZ(-Math.PI / 2)).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -size[0] / 2, 0, 1])));
+}
 function drawDriver(camera) {
+    if (driving.spec.kind === 'bike') return drawRider(camera);
     const { car, spec, hands } = driving, s = spec.seat;
     const at = o => { const p = car.toWorld([s[0] + o[0], s[1] + o[1], s[2] + o[2]]); return [p[0], p[1], p[2]]; };
     const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
@@ -375,16 +475,22 @@ let taking = -1, placing = false;
 const TAKE = .6, smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 const passenger = spec => spec.passenger ?? [-spec.seat[0], spec.seat[1] - .08, spec.seat[2]];
 function stowGun() {
-    if (!driving || !player.down?.fixed) return;
+    if (!driving || !player.down?.fixed || driving.spec.kind === 'bike') return;
     const p = passenger(driving.spec);
     player.stow(driving.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])));
 }
 function enter(c) {
     driving = c;
     taking = -1; placing = false;
-    if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
+    if (c.spec.kind === 'bike')
+    {
+        mount = 0; mounting = 1;
+        if (c.car.fallen) c.car.raise();
+        if (player.held && !player.down) stowBack();
+    }
+    else if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
-    c.engine ??= new EngineSound({ mixer: player.feel.mixer });
+    c.engine ??= new EngineSound({ mixer: player.feel.mixer, ...(c.spec.kind === 'bike' ? ENGINES.bike : {}) });
     chase.yaw = forward(c.car);
     const p = c.car.body.position;
     chase.pos = [p.x + Math.sin(chase.yaw) * 7, p.y + 2.5, p.z + Math.cos(chase.yaw) * 7];
@@ -392,16 +498,51 @@ function enter(c) {
 }
 function leave() {
     const c = driving.car, out = c.toWorld(driving.spec.exit);
+    if (driving.spec.kind === 'bike' && player.down?.fixed) player.takeBack();
     driving.awake = 3;
     driving = undefined;
+    mounting = 0; mount = 1;
     player.mover.place(out[0], out[2]);
+}
+/** crashed: thrown off / out where it is with its speed just before (jeep: open, no belts, only a hard one throws you) */
+function thrown(c, speed, impact) {
+    if (driving !== c) return;
+    // slow: the bike just stops / tips and you step off; the jeep keeps you in
+    if (speed < 6) { if (c.car.fallen) leave(); return; }
+    if (c.spec.kind !== 'bike' && speed < 8) return;
+    const v = c.car.crashVelocity, at = c.car.toWorld(c.spec.seat);
+    if (player.down?.fixed) player.takeBack();
+    driving.awake = 3;
+    driving = undefined;
+    mounting = 0; mount = 1;
+    player.mover.place(at[0], at[2]);
+    nades.fling([v[0] * .85, Math.max(1.5, v[1] + 1.5 + speed * .08), v[2] * .85], speed);
 }
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
+    if (driving?.spec.kind === 'bike') { if (!mounting && Math.abs(driving.car.speed) < 3) mounting = -1; return; }
     if (driving) { if (placing) return; if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
     else if (nearCar) enter(nearCar);
 });
+// ---- dev third person (M): camera behind / round the body; no daze or blink over it ----
+let third = false;
+const orbit = [0, 0];
+addEventListener('keydown', e => {
+    if (e.key.toLowerCase() !== 'm' || !document.body.classList.contains('playing')) return;
+    third = !third; orbit[0] = orbit[1] = 0;
+    if (!third) player.thirdPerson = undefined;
+});
+function thirdCamera(c) {
+    if (!third) return;
+    player.thirdPerson = Matrix4.create(Array.from(c.worldMatrix));
+    const e = [c.position[0], c.position[1], c.position[2]], yaw = c.rotation.y + orbit[0], pitch = Math.max(-1.3, Math.min(1.3, c.rotation.x * .5 - .25 + orbit[1]));
+    const cp = Math.cos(pitch), d = [-Math.sin(yaw) * cp, Math.sin(pitch), -Math.cos(yaw) * cp], dist = 3;
+    const p = [e[0] - d[0] * dist + Math.cos(yaw) * .4, e[1] - d[1] * dist + .3, e[2] - d[2] * dist - Math.sin(yaw) * .4];
+    p[1] = Math.max(p[1], range.ground(p[0], p[2]) + .3);
+    c.position.set(p);
+    c.rotation.set([pitch, yaw, 0]);
+}
 function driveCamera(camera, dt) {
     const { car, spec } = driving, input = player.input;
     const { dx, dy } = input?.consume() ?? { dx: 0, dy: 0 };
@@ -410,7 +551,7 @@ function driveCamera(camera, dt) {
     {
         chase.look[0] = Math.max(-2.2, Math.min(2.2, chase.look[0] - dx * .0022));
         chase.look[1] = Math.max(-1.2, Math.min(1.2, chase.look[1] - dy * .0022));
-        eye = car.toWorld(spec.eye);
+        eye = car.toWorld(spec.kind === 'bike' ? lerp3([spec.exit[0], spec.exit[1] + 1.65, spec.exit[2]], spec.eye, smooth(mount)) : spec.eye);
         const f = car.toWorld([0, 0, -1], undefined, 0);
         yaw = forward(car) + chase.look[0];
         pitch = Math.asin(Math.max(-1, Math.min(1, f[1]))) + chase.look[1];
@@ -454,13 +595,15 @@ const seat = {
         if (driving)
         {
             const input = player.input, k = n => input?.key(n) ? 1 : 0;
-            inputs.set(driving.car, { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' ') });
+            const on = driving.spec.kind !== 'bike' || mount >= 1;
+            inputs.set(driving.car, on ? { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' '), ridden: true } : { throttle: 0, steer: 0, parked: true, ridden: mount > .5 });
         }
         fleet.update(dt, inputs);
         driving?.hands?.update(dt, driving.car.wheelTurn);
+        if (mounting) { mount = Math.max(0, Math.min(1, mount + mounting * dt / MOUNT)); if (mount >= 1 && mounting > 0) mounting = 0; else if (mount <= 0 && mounting < 0) leave(); }
         if (driving && placing && (taking -= dt / TAKE) <= 0) { taking = -1; placing = false; }
         else if (driving && !placing && taking >= 0 && (taking += dt / TAKE) >= 1) { taking = -1; player.takeBack(); leave(); }
-        for (const c2 of cars) dust.update(dt, c2.car);
+        for (const c2 of cars) { dust.update(dt, c2.car); if (c2.engine) exhaust.update(dt, c2.car); }
         // the player / grenades aren't ticked while driving: age the impacts + dust here
         if (driving) { player.impacts.update(dt); nades.smoke.update(dt); }
         for (const c2 of cars)
@@ -474,7 +617,14 @@ const seat = {
                 if (c2 !== driving && c2.awake <= 0) { c2.engine.stop(.8); c2.engine = undefined; }
             }
         }
-        if (driving) driveCamera(c, dt); else walkCam.update(c, dt);
+        if (driving) driveCamera(c, dt);
+        else
+        {
+            // dev third person: hold Z to orbit (the mouse turns the camera, not you)
+            if (third && player.input?.key('z')) { const { dx, dy } = player.input.consume(); orbit[0] -= dx * .004; orbit[1] = Math.max(-1.2, Math.min(1.2, orbit[1] - dy * .004)); }
+            walkCam.update(c, dt);
+            thirdCamera(c);
+        }
     },
     destroy: () => walkCam.destroy?.(),
 };
@@ -493,7 +643,7 @@ demo.tick = dt => {
     {
         if (!document.body.classList.contains('playing')) return;
         fAction = undefined;
-        $('#prompt').value = `E  get out · V ${seatCam ? 'chase' : 'seat'} cam`;
+        $('#prompt').value = `E  get ${driving.spec.kind === 'bike' ? 'off' : 'out'} · V ${seatCam ? 'chase' : 'seat'} cam`;
         $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
         $('#cross').style.opacity = '0';
         return;
@@ -504,7 +654,7 @@ demo.tick = dt => {
     if (nades.held()) $('#prompt').value = nades.prompt();
     const f = player.mover.feet;
     nearCar = cars.find(({ car, spec }) => { const d = car.toWorld(spec.exit); return Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.6; });
-    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = 'E  drive';
+    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : 'E  drive';
 };
 demo.draw = camera => {
     // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)
@@ -521,7 +671,17 @@ demo.draw = camera => {
     if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); drawAir(camera); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); drawAir(camera); }
     else player.draw(camera);
-    nades.drawDaze();
+    // face against something / lying: dark from the centre (first person only)
+    const cam = layer.camera;
+    if (cam && document.body.classList.contains('playing') && !third && (!driving || seatCam))
+    {
+        const e = cam.worldPosition, x = cam.rotation.x, y = cam.rotation.y, cx = Math.cos(x);
+        closeDark.update(1 / 60, [e[0] ?? e.x, e[1] ?? e.y, e[2] ?? e.z], [-Math.sin(y) * cx, Math.sin(x), -Math.cos(y) * cx], driving ? range.cast : shots, range.ground);
+        // limp on the ground the eye is low: a closer near plane so the ground isn't cut open
+        cam.near = player.ragdoll ? .04 : .25;
+        closeDark.draw();
+    }
+    if (!third || driving) nades.drawDaze();
 };
 
 // ---- FPS (top left): frames counted over half a second ----

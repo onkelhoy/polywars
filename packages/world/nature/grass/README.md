@@ -21,7 +21,7 @@ grass.plant({
 
 // each frame (time in seconds)
 grass.push([[player.x, player.y, player.z, 0.8]]);   // x y z radius
-grass.drawGround(camera, light, time);              // optional floor with the same patches
+
 grass.draw(camera, light, time);
 ```
 
@@ -38,7 +38,7 @@ grass.plant({
 grass.follow(camera.x, camera.z);         // plants / drops chunks when the set changes (seeded per chunk, so the same every time)
 ```
 
-`grow` sets each tuft's height (times `size`), dryness (fades to `dry`) and flowers (more accent 1, `flowers`). No floor in window mode (the terrain is the floor).
+`grow` sets each tuft's height (times `size`), dryness (fades to `dry`) and flowers (more accent 1, `flowers`). The floor is the terrain (`@polywar/terrain-material`): its cover map paints the grass ground and plants the tufts (`coverAt`), `grass.ground(material.bakeAlbedo(...))` gives the tufts the ground's colour.
 
 - `camera`: anything with `viewMatrix`, `projectionMatrix`, `worldPosition` (`@papit/game-engine` `Camera` fits).
 - `light`: same shape as the polywar `Renderer.light` (sun, sky/ground ambient, fog), colours linear.

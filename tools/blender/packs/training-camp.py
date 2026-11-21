@@ -58,6 +58,9 @@ ROLES = [
 ]
 # vehicle role prefix -> asset (assets/models/vehicles/<kind>); drawn and driven at runtime, not in the glb
 VEHICLES = {"Jeep": "willys-jeep"}
+# asset empties that are ridden / driven at runtime: asset -> (vehicle kind, the asset's nose yaw in its own space)
+# (the old motorcycle glb had its nose on +x: yaw -pi/2; vehicle yaw 0 = nose +y, + turns left)
+ASSET_VEHICLES = {"vehicles/ww2-motorcycle/model": ("ww2-motorcycle", -math.pi / 2)}
 # one box per object, whatever its parts
 LUMPS = ("Rock.", "Sandbag", "Crate", "Barrel", "Flag stone", "Fence barbed", "Tank ", "Truck ", "Motorbike ", "Artillery ", "Fighter ", "Bomber")
 # objects without a material get one (colour)
@@ -233,6 +236,12 @@ def decimate():
 
 def points():
     data = {"ground": [], "solids": [], "stands": [], "targets": [], "buttons": [], "carriers": [], "optics": [], "grass": [], "vehicles": [], "lights": [], "spawn": None}
+    # ridable asset empties -> vehicles (data only: not drawn as props, no solid)
+    for o in [o for o in bpy.context.scene.objects if o.type == "EMPTY" and o.get("asset") in ASSET_VEHICLES]:
+        kind, nose = ASSET_VEHICLES[o["asset"]]
+        z = o.matrix_world.to_euler().z + nose
+        data["vehicles"].append({"name": o.name, "kind": kind, "at": game(o.matrix_world.translation), "yaw": round(math.atan2(math.sin(z), math.cos(z)), 4)})
+        bpy.data.objects.remove(o)
     for obj in sorted(bpy.context.scene.objects, key=lambda o: o.name):
         if obj.type != "MESH" or not obj.data.polygons:
             continue

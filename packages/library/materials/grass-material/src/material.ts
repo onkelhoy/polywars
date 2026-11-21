@@ -85,6 +85,7 @@ export class GrassMaterial {
     private pushers = new Float32Array(0);
     private f32 = { view: new Float32Array(16), projection: new Float32Array(16) };
     private id = ids++;
+    private groundMap: { texture: WebGLTexture; size: number; strength: number; lift: number } | null = null;
     private version = 0;
 
     /** Programs come from the layer (async); `useTufts` / `useGround` return false until they are linked. */
@@ -113,6 +114,14 @@ export class GrassMaterial {
         const n = Math.min(pushers.length, this.o.pushers);
         if (this.pushers.length !== n * 4) this.pushers = new Float32Array(n * 4);
         for (let i = 0; i < n; i++) this.pushers.set(pushers[i], i * 4);
+    }
+
+    /**
+     * Take the tuft colour from the ground under it: `map` is the ground's albedo from above (`@polywar/terrain-material`
+     * `bakeAlbedo`). `strength` 0..1 how much (1: the ground's colour), `lift` brightens it (the ground is darkened). null: own colours.
+     */
+    ground(map: { texture: WebGLTexture; size: number } | null, strength = 1, lift = 1.25) {
+        this.groundMap = map ? { texture: map.texture, size: map.size, strength, lift } : null;
     }
 
     /** Bind the tuft program and its uniforms; `time` in seconds. False while it still links. */
@@ -161,11 +170,16 @@ export class GrassMaterial {
             gl.bindTexture(gl.TEXTURE_2D, t);
             gl.uniform1i(u("sprite" + i), 1 + i);
         });
+        const g = this.groundMap;
+        gl.activeTexture(gl.TEXTURE6);
+        gl.bindTexture(gl.TEXTURE_2D, g?.texture ?? null);
+        gl.uniform1i(u("groundTex"), 6);
+        gl.uniform3f(u("groundMap"), g?.size ?? 0, g?.strength ?? 0, g?.lift ?? 1);
         gl.activeTexture(gl.TEXTURE0);
         return true;
     }
 
-    /** Bind the ground program: the floor with the same patches, light and clouds. `darken` scales its colour. */
+    /** Bind the ground program (a preview floor, `GrassPatch`; on a terrain use its cover map instead): the floor with the same patches, light and clouds. `darken` scales its colour. */
     useGround(view: View, light: Light, time: number, darken = .8): boolean {
         const gl = this.gl, p = this.groundProgram;
         if (!p) return false;

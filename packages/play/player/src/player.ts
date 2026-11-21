@@ -15,6 +15,7 @@ import { bend, bodyArm, flat, FORE_HAND, grip, handRotation, holdRotation, PISTO
 import type { HandsFile } from "./weapon-editor";
 import { Feel, quaternion } from "./feel";
 import { Box } from "@papit/rigidbody";
+import { HumanRagdoll } from "@polywar/ragdoll";
 import { Debris, type Piece } from "@polywar/debris";
 import { bonePoint, holdOf, scopeMountFor, scopeMountOf } from "./holds";
 import { Input } from "./input";
@@ -276,6 +277,19 @@ export class Player {
     spread = 0;
     /** draw the body under the view */
     showBody = true;
+    /** limp: the body is a ragdoll (knocked down, thrown off a vehicle); the eye rides its head. `limp` / `rise` */
+    ragdoll?: HumanRagdoll;
+    private limpWith?: ArrayLike<number>;
+    /** go limp with this velocity (m/s), from the pose drawn next */
+    limp(velocity: ArrayLike<number>) { this.limpWith = velocity; }
+    /** back from limp: the feet go where the hips lie (the get up plays from there) */
+    rise() {
+        this.limpWith = undefined;
+        if (!this.ragdoll) return;
+        const p = this.ragdoll.doll.at("pelvis");
+        this.ragdoll = undefined;
+        this.mover.place(p[0], p[2]);
+    }
     private gl: WebGL2RenderingContext;
     private eye: number;
     private bodyTime = 0;
@@ -767,6 +781,13 @@ export class Player {
         camera.zoom = 1 + (scoped ? 0 : (gun?.aimed ?? 0) * .25);
         const out = this.lean * LEAN;
         camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06 - (pose?.drop ?? 0), m.feet[2] + rz * out]);
+        if (this.ragdoll)
+        {
+            // limp: the eye in the head, a little up off the ground (never under it)
+            this.ragdoll.update(dt);
+            const h = this.ragdoll.head;
+            camera.position.set([h[0], Math.max(h[1], this.setting.ground(h[0], h[2]) + .12), h[2]]);
+        }
         // blast: a hard shake that dies fast, a stumble that springs back, ears ring for a while
         this.shakeTime += dt;
         const sh = this.shaking ** 2 * .06, st = this.shakeTime * 40;
@@ -949,26 +970,54 @@ export class Player {
      * Draw after the world (same `renderer.begin`): the body, impacts, then (scoped) the scope's picture,
      * then the gun and arms on their own depth so they never go into walls, and the scope glass on top.
      */
+    /** dev third person: the eye's world matrix (the camera is elsewhere). The whole body (head, arms) and the gun
+     * are drawn in the world pass, placed from this eye; undefined = first person */
+    thirdPerson?: Matrix4;
+
     draw(camera: Camera) {
-        const r = this.renderer, gl = this.gl, carried = this.held;
+        const r = this.renderer, gl = this.gl, carried = this.held, third = this.thirdPerson;
+        const eye = third ?? camera.worldMatrix;
         if (this.body && this.showBody)
         {
             this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.rigArms) { if (carried && !this.down && !this.stowed) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking >= 0) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
+            if (skin && (this.ragdoll || this.limpWith))
+            {
+                // limp: the bones follow the ragdoll's points, drawn by its torso
+                this.rigArms?.forEach(a => release(skin, a));
+                skin.update();
+                if (this.limpWith)
+                {
+                    this.ragdoll = HumanRagdoll.from(skin, this.bodyMatrix(), this.body.skeletonMatrix, this.setting.ground, { cast: (a, b) => this.setting.cast(a, b) });
+                    this.ragdoll.doll.moving(this.limpWith);
+                    this.limpWith = undefined;
+                }
+                this.ragdoll!.pose(skin);
+                this.posed = undefined;
+                if (!third) collapse(skin, this.headOnly);
+                this.body.draw(r, Matrix4.create(Array.from(this.ragdoll!.body)));
+                this.feel.draw(r);
+                this.drawDown();
+                this.setting.worldDrawn?.();
+                this.impacts.draw(camera);
+                r.reset();
+                return;
+            }
+            if (skin && this.rigArms) { if (carried && !this.down && !this.stowed) this.reachGun(skin, eye, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking >= 0) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
             this.posed = skin ? skin.matrices.slice() : undefined;
-            if (skin) collapse(skin, this.hidden);
+            if (skin && !third) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
         }
+        if (third && carried && !this.down && !this.stowed) carried.model.draw(r, Matrix4.create(Array.from(this.vm.world(eye))));
         this.feel.draw(r);
         this.drawDown();
         const held = this.held;
-        if (held) this.impacts.follow(point(camera.worldMatrix, point(this.vm.matrix, held.hold.muzzle)), direction(camera.worldMatrix, this.vm.muzzle.direction));
+        if (held) this.impacts.follow(point(eye, point(this.vm.matrix, held.hold.muzzle)), direction(eye, this.vm.muzzle.direction));
         // after the host's last world pass (grass tufts): smoke and dust don't write depth, so later draws would paint over them
         this.setting.worldDrawn?.();
         this.impacts.draw(camera);
         r.reset();
-        if (!carried || this.optic || this.down || this.stowed) return;
+        if (!carried || this.optic || this.down || this.stowed || third) return;
         const aspect = camera.width / camera.height, scope = carried.scope;
         const fov = 2 * Math.atan(Math.tan(camera.fov / 2) / camera.zoom);
         perspective(this.near, fov, aspect, .01, 20);

@@ -107,6 +107,8 @@ export type BurstOptions = {
     velocity?: Vec3;
     /** colour over the preset's */
     colour?: Colour;
+    /** 0..1, see-through by the dither (no blending, no sorting: costs nothing). Default 1 */
+    opacity?: number;
 };
 
 /** a running source: move it, change its rate, stop it */
