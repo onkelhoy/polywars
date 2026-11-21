@@ -506,7 +506,10 @@ function leave() {
 }
 /** crashed: thrown off / out where it is with its speed just before (jeep: open, no belts, only a hard one throws you) */
 function thrown(c, speed, impact) {
-    if (driving !== c || (c.spec.kind !== 'bike' && speed < 8)) return;
+    if (driving !== c) return;
+    // slow: the bike just stops / tips and you step off; the jeep keeps you in
+    if (speed < 6) { if (c.car.fallen) leave(); return; }
+    if (c.spec.kind !== 'bike' && speed < 8) return;
     const v = c.car.crashVelocity, at = c.car.toWorld(c.spec.seat);
     if (player.down?.fixed) player.takeBack();
     driving.awake = 3;

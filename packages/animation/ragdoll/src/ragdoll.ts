@@ -15,6 +15,8 @@ export type RagdollOptions = {
     grip?: number;
     /** share of the landing speed bounced back. Default .05 (a body is heavy: a thud, no bounce) */
     bounce?: number;
+    /** walls etc: a segment cast (`t` 0..1, `normal`); a point moving through a hit stops at it */
+    cast?: (from: [number, number, number], to: [number, number, number]) => { t: number; normal?: ArrayLike<number> } | null;
 };
 
 /** one fixed physics step (the same fall on every machine, slow motion plays it slower) */
@@ -37,6 +39,7 @@ export class Ragdoll<Name extends string = string> {
     private sink: number;
     private grip: number;
     private bounce: number;
+    private cast?: RagdollOptions["cast"];
     private left = 0;
     private still = 0;
     /** seconds of physics run */
@@ -49,6 +52,7 @@ export class Ragdoll<Name extends string = string> {
         this.sink = options.sink ?? .03;
         this.grip = options.grip ?? .7;
         this.bounce = options.bounce ?? .05;
+        this.cast = options.cast;
         const points = {} as Record<Name, RagdollPoint>;
         for (const name of Object.keys(start) as Name[])
         {
@@ -121,8 +125,28 @@ export class Ragdoll<Name extends string = string> {
             for (const stick of this.sticks) pull(stick);
             for (const name in this.points) this.ground(this.points[name], pass === PASSES - 1);
         }
+        // walls: a point that went through something this step stops at it (sticks can't pull it through after)
+        if (this.cast) for (const name in this.points) this.wall(this.points[name]);
         this.still = speed / (count || 1) < STILL ? this.still + STEP : 0;
         if (this.still >= SETTLE) this.resting = true;
+    }
+
+    /** from where it was this step to where it is: through a surface -> back to the hit, a radius off it, dragged */
+    private wall(p: RagdollPoint) {
+        const dx = p.x - p.ox, dy = p.y - p.oy, dz = p.z - p.oz, len = Math.hypot(dx, dy, dz);
+        if (len < 1e-4) return;
+        // cast a radius further than the move, so a point never ends inside the wall's skin
+        const k = (len + p.radius) / len;
+        const hit = this.cast!([p.ox, p.oy, p.oz], [p.ox + dx * k, p.oy + dy * k, p.oz + dz * k]);
+        if (!hit) return;
+        const t = Math.max(0, hit.t * k - p.radius / len);
+        const n = hit.normal;
+        p.x = p.ox + dx * t; p.y = p.oy + dy * t; p.z = p.oz + dz * t;
+        // velocity: into the wall gone, along it dragged
+        let vx = dx, vy = dy, vz = dz;
+        if (n) { const d = vx * n[0] + vy * n[1] + vz * n[2]; if (d < 0) { vx -= n[0] * d; vy -= n[1] * d; vz -= n[2] * d; } }
+        else vx = vy = vz = 0;
+        p.ox = p.x - vx * this.grip; p.oy = p.y - vy * this.grip; p.oz = p.z - vz * this.grip;
     }
 
     /** out of the ground, sinking in a little; on the last pass it drags and (barely) bounces */

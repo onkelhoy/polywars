@@ -113,13 +113,12 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     const matrix = new Float32Array(16);
     let arc = [];
     return {
-        /** thrown off a vehicle at `speed` m/s: limp with `velocity`; slow = a blur + stumble, fast = down, faster = out cold */
+        /** thrown off a vehicle at `speed` m/s (6+): limp with `velocity`; 6-8 a short tumble, more = down + dazed, 12+ out cold */
         fling(velocity, speed) {
-            const shock = Math.min(1, Math.max(0, (speed - 4) / 10));
-            daze.hit(.25 + shock * .75);
-            if (speed < 4) { target.push(velocity.map(x => x * .3), [0, 0, 0], { pressure: 10 }); return; }
-            const r = layer.camera.rotation, out = speed > 7 ? Math.min(8, (speed - 7) * .8) : 0;
-            if (knock.hit(Math.max(.25, shock), velocity, r.y, r.x, out)) player.limp(velocity);
+            const shock = Math.min(1, Math.max(0, (speed - 6) / 12));
+            daze.hit(.15 + shock * .85);
+            const r = layer.camera.rotation, out = speed > 12 ? Math.min(8, (speed - 12) * .8) : 0;
+            if (knock.hit(speed < 8 ? .22 : Math.max(.3, shock), velocity, r.y, r.x, out)) player.limp(velocity);
             if (shock > .3) player.knockGun(velocity, shock);
         },
         held: () => inHand || !!nearCrate(),

@@ -374,7 +374,7 @@ export class Vehicle {
         const v = b.velocity, impact = this.impact;
         // lean alone can't tell upside down (lean ~0 again): the body's up pointing down counts too
         const up = q.rotate(set(this.up, 0, 1, 0));
-        if (!this.fallen && (Math.abs(this.lean) > max + .35 || up[1] < .3 || impact > 6)) this.crash(impact);
+        if (!this.fallen && (Math.abs(this.lean) > max + .35 || up[1] < .3 || impact > this.crashAt)) this.crash(impact);
         if (this.fallen)
         {
             // landed on its back (bars + seat): tips onto a side and lies there, never back up by itself

@@ -988,7 +988,7 @@ export class Player {
                 skin.update();
                 if (this.limpWith)
                 {
-                    this.ragdoll = HumanRagdoll.from(skin, this.bodyMatrix(), this.body.skeletonMatrix, this.setting.ground);
+                    this.ragdoll = HumanRagdoll.from(skin, this.bodyMatrix(), this.body.skeletonMatrix, this.setting.ground, { cast: (a, b) => this.setting.cast(a, b) });
                     this.ragdoll.doll.moving(this.limpWith);
                     this.limpWith = undefined;
                 }
