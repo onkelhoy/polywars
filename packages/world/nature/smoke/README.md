@@ -1,6 +1,6 @@
 # @polywar/smoke
 
-Stylized toon smoke: puffs that burst, billow, stretch into wisps and shrink out. Campfire, exhaust, ground blasts, clouds.
+Stylized toon smoke: puffs that burst, billow, stretch into wisps and shrink out. Campfire, exhaust, ground blasts.
 
 ![Logo](https://raw.githubusercontent.com/henry/polywar/refs/heads/main/asset/logo.svg)
 
@@ -24,7 +24,7 @@ npm install @polywar/smoke
 const smoke = new Smoke(layer, { ground: (x, z) => height(x, z) });
 smoke.burst("puff", at, { scale: 1 });
 const fire = smoke.emitter("campfire", at);        // move / rate / stop
-smoke.place(at, 40, { centre });                     // a still puff (clouds: @polywar/smoke)
+smoke.place(at, 40, { centre });                     // a still puff
 smoke.update(dt); smoke.draw(camera);
 ```
 

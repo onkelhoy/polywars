@@ -42,7 +42,7 @@ Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
 ## Notes
 - Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).
-- Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
+- Smoke look: low poly icosahedron puffs + tubes, curl noise; Marching cubes + puff clouds rejected (owner: the sky's noise cloud layer is the look).
 
 ## Farm (`@polywar/farm`, on main): needs in-game check (owner)
 All 7 done (first pass) + owner round 1 (gates, doors, chicken run, crops, props, view spot). Views: `farm/views/experiment` (top down, show = edits), `world/views/farm` (one farm on a 640 m real world, buttons top / yard / bench). World: `settings.farms` adds farm areas; farm sites get a farm (up to 220 m, heaviest first, clear of towns). Flatten pads into the height grid, paint into the ways paint grid, no grass / no trees on yard / fields / pastures, hedgerows + bank trees (`FARM_TREES`), crops (`CROPS`, `cropRows`), fences generated (bridges `fence`, follow the slope), buildings + props in `world.farmBuilt` (farm lods via `assets/models/buildings/farm/lod.json`).
@@ -52,10 +52,9 @@ Known rough: yard + fields paint all brown, edits per field cell, few fields on 
 Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B height 0..2, A flowers; `coverMap` / `coverAt` in `@polywar/terrain-material`), look `grass` (color, patches, dry, blend to the terrain colour, darken, edge; edge -1 = grassy everywhere). Tufts plant from the same map and take the ground colour from `bakeAlbedo` (`grass.ground(albedo)`). `drawPart(mesh, matrix)` draws any model's earth as terrain (camp: model earth drawn once, no grass floor copy). `Grass.drawGround/setGround` gone. Debug `cover`. World / farm / terrain / grass / camp views wired.
 
 ## Weather round 1 (feature/weather): needs check (owner)
-Picked (no answer yet): hero puffs near + shader layer far, weather changes over minutes, world view first.
+Clouds = the sky shader layer only (puff clouds removed), weather changes over minutes, world view first.
 - `@polywar/weather` (world/nature, headless): humidity = biome moisture + wind-blown noise + slow swing (`bias` knob); `at(x, z)` -> cover, grey, kind (clear / cirrus / fair / towering / storm / overcast), base / top, precipitation, snow (cold), storm. Seed + time only (same on every client). View `weather`: 60 km map, desert left -> wet cold right.
 - `@polywar/sky` (world/nature): gradient dome + sun, toon cloud layer to the horizon (noise always there, cover shows it, banded light, grey undersides), cirrus streaks. `sky.light(clear, out)` dims sun / greys ambient / fog = horizon. Draw right after `renderer.begin`. View `sky`: sliders.
-- Hero clouds: `CloudField` (`@polywar/smoke`, `clouds/field.ts`): seeded cloud per 2.5 km cell riding the wind drift, shows when the cover passes its threshold and grows from 0 (forms / dissolves), kind from the weather. New `storm` kind (cumulonimbus 1.1-1.7 km, tower + anvil), `CloudOptions.random` (seeded shapes). Rebuilds its own Smoke 8x/s. Sky view: `hero clouds` slider.
 - `@polywar/precipitation` (world/nature): `state` intensity 0..1 (mild = few faint drops, dense = 24k streaks), snow (wobbling flakes), wind slant. Drops all GPU (wrapping box round the eye), splashes CPU (ring + crown, `ground` height, rate by intensity²). `wetness` / `snowCover` rise + dry slowly (not on materials yet). Draw after the world. View `rain` (+ sound button).
 - `@polywar/weather-audio` (packages/audio): `WeatherAudio`, all generated: rain = hiss bed + low roar (dense) + single drop grains (mild = countable taps), surfaces ground / leaves / roof / water (plips) / vehicle, close drips, wind band + gusts, `inside` muffles. Bus `ambience`. View `weather-audio`.
 
