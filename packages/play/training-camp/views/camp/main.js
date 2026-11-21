@@ -119,7 +119,7 @@ const player = new Player(layer, renderer, {
     ground: range.ground, colliders: range.colliders, cast: shots, surface: range.surface,
     scene: view => { drawWorld(view); drawStands(); drawGrass(view); drawTufts(view); },
     character: CHARACTERS[characterId]?.url ?? CHARACTERS['ww2-soldier-us'].url,
-    worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); drawGlass(); },
+    worldDrawn: () => { demo.endOcclusion(); drawTufts(layer.camera); drawGlass(); drawAir(layer.camera); },
     // ?guns=kar98k,svt-40@scope-3 for another loadout; the first ones go on the cases
     guns: new URLSearchParams(location.search).get('guns')?.split(',') ?? Object.keys(GUNS),
 }, {
@@ -477,6 +477,8 @@ $('#play').onclick = () => {
     layer.camera = new Camera({ near: .2, far: 3000, controllers: [seat] });
 };
 // ---- grenades (H hold / let go, F at a crate): grenades.js ----
+// smoke + explosions in the world's depth (before the hands, which clear it)
+function drawAir(camera) { window.nades?.drawAir(camera); renderer.reset(); }
 const nades = await grenades({ layer, gl, renderer, range, player, playing: () => document.body.classList.contains('playing') && !driving, busy: () => binoculars || menuOpen || !!tuner?.open });
 window.nades = nades;
 const walkTick = demo.tick;
@@ -510,11 +512,9 @@ demo.draw = camera => {
     if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();
-    if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); }
-    else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); }
+    if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); drawAir(camera); }
+    else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); drawAir(camera); }
     else player.draw(camera);
-    nades.drawAir(camera);
-    renderer.reset();
     nades.drawDaze();
 };
 

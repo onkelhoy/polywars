@@ -19,14 +19,23 @@ export type GrenadeSpec = {
     /** bounce (0..1) and ground roll slowdown per second */
     bounce: number;
     roll: number;
-    /** low poly look: body / band colour */
+    /** low poly look (no model): body / band colour */
     colour: string;
     band?: string;
+    /** folder under `assets/models/weapons/grenades/` (model.glb, long axis y) */
+    model?: string;
+    /** tumble in the air, rad/s at a full throw: end over end (`flip`, a stick grenade) and round its long axis (`twist`) */
+    flip?: number;
+    twist?: number;
 };
 
 export const GRENADES: Record<string, GrenadeSpec> = {
-    frag: { name: "Frag", fuse: 4, power: .18, mass: .6, radius: .045, speed: [6, 19], wind: .8, bounce: .3, roll: 2.5, colour: "#4f5a3a", band: "#c9b04a" },
-    stick: { name: "Stick", fuse: 4.5, power: .17, mass: .6, radius: .05, speed: [7, 22], wind: .9, bounce: .2, roll: 4, colour: "#5c6b45", band: "#7a5a36" },
+    // US Mk 2 "pineapple": 57 g TNT, 4-5 s
+    mk2: { name: "Mk 2", model: "mk2", fuse: 4.5, power: .057, mass: .6, radius: .04, speed: [6, 19], wind: .8, bounce: .3, roll: 2.5, flip: 9, twist: 4, colour: "#4f5a3a", band: "#c9b04a" },
+    // Soviet F1: 60 g TNT, 3.5-4 s
+    f1: { name: "F1", model: "f1", fuse: 3.8, power: .06, mass: .6, radius: .04, speed: [6, 19], wind: .8, bounce: .3, roll: 2.5, flip: 9, twist: 4, colour: "#5c6b45", band: "#5c6b45" },
+    // German M24 stick: 170 g TNT, 4.5 s; thrown by the handle it flips end over end, farther
+    stick: { name: "M24", model: "stick-grenade", fuse: 4.5, power: .17, mass: .6, radius: .035, speed: [7, 22], wind: .9, bounce: .2, roll: 5, flip: 14, twist: 2.5, colour: "#5c6b45", band: "#7a5a36" },
 };
 
 export type GrenadeWorld = {
@@ -49,9 +58,12 @@ const G = 9.81;
 export class Grenade {
     position: Vec3 = [0, 0, 0];
     velocity: Vec3 = [0, 0, 0];
-    /** tumble: axis angle, rad */
+    /** tumble: end over end round `spinAxis` (`spin` rad), twist round the long axis (`turn` rad), rates rad/s */
     spin = 0;
     spinAxis: Vec3 = [1, 0, 0];
+    turn = 0;
+    private flipRate = 0;
+    private twistRate = 0;
     /** seconds of fuse left (Infinity until pulled) */
     left = Infinity;
     state: "held" | "cooking" | "flying" | "resting" | "gone" = "held";
@@ -80,7 +92,12 @@ export class Grenade {
         const l = Math.hypot(direction[0], direction[1], direction[2]) || 1, s = this.speedOf(held);
         this.position = [from[0], from[1], from[2]];
         this.velocity = [direction[0] / l * s + carry[0], direction[1] / l * s + carry[1], direction[2] / l * s + carry[2]];
-        this.spinAxis = norm([-direction[2], Math.random() - .5, direction[0]]);
+        // end over end: round the level line across the throw (forward over the top), a little off
+        this.spinAxis = norm([-direction[2] / l, (Math.random() - .5) * .2, direction[0] / l]);
+        const k = s / this.spec.speed[1];
+        this.flipRate = (this.spec.flip ?? 6) * k * (.85 + Math.random() * .3);
+        this.twistRate = (this.spec.twist ?? 0) * k * (Math.random() < .5 ? -1 : 1);
+        // starts upright in the hand: the long axis up, so the flip carries it over
         this.state = "flying";
     }
 
@@ -114,8 +131,8 @@ export class Grenade {
         v[0] *= drag; v[1] *= drag; v[2] *= drag;
         const was: Vec3 = [p[0], p[1], p[2]];
         p[0] += v[0] * dt; p[1] += v[1] * dt; p[2] += v[2] * dt;
-        const speed = Math.hypot(v[0], v[1], v[2]);
-        this.spin += speed / r * dt * .25;
+        this.spin += this.flipRate * dt;
+        this.turn += this.twistRate * dt;
         let hit = false, hitSpeed = 0;
         // boxes: push out along the least deep face, flip that velocity part
         for (const b of this.world.colliders?.(p[0], p[2]) ?? [])
@@ -157,19 +174,30 @@ export class Grenade {
             // downhill pull
             v[0] += n[0] * G * dt * .5; v[2] += n[2] * G * dt * .5;
             hit = true;
+            // on the ground the tumble dies; a long one ends lying (flip to the nearest side), round ones roll on
+            this.flipRate *= Math.max(0, 1 - 6 * dt); this.twistRate *= Math.max(0, 1 - 6 * dt);
+            if (this.spec.flip && this.spec.flip > 10) { const side = Math.round((this.spin - Math.PI / 2) / Math.PI) * Math.PI + Math.PI / 2; this.spin += (side - this.spin) * Math.min(1, 8 * dt); }
+            else this.spin += Math.hypot(v[0], v[2]) / r * dt;
             if (Math.hypot(v[0], v[1], v[2]) < .08) { v[0] = v[1] = v[2] = 0; if (!once) this.state = "resting"; }
         }
         if (hit && hitSpeed > .6 && !once) this.world.onbounce?.([p[0], p[1], p[2]], hitSpeed);
         if (hit && once) this.state = "resting";
     }
 
-    /** a model matrix (column major, 16) for drawing: tumbled round its spin axis */
+    /** a model matrix (column major, 16) for drawing: twisted round its long axis (y), tumbled round the spin axis */
     matrix(out: Float32Array = new Float32Array(16)) {
         const [x, y, z] = this.spinAxis, c = Math.cos(this.spin), s = Math.sin(this.spin), t = 1 - c, p = this.position;
+        const A = [
+            t * x * x + c, t * x * y + s * z, t * x * z - s * y,
+            t * x * y - s * z, t * y * y + c, t * y * z + s * x,
+            t * x * z + s * y, t * y * z - s * x, t * z * z + c,
+        ];
+        // twist about model y first: columns x' = cos·X - sin·Z, z' = sin·X + cos·Z (X, Z = A's columns)
+        const ct = Math.cos(this.turn), st = Math.sin(this.turn);
         out.set([
-            t * x * x + c, t * x * y + s * z, t * x * z - s * y, 0,
-            t * x * y - s * z, t * y * y + c, t * y * z + s * x, 0,
-            t * x * z + s * y, t * y * z - s * x, t * z * z + c, 0,
+            ct * A[0] - st * A[6], ct * A[1] - st * A[7], ct * A[2] - st * A[8], 0,
+            A[3], A[4], A[5], 0,
+            st * A[0] + ct * A[6], st * A[1] + ct * A[7], st * A[2] + ct * A[8], 0,
             p[0], p[1], p[2], 1,
         ]);
         return out;

@@ -26,9 +26,10 @@ Clouds: `smoke.cloud(at, size, { kind, density, height, lean })`: skeleton masse
 Later: fog on far smoke / clouds, weather package drives `sky` cover with noise.
 
 ## Grenade (confirmed, `feature/grenade`)
-Shooting range renamed: `@polywar/training-camp` (view `camp`, `tools/blender/packs/training-camp.py`).
-Done, needs look: `Grenade` + `GRENADES` (frag, stick) in `@polywar/weapons` (pull, throw by hold, fuse, own ball flight: bounce off ground + boxes, roll, `onexplode` / `onbounce`, `Grenade.arc` preview). Camp glue `views/camp/grenades.js`: crates by the pit (one kind each: frag, stick; F takes 4), quick throw: hold G = gun dips into the off hand (`viewmodel.offhand`, `player.busyHand`: trigger hand to the grenade), wind up (arc dots), let go = throw (fuse starts on release), hand back on the grip (.4 s), right click = pin back. Throws the first kind you have. (`player.stowed`: gun put away, unused now); explosion + smoke + force + sound + daze + knockdown (`knockGun` from .5). Pit at x 25 z 38: sandbag ring, crates + dummies (own rigidbody world), Shift+G resets them.
-Later: owner's grenade boxes in the .blend (kind per box),  grenade glb (owner), throw animation / hand model, bounce sound, grenade slot / count, damage.
+Shooting range renamed: `@polywar/training-camp` (view `camp`). `feature/camp-upgrade` merged in (it was never on this line).
+Done, needs look: `Grenade` + `GRENADES` in `@polywar/weapons`: `mk2` (US, 57 g, 19 m/s), `f1` (Soviet, 60 g), `stick` (M24, 170 g, 22 m/s, flips end over end + twists, lands lying). Own ball flight (bounce ground + boxes, roll), `Grenade.arc`.
+Camp `views/camp/grenades.js`: 3 crates by x 16 z 40-44 (owner's grenade models), F takes 4 and one goes in hand: gun to the off hand (`viewmodel.offhand`, `player.busyHand`), grenade in front. Hold fire = wind up (arc dots), let go = throw (fuse starts), hand back on the gun. H = next kind / put back. Right click = pin back. Smoke / explosion drawn in `worldDrawn` (world depth, before hands).
+Later: owner's grenade boxes in the .blend (kind per box), throw animation, bounce sound, damage.
 
 ## Explosion (confirmed, `feature/explosion`)
 Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything. All in `@polywar/explosion` (look, force, sound, daze); clouds split to `@polywar/clouds`.

@@ -6,6 +6,7 @@ import { World, RigidBody, Box } from '@papit/rigidbody';
 import { Smoke } from '@polywar/smoke';
 import { Explosion, ShockFront, shellShock, BlastForce, ExplosionAudio, Daze, Knockdown, bodyTargets, worldCover } from '@polywar/explosion';
 import { Grenade, GRENADES } from '@polywar/weapons';
+import { Model } from '@polywar/renderer';
 
 export const PIT = [25, 38];
 
@@ -46,71 +47,73 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     const force = new BlastForce({ targets: () => [...bodyTargets(world), you], cover: worldCover(world), front: p => new ShockFront(p) });
     explosion.onexplode = b => { force.blast(b.position, b.power); audio.play(b.position, b.power); };
 
-    // ---- the grenades ----
-    let spec = GRENADES.frag;
-    // low poly looks: frag = egg + fuse cap, stick = can on a wooden handle
-    const looks = new Map();
-    const gMesh = sp => looks.get(sp) ?? looks.set(sp, upload(gl, (sp === GRENADES.stick
-        ? new MeshBuilder()
-            .cylinder(sp.colour, { at: [0, .1, 0], scale: [sp.radius * 2, .1, sp.radius * 2] }, 8)
-            .cylinder(sp.band, { at: [0, -.07, 0], scale: [.028, .26, .028] }, 6)
-        : new MeshBuilder()
-            .sphere(sp.colour, { scale: [sp.radius * 2, sp.radius * 2.4, sp.radius * 2] }, 1)
-            .cylinder(sp.band, { at: [0, sp.radius * 1.2, 0], scale: [sp.radius, sp.radius * .8, sp.radius] }, 6)).build())).get(sp);
+    // ---- the grenades: the owner's models (assets/models/weapons/grenades/<model>/model.glb), long axis y, centred ----
+    const models = {};
+    for (const [k, sp] of Object.entries(GRENADES)) if (sp.model) models[k] = await Model.load(gl, `/assets/models/weapons/grenades/${sp.model}/model.glb`).catch(() => undefined);
+    // the model's centre on the grenade's point (the stick turns round its middle)
+    const placed = (kind, m) => { const md = models[kind], c = md?.center ?? [0, 0, 0]; const M = Matrix4.create(Array.from(m)); return M.multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -c[0], -c[1], -c[2], 1])); };
     const dot = upload(gl, new MeshBuilder().box('#ffffff', { scale: [.05, .05, .05] }).build());
     const colliders = (x, z) => range.colliders(x, z);
     const live = [];
     const setting = { ground: range.ground, colliders, onexplode: (at, power) => explosion.explode(at, { power }) };
-    // carried: picked up at the crate (F), G takes one in hand (the gun goes away), G / a number takes the gun back.
-    // In hand: hold fire = pin out + wind up (arc shows), let go = throw, the fuse starts as the lever flies off.
-    // Right click while winding = pin back in.
-    // crates: each holds one kind (later: the owner's boxes in the .blend). The bag: count per kind (H throws the first kind you have; a selector later)
-    const crates = [{ at: [PIT[0] - 9, PIT[1] + 3], kind: 'frag', take: 4 }, { at: [PIT[0] - 9, PIT[1] + 5], kind: 'stick', take: 4 }];
-    for (const c of crates) add([1, .5, .6], 0, [c.at[0], 0, c.at[1]], GRENADES[c.kind].colour);
+    // crates: one kind each (later: the owner's boxes). F takes some: one comes straight into the hand.
+    // In hand: the gun (if any) in the off hand, the grenade in front. Hold fire = pin out + wind up (arc), let go = throw
+    // (the fuse starts), the hand back on the gun. H: the next one into the hand / put it back. Right click while winding = pin back.
+    const crates = [
+        { at: [PIT[0] - 9, PIT[1] + 2], kind: 'mk2', take: 4 },
+        { at: [PIT[0] - 9, PIT[1] + 4], kind: 'f1', take: 4 },
+        { at: [PIT[0] - 9, PIT[1] + 6], kind: 'stick', take: 4 },
+    ];
+    for (const c of crates) add([1, .5, .6], 0, [c.at[0], 0, c.at[1]], '#5a4a32');
     const bag = {};
-    let kind = 'frag', inHand = false, holding = -1;
+    let kind = 'mk2', spec = GRENADES.mk2, inHand = false, holding = -1, weight = 0;
     const nearCrate = () => { const f = player.mover.feet; return crates.find(c => Math.hypot(f[0] - c.at[0], f[2] - c.at[1]) < 1.5); };
     const have = () => Object.keys(bag).filter(k => bag[k] > 0);
+    const take = k => { kind = k; spec = GRENADES[k]; inHand = true; holding = -1; };
     const hand = () => {
         const w = layer.camera.worldMatrix, e = [w[12], w[13], w[14]], f = [-w[8], -w[9], -w[10]], r = [w[0], w[1], w[2]];
         const from = [e[0] + f[0] * .4 + r[0] * .25, e[1] - .15, e[2] + f[2] * .4 + r[2] * .25];
         // a little up from the look: a natural lob
         return { from, dir: [f[0], f[1] + .25, f[2]] };
     };
-    // quick throw (the gun stays): hold H = the gun into the off hand, the grenade in the trigger hand, wound up (arc);
-    // let go = thrown (fuse starts), the hand back on the grip. Right click while winding = pin back. Kind: the first you have
-    let weight = 0, thrown = false;
-    const spot = () => { const back = Math.min(1, Math.max(0, holding) / spec.wind); return [.2 + back * .06, -.13 + back * .12, -.38 + back * .22]; };
+    // camera space: in front, low right; wound back over the shoulder while holding fire
+    const spot = () => { const back = Math.min(1, Math.max(0, holding) / spec.wind); return [.16 + back * .1, -.16 + back * .2, -.36 + back * .26]; };
     addEventListener('keydown', e => {
         if (e.repeat || !playing() || busy()) return;
-        const k = e.key.toLowerCase();
-        const c = k === 'f' && nearCrate();
-        if (c) { bag[c.kind] = c.take; return; }
-        if (k === 'h' && !knock.active && have().length && holding < 0) { kind = have()[0]; spec = GRENADES[kind]; holding = 0; inHand = true; }
+        const k = e.key.toLowerCase(), c = k === 'f' && nearCrate();
+        if (c) { bag[c.kind] = c.take; if (!knock.active) take(c.kind); return; }
+        if (k !== 'h' || knock.active || holding >= 0) return;
+        // H: through the kinds you have, then hands back on the gun
+        const kinds = have(), i = inHand ? kinds.indexOf(kind) + 1 : 0;
+        if (i < kinds.length) take(kinds[i]); else inHand = false;
     });
-    addEventListener('keyup', e => {
-        if (e.key.toLowerCase() !== 'h' || !inHand || holding < 0) return;
+    addEventListener('mousedown', e => {
+        if (!inHand || !playing() || knock.active) return;
+        if (e.button === 0 && holding < 0) holding = 0;
+        if (e.button === 2 && holding >= 0) holding = -1;
+    });
+    addEventListener('mouseup', e => {
+        if (e.button !== 0 || !inHand || holding < 0) return;
         const g = new Grenade(spec, setting), { from, dir } = hand();
         g.throw(from, dir, holding, player.mover.velocity);
+        g.kind = kind;
         live.push(g);
         bag[kind]--;
-        holding = -1; thrown = true;
+        // thrown: the hand goes back to the gun
+        holding = -1; inHand = false;
     });
-    addEventListener('mousedown', e => { if (e.button === 2 && holding >= 0) { holding = -1; inHand = false; } });
-    // knocked down: it drops from the hand (pin still in)
-    const dropIfKnocked = () => { if (knock.active && holding >= 0) { holding = -1; inHand = false; } };
 
     const matrix = new Float32Array(16);
     let arc = [];
     return {
-        held: () => holding >= 0 || !!nearCrate(),
-        prompt: () => holding >= 0 ? `let go to throw · ${Math.round(new Grenade(spec, setting).speedOf(holding))} m/s · right click: pin back · ${spec.name} ${bag[kind]}` : `F  take ${GRENADES[nearCrate().kind].name} grenades`,
+        held: () => inHand || !!nearCrate(),
+        prompt: () => inHand ? (holding >= 0 ? `let go to throw · ${Math.round(new Grenade(spec, setting).speedOf(holding))} m/s · right click: pin back` : `hold fire to throw · H next / gun`) + ` · ${spec.name} ${bag[kind]}` : `F  take ${GRENADES[nearCrate().kind].name} grenades`,
         tick(dt) {
-            dropIfKnocked();
-            // ease the hands: in .25 s, back .4 s after the throw (the arm follows through first)
-            if (holding >= 0) { holding += dt; weight = Math.min(1, weight + dt / .25); }
-            else { weight = Math.max(0, weight - dt / .4); if (weight === 0) { inHand = false; thrown = false; } }
-            if (thrown) inHand = false;
+            // knocked down: it drops from the hand (pin still in)
+            if (knock.active) { inHand = false; holding = -1; }
+            // the gun to the off hand while a grenade is in hand: in .25 s, back .4 s after the throw
+            weight = inHand ? Math.min(1, weight + dt / .25) : Math.max(0, weight - dt / .4);
+            if (holding >= 0) holding += dt;
             player.busyHand = weight > 0 ? { weight, at: spot() } : undefined;
             if (holding >= 0) { const { from, dir } = hand(); arc = Grenade.arc(spec, setting, from, dir, holding); }
             else arc = [];
@@ -124,15 +127,16 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
             if (c?.worldMatrix) { const w = c.worldMatrix, e = [w[12], w[13], w[14]]; audio.setListener(e, [-w[8], -w[9], -w[10]]); audio.ring(player.deaf); }
         },
         glare: () => { const w = layer.camera?.worldMatrix; return w ? explosion.glare([w[12], w[13], w[14]]) : 0; },
-        /** opaque: grenades, pit, arc */
+        /** opaque: grenades, crates, arc */
         draw() {
             for (const t of things) renderer.draw(t.mesh, t.body.matrix(t.matrix));
-            for (const g of live) renderer.draw(gMesh(g.spec), g.matrix(matrix));
+            for (const c of crates) models[c.kind]?.draw(renderer, placed(c.kind, Matrix4.create([0, 0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, c.at[0], range.ground(c.at[0], c.at[1]) + .55, c.at[1], 1])));
+            for (const g of live) models[g.kind]?.draw(renderer, placed(g.kind, g.matrix(matrix)));
             if (inHand && weight > .5 && layer.camera?.worldMatrix)
             {
                 const w = layer.camera.worldMatrix, o = spot(), m = new Float32Array(w);
                 for (let k = 0; k < 3; k++) m[12 + k] = w[12 + k] + w[k] * o[0] + w[4 + k] * o[1] + w[8 + k] * o[2];
-                renderer.draw(gMesh(spec), m);
+                models[kind]?.draw(renderer, placed(kind, m));
             }
             for (let i = 2; i < arc.length; i += 2) { const p = arc[i]; renderer.draw(dot, Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])); }
         },
