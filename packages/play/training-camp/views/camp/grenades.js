@@ -77,7 +77,7 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
         return { from, dir: [f[0], f[1] + .25, f[2]] };
     };
     // camera space: in front, low right; wound back over the shoulder while holding fire
-    const spot = () => { const back = Math.min(1, Math.max(0, holding) / spec.wind); return [.16 + back * .1, -.16 + back * .2, -.36 + back * .26]; };
+    const spot = () => { const back = Math.min(1, Math.max(0, holding) / spec.wind); return [.2 + back * .08, -.22 + back * .22, -.55 + back * .3]; };
     addEventListener('keydown', e => {
         if (e.repeat || !playing() || busy()) return;
         const k = e.key.toLowerCase(), c = k === 'f' && nearCrate();

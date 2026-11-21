@@ -929,6 +929,8 @@ export class Player {
             else if (hands.fore) grip(skin, arm, FORE_HAND.radius);
         }
         else if (hands.fore) hand(1, hands.fore, FORE_HAND);
+        // no fore end (a pistol) but the trigger hand busy: the off hand takes the grip
+        else if (busy && busy.weight > .5) hand(1, hands.grip, PISTOL_GRIP);
         else release(skin, this.rigArms![1]);
         skin.update();
     }

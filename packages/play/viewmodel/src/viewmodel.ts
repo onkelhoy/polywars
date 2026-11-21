@@ -145,13 +145,18 @@ export class ViewModel {
         const o = this.offhand;
         if (o > .001)
         {
-            const f = point(this.matrix, h.fore ?? h.grip), e = o * o * (3 - 2 * o);
-            const D = multiply(mat4(), compose(mat4(), f[0] - .1 * e, f[1] - .16 * e, f[2] + .08 * e, .35 * e, -.25 * e, .7 * e), compose(mat4(), -f[0], -f[1], -f[2]));
+            // the fore hand point goes to `offhandAt` (camera space, low left), the gun turned round it: muzzle up and
+            // across to the left, canted over (held by the fore end alone)
+            const f = point(this.matrix, h.fore ?? h.grip), e = o * o * (3 - 2 * o), t = this.offhandAt, r = this.offhandTurn;
+            const D = multiply(mat4(), compose(mat4(), f[0] + (t[0] - f[0]) * e, f[1] + (t[1] - f[1]) * e, f[2] + (t[2] - f[2]) * e, r[0] * e, r[1] * e, r[2] * e), compose(mat4(), -f[0], -f[1], -f[2]));
             multiply(this.matrix, D, this.matrix);
         }
     }
     /** 0..1 the gun in the off hand only (dipped low left): the host eases it */
     offhand = 0;
+    /** where the fore hand holds it then (camera space) and the turn round it (yaw, pitch, roll rad) */
+    offhandAt: Vec3 = [-.2, -.19, -.42];
+    offhandTurn: Vec3 = [.45, .25, .6];
     /** the pose before the world pushed it (for `Obstruction`) */
     readonly base: Mat4 = mat4();
     /** yaw aside, back (m), tuck (+1 up, -1 down) */
