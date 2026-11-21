@@ -17,11 +17,9 @@ Everything is on `main` (smoke, explosion, knockdown, grenades, camp upgrade, gu
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).
 - Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
 
-## Farm (`@polywar/farm`, feature/farm)
-Done 1-4: grid, zoning (yard / fields / pastures / wood), yard buildings + windmill on high ground, pasture fences + gates, lane + trails, edits (flatten, noGrass, paint). View: `packages/world/farm` `npm start`, show = edits for masks.
-5. 3D view: real farm glbs + fences on the fake terrain, edits applied.
-6. Hook into `world`: farm `Site` -> area, terrain / grass / ways read the edits.
-7. LOD (separate asset-side package, later).
+## Farm (`@polywar/farm`, feature/farm): needs in-game check (owner)
+All 7 done (first pass). Views: `packages/world/farm` `experiment` (top down, show = edits) and `scene` (3D, fake terrain). World: farm sites get a farm (up to 220 m, heaviest first, clear of towns), flatten pads into the height grid, paint into the ways paint grid, no grass / no ecosystem trees on yard / fields / pastures, hedgerows + river bank trees (`FARM_TREES`), buildings + fences in `world.farmBuilt` with lods (`assets/models/buildings/farm/lod.json`).
+Known rough: fields one soil colour (no crop rows), edits per field cell (~1000 per farm), on steep maps few fields, fences sit on segment centres (ends float on slopes), no animals yet.
 
 ## Open tasks
 1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.

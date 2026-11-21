@@ -43,6 +43,16 @@ function nearest(layout: FarmLayout, x: number, z: number, ok = (_: number) => t
     return best;
 }
 
+/** a foot trail from the court to a spot (after the farm is laid out) */
+export function trail(layout: FarmLayout, to: [number, number], o: FarmOptions) {
+    const court = layout.court; if (!court) return;
+    const cells = route(layout, nearest(layout, court.x, court.z), nearest(layout, to[0], to[1], c => !layout.cells[c].water));
+    if (!cells.length) return;
+    const line = smooth([[court.x, court.z], ...cells.slice(1).map(c => [layout.cells[c].x, layout.cells[c].z] as [number, number]), to]);
+    layout.paths.push({ line, width: o.path.trail, kind: "trail" });
+    layout.edits.push({ kind: "noGrass", line, width: o.path.trail }, { kind: "paint", paint: "dirt", line, width: o.path.trail + 1 });
+}
+
 /** lane from the road entry to the court, trails from the court to gates and fields */
 export function paths(layout: FarmLayout, yard: number[], gates: [number, number][], o: FarmOptions) {
     const court = layout.court; if (!court || !yard.length) return;

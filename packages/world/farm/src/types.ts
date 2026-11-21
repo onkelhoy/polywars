@@ -3,6 +3,8 @@ export type FarmGround = {
     height(x: number, z: number): number;
     /** true on water (river, lake, sea) */
     water?(x: number, z: number): boolean;
+    /** true where the farm must not build (roads, other sites) */
+    blocked?(x: number, z: number): boolean;
 };
 
 /** the area the world hands over, metres */
@@ -13,7 +15,13 @@ export type FarmArea = {
 };
 
 /** a piece the farm can place: footprint in metres (x width, z depth) */
-export type FarmPiece = { asset: string; w: number; d: number };
+export type FarmPiece = {
+    asset: string; w: number; d: number;
+    /** turn so the door faces the court: the model's door side, radians from local +x (pi: door on -x) */
+    front?: number;
+    /** fenced run around the piece (chicken coop): footprint w x d metres incl. the run */
+    run?: { w: number; d: number; animal: Animal };
+};
 
 export type FarmOptions = {
     seed: number | string;
@@ -22,12 +30,19 @@ export type FarmOptions = {
     /** on a high spot outside the yard */
     landmark: FarmPiece[];
     field: { size: [number, number]; maxSlope: number; crops: string[] };
-    pasture: { size: [number, number]; maxSlope: number; animals: Animal[] };
+    /** `per`: one pasture per this many cells of the area */
+    pasture: { size: [number, number]; maxSlope: number; animals: Animal[]; per: number };
+    /** tree lines between fields (chance per field pair), trees every `spacing` m */
+    hedge: { chance: number; spacing: number };
+    /** trees / brush along water: chance a bank cell turns to wood */
+    bank: { chance: number; spacing: number };
     wood: { slope: number; chance: number };
     /** fence segment length (fence asset) */
-    fence: { asset: string; length: number };
+    fence: { asset: string; length: number; gate: number };
     /** `fields`: how many fields get their own trail */
     path: { lane: number; trail: number; fields: number };
+    /** small things (asset names as the world knows them, e.g. "props/village/bale") */
+    props: FarmProps;
     /** grid cell size, metres (about) */
     cell: number;
     /** relax iterations of the irregular grid */
@@ -46,14 +61,37 @@ export type FarmCell = {
     /** height at the centre and max slope (rise / run) over the corners */
     y: number; slope: number;
     water: boolean;
+    blocked: boolean;
     /** inside the area */
     inside: boolean;
     zone: Zone;
 };
 
+/** prop lists the farm picks from */
+export type FarmProps = {
+    /** by barn doors */
+    door: string[];
+    /** stacked against barn sides */
+    stack: string[];
+    /** court edges: carts, washing line */
+    court: string[];
+    well: string[];
+    /** road entry */
+    sign: string;
+    /** lamp at the court */
+    lamp: string;
+    /** the farmer's spot with a view: seat, side, light, fire */
+    view: { seat: string; side: string; light: string; fire: string };
+    /** wheat field sheaves, pasture feed */
+    sheaf: string; feed: string;
+    /** a wood pile at the wood edge */
+    wood: string[];
+};
+export type Prop = { asset: string; x: number; z: number; yaw: number; scale: number; /** metres over the ground (on top of another prop) */ lift?: number };
+
 export type Building = { asset: string; x: number; z: number; y: number; yaw: number; w: number; d: number };
 export type Field = { cells: number[]; crop: string };
-export type Pasture = { cells: number[]; animal: Animal };
+export type Pasture = { cells: number[]; animal: Animal; /** a fenced run (no cells) */ run?: Line };
 /** polyline, xz metres */
 export type Line = [number, number][];
 
@@ -76,6 +114,13 @@ export type FarmLayout = {
     fences: Line[];
     paths: { line: Line; width: number; kind: "lane" | "trail" }[];
     edits: GroundEdit[];
+    /** tree lines between fields */
+    hedges: Line[];
+    /** tree spots: hedge rows and river banks (the world picks the models) */
+    trees: { x: number; z: number; kind: "hedge" | "bank" }[];
+    props: Prop[];
+    /** the farmer's view spot */
+    view?: { x: number; z: number; yaw: number };
     /** the open yard middle */
     court?: { x: number; z: number; yaw: number };
     /** fence openings, xz */

@@ -8,7 +8,9 @@ import type { HydrologyOptions } from "@polywar/hydrology";
 export type Quality = "low" | "medium" | "high";
 
 /** What makes a world: the same settings give the same world (terrain + water + nature). Plain JSON. */
-export type WorldSettings = { terrain: Partial<TerrainSettings>; ecosystem: Partial<EcosystemSettings>; sites?: Partial<SitesOptions>; roads?: Partial<RoadsOptions>; hydrology?: Partial<HydrologyOptions> };
+export type WorldSettings = { terrain: Partial<TerrainSettings>; ecosystem: Partial<EcosystemSettings>; sites?: Partial<SitesOptions>; roads?: Partial<RoadsOptions>; hydrology?: Partial<HydrologyOptions>;
+    /** extra farm areas (metres), beside the ones on farm sites */
+    farms?: { x: number; z: number; radius: number }[] };
 
 /** Per player, not part of the world: how much is drawn. */
 export type WorldView = {

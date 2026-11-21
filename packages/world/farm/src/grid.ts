@@ -17,7 +17,7 @@ export function farmGrid(area: FarmArea, ground: FarmGround, o: FarmOptions): { 
             slope = Math.max(slope, Math.abs(ground.height(cx, cz) - y) / run);
         }
         const inside = Math.hypot(x - area.x, z - area.z) <= area.radius;
-        cells.push({ id: c, corners, x, z, y, slope, water: ground.water?.(x, z) ?? false, inside, zone: "none" });
+        cells.push({ id: c, corners, x, z, y, slope, water: ground.water?.(x, z) ?? false, blocked: ground.blocked?.(x, z) ?? false, inside, zone: "none" });
     }
     return { cells, neighbours: Int32Array.from(g.cellNeighbours) };
 }

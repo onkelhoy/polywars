@@ -39,14 +39,32 @@ export function placeYard(layout: FarmLayout, yard: number[], ground: FarmGround
         for (const c of spots) for (let k = 0; k < 6; k++) {
             const cell = cells[c], yaw = yawOf(c) + (k % 2) * Math.PI / 2 + (k > 1 ? Math.PI : 0);
             const jitter = k > 3 ? 2 : 0, x = cell.x + rnd.float(-jitter, jitter), z = cell.z + rnd.float(-jitter, jitter);
-            const foot = rect(x, z, p.w, p.d, yaw, o.yard.gap / 2);
+            const fw = p.run?.w ?? p.w, fd = p.run?.d ?? p.d;
+            const foot = rect(x, z, fw, fd, yaw, o.yard.gap / 2);
             if (taken.some(t => overlap(t, foot)) || (p.asset !== "Well" && overlap(court, foot))) continue;
             // corners must stay on the farm and dry
             if (foot.some(([fx, fz]) => ground.water?.(fx, fz) || Math.hypot(fx - layout.area.x, fz - layout.area.z) > layout.area.radius)) continue;
-            const s = seat(ground, rect(x, z, p.w, p.d, yaw));
-            if (s.rough > Math.max(p.w, p.d) * o.yard.maxSlope) continue;
+            const s = seat(ground, rect(x, z, fw, fd, yaw));
+            if (s.rough > Math.max(fw, fd) * o.yard.maxSlope) continue;
             taken.push(foot);
-            layout.buildings.push({ asset: p.asset, x, z, y: s.y, yaw, w: p.w, d: p.d });
+            // +x faces the court; the model turns its door there
+            const turn = yaw + (p.front ?? 0);
+            if (p.run) {
+                // coop at the back of its run, the run fenced with a gate toward the court
+                const c = Math.cos(yaw), sn = Math.sin(yaw), back = -(fw - p.w) / 2 + 1;
+                layout.buildings.push({ asset: p.asset, x: x + c * back, z: z + sn * back, y: s.y, yaw: turn, w: p.w, d: p.d });
+                const r = rect(x, z, fw, fd, yaw), g = o.fence.gate / 2;
+                // corners: 0 (-x,-z) 1 (+x,-z) 2 (+x,+z) 3 (-x,+z); the gate in the +x side (1 -> 2)
+                const mid: [number, number] = [(r[1][0] + r[2][0]) / 2, (r[1][1] + r[2][1]) / 2];
+                const dx = (r[2][0] - r[1][0]) / fd, dz = (r[2][1] - r[1][1]) / fd;
+                layout.fences.push([[mid[0] + dx * g, mid[1] + dz * g], r[2], r[3], r[0], r[1], [mid[0] - dx * g, mid[1] - dz * g]]);
+                layout.gates.push(mid);
+                layout.pastures.push({ cells: [], animal: p.run.animal, run: r });
+                layout.edits.push({ kind: "noGrass", poly: rect(x, z, fw, fd, yaw, -.5) }, { kind: "paint", paint: "dirt", poly: r });
+                if (s.rough > .15) layout.edits.push({ kind: "flatten", x, z, w: fw, d: fd, yaw, y: s.y, blend: 3 });
+                return true;
+            }
+            layout.buildings.push({ asset: p.asset, x, z, y: s.y, yaw: turn, w: p.w, d: p.d });
             // flatten only when the ground is not already flat
             if (s.rough > .15) layout.edits.push({ kind: "flatten", x, z, w: p.w, d: p.d, yaw, y: s.y, blend: 3 });
             layout.edits.push({ kind: "noGrass", poly: rect(x, z, p.w, p.d, yaw, .5) }, { kind: "paint", paint: "dirt", poly: rect(x, z, p.w, p.d, yaw, 1.5) });
@@ -67,7 +85,7 @@ export function placeYard(layout: FarmLayout, yard: number[], ground: FarmGround
     // yard dirt court
     layout.edits.push({ kind: "noGrass", poly: rect(cx, cz, 12, 12, main) }, { kind: "paint", paint: "gravel", poly: rect(cx, cz, 14, 14, main) });
     // landmarks: highest free cells (windmill on the hill)
-    const high = cells.filter(c => c.inside && !c.water && (c.zone === "none" || c.zone === "pasture")).sort((a, b) => b.y - a.y).map(c => c.id);
+    const high = cells.filter(c => c.inside && !c.water && !c.blocked && (c.zone === "none" || c.zone === "pasture")).sort((a, b) => b.y - a.y).map(c => c.id);
     for (const p of o.landmark) place(p, high.slice(0, 12), () => rnd.float(0, Math.PI * 2));
     layout.court = { x: cx, z: cz, yaw: main };
 }

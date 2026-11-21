@@ -9,6 +9,7 @@ import { BIOMES } from "@polywar/terrain-material";
 import { upload } from "@papit/game-mesh";
 import { roadEdge, roadHooks, type RoadHooks } from "@polywar/ways";
 import { generateSites } from "@polywar/sites";
+import { cropRows, fencePosts, generateFarm, groundEdits, zoneAt, type FarmLayout } from "@polywar/farm";
 import { hydrologyHooks, type HydrologyHooks } from "@polywar/hydrology";
 import type { TerrainHooks } from "@polywar/terrain";
 
@@ -31,6 +32,13 @@ type Tile = { c: [number, number, number]; r: number; lods: (Uploaded | undefine
 type Uploaded = ReturnType<typeof upload> & { indices?: ArrayLike<number> };
 const put = (gl: WebGL2RenderingContext, m: Mesh): Uploaded => Object.assign(upload(gl, m), { indices: m.indices });
 
+/** farm area radius at most, metres (the farm site is only its yard) */
+const FARM_RADIUS = 220, FARM_MIN = 70;
+/** crop rows: [between rows, along a row] metres, and the nature models drawn */
+const CROP_SPACING: Record<string, [number, number]> = { wheat: [.9, .6], corn: [1.1, .8] };
+const CROPS: Record<string, { models: string[]; scale: number; sway: number }> = { wheat: { models: ["Wheat"], scale: 1.4, sway: .7 }, corn: { models: ["Corn_1", "Corn_2"], scale: 1, sway: .5 } };
+/** nature models for farm tree spots */
+const FARM_TREES = { hedge: ["CommonTree_1", "CommonTree_2", "CommonTree_3", "BirchTree_1", "Bush_1", "Bush_2"], bank: ["Willow_1", "Willow_2", "Willow_3", "Bush_1", "BushBerries_1"] };
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 import type { WorldSettings, WorldView } from "./types";
 /** debug site sphere colour per kind */
@@ -66,6 +74,8 @@ export class World {
     readonly scatter: Scatter;
     /** built things (sleepers, bridges, trail props, ...): asset models by path under `assets/models/` */
     readonly built: Scatter;
+    /** farm buildings + fences (asset lods: `assets/models/buildings/farm/lod.json`) */
+    readonly farmBuilt: Scatter;
     /** batches for `built`, gathered while the world grows */
     private builtBatches: ScatterBatch[] = [];
     /** everything placed on the world (bridges, portals, trail props, ...): one record, saved / sent per player changes */
@@ -82,6 +92,9 @@ export class World {
     private fenceTiles: Tile[] = [];
     private tunnelTiles: Tile[] = [];
     private siteMesh?: ReturnType<typeof upload>;
+    private extraFarms: { x: number; z: number; radius: number }[] = [];
+    /** farms on the farm sites (laid out in the terrain pipeline, after roads) */
+    farms: { layout: FarmLayout; edits: ReturnType<typeof groundEdits>; zone: ReturnType<typeof zoneAt> }[] = [];
     /** made on first use of `view.wire` */
     private wire?: Wire;
     /** after the nature is grown (terrain or ecosystem change) */
@@ -90,15 +103,17 @@ export class World {
     constructor(readonly layer: Layer3D, readonly renderer: Renderer, readonly nature: NatureList, settings: Partial<WorldSettings> | string = {}, view: Partial<WorldView> = {}) {
         this.v = { quality: "medium", grass: true, props: true, roads: true, rivers: true, sites: false, style: "pixel", wire: "off", ...view };
         const s = typeof settings === "string" ? World.parse(settings) : settings;
+        this.extraFarms = s.farms ?? [];
         this.ecosystem = new Ecosystem(nature, s.ecosystem ?? {});
         this.scatter = new Scatter(renderer, (name, lod) => modelUrl(nature, name, lod), { quality: this.v.quality });
         const models = nature.base.replace(/[^/]+\/$/, "");
         this.built = new Scatter(renderer, (name, lod) => lod ? undefined : `${models}${name}.glb`, { quality: this.v.quality, lods: [], distance: { sleeper: 120, trail: 180, rock: 400, default: 400 } });
+        this.farmBuilt = new Scatter(renderer, (name, lod) => lod && !name.startsWith("buildings/farm/") ? undefined : `${models}${name}${lod ? `.lod${lod}` : ""}.glb`, { quality: this.v.quality, distance: { farm: 1500, farmprop: 220, default: 400 } });
         this.grass = new Grass(layer, this.grassOptions());
         this.ecosystem.onchange = () => this.planted();
         this.roads = roadHooks(raw => generateSites(raw, raw.cities, s.sites ?? {}), s.roads ?? {}, JSON.stringify(s.sites ?? {}));
         this.hydrology = hydrologyHooks(s.hydrology ?? {});
-        this.terrain = new Terrain(layer, s.terrain ?? {}, combine(this.hydrology, this.roads, { key: "seal", fix: d => this.hydrology.seal(d as any) }));
+        this.terrain = new Terrain(layer, s.terrain ?? {}, combine(this.hydrology, this.roads, { key: "farms", fix: d => this.layFarms(d) }, { key: "seal", fix: d => this.hydrology.seal(d as any) }));
         this.terrain.onchange = data => this.grow(data);
     }
 
@@ -124,6 +139,7 @@ export class World {
         {
             this.scatter.set({ quality: this.v.quality });
             this.built.set({ quality: this.v.quality });
+            this.farmBuilt.set({ quality: this.v.quality });
             this.grass.set(this.grassOptions());
             this.plantGrass();
         }
@@ -178,6 +194,7 @@ export class World {
         if (this.v.sites && this.siteMesh) this.renderer.draw(this.siteMesh, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], { unlit: true }, this.renderer.gl.LINES);
         p?.begin("props");
         if (this.v.roads) this.built.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
+        if (this.v.props) this.farmBuilt.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
         if (this.v.props) this.scatter.draw(view, time, wire ? { fill, part: (m, model, instances) => parts.push([m, model, { ...instances }]) } : {});
         p?.end();
         if (wire) { for (const [m, model, instances] of parts) wire.draw(view, m, { model, instances }); this.renderer.reset(); }
@@ -201,6 +218,7 @@ export class World {
         this.terrain.destroy();
         this.scatter.destroy();
         this.built.destroy();
+        this.farmBuilt.destroy();
         this.grass.destroy();
         this.wire?.destroy();
         this.dropTiles(this.wayTiles); this.dropTiles(this.fenceTiles); this.dropTiles(this.tunnelTiles);
@@ -219,19 +237,23 @@ export class World {
         this.buildRoads();
         this.buildSites();
         this.furnish();
+        this.placeFarms();
         this.built.place(this.builtBatches);
         const edge = this.roads.roads ? roadEdge(this.roads.roads) : undefined, keep = this.placements.all().filter(p => p.source === "trails" || p.kind === "portal");
         // no trees on roads, at tunnel mouths or right on trail props (ecosystem: <= 0 means on the road)
         // 16 m buckets of the kept spots (each also in its neighbours' reach through the 3x3 lookup)
         const C = 16, cells = new Map<number, typeof keep>(), key = (i: number, j: number) => (i + 4096) * 8192 + j + 4096;
         for (const p of keep) { const k = key(Math.floor(p.x / C), Math.floor(p.z / C)); (cells.get(k) ?? cells.set(k, []).get(k)!).push(p); }
-        const road = edge && ((x: number, z: number) => {
+        const farm = this.farmAt.bind(this);
+        const road = (edge || this.farms.length) ? ((x: number, z: number) => {
+            if (farm(x, z)) return 0;
+            if (!edge) return 99;
             let d = edge(x, z);
             const i = Math.floor(x / C), j = Math.floor(z / C);
             for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const p of cells.get(key(i + a, j + b)) ?? [])
             { const r = p.kind === "portal" ? 14 : 2.5, q = Math.hypot(p.x - x, p.z - z) - r; if (q < d) d = q; }
             return d;
-        });
+        }) : undefined;
         this.ecosystem.grow({ ...data, biomes: BIOMES, rockSlope: look.rock.slope, snowHeight: look.snow.height, groundAt: (x, z) => this.terrain.groundAt(x, z), road });
     }
 
@@ -246,7 +268,7 @@ export class World {
         const w = buildWays({ roads: r.network.roads, junctions: r.network.junctions, ground: (x, z) => this.terrain.groundAt(x, z), wet: (x, z) => this.wetAt(x, z), surface: (x, z) => this.surfaceAt(x, z) });
         // lanes / paths are painted onto the ground (no mesh)
         const d = this.terrain.data;
-        if (d) this.terrain.material.paths(groundPaint(r.network.roads, d.size, PAINT[this.v.quality]));
+        if (d) this.terrain.material.paths(this.farmPaint(groundPaint(r.network.roads, d.size, PAINT[this.v.quality])));
         this.structures = w.structures;
         const far = buildWays({ roads: r.network.roads, junctions: r.network.junctions, ground: (x, z) => this.terrain.groundAt(x, z), wet: (x, z) => this.wetAt(x, z), surface: (x, z) => this.surfaceAt(x, z) }, undefined, 1);
         this.wayTiles = this.tile([w.mesh, far.mesh]);
@@ -305,9 +327,121 @@ export class World {
         P.applyChanges();
         // generated fences (posts on the ground, rails follow the slope)
         const runs = P.all().filter(p => p.kind === "fence:run").map(p => fence(p.params!.points as Vec3[]));
+        // farm fences: posts on the ground, rails follow the slope, one run per line
+        for (const { layout } of this.farms) for (const l of layout.fences) runs.push(fence(fencePosts(l).map(([x, z]) => [x, this.terrain.groundAt(x, z), z] as Vec3)));
         this.dropTiles(this.fenceTiles);
         this.fenceTiles = runs.length ? this.tile([merge(runs)]) : [];
         this.builtBatches.push(...P.batches(k => k.includes(":") || k === "portal" ? undefined : k, k => k.startsWith("nature/") ? "rock" : "trail"));
+    }
+
+    /** farm sites: lay out a farm each and press its flatten pads into the height grid */
+    private layFarms(d: { n: number; cell: number; size: number; height: Float32Array; water: Uint8Array }) {
+        this.farms = [];
+        const base = d.height.slice(), h0 = d.size / 2;
+        const at = (a: Float32Array | Uint8Array, x: number, z: number) => {
+            const fx = Math.max(0, Math.min(d.n - 1.001, (x + h0) / d.cell)), fz = Math.max(0, Math.min(d.n - 1.001, (z + h0) / d.cell));
+            const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j, k = j * d.n + i;
+            return (a[k] * (1 - u) + a[k + 1] * u) * (1 - v) + (a[k + d.n] * (1 - u) + a[k + d.n + 1] * u) * v;
+        };
+        const ground = { height: (x: number, z: number) => at(base, x, z), water: (x: number, z: number) => d.water[Math.round((z + h0) / d.cell) * d.n + Math.round((x + h0) / d.cell)] > 0 };
+        const ways = this.roads.roads?.network.roads ?? [];
+        const edge = this.roads.roads ? roadEdge(this.roads.roads) : undefined;
+        const lay = (x: number, z: number, room: number, seed: number) => {
+            // entry: the nearest road point, pulled onto the farm's edge
+            let entry: { x: number; z: number } | undefined, best = room * 1.5;
+            for (const w of ways) for (const p of w.points) { const dd = Math.hypot(p[0] - x, p[2] - z); if (dd < best) { best = dd; entry = { x: p[0], z: p[2] }; } }
+            if (entry) { const l = Math.hypot(entry.x - x, entry.z - z) || 1; entry = { x: x + (entry.x - x) / l * Math.min(l, room), z: z + (entry.z - z) / l * Math.min(l, room) }; }
+            else entry = { x: x - room, z };
+            const layout = generateFarm({ x, z, radius: room, entry }, { ...ground, blocked: edge && ((x, z) => edge(x, z) < 4) }, { seed });
+            const edits = groundEdits(ground, layout.edits);
+            // flatten pads only: the rest of the farm keeps the ground
+            for (const e of layout.edits) {
+                if (e.kind !== "flatten") continue;
+                const r = Math.hypot(e.w, e.d) / 2 + e.blend;
+                for (let j = Math.max(0, Math.floor((e.z - r + h0) / d.cell)); j <= Math.min(d.n - 1, Math.ceil((e.z + r + h0) / d.cell)); j++)
+                    for (let i = Math.max(0, Math.floor((e.x - r + h0) / d.cell)); i <= Math.min(d.n - 1, Math.ceil((e.x + r + h0) / d.cell)); i++)
+                        d.height[j * d.n + i] = edits.height(i * d.cell - h0, j * d.cell - h0);
+            }
+            this.farms.push({ layout, edits, zone: zoneAt(layout) });
+            placed.push({ x, z, r: room });
+        };
+        const placed: { x: number; z: number; r: number }[] = [];
+        for (const f of this.extraFarms) lay(f.x, f.z, f.radius, 1);
+        const towns = this.roads.sites.filter(s => s.kind === "city" || s.kind === "village");
+        // heaviest farm sites first; a farm too close to a placed one is dropped (its land is that farm's)
+        for (const s of this.roads.sites.filter(s => s.kind === "farm").sort((a, b) => b.weight - a.weight)) {
+            let room = FARM_RADIUS;
+            for (const o of towns) room = Math.min(room, Math.hypot(o.x - s.x, o.z - s.z) - o.radius);
+            for (const o of placed) room = Math.min(room, Math.hypot(o.x - s.x, o.z - s.z) - o.r);
+            if (room < FARM_MIN) continue;
+            lay(s.x, s.z, room, s.id + 1);
+        }
+    }
+
+    /** true on farm ground that keeps no trees (yard, fields, pastures, paths) */
+    private farmAt(x: number, z: number) {
+        for (const f of this.farms) {
+            const a = f.layout.area;
+            if (Math.abs(x - a.x) > a.radius || Math.abs(z - a.z) > a.radius) continue;
+            const zn = f.zone(x, z);
+            if (zn === "yard" || zn === "field" || zn === "pasture" || f.edits.grass(x, z) < .5) return true;
+        }
+        return false;
+    }
+
+    /** farm paint (dirt, soil, gravel) stamped into the ways paint grid */
+    private farmPaint(p: { data: Uint8Array; n: number; size: number }) {
+        const cell = p.size / p.n, h0 = p.size / 2, G = { dirt: 0, soil: 40, gravel: 255 };
+        for (const f of this.farms) {
+            const a = f.layout.area, r = a.radius + 5;
+            for (let j = Math.max(0, Math.floor((a.z - r + h0) / cell)); j <= Math.min(p.n - 1, Math.ceil((a.z + r + h0) / cell)); j++)
+                for (let i = Math.max(0, Math.floor((a.x - r + h0) / cell)); i <= Math.min(p.n - 1, Math.ceil((a.x + r + h0) / cell)); i++) {
+                    const paint = f.edits.paint((i + .5) * cell - h0, (j + .5) * cell - h0);
+                    if (!paint) continue;
+                    const k = (j * p.n + i) * 2;
+                    p.data[k] = 255; p.data[k + 1] = G[paint];
+                }
+        }
+        return p;
+    }
+
+    /** farm hedge / bank tree spots as nature batches */
+    private farmTrees(): ScatterBatch[] {
+        const batch = new Map<string, number[]>();
+        let seed = 7;
+        const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+        for (const { layout } of this.farms) for (const t of layout.trees) {
+            const list = FARM_TREES[t.kind], model = list[Math.floor(rand() * list.length)], bush = model.startsWith("Bush");
+            (batch.get(model) ?? batch.set(model, []).get(model)!).push(t.x, this.terrain.groundAt(t.x, t.z), t.z, bush ? .8 + rand() * .6 : 2 + rand() * 1.4, rand() * 6.28, .9 + rand() * .2, bush ? .3 : .4, 0);
+        }
+        const out: ScatterBatch[] = [...batch].map(([model, list]) => ({ model, kind: model.startsWith("Bush") ? "bush" : "tree", data: new Float32Array(list), count: list.length / 8 }));
+        // crops in rows: [model(s), kind (draw distance), scale]
+        const crops = new Map<string, number[]>();
+        for (const { layout } of this.farms) for (const [crop, xz] of cropRows(layout, CROP_SPACING)) {
+            const c = CROPS[crop]; if (!c) continue;
+            for (let i = 0; i < xz.length; i += 3) {
+                const x = xz[i] + (rand() - .5) * .15, z = xz[i + 1] + (rand() - .5) * .15, model = c.models[Math.floor(rand() * c.models.length)];
+                (crops.get(model) ?? crops.set(model, []).get(model)!).push(x, this.terrain.groundAt(x, z), z, c.scale * (.9 + rand() * .2), xz[i + 2] + (rand() - .5) * .6, .92 + rand() * .16, c.sway, 0);
+            }
+        }
+        for (const [model, list] of crops) out.push({ model, kind: model.startsWith("Corn") ? "bush" : "plant", data: new Float32Array(list), count: list.length / 8 });
+        return out;
+    }
+
+    /** farm buildings + fences into the built scatter */
+    private placeFarms() {
+        const batch = new Map<string, { model: string; kind: string; list: number[] }>();
+        const add = (model: string, kind: string, x: number, z: number, scale: number, yaw: number, lift = 0) => {
+            let b = batch.get(model);
+            if (!b) batch.set(model, b = { model, kind, list: [] });
+            // shader yaw turns the other way
+            b.list.push(x, this.terrain.groundAt(x, z) + lift, z, scale, -yaw, 1, 0, 0);
+        };
+        for (const { layout } of this.farms) {
+            for (const b of layout.buildings) add(`buildings/farm/${b.asset}`, "farm", b.x, b.z, 1, b.yaw);
+            for (const p of layout.props) add(p.asset, "farmprop", p.x, p.z, p.scale, p.yaw, p.lift);
+        }
+        this.farmBuilt.place([...batch.values()].map(b => ({ model: b.model, kind: b.kind, data: new Float32Array(b.list), count: b.list.length / 8 })));
     }
 
     /** debug: wire sphere (3 rings + 2 tilted) per site, coloured by kind */
@@ -332,7 +466,7 @@ export class World {
 
     /** ecosystem grown: hand props to the scatter and replant the grass */
     private planted() {
-        this.scatter.place(this.ecosystem.batches);
+        this.scatter.place([...this.ecosystem.batches, ...this.farmTrees()]);
         this.plantGrass();
         this.onchange?.(this);
     }
@@ -345,7 +479,11 @@ export class World {
             area: { x: -d.size / 2, z: -d.size / 2, width: d.size, depth: d.size },
             seed: this.ecosystem.seed,
             height: (x, z) => this.terrain.groundAt(x, z),
-            grow: (x, z) => this.ecosystem.grassAt(x, z, out),
+            grow: (x, z) => {
+                this.ecosystem.grassAt(x, z, out);
+                for (const f of this.farms) if (Math.abs(x - f.layout.area.x) < f.layout.area.radius + 10 && Math.abs(z - f.layout.area.z) < f.layout.area.radius + 10) out.density *= f.edits.grass(x, z);
+                return out;
+            },
             window: WINDOW[this.v.quality],
         });
     }
