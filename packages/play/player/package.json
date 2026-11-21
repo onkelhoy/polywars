@@ -58,7 +58,6 @@
     "@polywar/viewmodel": "*",
     "@polywar/renderer": "*",
     "@polywar/characters": "*",
-    "@polywar/armory": "*",
     "@papit/audio": "*",
     "@papit/rigidbody": "*",
     "@polywar/weapon-audio": "*",

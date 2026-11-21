@@ -1,5 +1,5 @@
 import { invertRigid, mat4, point, type Vec3 } from "@polywar/viewmodel";
-import type { AimTune } from "@polywar/armory";
+import type { AimTune } from "@polywar/weapons";
 import { aimOf, type Player } from "./player";
 import { elbowOf } from "./arms";
 

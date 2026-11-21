@@ -1,8 +1,7 @@
 /** x right, y up, muzzle along -z (glTF model space), metres */
 export type Vec3 = [number, number, number];
 
-/** How a round gets chambered: drives sounds and clips. */
-export type Action = "bolt" | "straight-pull" | "semi" | "auto" | "lever" | "pump" | "break" | "pistol";
+import type { Action } from "./types";
 
 /**
  * `assets/models/weapons/guns/<id>/weapon.json`. Points come from `tools/blender/packs/weapon-points.py`

@@ -47,7 +47,11 @@
   "engines": {
     "node": ">=18"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@papit/game-engine": "*",
+    "@papit/matrix": "*",
+    "@polywar/renderer": "*"
+  },
   "devDependencies": {
     "typescript": "5.9.3",
     "@papit/theme": "*",

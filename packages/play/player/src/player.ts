@@ -9,7 +9,7 @@ import { Mover } from "@polywar/mover";
 import { Model, type Renderer } from "@polywar/renderer";
 import { Brace, Focus, Optic, direction, invertRigid, mat4, Obstruction, perspective, point, Scope, ViewModel, type Hold, type Vec3 } from "@polywar/viewmodel";
 import { Gun, GUNS, cycleCues, type Action, type Cue } from "@polywar/weapons";
-import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile } from "@polywar/armory";
+import { Armory, type AimTune, type ClipStep, type GunAnimation, type WeaponFile } from "@polywar/weapons";
 import { ARMS, armsPoseOf, type ArmsPose } from "./arms";
 import { bend, bodyArm, flat, FORE_HAND, grip, handRotation, holdRotation, PISTOL_GRIP, reach, release, turnFrame, WRIST_GRIP, type BodyArm, type HandFrame, type SkinLike } from "./body-arms";
 import type { HandsFile } from "./weapon-editor";

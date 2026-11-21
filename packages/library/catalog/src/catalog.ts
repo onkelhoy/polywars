@@ -3,12 +3,12 @@ import { GRASS_LOOKS, GrassPatch } from "@polywar/grass-material";
 import { SHADINGS, ShadingBall } from "@polywar/shading";
 import { TERRAIN_LOOKS, TerrainSample } from "@polywar/terrain-material";
 import { Skeleton } from "@polywar/skeleton";
-import { Armory } from "@polywar/armory";
+import { Armory } from "@polywar/weapons";
 
 /**
  * Fills a `pw-gallery` with the whole library: every file of the root `assets/` folder (its manifest),
  * plus the shader materials (shading styles, grass and terrain looks) and the baked surfaces (`model.glb` + maps). No generated terrains (slow to build; see `@polywar/terrain` views).
- * Weapons: every gun, and every gun with each scope it takes (`@polywar/armory`), under `models/weapons/armory`
+ * Weapons: every gun, and every gun with each scope it takes (`@polywar/weapons`), under `models/weapons/armory`
  * (pick "models/weapons" in the header for weapons only).
  * Rigged models get a `Skeleton` (bones in the preview; IK when a `rig.json` sits next to the glb).
  */

@@ -15,7 +15,7 @@ export type PlayerSetting = {
     character?: string;
     /** gun ids from `GUNS` the player carries (1..9 keys); `<id>@<scope id>` with a scope on */
     guns?: string[];
-    /** the assets root (weapon.json / scope.json via `@polywar/armory`), default `/assets` */
+    /** the assets root (weapon.json / scope.json via `@polywar/weapons`), default `/assets` */
     assets?: string;
     /** url of `assets/models/weapons/guns/` (default under `assets`) */
     gunsUrl?: string;

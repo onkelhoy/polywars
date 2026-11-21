@@ -50,8 +50,7 @@
   "dependencies": {},
   "devDependencies": {
     "typescript": "5.9.3",
-    "@papit/theme": "*",
-    "@polywar/weapons": "*"
+    "@papit/theme": "*"
   },
   "browserslist": [
     "defaults",

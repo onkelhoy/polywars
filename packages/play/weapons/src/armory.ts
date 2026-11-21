@@ -1,6 +1,6 @@
 import type { Scene } from "@polywar/renderer";
 import { ArmedGun } from "./armed";
-import type { ScopeData, ScopeFile, Vec3, Weapon, WeaponFile } from "./types";
+import type { ScopeData, ScopeFile, Vec3, Weapon, WeaponFile } from "./asset-types";
 
 const cache = new Map<string, Promise<unknown>>();
 function json<T>(url: string): Promise<T> {
