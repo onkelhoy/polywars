@@ -501,17 +501,16 @@ function leave() {
     mounting = 0; mount = 1;
     player.mover.place(out[0], out[2]);
 }
-/** crashed: off the bike where it is, flung on with its speed; hard = out cold a while (knocked down + dazed) */
+/** crashed: thrown off / out where it is with its speed just before (jeep: open, no belts, only a hard one throws you) */
 function thrown(c, speed, impact) {
-    if (driving !== c) return;
-    const v = c.car.body.velocity, at = c.car.body.position;
+    if (driving !== c || (c.spec.kind !== 'bike' && speed < 8)) return;
+    const v = c.car.crashVelocity, at = c.car.toWorld(c.spec.seat);
     if (player.down?.fixed) player.takeBack();
     driving.awake = 3;
     driving = undefined;
     mounting = 0; mount = 1;
-    player.mover.place(at.x, at.z);
-    const shock = Math.min(1, Math.max(.3, (speed - 3) / 12));
-    nades.fling([v.x * .8, Math.max(2, v.y + 2 + speed * .1), v.z * .8], shock);
+    player.mover.place(at[0], at[2]);
+    nades.fling([v[0] * .85, Math.max(1.5, v[1] + 1.5 + speed * .08), v[2] * .85], speed);
 }
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;

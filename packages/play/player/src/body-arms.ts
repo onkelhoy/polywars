@@ -8,6 +8,7 @@ type Bone = {
     head: Vector3; tail: Vector3; offset: Vector3; worldRotation: Quaternion; rotation: Quaternion;
     length: number; attach: number;
     moveTo(point: P): void;
+    pointAt(point: P): void;
     update(): void;
 };
 /** the bits of `@polywar/skeleton` used here */

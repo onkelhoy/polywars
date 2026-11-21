@@ -39,7 +39,7 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
             const a = shellShock(hit.pressure);
             daze.hit(a); audio.stun(a);
             const r = layer.camera.rotation, k = Math.max(a, Math.min(1, hit.over / 6));
-            knock.hit(k, hit.direction, r.y, r.x);
+            if (knock.hit(k, hit.direction, r.y, r.x)) player.limp(v);
             if (k > .5) player.knockGun(hit.direction, k);
         },
     };
@@ -113,13 +113,14 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
     const matrix = new Float32Array(16);
     let arc = [];
     return {
-        /** thrown off a vehicle: `velocity` m/s flings the body, `shock` 0..1 knocks down / dazes (1: out cold a while) */
-        fling(velocity, shock) {
-            target.push(velocity, [0, 0, 0], { pressure: 20 * shock });
-            daze.hit(shock);
-            const r = layer.camera.rotation;
-            knock.hit(Math.min(1, shock * 1.2), velocity, r.y, r.x);
-            if (shock > .4) player.knockGun(velocity, shock);
+        /** thrown off a vehicle at `speed` m/s: limp with `velocity`; slow = a blur + stumble, fast = down, faster = out cold */
+        fling(velocity, speed) {
+            const shock = Math.min(1, Math.max(0, (speed - 4) / 10));
+            daze.hit(.25 + shock * .75);
+            if (speed < 4) { target.push(velocity.map(x => x * .3), [0, 0, 0], { pressure: 10 }); return; }
+            const r = layer.camera.rotation, out = speed > 7 ? Math.min(8, (speed - 7) * .8) : 0;
+            if (knock.hit(Math.max(.25, shock), velocity, r.y, r.x, out)) player.limp(velocity);
+            if (shock > .3) player.knockGun(velocity, shock);
         },
         held: () => inHand || !!nearCrate(),
         prompt: () => inHand ? (holding >= 0 ? `let go to throw · ${Math.round(new Grenade(spec, setting).speedOf(holding))} m/s · right click: pin back` : `hold fire to throw · H next / gun`) + ` · ${spec.name} ${bag[kind]}` : `F  take ${GRENADES[nearCrate().kind].name} grenades`,
@@ -136,6 +137,8 @@ export async function grenades({ layer, gl, renderer, range, player, playing, bu
             for (let i = live.length - 1; i >= 0; i--) if (live[i].state === 'gone') live.splice(i, 1);
             explosion.update(dt); smoke.update(dt); force.update(dt); world.update(dt);
             knock.update(dt, layer.camera ? layer.camera.rotation.x - knock.pitch : 0);
+            // the body lies limp until the get up starts (from where it lies)
+            if (player.ragdoll && knock.phase !== 'fall' && knock.phase !== 'down') player.rise();
             daze.blink = knock.blink;
             daze.update(dt);
             const c = layer.camera;

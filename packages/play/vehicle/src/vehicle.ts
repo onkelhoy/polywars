@@ -46,8 +46,14 @@ export class Vehicle {
     lean = 0;
     /** bike: on its side (balance off until `raise`) */
     fallen = false;
-    /** bike: tipped over or hit hard; `speed` m/s at the moment, `impact` the speed lost in one step, m/s */
+    /** hit hard (bike: also tipped over); `speed` m/s just before, `impact` the speed lost in one step, m/s.
+     * `crashVelocity` is the velocity just before (throw the rider with it) */
     oncrash?: (speed: number, impact: number) => void;
+    readonly crashVelocity = new Vector3(0, 0, 0);
+    /** car: speed lost in one step (m/s) that counts as a crash. Default 7 */
+    crashAt = 7;
+    private impact = 0;
+    private calm = 0;
     /** called on every gear change (sound, a camera nudge) */
     onshift?: (gear: number, up: boolean) => void;
 
@@ -339,7 +345,18 @@ export class Vehicle {
             this.push(r, set(force, -pv[0] * rub, fy, -pv[2] * rub));
         }
 
+        // a hard hit: speed lost in one step
+        const bv = b.velocity;
+        this.impact = Math.hypot(bv.x - this.last[0], bv.y - this.last[1], bv.z - this.last[2]);
+        if (this.impact > 3) this.crashVelocity.set(this.last);
+        this.last.set(bv);
+        this.calm = Math.max(0, this.calm - dt);
         if (this.bike) this.balance(dt, input);
+        else if (this.impact > this.crashAt && this.calm <= 0)
+        {
+            this.calm = 1;
+            this.oncrash?.(Math.hypot(this.crashVelocity[0], this.crashVelocity[1], this.crashVelocity[2]), this.impact);
+        }
 
         // air drag
         const sp = Math.hypot(v.x, v.y, v.z), drag = .5 * sp;
@@ -354,8 +371,7 @@ export class Vehicle {
         this.lean = Math.asin(clamp(-right[1], -1, 1));
         const max = s.maxLean * Math.PI / 180;
         // a hard hit: speed lost in one step
-        const v = b.velocity, impact = Math.hypot(v.x - this.last[0], v.y - this.last[1], v.z - this.last[2]);
-        this.last.set(v);
+        const v = b.velocity, impact = this.impact;
         // lean alone can't tell upside down (lean ~0 again): the body's up pointing down counts too
         const up = q.rotate(set(this.up, 0, 1, 0));
         if (!this.fallen && (Math.abs(this.lean) > max + .35 || up[1] < .3 || impact > 6)) this.crash(impact);
@@ -388,12 +404,13 @@ export class Vehicle {
 
     /** down: balance off, a roll + spin kick from the speed (it tumbles, then slides on its side) */
     private crash(impact: number) {
-        const b = this.body, v = b.velocity, speed = Math.hypot(v.x, v.y, v.z);
+        const b = this.body, v = impact > 3 ? this.crashVelocity : b.velocity, speed = Math.hypot(v[0], v[1], v[2]);
+        if (impact <= 3) this.crashVelocity.set(b.velocity);
         this.fallen = true;
         const side = this.lean !== 0 ? Math.sign(this.lean) : Math.random() < .5 ? -1 : 1;
         const n = this.nose, w = b.angularVelocity, kick = 1.5 + Math.min(4, (speed + impact) * .15), spin = (Math.random() - .5) * Math.min(5, speed * .25);
         w.x += n[0] * kick * side; w.y += n[1] * kick * side + spin; w.z += n[2] * kick * side;
-        this.oncrash?.(speed + impact, impact);
+        this.oncrash?.(speed, impact);
     }
 
     private shift(to: number) {
