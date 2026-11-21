@@ -54,10 +54,7 @@
   },
   "dependencies": {
     "@polywar/gallery": "*",
-    "@polywar/grass-material": "*",
-    "@polywar/shading": "*",
     "@polywar/skeleton": "*",
-    "@polywar/terrain-material": "*",
     "@polywar/weapons": "*"
   },
   "devDependencies": {
