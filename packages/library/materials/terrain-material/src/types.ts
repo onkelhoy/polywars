@@ -5,7 +5,7 @@ export type Vec3 = [number, number, number];
 export const BIOMES = ["ocean", "lake", "beach", "grassland", "savanna", "desert", "forest", "hills", "plateau", "mountain", "snow", "river"] as const;
 export type Biome = typeof BIOMES[number];
 
-export type Debug = "" | "biome" | "height" | "slope" | "moisture" | "temperature" | "flow";
+export type Debug = "" | "biome" | "height" | "slope" | "moisture" | "temperature" | "flow" | "cover" | "albedo";
 
 export type TerrainLook = {
     /** sRGB hex per biome */
@@ -21,6 +21,12 @@ export type TerrainLook = {
      * Biome borders (needs `material.biomes(map)`) bleed `edge` metres as the same billowy shapes (0: the mesh's borders).
      */
     paint: { edge: number; size: number; washes: number; rim: number; warmth: number; grain: number; pixel: number };
+    /**
+     * The grass ground, where the cover map (`material.cover(map)`) has grass (R): the terrain colour goes `blend` (0..1)
+     * of the way to `color`, the patches the same way to theirs, dry (G) towards `dry`, all times `darken`.
+     * `edge` 0..1: how much cover a cell needs to turn grassy. Tufts take this colour from the baked albedo (`bakeAlbedo`).
+     */
+    grass: { color: string; dry: string; blend: number; darken: number; edge: number; patches: { color: string; scale: number; threshold: number; softness: number }[] };
     /** colours of ways painted on the ground (`material.paths(map)`) */
     paths: { dirt: string; gravel: string };
     /** random brightness per face 0..1: the low poly look */
@@ -39,6 +45,18 @@ export type TerrainLook = {
 
 /** Biome (and water distance) per grid node (row major, z rows, node 0 at -size/2), what the painted borders read. `@polywar/terrain`'s data fits. */
 export type BiomeMap = { n: number; size: number; biome: Uint8Array };
+
+/**
+ * Control map over the ground: `n`² RGBA8 texels over `size` metres, centred on the origin, row 0 at -size/2 (z).
+ * R grass density, G dry, B grass height (0..255 = 0..2 times), A flowers. Same grid for the ground and the tufts.
+ */
+export type CoverMap = { data: Uint8Array; n: number; size: number };
+
+/** Grass at a spot read from a cover map; `@polywar/grass` `GrassAt` fits. */
+export type CoverAt = { density: number; height: number; dry: number; flowers: number };
+
+/** The ground colour seen from above (`bakeAlbedo`): sRGB RGBA8 texture over `size` metres, v = .5 - z / size. */
+export type Albedo = { texture: WebGLTexture; size: number };
 
 /** What the ground needs from the water: its underwater look (bed tint, fog) and the surface over the eye (null: eye above water). */
 export type Underwater = { time: number; under: WaterLook["under"]; eyeSurface: number | null };

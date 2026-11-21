@@ -1,6 +1,6 @@
 import type { Layer3D } from "@papit/game-engine";
 import { Matrix4 } from "@papit/matrix";
-import { TerrainMaterial, type Biome, type Light, type TerrainLook, type View } from "@polywar/terrain-material";
+import { TerrainMaterial, coverAt, type Albedo, type Biome, type CoverAt, type CoverMap, type Light, type TerrainLook, type View } from "@polywar/terrain-material";
 import { WATER_LOOKS, WaterMaterial, createShoreMap, deleteShoreMap, type ShoreMap, type WaterLook } from "@polywar/water";
 import { decode, encode, isCode } from "./code";
 import { Cancelled } from "./pace";
@@ -174,7 +174,35 @@ export class Terrain {
         if (cull) gl.enable(gl.CULL_FACE);
     }
 
+    /**
+     * The control map (R grass, G dry, B height, A flowers, see `CoverMap`): the ground turns grassy where it says,
+     * `coverAt` reads it back for planting. Then `bakeAlbedo` for the tufts' colours. null: none.
+     */
+    cover(map: CoverMap | null) { this.material.cover(map); }
+
+    /** grass at a spot from the cover map (none without one) */
+    coverAt(x: number, z: number, out?: CoverAt): CoverAt {
+        const m = this.material.coverData;
+        return m ? coverAt(m, x, z, out) : (out ? Object.assign(out, { density: 0, height: 1, dry: 0, flowers: 0 }) : { density: 0, height: 1, dry: 0, flowers: 0 });
+    }
+
+    private albedo: Albedo | null = null;
+    /**
+     * The ground from above, unlit, `n`² texels over the map (`Grass.ground(albedo)`: tufts in the ground's colour).
+     * Redo after `cover` or a look change. Null until the map and programs are ready.
+     */
+    bakeAlbedo(n = 2048, light: Light): Albedo | null {
+        const d = this.data, g = this.ground;
+        if (!d || !g) return null;
+        const a = this.material.bakeAlbedo(d.size, n, () => {
+            g.draw({ x: 0, y: 0, z: 0 }, () => true, m => this.mesh(m), 1e9);
+        }, light, this.albedo);
+        if (a) this.albedo = a;
+        return a;
+    }
+
     destroy() {
+        if (this.albedo) this.gl.deleteTexture(this.albedo.texture);
         this.clear();
         this.material.destroy();
         this.water.destroy();

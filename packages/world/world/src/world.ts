@@ -5,7 +5,7 @@ import { modelUrl, type NatureList } from "@polywar/nature-assets";
 import { Wire, type Instances, type Light, type Renderer, type View, type WireMesh } from "@polywar/renderer";
 import { Scatter, frustum, visible } from "@polywar/scatter";
 import { DEFAULTS as TERRAIN, Terrain, decode, isCode, type TerrainData, type TerrainSettings } from "@polywar/terrain";
-import { BIOMES } from "@polywar/terrain-material";
+import { BIOMES, coverMap } from "@polywar/terrain-material";
 import { upload } from "@papit/game-mesh";
 import { roadEdge, roadHooks, type RoadHooks } from "@polywar/ways";
 import { generateSites } from "@polywar/sites";
@@ -46,6 +46,9 @@ const SITE_COLOUR: Record<string, [number, number, number]> = { city: [1, .2, .2
 
 /** ground paint grid per quality (lanes / paths), texels per side */
 const PAINT = { low: 1024, medium: 2048, high: 3072 };
+/** cover map (grass control) texels per side per quality, and the baked ground albedo the tufts read */
+const COVER = { low: 512, medium: 1024, high: 2048 };
+const ALBEDO = { low: 1024, medium: 2048, high: 4096 };
 /** grass draw distance per quality, metres (further than the grass presets) */
 const DISTANCE = { low: 34, medium: 60, high: 90 };
 /** grass planting window per quality, metres (a bit past the draw distance) */
@@ -165,6 +168,8 @@ export class World {
         const ground: [WireMesh, number][] = [], parts: [WireMesh, ArrayLike<number>, Instances][] = [];
         p?.begin("terrain");
         this.terrain.showRivers = this.v.rivers;
+        // tufts take the ground's colour: bake it once the cover map is in (and after look changes: `world.rebake()`)
+        if (this.bake && this.data) { const a = this.terrain.bakeAlbedo(ALBEDO[this.v.quality], light); if (a) { this.grass.ground(a); this.bake = false; } }
         this.terrain.draw(view, light, time, wire ? { fill, mesh: (m, drop) => ground.push([m, drop]) } : {});
         p?.end();
         if (wire) { for (const [m, wallDrop] of ground) wire.draw(view, m, { wallDrop }); this.renderer.reset(); }
@@ -471,19 +476,29 @@ export class World {
         this.onchange?.(this);
     }
 
+    private bake = false;
+    /** redo the tufts' colours from the ground (after a terrain look change) */
+    rebake() { this.bake = true; }
+
+    /**
+     * The cover map (grass density / dry / height / flowers) from the ecosystem and the farms: the terrain paints its
+     * grass ground from it, the tufts plant from it and take the baked ground colour. One source for both.
+     */
     private plantGrass() {
         const d = this.data;
         if (!d) return;
+        const farm = (x: number, z: number) => { let k = 1; for (const f of this.farms) if (Math.abs(x - f.layout.area.x) < f.layout.area.radius + 10 && Math.abs(z - f.layout.area.z) < f.layout.area.radius + 10) k *= f.edits.grass(x, z); return k; };
+        this.terrain.cover(coverMap(d.size, COVER[this.v.quality], (x, z, out) => {
+            this.ecosystem.grassAt(x, z, out);
+            if (out.density > 0) out.density *= farm(x, z);
+        }));
+        this.bake = true;
         const out = { density: 0, height: 1, dry: 0, flowers: 0 };
         this.grass.plant({
             area: { x: -d.size / 2, z: -d.size / 2, width: d.size, depth: d.size },
             seed: this.ecosystem.seed,
             height: (x, z) => this.terrain.groundAt(x, z),
-            grow: (x, z) => {
-                this.ecosystem.grassAt(x, z, out);
-                for (const f of this.farms) if (Math.abs(x - f.layout.area.x) < f.layout.area.radius + 10 && Math.abs(z - f.layout.area.z) < f.layout.area.radius + 10) out.density *= f.edits.grass(x, z);
-                return out;
-            },
+            grow: (x, z) => this.terrain.coverAt(x, z, out),
             window: WINDOW[this.v.quality],
         });
     }

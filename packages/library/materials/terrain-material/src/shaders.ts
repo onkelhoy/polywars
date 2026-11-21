@@ -65,6 +65,7 @@ layout(location = 2) in vec4 data;
 layout(location = 3) in float flow;
 layout(location = 4) in float surface;
 uniform mat4 view, projection;
+uniform mat4 model; // identity for the terrain's own chunks; a model's part (drawPart) places it
 // chunk walls: bottom edge (flow -2) hangs this many metres below the top
 uniform float wallDrop;
 out vec3 vWorld, vNormal;
@@ -75,11 +76,11 @@ flat out float vShade;
 float hash2(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
     // one random shade per face: the provoking (last) vertex decides it for the whole triangle
-    vec3 p = position;
+    vec3 p = (model * vec4(position, 1.0)).xyz;
     if (flow < -1.5) p.y -= wallDrop;
     vShade = hash2(floor(p.xz * 4.0) + .5);
     vWorld = p;
-    vNormal = normal;
+    vNormal = mat3(model) * normal;
     vData = data;
     vFlow = max(flow, -1.0);
     vSurface = surface;
@@ -115,6 +116,12 @@ ${NOISE}
 uniform sampler2D pathMap; // painted ways: r cover, g surface (dirt .. gravel)
 uniform float pathSize; // metres the path map spans (0: none)
 uniform vec3 dirtColor, gravelColor;
+uniform sampler2D coverMap; // R grass, G dry, B height, A flowers
+uniform float coverSize; // metres the cover map spans (0: none)
+uniform vec3 grassColor, grassDry;
+uniform vec3 grassPatchColor[2];
+uniform vec3 grassPatch[2]; // scale, threshold, softness
+uniform vec4 grassLook; // blend, darken, edge, _
 uniform sampler2D noiseMap; // fbm baked once (NOISE_FRAGMENT), mirrored every NOISE_SPAN units
 /** fbm from the baked texture: one fetch instead of 5 octaves of value noise (phones) */
 float fbm(vec2 p) { return texture(noiseMap, p / ${NOISE_SPAN}.0).r; }
@@ -167,6 +174,24 @@ void main() {
         c = mix(c, snowColor, s);
     }
     if (!far) c *= 1.0 + (vShade - .5) * 2.0 * variation;
+    // grass ground (cover map R): the terrain colour pulled towards the grass look, patches on top, dry by G
+    float grassy = 0.0;
+    vec4 cv = vec4(0);
+    if (coverSize > 0.0 && !far) {
+        cv = texture(coverMap, cell / coverSize + .5);
+        float wear = fbm(cell * .3 + 9.1) - .5;
+        grassy = step(grassLook.z, cv.r + wear * .3);
+        float b = grassLook.x;
+        vec3 gc = mix(c, grassColor, b);
+        for (int k = 0; k < 2; k++) {
+            vec3 q = grassPatch[k];
+            if (q.x <= 0.0) continue;
+            float v = (fbm(cell * q.x * 3.0 + float(k) * 19.7 + 2.3) - .5) * 1.6 + .5;
+            gc = mix(gc, mix(c, grassPatchColor[k], b), smoothstep(q.y - q.z, q.y + q.z, v));
+        }
+        gc = mix(gc, mix(c, grassDry, b), cv.g);
+        c = mix(c, gc * grassLook.y, grassy);
+    }
     // painted ways (lanes, paths): dirt / gravel on the ground, edges on the paint cells, worn a little at the rims
     float way = 0.0;
     if (pathSize > 0.0 && !far) {
@@ -199,6 +224,9 @@ void main() {
     else if (debug == 4) c = ramp(vData.z);
     else if (debug == 5) c = ramp(vData.w);
     else if (debug == 6) c = mix(vec3(.15), vec3(.2, .5, 1), sqrt(vFlow));
+    else if (debug == 7) c = vec3(cv.r, cv.b, cv.g) * grassy + vec3(.1) * (1.0 - grassy);
+    // albedo bake (top down, unlit): what the tufts take their colour from
+    if (debug == 8) { outColor = vec4(pow(c, vec3(1.0 / 2.2)), 1.0); return; }
 
     if (contours > 0.0) {
         float h = vWorld.y / contours, w = fwidth(h);

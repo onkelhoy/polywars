@@ -105,7 +105,10 @@ uniform vec4 spriteRect[4]; // visible part of each slot's sprite (u0 v0 u1 v1):
 uniform float perspective;
 uniform float bladeShare;
 uniform sampler2D noiseTex;
+uniform sampler2D groundTex; // the ground's albedo from above (sRGB), v = .5 - z / size
+uniform vec3 groundMap; // size metres (0: none), strength, lift
 out vec2 vUv;
+flat out vec4 vGround; // rgb linear, a strength
 out vec3 vNormal, vWorld;
 flat out vec3 vOrigin;
 flat out int vAccent, vSlot;
@@ -213,6 +216,11 @@ void main() {
         n = rotate(n, pushAxis, length(push) * radians(pushAngle));
     }
 
+    vGround = vec4(0);
+    if (groundMap.x > 0.0) {
+        vec4 g = textureLod(groundTex, vec2(origin.x / groundMap.x + .5, .5 - origin.z / groundMap.x), 0.0);
+        vGround = vec4(pow(g.rgb, vec3(2.2)) * groundMap.z, groundMap.y * g.a);
+    }
     vec3 world = origin + offset + vec3(0, anchor * size.y * cover.x * tuft.w * fade * .6, 0);
     vDry = cover.y;
     vVary = hash(origin.xz + 3.7);
@@ -234,6 +242,7 @@ in vec3 vNormal, vWorld;
 flat in vec3 vOrigin;
 flat in int vAccent, vSlot;
 flat in float vWind, vPush, vVary, vDry;
+flat in vec4 vGround;
 in vec3 vDebug;
 uniform int mode, debug;
 uniform vec3 dryColor;
@@ -254,7 +263,9 @@ void main() {
     }
     float warm = fract(vVary * 7.31) - .5;
     vec3 tone = (1.0 + (vVary - .5) * 2.0 * variation) * (1.0 + vec3(warm, 0, -warm) * variation);
-    vec3 base = mix(patchedColor(vOrigin.xz), dryColor, vDry) * tone;
+    // on a terrain: the ground's own colour under the tuft (it already holds the patches and dryness), lifted
+    vec3 own = mix(patchedColor(vOrigin.xz), dryColor, vDry);
+    vec3 base = mix(own, vGround.rgb, vGround.a) * tone;
     vec3 albedo;
     if (mode == 2) albedo = base * (.6 + .4 * clamp(vUv.y, 0.0, 1.0));
     else {

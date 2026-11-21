@@ -21,6 +21,9 @@ Everything is on `main` (farm, smoke, explosion, knockdown, grenades, camp upgra
 All 7 done (first pass) + owner round 1 (gates, doors, chicken run, crops, props, view spot). Views: `farm/views/experiment` (top down, show = edits), `world/views/farm` (one farm on a 640 m real world, buttons top / yard / bench). World: `settings.farms` adds farm areas; farm sites get a farm (up to 220 m, heaviest first, clear of towns). Flatten pads into the height grid, paint into the ways paint grid, no grass / no trees on yard / fields / pastures, hedgerows + bank trees (`FARM_TREES`), crops (`CROPS`, `cropRows`), fences generated (bridges `fence`, follow the slope), buildings + props in `world.farmBuilt` (farm lods via `assets/models/buildings/farm/lod.json`).
 Known rough: yard + fields paint all brown, edits per field cell, few fields on steep maps, no animals, props/village has no lods.
 
+## Terrain cover (feature/terrain-control): needs in-game check (owner)
+Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B height 0..2, A flowers; `coverMap` / `coverAt` in `@polywar/terrain-material`), look `grass` (color, patches, dry, blend to the terrain colour, darken, edge; edge -1 = grassy everywhere). Tufts plant from the same map and take the ground colour from `bakeAlbedo` (`grass.ground(albedo)`). `drawPart(mesh, matrix)` draws any model's earth as terrain (camp: model earth drawn once, no grass floor copy). `Grass.drawGround/setGround` gone. Debug `cover`. World / farm / terrain / grass / camp views wired.
+
 ## Open tasks
 1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
 

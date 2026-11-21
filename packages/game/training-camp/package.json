@@ -68,6 +68,7 @@
     "@polywar/vehicle-audio": "*",
     "@papit/audio": "*",
     "@polywar/grass": "*",
+    "@polywar/terrain-material": "*",
     "@polywar/light": "*",
     "@polywar/explosion": "*",
     "@polywar/smoke": "*",

@@ -16,6 +16,7 @@ import { EngineSound } from '@polywar/vehicle-audio';
 import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
+import { TerrainMaterial, coverMap, coverAt } from '@polywar/terrain-material';
 import { Lights, Glow } from '@polywar/light';
 import { grenades } from './grenades.js';
 import { Shadows } from '@polywar/shadows';
@@ -39,8 +40,8 @@ const SKY = [.62, .72, .84, 1];
 
 const range = await TrainingCamp.load();
 const model = await Model.load(gl, range.model), identity = Matrix4.create();
-// the terrain is the painted grass floor (@polywar/grass ground): the model's `Ground` and its earth (berms, earth
-// banks / roofs) aren't drawn, their triangles are painted like the ground
+// the model's `Ground` and its earth (berms, earth banks / roofs) are drawn once, by the terrain material (its grass
+// ground from a cover map), not by the model's own shader
 // convention: a node with "earth" in its name is ground (painted like the terrain); Berm* until they're renamed
 const EARTH = name => name === 'Ground' || /earth/i.test(name) || name.startsWith('Berm');
 const NO_TERRAIN = { skip: model.gltf.nodes.map(n => n.name ?? '').filter(EARTH) };
@@ -73,32 +74,50 @@ const zones = range.data.grass ?? [];
 const inZone = (kind, x, z) => zones.some(g => g.kind === kind && x >= g.min[0] && x <= g.max[0] && z >= g.min[1] && z <= g.max[1]);
 const GROW = { tall: { density: 1, height: 1, dry: 0, flowers: 0 }, short: { density: .7, height: .4, dry: 0, flowers: 0 }, none: { density: 0, height: 0, dry: 0, flowers: 0 } };
 // the look: exactly the grass view's (saved from it: assets/grass/range.json)
-const grass = new Grass(layer, await (await fetch('/assets/grass/range.json')).json());
+const look = await (await fetch('/assets/grass/range.json')).json();
+const grass = new Grass(layer, look);
 // everywhere on the ground (hills, banks too), tall by default; not under solids (buildings, sandbags, floors)
 const covered = (x, z) => { const y = range.ground(x, z); return range.colliders(x, z).some(b => x >= b.min[0] && x <= b.max[0] && z >= b.min[2] && z <= b.max[2] && b.max[1] > y - .1 && b.min[1] < y + 1); };
+// the ground: the model's earth parts with the terrain material, grassy all over (edge -1) in the grass look's colours
+const earth = model.parts.filter(p => EARTH(p.name));
+const ground = new TerrainMaterial(layer, {
+    colors: { grassland: look.color },
+    grass: { color: look.color, dry: look.dry, patches: look.patches, blend: 1, darken: .8, edge: -1 },
+    paint: { edge: 0, size: 30, washes: .001, rim: 0, warmth: 0, grain: 0, pixel: look.size[0] / 24 },
+    flat: true, variation: 0, bands: look.bands ?? 3, lighting: look.lighting ?? { wrap: 0, steepness: 1 },
+});
+window.ground = ground;
+let bake = true;
 {
     const xs = range.data.ground.flat().map(p => p[0]), zs = range.data.ground.flat().map(p => p[2]);
     const lo = [Math.min(...xs), Math.min(...zs)], hi = [Math.max(...xs), Math.max(...zs)];
+    // one cover map (origin centred, 0.5 m texels) for the ground and the tufts: zones (none wins over short over tall)
+    const size = 2 * Math.max(...lo.map(Math.abs), ...hi.map(Math.abs)) + 2;
+    ground.cover(coverMap(size, Math.min(4096, Math.ceil(size * 2)), (x, z, out) => {
+        Object.assign(out, GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall']);
+    }));
+    const out = { density: 0, height: 1, dry: 0, flowers: 0 };
     grass.plant({
         area: { x: lo[0], z: lo[1], width: hi[0] - lo[0], depth: hi[1] - lo[1] },
         height: (x, z) => range.ground(x, z),
-        grow: (x, z) => GROW[inZone('none', x, z) || covered(x, z) ? 'none' : inZone('short', x, z) ? 'short' : 'tall'],
+        grow: (x, z) => coverAt(ground.coverData, x, z, out),
         window: 130,
     });
-    // the painted grass ground (patches, spots) over all of the range's ground: it IS the terrain (the model's
-    // `Ground` isn't drawn). Tufts follow the zones.
-    const floor = [];
-    for (const t of range.data.ground) for (const p of t) floor.push(p[0], p[1], p[2]);
-    // berms, earth banks and earth roofs too: same painted ground as the terrain
-    floor.push(...model.trianglesOf(name => name !== 'Ground' && EARTH(name)));
-    grass.setGround(new Float32Array(floor));
 }
 function drawGrass(camera) {
     const e = camera.worldPosition;
     if (!e) return;
     grass.follow(e[0] ?? e.x, e[2] ?? e.z);
-    const t = performance.now() / 1000;
-    grass.drawGround(camera, renderer.light, t);
+    if (bake) {
+        const a = ground.bakeAlbedo(ground.coverData.size, 4096, () => earth.forEach(p => ground.drawPart(p.mesh, p.matrix)), renderer.light);
+        if (a) { grass.ground(a); bake = false; }
+    }
+    if (!ground.useGround(camera, renderer.light)) return;
+    // the earth: pushed back in depth steps, so roads / pads lying on it win (no z-fight)
+    gl.enable(gl.POLYGON_OFFSET_FILL);
+    gl.polygonOffset(2, 8);
+    for (const p of earth) ground.drawPart(p.mesh, p.matrix);
+    gl.disable(gl.POLYGON_OFFSET_FILL);
     renderer.reset();
 }
 // the tufts: after the SSAO pass (no AO on grass; depth is back on the canvas), and in the gun scope's picture
