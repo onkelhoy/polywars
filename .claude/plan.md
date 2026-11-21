@@ -56,9 +56,9 @@ Picked (no answer yet): hero puffs near + shader layer far, weather changes over
 - `@polywar/weather` (world/nature, headless): humidity = biome moisture + wind-blown noise + slow swing (`bias` knob); `at(x, z)` -> cover, grey, kind (clear / cirrus / fair / towering / storm / overcast), base / top, precipitation, snow (cold), storm. Seed + time only (same on every client). View `weather`: 60 km map, desert left -> wet cold right.
 - `@polywar/sky` (world/nature): gradient dome + sun, toon cloud layer to the horizon (noise always there, cover shows it, banded light, grey undersides), cirrus streaks. `sky.light(clear, out)` dims sun / greys ambient / fog = horizon. Draw right after `renderer.begin`. View `sky`: sliders.
 - Hero clouds: `CloudField` (`@polywar/smoke`, `clouds/field.ts`): seeded cloud per 2.5 km cell riding the wind drift, shows when the cover passes its threshold and grows from 0 (forms / dissolves), kind from the weather. New `storm` kind (cumulonimbus 1.1-1.7 km, tower + anvil), `CloudOptions.random` (seeded shapes). Rebuilds its own Smoke 8x/s. Sky view: `hero clouds` slider.
+- `@polywar/precipitation` (world/nature): `state` intensity 0..1 (mild = few faint drops, dense = 24k streaks), snow (wobbling flakes), wind slant. Drops all GPU (wrapping box round the eye), splashes CPU (ring + crown, `ground` height, rate by intensity²). `wetness` / `snowCover` rise + dry slowly (not on materials yet). Draw after the world. View `rain`.
 
 ## Weather next
-5. `@polywar/precipitation`: rain mild..dense (streaks, splash points), snow, ground wetness.
 6. Weather sounds: rain by intensity + surface, drips, wind.
 7. Hook into world view, then camp.
 8. Lightning (spider bolts along the base, cloud to ground, flash) + thunder audio (343 m/s delay, near crack, far rumble).

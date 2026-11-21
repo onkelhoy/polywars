@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rain</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <pw-viewport id="view" far="30000">
+        <aside>
+            <h1>rain / snow</h1>
+            <label>intensity <input id="intensity" type="range" min="0" max="1" step=".01" value=".5" /></label>
+            <label>snow <input id="snow" type="checkbox" /></label>
+            <label>wind <input id="wind" type="range" min="-15" max="15" step=".5" value="2" /></label>
+            <output id="values"></output>
+        </aside>
+    </pw-viewport>
+</body>
+</html>
