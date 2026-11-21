@@ -24,10 +24,13 @@ const ROCKS = ['Rock_1', 'Rock_2', 'Rock_3', 'Rock_4', 'Rock_5'];
 // crops: [between rows, along a row] metres, `jitter` metres off the row, `skip` chance a plant is missing, `cap` plants per farm
 const CROPS = { wheat: { models: ['Wheat'], scale: 1.4, spacing: [1.4, 1], jitter: .35, skip: .15, sway: 2 }, corn: { models: ['Corn_1', 'Corn_2'], scale: 1, spacing: [1.6, 1.2], jitter: .3, skip: .1, sway: 1.2 } };
 const CROP_CAP = 40000;
+const CROP_MODELS = new Set(Object.values(CROPS).flatMap(c => c.models));
 const NATURE = new Set([...Object.values(TREES).flat(), ...ROCKS, ...Object.values(CROPS).flatMap(c => c.models)]);
 const url = (name, lod) => {
     const path = name.includes('/') ? name : NATURE.has(name) ? `nature/${name}` : `buildings/farm/${name}`;
     if (lod && path.startsWith('props/')) return undefined;
+    // crops: the last two lods (hull, card) look bad, the scatter keeps the best level below instead
+    if (lod > 3 && CROP_MODELS.has(name)) return undefined;
     return `/assets/models/${path}${lod ? `.lod${lod}` : ''}.glb`;
 };
 const scatter = new Scatter(renderer, url, { quality: $('#quality').value, distance: { building: 1500, tree: 900, rock: 400, bush: 300, prop: 250, crop: 120, default: 300 } });
