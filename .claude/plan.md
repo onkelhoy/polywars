@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-On `feature/explosion` (off `feature/smoke`): explosion + knockdown built, need look. Next: wire explosions into the game (see Explosion). Then smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
+On `feature/grenade` (off `feature/explosion`): grenades in the training camp (rough), need look. Next: owner tries grenades. Then smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 Range rework (`feature/range` tasks: ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off), jeep 1-8 (7: gun on passenger seat, hand reach), lights + glow, doors, jeep crash fix (`fleet.cast` skips a chassis the ray starts inside), optics 1-6, grass on the range (falloff, no SSAO on tufts, grass in the gun scope).
@@ -23,6 +23,11 @@ Look (pass 3): low poly. Puffs = flat shaded icosahedrons (20 or 80 faces), toon
 4. Jeep dust uses it.
 Clouds: `smoke.cloud(at, size, { kind, density, height, lean })`: skeleton masses per kind, a core + few big overlapping 20 face lobes on each mass's upper surface, lit with the normal leaned to their mass centre (one body), flat bottom line, no sheet, no spin, no tubes. Soft facet ramp white -> `look.skyShade` (blends lobes into one body). Marching cubes mesh tried: owner rejected (giant blobs). `smoke.sky(at, { count, cover })` scatters a mix. Explosion work moved to backlog (own package).
 Later: fog on far smoke / clouds, weather package drives `sky` cover with noise.
+
+## Grenade (confirmed, `feature/grenade`)
+Shooting range renamed: `@polywar/training-camp` (view `camp`, `tools/blender/packs/training-camp.py`).
+Done, needs look: `Grenade` + `GRENADES` (frag, stick) in `@polywar/weapons` (pull, throw by hold, fuse, own ball flight: bounce off ground + boxes, roll, `onexplode` / `onbounce`, `Grenade.arc` preview). Camp glue `views/camp/grenades.js`: hold G = wind up + arc dots, let go = throw (4 s fuse, starts on pull: hold too long and it goes off in the hand); explosion + smoke + force + sound + daze + knockdown (`knockGun` from .5). Pit at x 25 z 38: sandbag ring, crates + dummies (own rigidbody world), Shift+G resets them.
+Later: grenade glb (owner), throw animation / hand model, bounce sound, grenade slot / count, damage.
 
 ## Explosion (confirmed, `feature/explosion`)
 Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything. All in `@polywar/explosion` (look, force, sound, daze); clouds split to `@polywar/clouds`.

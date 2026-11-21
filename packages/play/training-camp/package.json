@@ -67,7 +67,10 @@
     "@polywar/vehicle-audio": "*",
     "@papit/audio": "*",
     "@polywar/grass": "*",
-    "@polywar/light": "*"
+    "@polywar/light": "*",
+    "@polywar/explosion": "*",
+    "@polywar/smoke": "*",
+    "@papit/rigidbody": "*"
   },
   "browserslist": [
     "defaults",

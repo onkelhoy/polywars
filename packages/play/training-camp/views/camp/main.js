@@ -17,6 +17,7 @@ import '@polywar/gun-menu';
 import { thumbnail } from '@polywar/renderer';
 import { Grass } from '@polywar/grass';
 import { Lights, Glow } from '@polywar/light';
+import { grenades } from './grenades.js';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -423,6 +424,9 @@ $('#play').onclick = () => {
     document.body.classList.add('playing');
     layer.camera = new Camera({ near: .1, far: 3000, controllers: [seat] });
 };
+// ---- grenades (G hold / let go, Shift+G new pit props): grenades.js ----
+const nades = await grenades({ layer, gl, renderer, range, player, playing: () => document.body.classList.contains('playing') && !driving, busy: () => binoculars || menuOpen || !!tuner?.open });
+window.nades = nades;
 const walkTick = demo.tick;
 demo.tick = dt => {
     if (driving)
@@ -434,6 +438,9 @@ demo.tick = dt => {
         return;
     }
     walkTick(dt);
+    nades.tick(dt);
+    $('#glare').style.opacity = nades.glare() * .9;
+    if (nades.held()) $('#prompt').value = nades.prompt();
     const f = player.mover.feet;
     nearCar = cars.find(({ car, spec }) => { const d = car.toWorld(spec.exit); return Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.6; });
     if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = 'E  drive';
@@ -444,10 +451,14 @@ demo.draw = camera => {
     drawStands();
     drawGrass(camera);
     drawCars();
+    nades.draw();
     if (driving) { stowGun(); player.drawDown(); }
     glow.draw(camera, renderer.lights);
     renderer.reset();
     if (!document.body.classList.contains('playing')) { player.impacts.draw(camera); renderer.reset(); demo.endOcclusion(); drawTufts(camera); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); }
     else player.draw(camera);
+    nades.drawAir(camera);
+    renderer.reset();
+    nades.drawDaze();
 };
