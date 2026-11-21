@@ -74,3 +74,7 @@ Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B h
 - `tools/blender/packs/challenger.py` -> `vehicles/tanks/challenger-a30/` (model.glb + vehicle.json, 33 t, 16 wheels, turret + gun). No materials in the blend: olive drab / dark tracks / gun metal given. `Human` figure dropped.
 - Camp: placeable as an asset empty `vehicles/tanks/challenger-a30/model` (`ASSET_VEHICLES`); until placed it parks at x -96 z 28 (main.js). Drives like the ww2 tank (same TANK setting, gun, sound). Headless: ~38 km/h.
 - Later: ww2-tank into `tanks/`.
+
+## Fighter round 2 (feature/fighter): needs in-game check (owner)
+- Controls: mouse aim (`instruct` in `@polywar/aircraft`: banks / pulls / rudders the flight path onto the aim, levels the wings near it, eases off near the stall). Ground: W go, S brake then back up, A / D steer. Air: W / S throttle, A / D roll by hand. Flaps auto (down on the ground / low and slow). I engine. Chase cam on the aim, level horizon (V cockpit); a ring shows where the nose / guns point.
+- Gusts 1 m/s (was 2.5). Headless: 90° turn in ~7 s, no wing rocking, holds height after.

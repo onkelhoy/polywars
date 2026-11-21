@@ -517,7 +517,7 @@ function enter(c) {
     else if (c.spec.kind === 'tank' || c.spec.kind === 'plane') { if (player.held && !player.down) player.stow(c.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...c.spec.seat, 1]))); }
     else if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
-    if (c.spec.kind === 'plane') { const p = planes.of(c); p.air.engine(true); p.air.controls.throttle = 0; p.air.controls.flaps = 1; seatCam = true; }
+    if (c.spec.kind === 'plane') { const p = planes.of(c); p.air.engine(true); p.air.controls.throttle = 0; p.air.controls.flaps = 1; seatCam = false; planes.reset(c); }
     else c.engine ??= c.spec.kind === 'tank' ? new TankSound(player.feel.mixer, TANK_SOUND) : new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
     chase.yaw = forward(c.car);
     // tank: the look is the gun's aim (world yaw / pitch), starts along the turret
@@ -561,7 +561,6 @@ function thrown(c, speed, impact) {
 }
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
-    if (driving?.spec.kind === 'plane' && e.key.toLowerCase() === 'f') { const c = planes.of(driving).air.controls; c.flaps = c.flaps ? 0 : 1; return; }
     if (driving?.spec.kind === 'plane' && e.key.toLowerCase() === 'i') { const a = planes.of(driving).air; a.engine(!a.running); return; }
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
     if (driving?.spec.kind === 'tank' || driving?.spec.kind === 'plane') { if (Math.abs(driving.car.speed) < 2) leave(); return; }
@@ -587,35 +586,41 @@ function thirdCamera(c) {
     c.position.set(p);
     c.rotation.set([pitch, yaw, 0]);
 }
+// the plane's nose marker (mouse aim: the crosshair is where you want to go, the ring where the guns point)
+const nose = Object.assign(document.createElement('div'), { id: 'nose' });
+Object.assign(nose.style, { position: 'fixed', width: '22px', height: '22px', margin: '-11px 0 0 -11px', border: '2px solid rgba(255,255,255,.8)', borderRadius: '50%', pointerEvents: 'none', display: 'none', zIndex: 5 });
+document.body.append(nose);
+function noseAt(at, camera) {
+    const v = camera.viewMatrix, pm = camera.projectionMatrix;
+    const x = v[0] * at[0] + v[4] * at[1] + v[8] * at[2] + v[12], y = v[1] * at[0] + v[5] * at[1] + v[9] * at[2] + v[13], z = v[2] * at[0] + v[6] * at[1] + v[10] * at[2] + v[14];
+    const cx = pm[0] * x + pm[4] * y + pm[8] * z + pm[12], cy = pm[1] * x + pm[5] * y + pm[9] * z + pm[13], cw = pm[3] * x + pm[7] * y + pm[11] * z + pm[15];
+    if (cw <= 0) { nose.style.display = 'none'; return; }
+    nose.style.display = '';
+    nose.style.left = `${(cx / cw * .5 + .5) * innerWidth}px`; nose.style.top = `${(.5 - cy / cw * .5) * innerHeight}px`;
+}
 function driveCamera(camera, dt) {
     const { car, spec } = driving, input = player.input;
     const { dx, dy } = input?.consume() ?? { dx: 0, dy: 0 };
     let eye, yaw, pitch;
     if (spec.kind === 'plane')
     {
-        // the mouse is the stick; seat: the pilot's eye rolls with the plane, chase: behind, banks half as much
+        // mouse aim: the camera looks where the mouse points (the crosshair), the plane flies there by itself.
+        // Chase: behind and above along the aim, horizon level (steady); cockpit: the pilot's head turned to the aim
         planes.mouse(dx, dy);
-        const f = car.toWorld([0, 0, -1], undefined, 0), u = car.toWorld([0, 1, 0], undefined, 0), rt = car.toWorld([1, 0, 0], undefined, 0);
-        const bank = Math.atan2(rt[1], u[1]);
-        if (seatCam)
-        {
-            eye = car.toWorld(spec.eye);
-            yaw = Math.atan2(-f[0], -f[2]); pitch = Math.asin(Math.max(-1, Math.min(1, f[1])));
-            camera.position.set(eye); camera.rotation.set([pitch, yaw, bank]);
-        }
+        const d = planes.aimDir(), p = car.body.position;
+        yaw = planes.aim.yaw; pitch = planes.aim.pitch;
+        if (seatCam) eye = car.toWorld(spec.eye);
         else
         {
-            const p = car.body.position, v = car.body.velocity, sp = Math.hypot(v.x, v.y, v.z);
-            // behind along the flight path when fast, the nose when slow
-            const d = sp > 20 ? [v.x / sp, v.y / sp, v.z / sp] : [f[0], f[1], f[2]];
-            const want = [p.x - d[0] * 16 + u[0] * 4, p.y - d[1] * 16 + u[1] * 4, p.z - d[2] * 16 + u[2] * 4];
+            const want = [p.x - d[0] * 18, p.y - d[1] * 18 + 4.5, p.z - d[2] * 18];
             want[1] = Math.max(want[1], range.ground(want[0], want[2]) + 1);
-            for (let i = 0; i < 3; i++) chase.pos[i] += (want[i] - chase.pos[i]) * Math.min(1, dt * 5);
+            for (let i = 0; i < 3; i++) chase.pos[i] += (want[i] - chase.pos[i]) * Math.min(1, dt * 8);
             eye = chase.pos;
-            const look = [p.x + f[0] * 20 - eye[0], p.y + f[1] * 20 - eye[1], p.z + f[2] * 20 - eye[2]];
-            yaw = Math.atan2(-look[0], -look[2]); pitch = Math.atan2(look[1], Math.hypot(look[0], look[2]));
-            camera.position.set(eye); camera.rotation.set([pitch, yaw, bank * .5]);
         }
+        camera.position.set(eye); camera.rotation.set([pitch, yaw, 0]);
+        // where the nose (guns) points: a ring on screen, 400 m out
+        const f = car.toWorld([0, 0, -1], undefined, 0);
+        noseAt([p.x + f[0] * 400, p.y + f[1] * 400, p.z + f[2] * 400], camera);
         const cp = Math.cos(pitch);
         player.feel.mixer.setListener({ x: eye[0], y: eye[1], z: eye[2] }, { x: -Math.sin(yaw) * cp, y: Math.sin(pitch), z: -Math.cos(yaw) * cp });
         return;
@@ -746,7 +751,7 @@ window.nades = nades;
 gun = tankGun({ gl, renderer, nades, shots, dust: (at, v) => { at[1] = range.ground(at[0], at[2]) + .3; puffOut(at, v, { life: 3.5, size: 2.2, grow: 1.2, drag: 1.4, colour: DUST_GROUND.dirt.colour, opacity: .6 }); } });
 window.gun = gun;
 // ---- fighters (hold click fires): plane.js ----
-planes = planeSetup({ cars, player, shots, nades });
+planes = planeSetup({ cars, player, shots, nades, range });
 window.planes = planes;
 addEventListener('mousedown', e => { if (e.button === 0 && driving?.spec.kind === 'plane') { planes.fire(driving, true); player.feel.mixer.context.resume?.(); } });
 addEventListener('mouseup', e => { if (e.button === 0) for (const c of cars) planes.fire(c, false); });
@@ -764,9 +769,10 @@ demo.tick = dt => {
         $('#prompt').value = `E  get ${driving.spec.kind === 'bike' ? 'off' : 'out'} · V ${seatCam ? 'chase' : 'seat'} cam`;
         $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
         $('#cross').style.opacity = '0';
+        if (driving.spec.kind !== 'plane') nose.style.display = 'none';
         if (driving.spec.kind === 'plane')
         {
-            $('#prompt').value = `E get out (stopped) · V ${seatCam ? 'chase' : 'cockpit'} · Shift / Ctrl throttle · mouse, S / W pitch · A / D roll · Z / C rudder · B brakes · F flaps · I engine · hold click fire`;
+            $('#prompt').value = `E get out (stopped) · V ${seatCam ? 'chase' : 'cockpit'} · ground: W go, S brake / back, A / D steer · air: W / S throttle, mouse = where to fly, A / D roll · hold click fire`;
             $('#ammo').value = planes.hud(driving);
             $('#cross').style.opacity = '1';
         }
@@ -778,6 +784,7 @@ demo.tick = dt => {
         nades.tick(dt);
         return;
     }
+    nose.style.display = 'none';
     walkTick(dt);
     nades.tick(dt);
     $('#glare').style.opacity = nades.glare() * .9;

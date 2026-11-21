@@ -1,22 +1,22 @@
 // Fighters in the camp (@polywar/aircraft on the vehicle body): fly, six .50 wing guns, vapour off the tips on hard
 // pulls, engine + prop + wind sound (@polywar/vehicle-audio PlaneSound).
-// Keys: Shift / Ctrl throttle, mouse or S / W pitch (S pulls), A / D roll, Z / C rudder, B brakes, I engine on / off,
-// hold click fires. Wind: `planes.wind` (m/s, world), gusts `planes.gust`.
+// Keys: ground: W forward, S brake / back up, A / D steer. Air: W / S throttle up / down, the mouse points where to
+// fly (the plane flies there itself: `instruct`), A / D roll by hand. Flaps by speed. I engine, hold click fires. Wind: `planes.wind` (m/s, world), gusts `planes.gust`.
 import { Matrix4 } from '@papit/matrix';
-import { Aircraft, Guns } from '@polywar/aircraft';
+import { Aircraft, Guns, instruct } from '@polywar/aircraft';
 import { Bullets } from '@polywar/ballistics';
 import { PlaneSound } from '@polywar/vehicle-audio';
 
 /** .50 M2 ball: drag per metre (≈ 870 m/s, loses a third by 1 km) */
 const BULLET = { drag: .00045, life: 4 };
 
-export function planes({ cars, player, shots, nades }) {
+export function planes({ cars, player, shots, nades, range }) {
     const list = new Map();
     const bullets = new Bullets(shots);
     for (const c of cars)
     {
         if (c.spec.kind !== 'plane') continue;
-        const air = new Aircraft(c.car, { wing: c.spec.wing, gust: 2.5 });
+        const air = new Aircraft(c.car, { wing: c.spec.wing, gust: 1 });
         const guns = new Guns(c.car, { muzzles: c.spec.guns });
         guns.onshot = s => bullets.fire({ ...s, ...BULLET });
         list.set(c, { air, guns, sound: undefined });
@@ -29,7 +29,8 @@ export function planes({ cars, player, shots, nades }) {
     // the gun sound: the M2 set (double deuce), only every 3rd round played (80 rounds / s would choke the mixer)
     let soundTurn = 0;
     void player.feel.audio.load('double-deuce');
-    let pitchMouse = 0, rollMouse = 0;
+    /** the mouse aim: world yaw / pitch (where the plane should fly) */
+    const aim = { yaw: 0, pitch: 0 };
 
     return {
         list,
@@ -37,8 +38,13 @@ export function planes({ cars, player, shots, nades }) {
         get wind() { return [...list.values()][0]?.air.wind; },
         set gust(g) { for (const p of list.values()) p.air.s.gust = g; },
         of: c => list.get(c),
-        /** the mouse steers the stick (pitch / roll), eased back to centre */
-        mouse(dx, dy) { rollMouse = Math.max(-1, Math.min(1, rollMouse + dx * .004)); pitchMouse = Math.max(-1, Math.min(1, pitchMouse - dy * .004)); },
+        aim,
+        /** aim along the plane's nose (on getting in) */
+        reset(c) { const f = c.car.toWorld([0, 0, -1], undefined, 0); aim.yaw = Math.atan2(-f[0], -f[2]); aim.pitch = Math.asin(Math.max(-1, Math.min(1, f[1]))); },
+        /** the mouse moves the aim */
+        mouse(dx, dy) { aim.yaw -= dx * .0022; aim.pitch = Math.max(-1.45, Math.min(1.45, aim.pitch - dy * .0022)); },
+        /** the aim as a world direction */
+        aimDir() { const cp = Math.cos(aim.pitch); return [-Math.sin(aim.yaw) * cp, Math.sin(aim.pitch), -Math.cos(aim.yaw) * cp]; },
         /** before the vehicles step: controls in, wheel input out (`inputs`) */
         control(dt, driving, input, inputs) {
             for (const [c, p] of list)
@@ -46,15 +52,32 @@ export function planes({ cars, player, shots, nades }) {
                 const flying = c === driving, k = n => (flying && input?.key(n)) ? 1 : 0, ctl = p.air.controls;
                 if (flying)
                 {
-                    ctl.throttle = Math.max(0, Math.min(1, ctl.throttle + (k('shift') - k('control')) * dt * .6));
-                    pitchMouse *= Math.exp(-dt * 1.5); rollMouse *= Math.exp(-dt * 1.5);
-                    ctl.pitch = Math.max(-1, Math.min(1, pitchMouse + k('s') - k('w')));
-                    ctl.roll = Math.max(-1, Math.min(1, rollMouse + k('d') - k('a')));
-                    ctl.yaw = k('c') - k('z');
-                    ctl.brake = !!input?.key('b');
+                    const grounded = c.car.wheels.some(w => w.grounded), a = p.air, side = k('d') - k('a');
+                    // flaps by speed: down slow (take off, landing), up fast
+                    const high = c.car.body.position.y - range.ground(c.car.body.position.x, c.car.body.position.z);
+                    ctl.flaps = grounded || (high < 25 && a.airspeed < 60) ? 1 : 0;
+                    if (grounded && a.airspeed < 40)
+                    {
+                        // taxi / take off run: W holds the throttle up (full on a long press), S brakes then backs up
+                        ctl.throttle = k('w') ? Math.min(1, ctl.throttle + dt * .7) : Math.max(0, ctl.throttle - dt * 2);
+                        ctl.brake = !!k('s');
+                        ctl.yaw = side; ctl.roll = 0;
+                        // lift off: once fast enough the aim (mouse up) pulls the nose
+                        instruct(a, this.aimDir());
+                        ctl.roll = 0; ctl.yaw = side;
+                        if (a.airspeed < 45) ctl.pitch = Math.max(0, ctl.pitch);
+                        p.reverse = k('s') && Math.abs(c.car.speed) < 1.5 || (p.reverse && k('s'));
+                    }
+                    else
+                    {
+                        ctl.throttle = Math.max(.05, Math.min(1, ctl.throttle + (k('w') - k('s')) * dt * .5));
+                        ctl.brake = false; p.reverse = false;
+                        instruct(a, this.aimDir(), side);
+                    }
                 }
                 else { ctl.pitch = ctl.roll = ctl.yaw = 0; p.guns.trigger = false; }
-                inputs.set(c.car, p.air.drive(flying));
+                // backing up on the ground: the wheels pull (a tug, really), slowly
+                inputs.set(c.car, flying && p.reverse ? { throttle: -1, steer: ctl.yaw } : p.air.drive(flying));
             }
         },
         /** after the step: guns, sound, vapour */
