@@ -20,9 +20,8 @@ export function fences(layout: FarmLayout, o: FarmOptions, rnd: Random): [number
         // boundary edges, counter clockwise per cell, so they chain into loops
         const next = new Map<string, [[number, number], [number, number]]>();
         for (const c of p.cells) for (let i = 0; i < 4; i++) {
-            // fields: only toward land that is no field / pasture (no fence between two fields)
             const n = nb[c * 4 + i];
-            if (own.has(n) || (p.style === o.fence.styles.field && n >= 0 && (pastured.has(n) || cells[n].zone === "field"))) continue;
+            if (own.has(n) || (p.style === o.fence.styles.field && pastured.has(n))) continue;
             const a = cells[c].corners[i], b = cells[c].corners[(i + 1) % 4];
             next.set(key(a), [a, b]);
         }
@@ -97,7 +96,9 @@ export function yardFence(layout: FarmLayout, yard: number[], o: FarmOptions) {
         const n = nb[c * 4 + i];
         if (own.has(n)) continue;
         const a = cells[c].corners[i], b = cells[c].corners[(i + 1) % 4];
-        if (fenced.has(key(a)) && fenced.has(key(b))) continue;
+        if (fenced.has(key(a)) || fenced.has(key(b))) continue;
+        // only toward open land (not fields, pastures), like a front garden
+        if (n >= 0 && cells[n].zone !== "none") continue;
         layout.fences.push([a, b]); layout.fenceStyles.push(style);
     }
 }

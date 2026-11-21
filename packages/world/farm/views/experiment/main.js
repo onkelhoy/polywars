@@ -37,8 +37,7 @@ const scatter = new Scatter(renderer, url, { quality: $('#quality').value, dista
 // the world's grass look (bigger, fuller), see @polywar/world GRASS
 const GRASS = { settings: { density: 32, sizeScale: 2.6, softBands: .25 }, look: { bands: 3 }, bladeShare: .25, variation: .16 };
 // the camp's look (assets/grass/range.json), with the world's reach; its ground (drawGround) is drawn under the tufts
-const LOOK = await (await fetch('/assets/grass/range.json')).json();
-const grass = new Grass(layer, { ...LOOK, settings: { ...LOOK.settings, ...GRASS.settings, distance: 60, maxTufts: 220_000 }, quality: $('#quality').value });
+const grass = new Grass(layer, { ...GRASS, settings: { ...GRASS.settings, distance: 60, maxTufts: 220_000 }, quality: $('#quality').value });
 
 // fence pieces (assets/models/buildings/farm/fences): per style close / close.L / close.R / open, along -x from the origin
 const FENCE_URL = (style, kind) => `/assets/models/buildings/farm/fences/fence.${style}.${kind}.glb`;
@@ -224,16 +223,6 @@ function plant(data) {
             return out;
         },
     });
-    // the grass floor (same colours as the tufts) where grass grows, a hair over the terrain
-    const step = 2, pts = [];
-    for (let z = -h0; z < h0; z += step) for (let x = -h0; x < h0; x += step) {
-        const cx = x + step / 2, cz = z + step / 2;
-        if (data.water[Math.round((cz + h0) / data.cell) * data.n + Math.round((cx + h0) / data.cell)] || edits.grass(cx, cz) < .5) continue;
-        const y = (a, b) => terrain.groundAt(a, b) + .04;
-        pts.push(x, y(x, z), z, x, y(x, z + step), z + step, x + step, y(x + step, z), z);
-        pts.push(x + step, y(x + step, z), z, x, y(x, z + step), z + step, x + step, y(x + step, z + step), z + step);
-    }
-    grass.setGround(new Float32Array(pts));
 }
 
 for (const id of ['#tseed', '#size', '#height', '#seed', '#radius']) $(id).onchange = build;
@@ -261,7 +250,7 @@ demo.draw = camera => {
     if (fences?.plain) renderer.draw(fences.plain, I);
     if (fences?.tex) renderer.draw(fences.tex, I, { maps: birch });
     scatter.draw(camera, demo.time);
-    if ($('#grass').checked) { grass.drawGround(camera, renderer.light, demo.time); grass.draw(camera, renderer.light, demo.time); }
+    if ($('#grass').checked) grass.draw(camera, renderer.light, demo.time);
 };
 build();
 demo.look([-150, 90, 150], [0, 0, 0]);
