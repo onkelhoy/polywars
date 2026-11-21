@@ -21,6 +21,7 @@ import { TerrainMaterial, coverMap } from '@polywar/terrain-material';
 import { Lights, Glow } from '@polywar/light';
 import { grenades } from './grenades.js';
 import { tankGun } from './tank.js';
+import { planes as planeSetup } from './plane.js';
 import { Shadows } from '@polywar/shadows';
 import { Scatter } from '@polywar/scatter';
 
@@ -336,9 +337,11 @@ demo.draw = camera => {
 const BIKE = { accel: 4.5, gears: [.25, .45, .7, 1], pull: [1.8, 1.3, 1, .75], idle: 900, redline: 5200, steer: 30, steerFade: 4 };
 // tank: 30 t, slow to pull away, 4 gears, a low revving diesel; stiff, well damped suspension (the hull pitches a little)
 const TANK = { accel: 2.2, gears: [.22, .45, .72, 1], pull: [1.7, 1.25, 1, .8], idle: 500, redline: 2600, travel: .38, frequency: 1, damping: .32, grip: 1.3, brake: 5, reverse: 3, centre: .5, antiRoll: .3, roll: 1, shiftTime: .9 };
-// the tank isn't in the exported layout yet: parked on the open ground east of the spawn
-const VEHICLES = [...(range.data.vehicles ?? []), { name: 'Tank 0', kind: 'ww2-tank', at: [16, 0, 22], yaw: 0 }];
-const SETTINGS = { bike: BIKE, tank: TANK };
+// fighter on its wheels: soft long legs, free rolling (the prop pulls it), a steerable tail wheel, gentle brakes
+const PLANE = { travel: .3, frequency: 1.4, damping: .45, grip: 1, brake: 3.5, steer: 30, steerFade: 8, freeRoll: .005, roll: .6, antiRoll: 0 };
+// every vehicle comes from the camp layout (range.json `vehicles`: jeeps, bikes, the tank, fighters)
+const VEHICLES = range.data.vehicles ?? [];
+const SETTINGS = { bike: BIKE, tank: TANK, plane: PLANE };
 const cars = await Promise.all(VEHICLES.map(async v => {
     const base = `/assets/models/vehicles/${v.kind}/`;
     const spec = await (await fetch(base + 'vehicle.json')).json();
@@ -390,6 +393,8 @@ for (const c of cars) c.car.oncrash = (speed, impact) => thrown(c, speed, impact
 const chase = { yaw: 0, pos: [0, 0, 0], look: [0, 0] };
 /** the tank gun (set up after the grenades: it uses their explosions) */
 let gun;
+/** the fighters (set up after the grenades: smoke for the vapour) */
+let planes;
 const carMatrix = Matrix4.create();
 const forward = c => { const f = c.toWorld([0, 0, -1], undefined, 0); return Math.atan2(-f[0], -f[2]); };
 // the player stands in the driven car: two cylinders per car for the mover (front / back half)
@@ -414,6 +419,7 @@ function drawCars() {
     {
         const { car, spec, model: m } = c;
         gun?.pose(c, m);
+        planes?.pose(c, m);
         car.wheels.forEach((w, i) => m.move(w.spec.node, car.wheel(i, Matrix4.create())));
         const sw = car.steeringWheel(Matrix4.create());
         if (sw) m.move(spec.steeringWheel.node, sw);
@@ -480,7 +486,7 @@ function stowBack() {
 function drawDriver(camera) {
     if (driving.spec.kind === 'bike') return drawRider(camera);
     // tank: the crew sits inside, out of sight
-    if (driving.spec.kind === 'tank') return;
+    if (driving.spec.kind === 'tank' || driving.spec.kind === 'plane') return;
     const { car, spec, hands } = driving, s = spec.seat;
     const at = o => { const p = car.toWorld([s[0] + o[0], s[1] + o[1], s[2] + o[2]]); return [p[0], p[1], p[2]]; };
     const dir = d => { const p = car.toWorld(d, undefined, 0); return [p[0], p[1], p[2]]; };
@@ -493,7 +499,7 @@ let taking = -1, placing = false;
 const TAKE = .6, smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 const passenger = spec => spec.passenger ?? [-spec.seat[0], spec.seat[1] - .08, spec.seat[2]];
 function stowGun() {
-    if (!driving || !player.down?.fixed || driving.spec.kind === 'bike' || driving.spec.kind === 'tank') return;
+    if (!driving || !player.down?.fixed || driving.spec.kind === 'bike' || driving.spec.kind === 'tank' || driving.spec.kind === 'plane') return;
     const p = passenger(driving.spec);
     player.stow(driving.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, p[0], p[1], p[2], 1])));
 }
@@ -506,10 +512,11 @@ function enter(c) {
         if (c.car.fallen) c.car.raise();
         if (player.held && !player.down) stowBack();
     }
-    else if (c.spec.kind === 'tank') { if (player.held && !player.down) player.stow(c.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...c.spec.seat, 1]))); }
+    else if (c.spec.kind === 'tank' || c.spec.kind === 'plane') { if (player.held && !player.down) player.stow(c.car.matrix(Matrix4.create()).multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, ...c.spec.seat, 1]))); }
     else if (player.held && !player.down) { player.stow(Matrix4.create()); stowGun(); taking = 1; placing = true; }
     c.hands?.reset(c.car.wheelTurn);
-    c.engine ??= c.spec.kind === 'tank' ? new TankSound(player.feel.mixer, TANK_SOUND) : new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
+    if (c.spec.kind === 'plane') { const p = planes.of(c); p.air.engine(true); p.air.controls.throttle = 0; seatCam = true; }
+    else c.engine ??= c.spec.kind === 'tank' ? new TankSound(player.feel.mixer, TANK_SOUND) : new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
     chase.yaw = forward(c.car);
     // tank: the look is the gun's aim (world yaw / pitch), starts along the turret
     // tank: no inside view yet, so it starts in third person (V still swaps)
@@ -521,7 +528,8 @@ function enter(c) {
 }
 function leave() {
     const c = driving.car, out = c.toWorld(driving.spec.exit);
-    if ((driving.spec.kind === 'bike' || driving.spec.kind === 'tank') && player.down?.fixed) player.takeBack();
+    if ((driving.spec.kind === 'bike' || driving.spec.kind === 'tank' || driving.spec.kind === 'plane') && player.down?.fixed) player.takeBack();
+    if (driving.spec.kind === 'plane') { const p = planes.of(driving); p.air.engine(false); p.guns.trigger = false; }
     driving.awake = 3;
     driving = undefined;
     mounting = 0; mount = 1;
@@ -530,6 +538,14 @@ function leave() {
 /** crashed: thrown off / out where it is with its speed just before (jeep: open, no belts, only a hard one throws you) */
 function thrown(c, speed, impact) {
     if (driving !== c || c.spec.kind === 'tank') return;
+    // a plane: a hard hit (into the ground, a belly landing too fast) blows it up and throws the pilot out
+    if (c.spec.kind === 'plane')
+    {
+        if (impact < 14) return;
+        const at = c.car.body.position;
+        nades.explosion.explode([at.x, at.y + .5, at.z], { power: 4, tag: 'plane' });
+        planes.of(c).air.engine(false);
+    }
     // slow: the bike just stops / tips and you step off; the jeep keeps you in
     if (speed < 6) { if (c.car.fallen) leave(); return; }
     if (c.spec.kind !== 'bike' && speed < 8) return;
@@ -543,8 +559,9 @@ function thrown(c, speed, impact) {
 }
 addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'v' && driving) seatCam = !seatCam;
+    if (driving?.spec.kind === 'plane' && e.key.toLowerCase() === 'i') { const a = planes.of(driving).air; a.engine(!a.running); return; }
     if (e.key.toLowerCase() !== 'e' || !document.body.classList.contains('playing')) return;
-    if (driving?.spec.kind === 'tank') { if (Math.abs(driving.car.speed) < 2) leave(); return; }
+    if (driving?.spec.kind === 'tank' || driving?.spec.kind === 'plane') { if (Math.abs(driving.car.speed) < 2) leave(); return; }
     if (driving?.spec.kind === 'bike') { if (!mounting && Math.abs(driving.car.speed) < 3) mounting = -1; return; }
     if (driving) { if (placing) return; if (player.down?.fixed) taking = Math.max(taking, 0); else leave(); }
     else if (nearCar) enter(nearCar);
@@ -571,6 +588,35 @@ function driveCamera(camera, dt) {
     const { car, spec } = driving, input = player.input;
     const { dx, dy } = input?.consume() ?? { dx: 0, dy: 0 };
     let eye, yaw, pitch;
+    if (spec.kind === 'plane')
+    {
+        // the mouse is the stick; seat: the pilot's eye rolls with the plane, chase: behind, banks half as much
+        planes.mouse(dx, dy);
+        const f = car.toWorld([0, 0, -1], undefined, 0), u = car.toWorld([0, 1, 0], undefined, 0), rt = car.toWorld([1, 0, 0], undefined, 0);
+        const bank = Math.atan2(rt[1], u[1]);
+        if (seatCam)
+        {
+            eye = car.toWorld(spec.eye);
+            yaw = Math.atan2(-f[0], -f[2]); pitch = Math.asin(Math.max(-1, Math.min(1, f[1])));
+            camera.position.set(eye); camera.rotation.set([pitch, yaw, bank]);
+        }
+        else
+        {
+            const p = car.body.position, v = car.body.velocity, sp = Math.hypot(v.x, v.y, v.z);
+            // behind along the flight path when fast, the nose when slow
+            const d = sp > 20 ? [v.x / sp, v.y / sp, v.z / sp] : [f[0], f[1], f[2]];
+            const want = [p.x - d[0] * 16 + u[0] * 4, p.y - d[1] * 16 + u[1] * 4, p.z - d[2] * 16 + u[2] * 4];
+            want[1] = Math.max(want[1], range.ground(want[0], want[2]) + 1);
+            for (let i = 0; i < 3; i++) chase.pos[i] += (want[i] - chase.pos[i]) * Math.min(1, dt * 5);
+            eye = chase.pos;
+            const look = [p.x + f[0] * 20 - eye[0], p.y + f[1] * 20 - eye[1], p.z + f[2] * 20 - eye[2]];
+            yaw = Math.atan2(-look[0], -look[2]); pitch = Math.atan2(look[1], Math.hypot(look[0], look[2]));
+            camera.position.set(eye); camera.rotation.set([pitch, yaw, bank * .5]);
+        }
+        const cp = Math.cos(pitch);
+        player.feel.mixer.setListener({ x: eye[0], y: eye[1], z: eye[2] }, { x: -Math.sin(yaw) * cp, y: Math.sin(pitch), z: -Math.cos(yaw) * cp });
+        return;
+    }
     if (spec.kind === 'tank')
     {
         // the mouse aims (world yaw / pitch); seat = the gunner's sight on the turret, chase = behind + over the turret
@@ -644,10 +690,12 @@ const seat = {
         {
             const input = player.input, k = n => input?.key(n) ? 1 : 0;
             const on = driving.spec.kind !== 'bike' || mount >= 1;
-            if (driving.spec.kind === 'tank') { const p = driving.car.body.position; player.mover.place(p.x, p.z); }
+            if (driving.spec.kind === 'tank' || driving.spec.kind === 'plane') { const p = driving.car.body.position; player.mover.place(p.x, p.z); }
             inputs.set(driving.car, on ? { throttle: k('w') - k('s'), steer: k('d') - k('a'), handbrake: !!input?.key(' '), ridden: true } : { throttle: 0, steer: 0, parked: true, ridden: mount > .5 });
         }
+        planes?.control(dt, driving, player.input, inputs);
         fleet.update(dt, inputs);
+        planes?.update(dt, driving);
         gun?.update(dt, driving, driving?.spec.kind === 'tank' ? chase.lookDir : undefined);
         driving?.hands?.update(dt, driving.car.wheelTurn);
         if (mounting) { mount = Math.max(0, Math.min(1, mount + mounting * dt / MOUNT)); if (mount >= 1 && mounting > 0) mounting = 0; else if (mount <= 0 && mounting < 0) leave(); }
@@ -694,6 +742,11 @@ window.nades = nades;
 // ---- tank gun (left click while in the tank): tank.js ----
 gun = tankGun({ gl, renderer, nades, shots, dust: (at, v) => { at[1] = range.ground(at[0], at[2]) + .3; puffOut(at, v, { life: 3.5, size: 2.2, grow: 1.2, drag: 1.4, colour: DUST_GROUND.dirt.colour, opacity: .6 }); } });
 window.gun = gun;
+// ---- fighters (hold click fires): plane.js ----
+planes = planeSetup({ cars, player, shots, nades });
+window.planes = planes;
+addEventListener('mousedown', e => { if (e.button === 0 && driving?.spec.kind === 'plane') { planes.fire(driving, true); player.feel.mixer.context.resume?.(); } });
+addEventListener('mouseup', e => { if (e.button === 0) for (const c of cars) planes.fire(c, false); });
 window.TANK_SOUND = TANK_SOUND; // tune live: TANK_SOUND.tracks.links = 4 etc. (read on each update; band / tone set-up on getting in)
 addEventListener('mousedown', e => {
     if (e.button !== 0 || driving?.spec.kind !== 'tank' || !document.body.classList.contains('playing')) return;
@@ -708,6 +761,12 @@ demo.tick = dt => {
         $('#prompt').value = `E  get ${driving.spec.kind === 'bike' ? 'off' : 'out'} · V ${seatCam ? 'chase' : 'seat'} cam`;
         $('#ammo').value = `${Math.abs(driving.car.speed * 3.6).toFixed(0)} km/h`;
         $('#cross').style.opacity = '0';
+        if (driving.spec.kind === 'plane')
+        {
+            $('#prompt').value = `E get out (stopped) · V ${seatCam ? 'chase' : 'cockpit'} · Shift / Ctrl throttle · mouse, S / W pitch · A / D roll · Z / C rudder · B brakes · I engine · hold click fire`;
+            $('#ammo').value = planes.hud(driving);
+            $('#cross').style.opacity = '1';
+        }
         if (driving.spec.kind === 'tank')
         {
             $('#prompt').value += ` · click fire · ${gun.loading > 0 ? `loading ${gun.loading.toFixed(1)} s` : 'loaded'}`;
@@ -722,7 +781,7 @@ demo.tick = dt => {
     if (nades.held()) $('#prompt').value = nades.prompt();
     const f = player.mover.feet;
     nearCar = cars.find(({ car, spec }) => { const d = car.toWorld(spec.exit); return Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.6; });
-    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : nearCar.spec.kind === 'tank' ? 'E  climb in' : 'E  drive';
+    if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : nearCar.spec.kind === 'tank' || nearCar.spec.kind === 'plane' ? 'E  climb in' : 'E  drive';
 };
 demo.draw = camera => {
     // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)

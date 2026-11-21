@@ -60,7 +60,12 @@ ROLES = [
 VEHICLES = {"Jeep": "willys-jeep"}
 # asset empties that are ridden / driven at runtime: asset -> (vehicle kind, the asset's nose yaw in its own space)
 # (the old motorcycle glb had its nose on +x: yaw -pi/2; vehicle yaw 0 = nose +y, + turns left)
-ASSET_VEHICLES = {"vehicles/ww2-motorcycle/model": ("ww2-motorcycle", -math.pi / 2)}
+# (tank: the old glb's nose +x as well; fighter: nose -x)
+ASSET_VEHICLES = {
+    "vehicles/ww2-motorcycle/model": ("ww2-motorcycle", -math.pi / 2),
+    "vehicles/ww2-tank/model": ("ww2-tank", -math.pi / 2),
+    "vehicles/ww2-fighter/model": ("ww2-fighter", math.pi / 2),
+}
 # one box per object, whatever its parts
 LUMPS = ("Rock.", "Sandbag", "Crate", "Barrel", "Flag stone", "Fence barbed", "Tank ", "Truck ", "Motorbike ", "Artillery ", "Fighter ", "Bomber")
 # objects without a material get one (colour)

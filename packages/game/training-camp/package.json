@@ -67,6 +67,7 @@
     "@polywar/player": "*",
     "@polywar/viewmodel": "*",
     "@polywar/vehicle": "*",
+    "@polywar/aircraft": "*",
     "@polywar/vehicle-audio": "*",
     "@papit/audio": "*",
     "@polywar/grass": "*",

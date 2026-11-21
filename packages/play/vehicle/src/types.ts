@@ -24,12 +24,14 @@ export type WheelSpec = {
 export type VehicleSpec = {
     model?: string;
     /** "bike": two wheels in line, kept upright by a balance (leans into turns, kickstand when parked, falls on a crash) */
-    kind?: "car" | "bike" | "tank";
+    kind?: "car" | "bike" | "tank" | "plane";
     /** kg */
     mass: number;
     /** m/s */
     topSpeed: number;
     wheels: WheelSpec[];
+    /** centre of mass, model space; default between the wheels at axle height (+ setting `centre`) */
+    centre?: Point;
     /** model space box the chassis collides as; default from the wheels */
     body?: { min: Point; max: Point };
     /** `axis` points from the rim to the driver; `radius` the rim's (m) */
@@ -107,6 +109,10 @@ export type VehicleSetting = {
     maxLean?: number;
     /** tank: turn on the spot, rad / s at full steer. Default .6 */
     pivotTurn?: number;
+    /** free rolling wheel drag (share of the wheel's mass per m/s) with no throttle. Default .08 */
+    freeRoll?: number;
+    /** air drag on the hull, N per (m/s)². Default .5 (a plane: 0, its flight model drags it) */
+    airDrag?: number;
     /** tank: track rolling drag (share of the weight) with no throttle. Default .25 */
     rolling?: number;
 };

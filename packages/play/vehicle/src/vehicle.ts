@@ -54,6 +54,8 @@ export class Vehicle {
     crashAt = 7;
     private impact = 0;
     private calm = 0;
+    /** each physics step after the wheel forces, before the world steps: more forces (a flight model) */
+    onstep?: (dt: number) => void;
     /** called on every gear change (sound, a camera nudge) */
     onshift?: (gear: number, up: boolean) => void;
 
@@ -93,7 +95,7 @@ export class Vehicle {
     constructor(setting: VehicleSetting, at: Point = [0, 0, 0], yaw = 0) {
         this.s = {
             travel: .3, frequency: 1.3, damping: .3, grip: 1.1, slide: .35, accel: 3.5, brake: 8, reverse: 5,
-            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: setting.spec.kind === "bike" ? 1 : .3, balance: 30, balanceDamping: 8, maxLean: 45, pivotTurn: .6, rolling: .25, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
+            steer: 34, steerFade: 6, centre: 0, antiRoll: 1.5, roll: setting.spec.kind === "bike" ? 1 : .3, balance: 30, balanceDamping: 8, maxLean: 45, pivotTurn: .6, rolling: .25, freeRoll: .08, airDrag: setting.spec.kind === "plane" ? 0 : .5, boost: 1, gears: [.3, .58, 1], pull: [1.7, 1.05, .7], shiftTime: .55, idle: 800, redline: 3800, ...setting,
         };
         const spec = this.spec = setting.spec;
         this.bike = spec.kind === "bike";
@@ -109,7 +111,7 @@ export class Vehicle {
         const lo = [0, 1, 2].map(i => Math.min(...ws.map(p => p[i])));
         const hi = [0, 1, 2].map(i => Math.max(...ws.map(p => p[i])));
         const axle = lo[1];
-        this.com = new Vector3((lo[0] + hi[0]) / 2, axle + this.s.centre, (lo[2] + hi[2]) / 2);
+        this.com = spec.centre ? new Vector3(spec.centre[0], spec.centre[1], spec.centre[2]) : new Vector3((lo[0] + hi[0]) / 2, axle + this.s.centre, (lo[2] + hi[2]) / 2);
         const r = Math.max(...spec.wheels.map(w => w.radius));
         const box = spec.body ?? {
             min: [lo[0] - .1, axle - .05, lo[2] - r - .45],
@@ -334,7 +336,7 @@ export class Vehicle {
             if (locked) fLong = -vLong * quarter * LOCK;
             else if (brake) fLong = -Math.sign(vLong) * Math.min(brake, Math.abs(vLong) * quarter * LOCK);
             else if (this.tank) fLong = tankDrive(ws.side ?? Math.sign(p[0])) - Math.sign(vLong) * Math.min(Math.abs(vLong) * quarter * LOCK, load * s.rolling * (throttle || steerIn ? .15 : 1));
-            else fLong = (ws.drive !== false ? drive : 0) - vLong * quarter * (throttle ? .02 : .08);
+            else fLong = (ws.drive !== false ? drive : 0) - vLong * quarter * (throttle ? .02 : s.freeRoll);
             if (locked && !input.parked) fLat = clamp(fLat, -limit * s.slide, limit * s.slide);
             // down: the tyres skid (a lying bike slides on, spinning)
             if (this.fallen) { fLat = clamp(fLat, -limit * .25, limit * .25); fLong = clamp(fLong, -limit * .25, limit * .25); }
@@ -399,8 +401,9 @@ export class Vehicle {
         }
 
         // air drag
-        const sp = Math.hypot(v.x, v.y, v.z), drag = .5 * sp;
+        const sp = Math.hypot(v.x, v.y, v.z), drag = s.airDrag * sp;
         b.applyForce({ x: -v.x * drag, y: -v.y * drag, z: -v.z * drag });
+        this.onstep?.(dt);
     }
 
     /** bike: rider's balance (a capped roll torque towards the lean the turn wants), the kickstand (
@@ -503,6 +506,9 @@ export class Vehicle {
         }
         return best;
     }
+
+    /** centre of mass, model space */
+    get centre(): Point { return this.com; }
 
     /** force F at offset r from the centre of mass */
     private push(r: Vector3, F: Vector3) {
