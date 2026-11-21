@@ -60,6 +60,8 @@ export function tankGun({ gl, renderer, nades, shots, dust }) {
             // muzzle blast just in front of the barrel (flash, smoke, shock wave, sound)
             const at = [from[0] + dir[0] * .6, from[1] + dir[1] * .6, from[2] + dir[2] * .6];
             nades.explosion.explode(at, { power: GUN.muzzle, mark: false, tag: 'tank' });
+            // the crew feels every shot: a slight shock (blur + dulled ears)
+            nades.daze.hit(.18); nades.audio.stun(.12);
             // the blast hits the ground round the tank: a ring of dust thrown out, heaviest under the muzzle
             const p = c.car.body.position;
             for (let i = 0; i < 14; i++)

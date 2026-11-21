@@ -63,10 +63,10 @@ export const TANK_SOUND: TankSoundLook = {
         links: 3.7, click: [2600, .8], clickLevel: .9, slap: [800, 1.1], slapRate: .3, slapLevel: .7,
         rumble: 140, rumbleLevel: .6, full: 4,
     },
-    turn: { band: [1200, 1.4], level: .5 },
+    turn: { band: [420, 1.1], level: .12 },
     turret: {
-        tones: [[797, .5], [1605, .8], [1148, .25]], rough: 50, roughDepth: .6,
-        hiss: [2400, 1.2], hissLevel: .35, level: .35, full: .35,
+        tones: [[400, .6], [800, .45], [575, .2]], rough: 50, roughDepth: .6,
+        hiss: [1300, 1], hissLevel: .2, level: .1, full: .35,
     },
 };
 

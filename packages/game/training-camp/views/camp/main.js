@@ -507,6 +507,8 @@ function enter(c) {
     c.engine ??= c.spec.kind === 'tank' ? new TankSound(player.feel.mixer, TANK_SOUND) : new EngineSound({ mixer: player.feel.mixer, ...(ENGINES[c.spec.kind] ?? {}) });
     chase.yaw = forward(c.car);
     // tank: the look is the gun's aim (world yaw / pitch), starts along the turret
+    // tank: no inside view yet, so it starts in third person (V still swaps)
+    if (c.spec.kind === 'tank') seatCam = false;
     if (c.spec.kind === 'tank') { const t = gun.turretOf(c); chase.aim = [chase.yaw + t.yaw, t.pitch]; }
     const p = c.car.body.position;
     chase.pos = [p.x + Math.sin(chase.yaw) * 7, p.y + 2.5, p.z + Math.cos(chase.yaw) * 7];
