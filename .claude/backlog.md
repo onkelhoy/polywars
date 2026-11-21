@@ -111,6 +111,7 @@ Imported from the owner's .blend (`tools/blender/packs/shooting-range.py`), view
 - [ ] Light fog (distance + height), first in the shooting range.
 
 ## Explosion (`@polywar/explosion`, next fresh start, uses `@polywar/smoke`)
+- [ ] Knockdown poses by situation (seated in a car: tossed on the side, no roll over; prone; against a wall). Now: always fall, roll over if on the back, push up.
 - [ ] Own package: explosions compose smoke bursts + debris + shock waves; smoke stays only puffs / clouds.
 - [ ] Ground blast side heavy (ref Desktop/Screenshot 2026-11-20 at 22.50.17): big rolling masses out to the sides, low wisps trailing along the ground, a lighter lobe in front; less in the middle.
 - [ ] Massive blasts: debris / particles shot out like a volcano (arcs, trails of smoke).

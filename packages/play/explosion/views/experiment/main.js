@@ -6,7 +6,7 @@ import { Smoke } from '@polywar/smoke';
 import { World, RigidBody, Plane, Box } from '@papit/rigidbody';
 import { Grass } from '@polywar/grass';
 import { AudioMixer } from '@papit/audio';
-import { Explosion, ShockFront, shellShock, BlastForce, ExplosionAudio, Daze, bodyTargets, worldCover } from '@polywar/explosion';
+import { Explosion, ShockFront, shellShock, BlastForce, ExplosionAudio, Daze, Knockdown, bodyTargets, worldCover } from '@polywar/explosion';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -28,10 +28,24 @@ explosion.onmark = (x, z, r) => grass.clear(x, z, r);
 let world, things, force, eye = [0, 0, 0];
 const daze = new Daze(demo.layer);
 // you (the camera) as a target: dazed and deafened by how hard it hits
-const you = { get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45, push(v, _s, hit) { const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a); const k = 1 + 6 * a; demo.walker?.mover.push(v[0] * k, v[1] * k + a * 3, v[2] * k); } };
+const knock = new Knockdown({ eye: 1.7 });
+// each blink clears a bit of the smear
+knock.onblink = () => daze.clear(.3);
+// pushed no more than `cap`; the rest (and the shock) knocks you over
+const you = {
+    get position() { return { x: eye[0], y: eye[1], z: eye[2] }; }, mass: 80, size: .45,
+    get lift() { return +$('#lift').value; }, get cap() { return +$('#cap').value; },
+    push(v, _s, hit) {
+        const a = shellShock(hit.pressure); daze.hit(a); audio.stun(a);
+        demo.walker?.mover.push(v[0], v[1], v[2]);
+        knock.setting.threshold = +$('#knock').value;
+        const r = demo.camera.rotation;
+        knock.hit(Math.max(a, Math.min(1, hit.over / 6)), hit.direction, r.y, r.x);
+    },
+};
 
 // play: walk round (P), dazed you turn slowly (the look slows with the daze)
-demo.walking = { ground: () => 0, lookScale: () => 1 - .85 * daze.amount, lookSpring: () => daze.amount * .5, moveScale: () => 1 - .7 * daze.amount };
+demo.walking = { ground: () => 0, lookScale: () => 1 - .85 * daze.amount, lookSpring: () => daze.amount * .5, moveScale: () => 1 - .7 * daze.amount, pose: () => knock.active ? knock : undefined };
 $('#play').onclick = () => { mixer.unlock(); demo.mode = 'walk'; };
 addEventListener('keydown', e => { if (e.code === 'KeyP' && demo.mode !== 'walk') { mixer.unlock(); demo.mode = 'walk'; } });
 const log = [];
@@ -101,6 +115,28 @@ for (const button of document.querySelectorAll('[data-power]'))
 addEventListener('keydown', e => { if (e.code === 'Space' && demo.mode !== 'walk' || e.code === 'KeyB') { e.preventDefault(); boom(); } });
 demo.look([-60, 6, 45], [0, 8, 0]);
 
+// stand in hands (no body here): palms flat on the ground in front, forearms up to the shoulders, by `knock.hands`
+const handMesh = upload(gl, new MeshBuilder().box('#c89a78', { at: [0, 0, 0], scale: [.09, .03, .18] }).build());
+const armMesh = upload(gl, new MeshBuilder().box('#4f5a3a', { at: [0, 0, .5], scale: [.08, .08, 1] }).build());
+const basis = (x, y, z, at, s = 1) => Matrix4.create([x[0], x[1], x[2], 0, y[0], y[1], y[2], 0, z[0] * s, z[1] * s, z[2] * s, 0, at[0], at[1], at[2], 1]);
+const norm = v => { const l = Math.hypot(...v) || 1; return v.map(c => c / l); };
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+function drawHands(camera) {
+    const w = knock.hands, f = demo.walker?.mover.feet;
+    if (w <= .01 || !f) return;
+    const y = camera.rotation.y, fx = -Math.sin(y), fz = -Math.cos(y), rx = Math.cos(y), rz = -Math.sin(y), c = camera.position;
+    for (const s of [1, -1])
+    {
+        const ground = [f[0] + fx * .45 + rx * .22 * s, .02, f[2] + fz * .45 + rz * .22 * s];
+        const hang = [c[0] + fx * .3 + rx * .25 * s, c[1] - .6, c[2] + fz * .3 + rz * .25 * s];
+        const palm = hang.map((h, i) => h + (ground[i] - h) * w);
+        renderer.draw(handMesh, basis([rx, 0, rz], [0, 1, 0], [fx, 0, fz], [palm[0] + fx * .06, palm[1] + .015, palm[2] + fz * .06]));
+        const shoulder = [c[0] + rx * .2 * s, c[1] - .25, c[2] + rz * .2 * s], d = shoulder.map((v, i) => v - palm[i]), len = Math.hypot(...d);
+        const z = norm(d), x = norm(cross([0, 1, 0], z)), yy = cross(z, x);
+        renderer.draw(armMesh, basis(x, yy, z, palm, len));
+    }
+}
+
 let wait = 1;
 demo.tick = dt => {
     smoke.speed = explosion.speed = +$('#speed').value;
@@ -120,6 +156,8 @@ demo.tick = dt => {
     // eye from the view matrix: -Rᵀ t
     eye = v && [-(v[0] * v[12] + v[1] * v[13] + v[2] * v[14]), -(v[4] * v[12] + v[5] * v[13] + v[6] * v[14]), -(v[8] * v[12] + v[9] * v[13] + v[10] * v[14])];
     $('#glare').style.opacity = eye ? explosion.glare(eye) * .9 : 0;
+    knock.update(dt, demo.camera ? demo.camera.rotation.x - knock.pitch : 0);
+    daze.blink = knock.blink;
     daze.update(dt);
     if (eye) audio.setListener(eye, [-v[2], -v[6], -v[10]]);
     $('#info').value = `${smoke.count} puffs\n${heard}\n${log.slice(0, 12).join('\n')}`;
@@ -128,6 +166,7 @@ demo.draw = camera => {
     renderer.begin(camera, SKY);
     renderer.draw(mesh, identity);
     for (const t of things) renderer.draw(t.mesh, t.body.matrix(t.matrix));
+    drawHands(camera);
     if ($('#grass').checked) grass.draw(camera, renderer.light, demo.time);
     smoke.draw(camera);
     explosion.draw(camera);

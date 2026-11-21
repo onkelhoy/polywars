@@ -121,6 +121,23 @@ export class Player {
             .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
         this.down = { index: this.current, matrix: m, y: f[1] + 1, rest, fall: 0, base: m[13] };
     }
+    /**
+     * The held gun knocked out of the hands (a blast): flies `direction` (level, unit) 1..2.5 m, lands on the ground
+     * turned any way, a pickup there (`pickUp`, `downAt`).
+     */
+    knockGun(direction: ArrayLike<number>, strength = 1) {
+        if (!this.held || this.down) return;
+        this.putDown();
+        const d = (this as { down?: Player["down"] }).down;
+        if (!d) return;
+        const f = this.mover.feet, far = 1 + 1.5 * Math.min(1, strength) + Math.random() * .5;
+        const x = f[0] + direction[0] * far + (Math.random() - .5) * .6, z = f[2] + direction[2] * far + (Math.random() - .5) * .6;
+        const c = this.held!, size = c.model.size, centre = c.model.center, ground = this.setting.ground(x, z);
+        const turn = Matrix4.rotationY(Math.random() * Math.PI * 2).multiply(Matrix4.rotationZ(Math.PI / 2));
+        d.matrix = Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, 0, z, 1]).multiply(turn)
+            .multiply(Matrix4.create([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -centre[0], -centre[1], -centre[2], 1]));
+        d.base = d.matrix[13]; d.rest = ground + size[0] / 2; d.y = f[1] + 1.2; d.fall = -2;
+    }
     /** bending down to the put-down gun (`pickUp`) */
     private picking = false;
     /** Take the put-down gun back: the eye bends down to it (focus), the gun comes up at the bottom. */
@@ -530,7 +547,7 @@ export class Player {
         const f = this.mover.feet, player = this;
         return {
             get position() { return { x: f[0], y: f[1] + 1, z: f[2] }; },
-            mass: 80, size: .45,
+            mass: 80, size: .45, lift: .25, cap: 6,
             push(velocity: ArrayLike<number>, _spin: ArrayLike<number>, hit: { pressure: number }) { player.hit(velocity, hit.pressure); },
         };
     }
@@ -541,6 +558,7 @@ export class Player {
         const { dx, dy, wheel, pressed } = input?.consume() ?? { dx: 0, dy: 0, wheel: 0, pressed: new Set<string>() };
         const k = (...n: string[]) => input?.key(...n) ? 1 : 0;
         const gun = carried?.gun;
+        const pose = this.setting.pose?.(), control = pose?.control ?? 1;
         if (pressed.has("alt")) this.toggled = !this.toggled;
         const optic = this.optic;
         const aiming = !optic && !this.down && (this.toggled || !!input?.buttons.has(2));
@@ -548,7 +566,7 @@ export class Player {
         // aimed down a scope, the mouse turns slower (by the zoom)
         // through an optic the mouse is not slowed: real hands don't get steadier with zoom
         const sense = (this.setting.sensitivity ?? .0022) / (optic ? 1 : scoped ? carried!.scope!.zoom * .8 : 1 + (gun?.aimed ?? 0) * .3);
-        const turnYaw = -dx * sense, turnPitch = -dy * sense;
+        const lookK = pose?.look ?? control, turnYaw = -dx * sense * lookK, turnPitch = -dy * sense * lookK;
         const pinned = this.focus.active && !!this.focus.target?.look;
         if (!pinned) this.yaw += turnYaw;
         if (!pinned) this.pitch = Math.max(-LIMIT, Math.min(LIMIT, this.pitch + turnPitch));
@@ -600,7 +618,8 @@ export class Player {
         else if (!aiming) this.backed = 0;
         const still = !!this.opticEye || this.focus.active;
         if (still) { wx = 0; wz = 0; }
-        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") && !still });
+        wx *= control; wz *= control;
+        this.mover.update(dt, { x: wx, z: wz, jump: !!k(" ") && !still && control > .9 });
         const m = this.mover;
 
         // the gun
@@ -610,7 +629,7 @@ export class Player {
             // break actions: C pulls the hammers back, X the safety
             if (pressed.has("c")) gun.cock();
             if (gun.barrels && pressed.has("x")) gun.toggleSafety();
-            const event = sprint || optic || this.down ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
+            const event = sprint || optic || this.down || control < .3 ? gun.trigger(false) : gun.trigger(!!input?.buttons.has(0));
             if (event === "shot") this.fire(camera, gun);
             gun.update(dt);
             const pose = carried.model;
@@ -642,7 +661,7 @@ export class Player {
 
         camera.zoom = 1 + (scoped ? 0 : (gun?.aimed ?? 0) * .25);
         const out = this.lean * LEAN;
-        camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06, m.feet[2] + rz * out]);
+        camera.position.set([m.feet[0] + rx * out, m.feet[1] + this.eye - Math.abs(this.lean) * .06 - (pose?.drop ?? 0), m.feet[2] + rz * out]);
         // blast: a hard shake that dies fast, a stumble that springs back, ears ring for a while
         this.shakeTime += dt;
         const sh = this.shaking ** 2 * .06, st = this.shakeTime * 40;
@@ -650,7 +669,7 @@ export class Player {
         this.shaking *= Math.exp(-dt * 3);
         this.stumble[0] *= Math.exp(-dt * 4); this.stumble[1] *= Math.exp(-dt * 4);
         this.deaf = Math.max(0, this.deaf - dt * .12);
-        camera.rotation.set([this.pitch + this.climb + this.vm.view[0] + shake[0] + this.stumble[0], this.yaw + this.vm.view[1] + shake[1], -this.lean * LEAN_ROLL + shake[2] + this.stumble[1]]);
+        camera.rotation.set([this.pitch + this.climb + this.vm.view[0] + shake[0] + this.stumble[0] + (pose?.pitch ?? 0), this.yaw + this.vm.view[1] + shake[1] + (pose?.yaw ?? 0), -this.lean * LEAN_ROLL + shake[2] + this.stumble[1] + (pose?.roll ?? 0)]);
         // zoomed in, everything looked at is far: a further near plane keeps the depth precise (no flicker at 800 m)
         this.baseNear ??= camera.near;
         // focus: the camera eases to its eye (a fixed optic's eyepiece too), mouse nudges, springs back
@@ -824,7 +843,7 @@ export class Player {
         {
             this.body.pose(this.clips[this.move] ?? this.clips.idle, this.bodyTime, this.move !== "jump" || !this.clips.jump);
             const skin = this.body.skin as unknown as SkinLike | undefined;
-            if (skin && this.rigArms) { if (carried && !this.down) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); skin.update(); } }
+            if (skin && this.rigArms) { if (carried && !this.down) this.reachGun(skin, camera.worldMatrix, carried); else { this.rigArms.forEach(a => release(skin, a)); if (this.picking) this.reachDown(skin, this.bodyMatrix(), this.focus.amount); this.handsDown(skin, this.setting.pose?.()?.hands ?? 0); skin.update(); } }
             this.posed = skin ? skin.matrices.slice() : undefined;
             if (skin) collapse(skin, this.hidden);
             this.body.draw(r, this.bodyMatrix());
@@ -901,6 +920,23 @@ export class Player {
         const right = direction(body, [-1, 0, 0]);
         reach(skin, arm, target, rotation, along([right[0], right[1] - 1, right[2]]));
         grip(skin, arm, weight > .5 ? .016 : .04);
+    }
+
+    /** both hands flat on the ground in front of the shoulders by `weight` (0..1): pushing up after a knockdown */
+    private handsDown(skin: SkinLike, weight: number) {
+        if (!this.rigArms || weight <= .01) return;
+        const body = this.bodyMatrix(), toSkin = body.clone.multiply(this.body!.skeletonMatrix).inverse();
+        const local = (p: Vec3): Vec3 => { const q = toSkin.clone.multiply([p[0], p[1], p[2], 1]) as unknown as number[]; return [q[0], q[1], q[2]]; };
+        const along = (d: Vec3): Vec3 => { const a = local([0, 0, 0]), b = local(d); return [b[0] - a[0], b[1] - a[1], b[2] - a[2]]; };
+        const f = this.mover.feet, y = this.yaw, fx = -Math.sin(y), fz = -Math.cos(y), rx = Math.cos(y), rz = -Math.sin(y);
+        this.rigArms.forEach((arm, i) => {
+            const s = i === 0 ? 1 : -1, x = f[0] + fx * .45 + rx * .22 * s, z = f[2] + fz * .45 + rz * .22 * s;
+            const ground: Vec3 = [x, this.setting.ground(x, z) + .02, z], hang: Vec3 = [f[0] + rx * .25 * s, f[1] + .8, f[2] + rz * .25 * s];
+            const target = new Vector3(...local(hang)).lerp(new Vector3(...local(ground)), weight);
+            // palm on the ground, fingers ahead; elbow out and back
+            reach(skin, arm, target, holdRotation(arm, along([fx, 0, fz]), along([0, -1, 0])), along([rx * s - fx, .3, rz * s - fz]));
+            flat(skin, arm);
+        });
     }
 
     /**

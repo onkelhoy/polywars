@@ -61,16 +61,18 @@ export class BlastForce {
         const cover = Math.max(0, Math.min(1, this.setting.cover?.(b.at, to, target) ?? 1));
         if (cover <= 0) return;
         // from a point under the blast: the ground bounce lifts things
-        const d = new Vector3(q.x - b.at[0], q.y - (b.at[1] - size * .5 - b.scale * .3), q.z - b.at[2]).normalize();
+        let d = new Vector3(q.x - b.at[0], q.y - (b.at[1] - size * .5 - b.scale * .3), q.z - b.at[2]).normalize();
         const specific = 200 * b.power ** (2 / 3) / distance;
         const impulse = specific * Math.PI * size * size * cover * strength;
-        const dv = impulse / Math.max(.01, target.mass);
+        const lift = target.lift ?? 1;
+        if (lift < 1) d = new Vector3(d.x, d.y * lift, d.z).normalize();
+        const full = impulse / Math.max(.01, target.mass), dv = Math.min(full, target.cap ?? Infinity);
         // tumble: top goes with the push
         const up = new Vector3(0, 1, 0), axis = Vector3.cross(up, d);
         const turn = axis.magnitude > 1e-4 ? axis.normalize().multiply(dv / size * .4) : axis;
         target.push([d.x * dv, d.y * dv, d.z * dv], [turn.x, turn.y, turn.z],
-            { pressure: b.front.pressure(distance) * cover, impulse, distance, cover, direction: [d.x, d.y, d.z] });
-        this.setting.onhit?.(target, { pressure: b.front.pressure(distance) * cover, impulse, distance, cover, direction: [d.x, d.y, d.z] });
+            { pressure: b.front.pressure(distance) * cover, impulse, distance, cover, direction: [d.x, d.y, d.z], over: full - dv });
+        this.setting.onhit?.(target, { pressure: b.front.pressure(distance) * cover, impulse, distance, cover, direction: [d.x, d.y, d.z], over: full - dv });
     }
 
     /**

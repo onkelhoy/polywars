@@ -90,7 +90,7 @@ export class ExplosionAudio {
         }
         const { filter, gain, ring } = this.stunned, now = context.currentTime;
         // explosion -> silence -> the ring fades in -> the world fades back in (muffled, opening up) as the ring fades out
-        const silent = .5 + 1.5 * amount, ringUp = 1 + 1.5 * amount, back = 3 + 6 * amount, start = now + silent;
+        const silent = 1 + 3 * amount, ringUp = 1.5 + 2 * amount, back = 4 + 8 * amount, start = now + silent;
         const hold = (p: AudioParam) => { p.cancelScheduledValues(now); p.setValueAtTime(p.value, now); };
         hold(gain.gain); hold(filter.frequency); hold(ring.gain);
         // the bang itself still gets through, then the ears shut

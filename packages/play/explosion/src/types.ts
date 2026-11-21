@@ -79,6 +79,10 @@ export type Target = {
     mass: number;
     /** m, rough radius: how much of it faces the blast */
     size: number;
+    /** 0..1 how much the push lifts it (default 1); people ~.25: knocked over, not thrown up */
+    lift?: number;
+    /** m/s most the push gives it (default none); more than this goes into `hit.over` */
+    cap?: number;
     /** hit: Δv m/s and spin rad/s to add, kPa it took */
     push(velocity: Vec3, spin: Vec3, hit: Hit): void;
 };
@@ -94,6 +98,8 @@ export type Hit = {
     cover: number;
     /** unit, from the blast */
     direction: Vec3;
+    /** m/s past the target's `cap` (0 = none): what knocks a person down instead of throwing them */
+    over: number;
 };
 
 export type BlastForceSetting = {

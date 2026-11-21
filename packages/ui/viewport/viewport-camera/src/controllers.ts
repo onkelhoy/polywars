@@ -270,6 +270,8 @@ export type WalkSetting = Omit<MoverSetting, "ground"> & {
     lookSpring?: () => number;
     /** live multiplier on walk speed (dazed, hurt, carrying), default 1 */
     moveScale?: () => number;
+    /** live: the body thrown off the look (knocked down): eye lowered `drop`, look offset, `control` 0..1 of look / walk */
+    pose?: () => { drop: number; pitch: number; yaw: number; roll: number; control: number; look?: number } | undefined;
     /** the player let go of the view (Esc): the host switches back */
     exit?: () => void;
     /** on screen controls (stick walks, analog; `jump`, `run` buttons) */
@@ -286,6 +288,7 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
     const sensitivity = setting.sensitivity ?? .002, eye = setting.eye ?? 1.7, speed = setting.speed ?? 4.5, run = setting.run ?? 2.2;
     let dx = 0, dy = 0, cleanup: (() => void) | undefined;
     let aim: { y: number; x: number; vy: number; vx: number } | undefined;
+    const off = { pitch: 0, yaw: 0, roll: 0 };
     const controller = {
         feet: new Vector3(0, 0, 0),
         grounded: true,
@@ -323,7 +326,10 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
         },
         update(camera: Camera, dt: number) {
             dt = Math.min(dt, .1);
-            const r = camera.rotation, look = sensitivity * (setting.lookScale?.() ?? 1), spring = setting.lookSpring?.() ?? 0;
+            const r = camera.rotation, pose = setting.pose?.(), control = pose?.control ?? 1;
+            // last frame's knocked offset off, the look is ours again
+            r.x -= off.pitch; r.y -= off.yaw; r.z -= off.roll;
+            const look = sensitivity * (setting.lookScale?.() ?? 1) * (pose?.look ?? control), spring = setting.lookSpring?.() ?? 0;
             aim ??= { y: r.y, x: r.x, vy: 0, vx: 0 };
             aim.y -= dx * look;
             aim.x = clampPitch(aim.x - dy * look);
@@ -342,13 +348,15 @@ export function walk(setting: WalkSetting): CameraController & { feet: Vector3; 
             const t = setting.touch, stick = t?.stick;
             const ahead = k("w", "arrowup") - k("s", "arrowdown") - (stick?.y ?? 0), side = k("d", "arrowright") - k("a", "arrowleft") + (stick?.x ?? 0);
             // keys: full speed any way; the stick is analog (a light push walks slowly)
-            const l = Math.max(Math.hypot(ahead, side), 1), v = speed * (k("shift") || held(t, "run") ? run : 1) * (setting.moveScale?.() ?? 1);
+            const l = Math.max(Math.hypot(ahead, side), 1), v = speed * (k("shift") || held(t, "run") ? run : 1) * (setting.moveScale?.() ?? 1) * control;
             const fx = -Math.sin(r.y), fz = -Math.cos(r.y), rx = Math.cos(r.y), rz = -Math.sin(r.y);
             const m = controller.mover;
-            m.update(dt, { x: (fx * ahead + rx * side) / l * v, z: (fz * ahead + rz * side) / l * v, jump: !!(k(" ") || held(t, "jump")) });
+            m.update(dt, { x: (fx * ahead + rx * side) / l * v, z: (fz * ahead + rz * side) / l * v, jump: control > .9 && !!(k(" ") || held(t, "jump")) });
             controller.grounded = m.grounded;
             controller.feet.set(m.feet);
-            camera.position.set([m.feet[0], m.feet[1] + eye, m.feet[2]]);
+            camera.position.set([m.feet[0], m.feet[1] + eye - (pose?.drop ?? 0), m.feet[2]]);
+            off.pitch = pose?.pitch ?? 0; off.yaw = pose?.yaw ?? 0; off.roll = pose?.roll ?? 0;
+            r.x += off.pitch; r.y += off.yaw; r.z += off.roll;
         },
         destroy() { cleanup?.(); },
     };

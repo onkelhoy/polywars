@@ -12,7 +12,7 @@ const FRAGMENT = `#version 300 es
 precision highp float;
 in vec2 vUv;
 uniform sampler2D last;
-uniform float amount, time;
+uniform float amount, time, lid;
 out vec4 outColor;
 void main() {
     // the frames before smear over this one: blurred, doubled, swaying
@@ -24,7 +24,12 @@ void main() {
         c += texture(last, vUv + sway + vec2(cos(a), sin(a)) * r).rgb;
     }
     c /= 8.0;
-    outColor = vec4(c, min(.95, amount * 1.6));
+    // eyelids: top and bottom close in to a soft line, a warm dark through them
+    float open = (1.0 - lid) * .62, edge = abs(vUv.y - .5) - open + abs(vUv.x - .5) * .12 * lid;
+    float shut = lid > .98 ? 1.0 : smoothstep(-.04, .04, edge);
+    float a = min(.95, amount * 1.6);
+    vec3 dark = vec3(.06, .02, .02);
+    outColor = vec4(mix(c * a, dark, shut) / max(.001, a + shut - a * shut), a + shut - a * shut);
 }`;
 
 /**
@@ -41,13 +46,15 @@ export class Daze {
     private age = 0;
     private length = 1;
     private time = 0;
+    /** 0..1 eyes shut (`Knockdown.blink`): lids close over the view */
+    blink = 0;
 
     constructor(layer: Layer3D) {
         const gl = this.gl = layer.gl;
         this.vao = gl.createVertexArray()!;
         layer.createProgram(`pw-daze-${Math.random().toString(36).slice(2)}`, VERTEX, FRAGMENT).then(p => {
             this.program = p;
-            for (const n of ["last", "amount", "time"]) this.u[n] = gl.getUniformLocation(p, n);
+            for (const n of ["last", "amount", "time", "lid"]) this.u[n] = gl.getUniformLocation(p, n);
         });
     }
 
@@ -66,6 +73,14 @@ export class Daze {
         this.length = 2 + 8 * amount;
     }
 
+    /** takes `part` (0..1) of what's left off at once (a blink clears the eyes a bit) */
+    clear(part: number) {
+        const now = this.amount;
+        if (now <= 0) return;
+        const left = Math.max(.5, this.length - this.age);
+        this.strength = now * (1 - part); this.age = 0; this.length = left;
+    }
+
     update(dt: number) {
         this.age += dt;
         this.time += dt;
@@ -74,7 +89,7 @@ export class Daze {
     /** over what is drawn this frame, then keeps the frame for the next */
     draw() {
         const gl = this.gl, amount = this.amount;
-        if (!this.program || amount <= .01) return;
+        if (!this.program || amount <= .01 && this.blink <= .01) return;
         const vp = gl.getParameter(gl.VIEWPORT) as Int32Array;
         if (!this.last || this.last.w !== vp[2] || this.last.h !== vp[3])
         {
@@ -94,6 +109,7 @@ export class Daze {
         gl.uniform1i(this.u.last, 0);
         gl.uniform1f(this.u.amount, amount);
         gl.uniform1f(this.u.time, this.time);
+        gl.uniform1f(this.u.lid, this.blink);
         gl.disable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);

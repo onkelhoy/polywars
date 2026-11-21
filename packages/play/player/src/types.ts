@@ -38,6 +38,8 @@ export type PlayerSetting = {
     scene?: (view: View) => void;
     /** after the world, before the hands (own depth): e.g. finish SSAO here so the hands get none */
     worldDrawn?: () => void;
+    /** live: knocked down (`Knockdown` from `@polywar/explosion` fits): eye lowered `drop`, look offset, `control` 0..1, `hands` 0..1 on the ground */
+    pose?: () => { drop: number; pitch: number; yaw: number; roll: number; control: number; look?: number; hands: number } | undefined;
 };
 
 export type PlayerEvents = {

@@ -1,7 +1,7 @@
 # Plan
 
 ## Where we are
-On `feature/explosion` (off `feature/smoke`): explosion built, needs look. Next: knockdown (see Explosion). Then smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
+On `feature/explosion` (off `feature/smoke`): explosion + knockdown built, need look. Next: wire explosions into the game (see Explosion). Then smoke 4 (jeep dust). Then jeep 7 (gun on the passenger seat, `.claude/plan.jeep.md`). Open: arms-grip 5 (grab animation: owner designs).
 
 ## Needs in-game check (owner)
 Range rework (`feature/range` tasks: ditch, targets per board, markers, props, movable lane targets, binoculars / fixed scopes, scope on any gun), gun obstruction, arms-grip 4 / 4b (brace hand on walls / rails, aim at a wall backs off), jeep 1-8 (7: gun on passenger seat, hand reach), lights + glow, doors, jeep crash fix (`fleet.cast` skips a chassis the ray starts inside), optics 1-6, grass on the range (falloff, no SSAO on tufts, grass in the gun scope).
@@ -27,4 +27,5 @@ Later: fog on far smoke / clouds, weather package drives `sky` cover with noise.
 ## Explosion (confirmed, `feature/explosion`)
 Feel: sharp, crisp, fast, scary; low poly; power (kg TNT) drives everything. All in `@polywar/explosion` (look, force, sound, daze); clouds split to `@polywar/clouds`.
 Done, needs look: flash, fireball, white spikes, shock shell (smooth edge line ground/top + light bend), solid ground ring, kicked dust, swirling surge (clean ring, tumbles in), suck back (middle only), mushroom, rock + trails, dark grit lines, scorch marks (`onmark` -> `grass.clear`), smoke eaten by noise + dithered fade. Force: `BlastForce` + `bodyTargets` / `worldCover`. Sound: `ExplosionAudio` (near/far/distant), `stun` (silence -> live ring in -> world back muffled). `Daze` (smear), `shellShock(kPa)` 15..70. Walk: `lookScale`, `lookSpring`, `moveScale`; mover push staggers. View `experiment` has it all + play (P).
-Next (needs a plan + confirm): knockdown when shell shocked: fall to the ground, hands placed on the ground (arm IK), forced look at things while getting back up (if alive), gun knocked out of the hands (lands as a pickup). Then wire explosions into the game (player hit -> daze, stun, knockdown).
+Knockdown (built, needs look): `Knockdown` (limp fall the push's way, eyes shut on the thud, slow blinks + drifting view, hands on the ground, push up), `Daze.blink` lids, `Target.lift` / `cap` (+ `hit.over`), walker `pose`, player `setting.pose` + `knockGun` + hands IK. View sliders: push cap, lift, knock from.
+Next: wire explosions into the game (player hit -> daze, stun, knockdown, `knockGun`).
