@@ -33,7 +33,10 @@ export class WeatherAudio {
     constructor(readonly options: WeatherAudioOptions) {
         const m: AudioMixer = options.mixer, ctx = this.ctx = m.context as AudioContext;
         this.out = ctx.createGain();
-        this.out.connect(m.bus(options.bus ?? "ambience").gain);
+        // our own peaks stay under full scale (papit has no master limiter yet)
+        const limit = ctx.createDynamicsCompressor();
+        limit.threshold.value = -6; limit.knee.value = 6; limit.ratio.value = 12; limit.attack.value = .002; limit.release.value = .25;
+        this.out.connect(limit).connect(m.bus(options.bus ?? "ambience").gain);
         this.muffle = ctx.createBiquadFilter();
         this.muffle.type = "lowpass";
         this.muffle.frequency.value = 20000;
@@ -80,7 +83,7 @@ export class WeatherAudio {
         lp.type = "lowpass";
         lp.frequency.value = Math.max(220, 18000 * Math.exp(-d / 1800));
         src.playbackRate.value = d > 6000 ? .85 + Math.random() * .1 : .95 + Math.random() * .1;
-        g.gain.value = list === this.strikes ? 2.6 / (1 + d / 400) + .6 : Math.min(2.5, 2.5 / (1 + d / 1200));
+        g.gain.value = list === this.strikes ? 1.5 / (1 + d / 400) + .4 : Math.min(1.8, 1.8 / (1 + d / 1200));
         p.pan.value = Math.max(-1, Math.min(1, pan)) * (d < 3000 ? .7 : .4);
         src.connect(lp).connect(g).connect(p).connect(this.outside);
         src.start(ctx.currentTime + delay);

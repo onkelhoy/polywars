@@ -150,3 +150,6 @@ Done: shooting-range.py writes range.json `props` (asset empties with `asset`, m
 - [ ] tank crew: driver / loader / gunner / commander stations, loading shells by hand, stocking shells into the tank, coordinates from the commander, gunner works the ballistics (sight + range table); one player can't run it alone
 - [ ] tank: tracks scroll (UV / link mesh), gunner sight zoom + reticle, shell types (AP / HE), armour + penetration, cannon sound files, put the tank in the exported camp layout
 - [ ] motorbike asset: a stray wheel in the middle?
+
+## Papit reports
+- [ ] `@papit/audio`: no master limiter / ducking (sidechain). Loud sounds summed (lightning strike + explosion) clip at the destination; packages add their own compressors meanwhile.

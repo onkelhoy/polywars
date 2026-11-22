@@ -44,7 +44,7 @@ bolts.onstrike = b => {
     const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
     sound?.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1));
     // close: hits like a shell (sound; the look needs smoke here, later)
-    if (b.kind === 'ground' && d < 350) setTimeout(() => blastAudio?.play(b.position, 20, { deep: true }), b.hit * 1000);
+    if (b.kind === 'ground' && d < 350) setTimeout(() => blastAudio?.play(b.position, 8, { deep: true }), b.hit * 1000 + 80);
 };
 Object.assign(window, { weather, sky, rain, bolts });
 const stepWeather = (camera, dt) => {
