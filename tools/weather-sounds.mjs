@@ -5,7 +5,9 @@
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 
-const OUT = "assets/audio/weather", TMP = "/tmp/pw-weather-sounds", SR = 22050;
+const OUT = "assets/audio/weather", TMP = "/tmp/pw-weather-sounds";
+// beds are dull + long: 22 kHz is plenty; thunder / strikes keep their crack: 44.1 kHz, higher bitrate
+let SR = 22050;
 // name: [bigsoundbank id, kind, note]
 const SET = {
     "ground-light": ["1289", "bed", "rain on concrete"],
@@ -81,6 +83,7 @@ for (const [name, [id, kind, note]] of Object.entries(SET))
     const mp3 = `${TMP}/${key}.mp3`, wav = `${TMP}/${key}.wav`, cut = `${TMP}/${name}.wav`;
     const url = free ? `https://cdn.freesound.org/previews/${Math.floor(+num / 1000)}/${key}-hq.mp3` : `https://bigsoundbank.com/UPLOAD/mp3/${id}.mp3`;
     if (!fs.existsSync(mp3)) execFileSync("curl", ["-sfL", "-o", mp3, url]);
+    SR = kind === "bed" ? 22050 : 44100;
     execFileSync("afconvert", ["-f", "WAVE", "-d", `LEI16@${SR}`, "-c", "1", mp3, wav]);
     let x = readWav(wav);
     // beds even in level (the mixer sets loudness), thunder keeps its own dynamics, peak normalised
@@ -91,7 +94,7 @@ for (const [name, [id, kind, note]] of Object.entries(SET))
         if (kind === "strike") { let at = 0, p = 0; for (let i = 0; i < x.length; i++) if (Math.abs(x[i]) > p) { p = Math.abs(x[i]); at = i; } let s = at; const win = SR * .6; while (s > Math.max(0, at - win) && Math.abs(x[s]) > p * .02) s--; s = Math.max(0, s - Math.floor(SR * .05)); x = x.slice(s, s + SR * 25); for (let i = 0; i < SR * .02 && i < x.length; i++) x[i] *= i / (SR * .02); const f = SR * 2; for (let i = 0; i < f && i < x.length; i++) x[x.length - 1 - i] *= i / f; }
         let p = 0; for (const v of x) p = Math.max(p, Math.abs(v)); for (let i = 0; i < x.length; i++) x[i] *= .95 / p; }
     writeWav(cut, x);
-    execFileSync("afconvert", ["-f", "m4af", "-d", "aac", "-b", kind === "bed" ? "48000" : "64000", cut, `${OUT}/${name}.m4a`]);
+    execFileSync("afconvert", ["-f", "m4af", "-d", "aac", "-b", kind === "bed" ? "48000" : "128000", cut, `${OUT}/${name}.m4a`]);
     sounds[name] = { kind, seconds: +(x.length / SR).toFixed(2), source: free ? `https://freesound.org/s/${num}/` : `https://bigsoundbank.com/sound-${id}.html`, note };
     console.log(name, sounds[name].seconds + "s");
 }

@@ -1,6 +1,6 @@
 import { Weather } from '@polywar/weather';
-// close strikes as explosions: off for now (owner checks the thunder alone)
-const EXPLODE = false;
+// close strikes land as explosions (false = thunder alone)
+const EXPLODE = true;
 import { Sky } from '@polywar/sky';
 import { Precipitation } from '@polywar/precipitation';
 import { Lightning } from '@polywar/lightning';
