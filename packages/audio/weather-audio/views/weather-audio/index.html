@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weather audio</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <h1>weather audio</h1>
+    <button id="start" type="button">start</button>
+    <label>rain <input id="rain" type="range" min="0" max="1" step=".01" value=".3" /><span></span></label>
+    <label>wind <input id="wind" type="range" min="0" max="1" step=".01" value=".2" /><span></span></label>
+    <label>snow <input id="snow" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <label>inside <input id="inside" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <label>storm <input id="storm" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <label>live drops <input id="detail" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <p>thunder at <button data-t="200">200 m</button> <button data-t="1000">1 km</button> <button data-t="4000">4 km</button> <button data-t="12000">12 km</button> <output id="strike"></output></p>
+    <h2>surfaces</h2>
+    <label>ground <input id="ground" type="range" min="0" max="1" step=".01" value="1" /><span></span></label>
+    <label>leaves <input id="leaves" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <label>water <input id="water" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <h2>under</h2>
+    <label>roof (tin) <input id="roof" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <label>tent <input id="tent" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <label>vehicle <input id="vehicle" type="range" min="0" max="1" step=".01" value="0" /><span></span></label>
+    <p>presets: <button data-p="drizzle">drizzle</button> <button data-p="forest">forest</button> <button data-p="downpour">downpour</button> <button data-p="tent">tent</button> <button data-p="shed">tin shed</button> <button data-p="car">in the car</button> <button data-p="lake">lake</button> <button data-p="storm">storm</button></p>
+</body>
+</html>

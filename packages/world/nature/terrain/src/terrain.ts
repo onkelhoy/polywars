@@ -8,7 +8,7 @@ import { Generator, type TerrainHooks } from "./generate";
 import { Ground } from "./lod";
 import { BIOME, free, riverSheet, skirt, waterMesh, type Mesh } from "./mesh";
 import { DEFAULTS, resolve, type Resolved } from "./presets";
-import { biomeAt, heightAt, nearest, slopeAt, waterAt } from "./query";
+import { biomeAt, heightAt, nearest, sample, slopeAt, waterAt } from "./query";
 import type { Progress, TerrainData, TerrainOptions, TerrainSettings } from "./types";
 
 /** lake looks by `waterKind`: 0 clear (the material's own), 1 muddy, 2 swamp */
@@ -101,6 +101,9 @@ export class Terrain {
     reseed() { return this.set({ seed: Math.floor(Math.random() * 2 ** 31) }); }
 
     // ---- queries (world metres) ----
+    /** temperature (hot 1) + moisture (wet 1) 0..1 at x / z (`@polywar/weather`'s climate fits) */
+    climateAt(x: number, z: number) { return this.data ? { temperature: sample(this.data, this.data.temperature, x, z), moisture: sample(this.data, this.data.moisture, x, z) } : { temperature: .55, moisture: .5 }; }
+
     heightAt(x: number, z: number) { return this.data ? heightAt(this.data, x, z) : 0; }
     /** height of the ground as drawn (finest level): stand things on this, `heightAt` is the smooth grid */
     groundAt(x: number, z: number) { return this.ground ? this.ground.heightAt(x, z) : this.heightAt(x, z); }

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lightning</title>
+    <link rel="stylesheet" href="style.css" />
+    <script defer type="module" src="main.js"></script>
+</head>
+<body>
+    <pw-viewport id="view" far="40000">
+        <aside>
+            <h1>lightning</h1>
+            <button id="sound" type="button">sound on</button>
+            <p><button data-k="ground" data-d="300">strike 300 m</button> <button data-k="ground" data-d="2000">strike 2 km</button> <button data-k="ground" data-d="9000">strike 9 km</button></p>
+            <p><button data-k="spider" data-d="0">spider overhead</button> <button data-k="spider" data-d="8000">spider far</button></p>
+            <p>click the ground: a strike lands there</p>
+            <label>storm <input id="storm" type="range" min="0" max="1" step=".01" value=".6" /></label>
+            <label>hour <input id="hour" type="range" min="0" max="24" step=".1" value="22" /></label>
+            <output id="values"></output>
+        </aside>
+    </pw-viewport>
+</body>
+</html>

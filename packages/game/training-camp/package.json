@@ -77,7 +77,12 @@
     "@polywar/smoke": "*",
     "@papit/rigidbody": "*",
     "@polywar/shadows": "*",
-    "@polywar/scatter": "*"
+    "@polywar/scatter": "*",
+    "@polywar/weather": "*",
+    "@polywar/sky": "*",
+    "@polywar/precipitation": "*",
+    "@polywar/lightning": "*",
+    "@polywar/weather-audio": "*"
   },
   "browserslist": [
     "defaults",

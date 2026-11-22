@@ -1,0 +1,74 @@
+{
+  "name": "@polywar/precipitation",
+  "description": "Rain (mild to dense streaks + splash points) and snow round the camera, plus a ground wetness value",
+  "keywords": [
+    "papit",
+    "webgl",
+    "rain",
+    "snow"
+  ],
+  "version": "0.0.1",
+  "scripts": {
+    "build": "npx @papit/build -- --error --ancestors",
+    "watch": "tsc -w",
+    "start": "npx @papit/server --info --live",
+    "preversion": "papit-version",
+    "postversion": "papit-version"
+  },
+  "main": "./lib/bundle.js",
+  "types": "./lib/bundle.d.ts",
+  "type": "module",
+  "files": [
+    "asset/",
+    "lib/"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/bundle.js",
+      "types": "./lib/bundle.d.ts"
+    }
+  },
+  "author": "henry",
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/henry/polywar/tree/main/packages/world/nature/precipitation",
+  "bugs": {
+    "url": "https://github.com/henry/polywar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henry/polywar.git",
+    "directory": "packages/world/nature/precipitation"
+  },
+  "sideEffects": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@papit/game-engine": "*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@papit/theme": "*",
+    "@polywar/viewport": "*",
+    "@polywar/renderer": "*",
+    "@polywar/sky": "*",
+    "@papit/game-mesh": "*",
+    "@papit/audio": "*",
+    "@polywar/weather-audio": "*"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not dead"
+  ],
+  "papit": {
+    "publish": true,
+    "type": "browser",
+    "main": "precipitation"
+  }
+}

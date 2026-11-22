@@ -42,7 +42,7 @@ Then: ww2 tank, ww2 truck, ww2 fighter (plan each when we get there).
 ## Notes
 - Steel targets from 200 m (`STEEL_FROM` in training-camp.ts), metal sparks seen to 900 m.
 - Grass look = `assets/grass/range.json` (120 m, falloff 3).
-- Smoke look: low poly icosahedron puffs + tubes, curl noise; clouds via `@polywar/clouds`. Marching cubes clouds rejected.
+- Smoke look: low poly icosahedron puffs + tubes, curl noise; Marching cubes + puff clouds rejected (owner: the sky's noise cloud layer is the look).
 
 ## Farm (`@polywar/farm`, on main): needs in-game check (owner)
 All 7 done (first pass) + owner round 1 (gates, doors, chicken run, crops, props, view spot). Views: `farm/views/experiment` (top down, show = edits), `world/views/farm` (one farm on a 640 m real world, buttons top / yard / bench). World: `settings.farms` adds farm areas; farm sites get a farm (up to 220 m, heaviest first, clear of towns). Flatten pads into the height grid, paint into the ways paint grid, no grass / no trees on yard / fields / pastures, hedgerows + bank trees (`FARM_TREES`), crops (`CROPS`, `cropRows`), fences generated (bridges `fence`, follow the slope), buildings + props in `world.farmBuilt` (farm lods via `assets/models/buildings/farm/lod.json`).
@@ -51,15 +51,27 @@ Known rough: yard + fields paint all brown, edits per field cell, few fields on 
 ## Terrain cover (feature/terrain-control): needs in-game check (owner)
 Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B height 0..2, A flowers; `coverMap` / `coverAt` in `@polywar/terrain-material`), look `grass` (color, patches, dry, blend to the terrain colour, darken, edge; edge -1 = grassy everywhere). Tufts plant from the same map and take the ground colour from `bakeAlbedo` (`grass.ground(albedo)`). `drawPart(mesh, matrix)` draws any model's earth as terrain (camp: model earth drawn once, no grass floor copy). `Grass.drawGround/setGround` gone. Debug `cover`. World / farm / terrain / grass / camp views wired.
 
+## Weather (on main): needs in-game check (owner)
+Clouds = the sky shader layer only (puff clouds removed). weather changes over minutes, world view first.
+- `@polywar/weather` (world/nature, headless): humidity = biome moisture + wind-blown noise + slow swing (`bias` knob); `at(x, z)` -> cover, grey, kind (clear / cirrus / fair / towering / storm / overcast), base / top, precipitation, snow (cold), storm. Seed + time only (same on every client). View `weather`: 60 km map, desert left -> wet cold right.
+- `@polywar/sky` (world/nature): gradient dome + sun, toon cloud layer to the horizon (noise always there, cover shows it, banded light, grey undersides), cirrus streaks. `sky.light(clear, out)` dims sun / greys ambient / fog = horizon. Draw right after `renderer.begin`. View `sky`: sliders.
+- Day / night: `sky.setTime(hour, phase)` (sun + moon, moon trails by phase), `sky.day`. Dusk glow round the setting sun, warm low sun; night gradient, twinkling stars + faint milky band (behind cloud, gone by day), moon disc lit from the sun's side; clouds lit by sun / moon. `sky.light` at night: moon is the key light (cold, by phase), ambient sinks. View: hour, day speed, moon phase. Heavy cover shades from the raw noise (lumpy dark bases), darker storm greys.
+- `@polywar/lightning` (world/fx): `strike(x, z, { kind })`: `ground` = stepped leader with dying branches (~.1-.2 s), return stroke + 1-4 re-strokes flicker; `spider` = 5-18 km channel crawling near level along the cloud base (~18-33 km/s), forking. `storm` random strikes round the eye, `onstrike`, `flash` / `flashAt` -> `sky.state.flash` (clouds lit from inside round the bolt, ambient kick). Additive glow ribbons (halo to 0 at the edge), jagged at every scale (each step split in 3 kinks), trunk thick + bright, branches fork sideways / taper / fork again (3 levels); spider: bright crawling tip, path stays lit + flickers. `Strike.hit` = when it lands. View `lightning` (strike buttons, click the ground = strike there, thunder with sound).
+- Strike sound: recorded close strikes (7, freesound CC0, cut to start on the crack; thunder + strikes 44.1 kHz 128 kbps so the crack survives, beds 22 kHz) < 800 m, near claps to 1.5 km, far rolls beyond; thunder louder, rain ducks under near strikes. (Synth crack removed.) Ground strike < 350 m = our explosion at the hit (camp: `nades.explosion.explode(at, { power: 8, tag: 'lightning' })` -> force / knockdown / daze / deep sound; explosion power 8, its sound 80 ms after the strike recording (crack leads); WeatherAudio has its own limiter (-6 dB) since papit has no master limiter / ducking; lightning view: Explosion + ExplosionAudio; world view: sound only).
+- World view: weather panel (on, sound, hour, day speed, wetness, weather speed, storm auto / off / some / heavy): `terrain.climateAt` feeds `Weather`; sky drawn first, lightning + rain after the world, audio surfaces from the biome (forest = leaves, water). Ground wetness not on the terrain material yet.
+- `@polywar/precipitation` (world/nature): `state` intensity 0..1 (mild = few faint drops, dense = 24k streaks), snow (wobbling flakes), wind slant. Drops all GPU (wrapping box round the eye), splashes CPU (ring + crown, `ground` height, rate by intensity²). `wetness` / `snowCover` rise + dry slowly (not on materials yet). Draw after the world. View `rain` (+ sound button).
+- `@polywar/weather-audio` (packages/audio): CC0 recordings (bigsoundbank.com, `tools/weather-sounds.mjs` fetches, cuts steadiest 30 s loops, AAC -> `assets/audio/weather/`, 3.8 MB): beds ground light / heavy, water, leaves, tent (tarp), roof (tin), vehicle light / heavy, wind light / strong / inside. `state.surfaces` (outside, muffled by `inside`), `state.under` (close). Thunder `thunder(distance, pan)`: near cracks < 1.5 km / far rolls, late by 343 m/s, duller with distance; `state.storm` = random strikes + `onstrike` (for the flash). Live synth worklet kept as `state.detail` (default 0). View `weather-audio` (presets + thunder buttons).
+
+- Camp: `views/camp/weather.js` (`campWeather`): sky first, rain + lightning after the world, sound on the player's mixer, in a car = under vehicle + inside .8. `?hour=22`, `?night`, `?weather=rain|storm|clear|snow`; console `weather.set({ hour, day, wetness, storm, speed })`. Old `?night` sun dimming replaced.
+
 ## Open tasks
 1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
 
 ## Milestones (proposed, not planned yet)
 1. Farm: building-builder + papit irregular grid, fields / fences / barn / house / silo / paths from existing assets. LOD for all assets (shared LOD package). Later castles, villages.
-2. Weather + day/night: per-biome weather state, cloud cover grays + damps light, fog, mostly-overcast before rain (rare big-cloud bursts), rain / snow by biome.
-3. Vehicles: generic core from jeep, then motorbike, tank, airplane.
-4. Destruction: damage per vehicle / building, wrecks, parts break off, planes shot down.
-5. Animals (on the farm).
+2. Vehicles: generic core from jeep, then motorbike, tank, airplane.
+3. Destruction: damage per vehicle / building, wrecks, parts break off, planes shot down.
+4. Animals (on the farm).
 
 ## Fighter round 1 (feature/fighter): needs in-game check (owner)
 - Asset: `tools/blender/packs/fighter.py` (reads model.blend, never saves) -> model.glb (vertex colours, no texture), x5.1 = 11.3 m span, vehicle.json (`kind: "plane"`, 4 t, `centre`, `wing` span / area / tips, `propeller`, 6 `guns`, seat / eye eyeballed).

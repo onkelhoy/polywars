@@ -70,7 +70,14 @@
   "devDependencies": {
     "typescript": "5.9.3",
     "@polywar/viewport": "*",
-    "@papit/theme": "*"
+    "@papit/theme": "*",
+    "@polywar/weather": "*",
+    "@polywar/sky": "*",
+    "@polywar/precipitation": "*",
+    "@polywar/lightning": "*",
+    "@papit/audio": "*",
+    "@polywar/weather-audio": "*",
+    "@polywar/explosion-audio": "*"
   },
   "browserslist": [
     "defaults",

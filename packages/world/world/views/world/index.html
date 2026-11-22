@@ -42,6 +42,16 @@
             <label>wind <input id="wind" type="range" min="0" max=".12" step=".005" value=".03" /></label>
         </fieldset>
         <fieldset>
+            <legend>weather</legend>
+            <div class="row"><label><input id="weather" type="checkbox" checked /> on</label><button id="weather-sound" type="button">sound on</button></div>
+            <label>hour <input id="hour" type="range" min="0" max="24" step=".05" value="14" /></label>
+            <label>day speed (h/s) <input id="day-speed" type="range" min="0" max="1" step=".01" value="0" /></label>
+            <label>wetness <input id="wetness" type="range" min="-1" max="1" step=".01" value="0" /></label>
+            <label>weather speed <input id="weather-speed" type="range" min="0" max="300" step="1" value="10" /></label>
+            <label>storm <select id="storm"><option value="auto" selected>auto</option><option value="0">off</option><option value=".5">some</option><option value="1">heavy</option></select></label>
+            <output id="weather-info"></output>
+        </fieldset>
+        <fieldset>
             <legend>go</legend>
             <div class="row"><button id="overview" type="button">overview</button><button id="forest" type="button">forest</button><button id="meadow" type="button">meadow</button><button id="dry" type="button">dry edge</button><button id="city" type="button">town</button><button id="play" type="button">play</button></div>
             <label>map <select id="layer"><option value="biome">biomes</option><option value="trees">trees</option><option value="density">grass</option><option value="height">grass height</option><option value="dry">dry</option><option value="flowers">flowers</option></select></label>

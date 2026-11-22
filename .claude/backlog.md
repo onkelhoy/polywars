@@ -108,14 +108,19 @@ Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view 
 - [x] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
 
 ## Sky + weather
+- [ ] Wet / snowy ground: `Precipitation.wetness` / `snowCover` onto the terrain + grass materials (darker, glossier; white).
+- [ ] Roofs: buildings / tents give `under` roof / tent in `WeatherAudio` (camp: only vehicles now); rain + splashes stop under roofs.
+- [ ] World view: close strikes show the explosion look too (needs smoke + explosion there; sound only now).
+- [ ] Huge storm towers (cumulonimbus + anvil) in the noise sky (puff clouds were dropped).
+- [ ] Strike sounds from Freesound originals (login) instead of HQ previews, if the crack is still dull.
 - [ ] World tones per time / weather (morning, cloudy, evening, night): warm sun + blue shadow base set in `DAYLIGHT` now.
-- [ ] Time of day: sun / moon move with the real local clock (13:00 is 13:00), time controllable (speed / set). Night fall, sun light colour + ambient follow it.
-- [ ] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature.
+- [ ] Time of day: sun / moon follow the real local clock (13:00 is 13:00). (Done: `sky.setTime(hour, phase)`, day speed, night light.)
+- [x] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature (`@polywar/weather` + `@polywar/sky`).
 - [ ] Light fog (distance + height), first in the shooting range.
 
 ## Explosion (`@polywar/explosion`, next fresh start, uses `@polywar/smoke`)
 - [ ] Knockdown poses by situation (seated in a car: tossed on the side, no roll over; prone; against a wall). Now: always fall, roll over if on the back, push up.
-- [ ] Own package: explosions compose smoke bursts + debris + shock waves; smoke stays only puffs / clouds.
+- [ ] Own package: explosions compose smoke bursts + debris + shock waves; smoke stays only puffs.
 - [ ] Ground blast side heavy (ref Desktop/Screenshot 2026-11-20 at 22.50.17): big rolling masses out to the sides, low wisps trailing along the ground, a lighter lobe in front; less in the middle.
 - [ ] Massive blasts: debris / particles shot out like a volcano (arcs, trails of smoke).
 - [ ] Shock waves (ground ring, air ring).
@@ -150,3 +155,6 @@ Done: shooting-range.py writes range.json `props` (asset empties with `asset`, m
 - [ ] tank crew: driver / loader / gunner / commander stations, loading shells by hand, stocking shells into the tank, coordinates from the commander, gunner works the ballistics (sight + range table); one player can't run it alone
 - [ ] tank: tracks scroll (UV / link mesh), gunner sight zoom + reticle, shell types (AP / HE), armour + penetration, cannon sound files, put the tank in the exported camp layout
 - [ ] motorbike asset: a stray wheel in the middle?
+
+## Papit reports
+- [ ] `@papit/audio`: no master limiter / ducking (sidechain). Loud sounds summed (lightning strike + explosion) clip at the destination; packages add their own compressors meanwhile.
