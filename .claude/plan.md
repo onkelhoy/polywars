@@ -51,8 +51,8 @@ Known rough: yard + fields paint all brown, edits per field cell, few fields on 
 ## Terrain cover (feature/terrain-control): needs in-game check (owner)
 Terrain owns the grass ground: `material.cover(map)` (RGBA8: R grass, G dry, B height 0..2, A flowers; `coverMap` / `coverAt` in `@polywar/terrain-material`), look `grass` (color, patches, dry, blend to the terrain colour, darken, edge; edge -1 = grassy everywhere). Tufts plant from the same map and take the ground colour from `bakeAlbedo` (`grass.ground(albedo)`). `drawPart(mesh, matrix)` draws any model's earth as terrain (camp: model earth drawn once, no grass floor copy). `Grass.drawGround/setGround` gone. Debug `cover`. World / farm / terrain / grass / camp views wired.
 
-## Weather round 1 (feature/weather): needs check (owner)
-Clouds = the sky shader layer only (puff clouds removed), weather changes over minutes, world view first.
+## Weather (on main): needs in-game check (owner)
+Clouds = the sky shader layer only (puff clouds removed). weather changes over minutes, world view first.
 - `@polywar/weather` (world/nature, headless): humidity = biome moisture + wind-blown noise + slow swing (`bias` knob); `at(x, z)` -> cover, grey, kind (clear / cirrus / fair / towering / storm / overcast), base / top, precipitation, snow (cold), storm. Seed + time only (same on every client). View `weather`: 60 km map, desert left -> wet cold right.
 - `@polywar/sky` (world/nature): gradient dome + sun, toon cloud layer to the horizon (noise always there, cover shows it, banded light, grey undersides), cirrus streaks. `sky.light(clear, out)` dims sun / greys ambient / fog = horizon. Draw right after `renderer.begin`. View `sky`: sliders.
 - Day / night: `sky.setTime(hour, phase)` (sun + moon, moon trails by phase), `sky.day`. Dusk glow round the setting sun, warm low sun; night gradient, twinkling stars + faint milky band (behind cloud, gone by day), moon disc lit from the sun's side; clouds lit by sun / moon. `sky.light` at night: moon is the key light (cold, by phase), ambient sinks. View: hour, day speed, moon phase. Heavy cover shades from the raw noise (lumpy dark bases), darker storm greys.
@@ -62,7 +62,6 @@ Clouds = the sky shader layer only (puff clouds removed), weather changes over m
 - `@polywar/precipitation` (world/nature): `state` intensity 0..1 (mild = few faint drops, dense = 24k streaks), snow (wobbling flakes), wind slant. Drops all GPU (wrapping box round the eye), splashes CPU (ring + crown, `ground` height, rate by intensity²). `wetness` / `snowCover` rise + dry slowly (not on materials yet). Draw after the world. View `rain` (+ sound button).
 - `@polywar/weather-audio` (packages/audio): CC0 recordings (bigsoundbank.com, `tools/weather-sounds.mjs` fetches, cuts steadiest 30 s loops, AAC -> `assets/audio/weather/`, 3.8 MB): beds ground light / heavy, water, leaves, tent (tarp), roof (tin), vehicle light / heavy, wind light / strong / inside. `state.surfaces` (outside, muffled by `inside`), `state.under` (close). Thunder `thunder(distance, pan)`: near cracks < 1.5 km / far rolls, late by 343 m/s, duller with distance; `state.storm` = random strikes + `onstrike` (for the flash). Live synth worklet kept as `state.detail` (default 0). View `weather-audio` (presets + thunder buttons).
 
-## Weather next
 - Camp: `views/camp/weather.js` (`campWeather`): sky first, rain + lightning after the world, sound on the player's mixer, in a car = under vehicle + inside .8. `?hour=22`, `?night`, `?weather=rain|storm|clear|snow`; console `weather.set({ hour, day, wetness, storm, speed })`. Old `?night` sun dimming replaced.
 
 ## Open tasks
@@ -70,10 +69,9 @@ Clouds = the sky shader layer only (puff clouds removed), weather changes over m
 
 ## Milestones (proposed, not planned yet)
 1. Farm: building-builder + papit irregular grid, fields / fences / barn / house / silo / paths from existing assets. LOD for all assets (shared LOD package). Later castles, villages.
-2. Weather + day/night: per-biome weather state, cloud cover grays + damps light, fog, mostly-overcast before rain (rare big-cloud bursts), rain / snow by biome.
-3. Vehicles: generic core from jeep, then motorbike, tank, airplane.
-4. Destruction: damage per vehicle / building, wrecks, parts break off, planes shot down.
-5. Animals (on the farm).
+2. Vehicles: generic core from jeep, then motorbike, tank, airplane.
+3. Destruction: damage per vehicle / building, wrecks, parts break off, planes shot down.
+4. Animals (on the farm).
 
 ## Fighter round 1 (feature/fighter): needs in-game check (owner)
 - Asset: `tools/blender/packs/fighter.py` (reads model.blend, never saves) -> model.glb (vertex colours, no texture), x5.1 = 11.3 m span, vehicle.json (`kind: "plane"`, 4 t, `centre`, `wing` span / area / tips, `propeller`, 6 `guns`, seat / eye eyeballed).

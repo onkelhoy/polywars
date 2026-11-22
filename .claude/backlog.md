@@ -108,9 +108,14 @@ Imported from the owner's .blend (`tools/blender/packs/training-camp.py`), view 
 - [x] Drivable jeep: `~/Developer/3d/store/vehicles/willys-jeep-low-poly`. Wheels track the ground, soft long travel suspension (spring + damper per wheel, raycast wheels on `rigidbody`), steer / throttle / brake, enter / exit. Needs a plan first; nice physics can come later. Star decal (texture) later.
 
 ## Sky + weather
+- [ ] Wet / snowy ground: `Precipitation.wetness` / `snowCover` onto the terrain + grass materials (darker, glossier; white).
+- [ ] Roofs: buildings / tents give `under` roof / tent in `WeatherAudio` (camp: only vehicles now); rain + splashes stop under roofs.
+- [ ] World view: close strikes show the explosion look too (needs smoke + explosion there; sound only now).
+- [ ] Huge storm towers (cumulonimbus + anvil) in the noise sky (puff clouds were dropped).
+- [ ] Strike sounds from Freesound originals (login) instead of HQ previews, if the crack is still dull.
 - [ ] World tones per time / weather (morning, cloudy, evening, night): warm sun + blue shadow base set in `DAYLIGHT` now.
-- [ ] Time of day: sun / moon move with the real local clock (13:00 is 13:00), time controllable (speed / set). Night fall, sun light colour + ambient follow it.
-- [ ] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature.
+- [ ] Time of day: sun / moon follow the real local clock (13:00 is 13:00). (Done: `sky.setTime(hour, phase)`, day speed, night light.)
+- [x] Clouds: a nice cloud system; denser = greyer, leads to rain or snow by the biome's temperature (`@polywar/weather` + `@polywar/sky`).
 - [ ] Light fog (distance + height), first in the shooting range.
 
 ## Explosion (`@polywar/explosion`, next fresh start, uses `@polywar/smoke`)
