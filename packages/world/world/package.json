@@ -76,7 +76,8 @@
     "@polywar/precipitation": "*",
     "@polywar/lightning": "*",
     "@papit/audio": "*",
-    "@polywar/weather-audio": "*"
+    "@polywar/weather-audio": "*",
+    "@polywar/explosion-audio": "*"
   },
   "browserslist": [
     "defaults",

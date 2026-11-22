@@ -58,7 +58,10 @@
     "@polywar/sky": "*",
     "@papit/game-mesh": "*",
     "@papit/audio": "*",
-    "@polywar/weather-audio": "*"
+    "@polywar/weather-audio": "*",
+    "@polywar/smoke": "*",
+    "@polywar/explosion": "*",
+    "@polywar/explosion-audio": "*"
   },
   "browserslist": [
     "defaults",

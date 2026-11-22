@@ -27,6 +27,8 @@ export type Strike = {
     age: number;
     /** seconds it lives */
     life: number;
+    /** seconds after the start the main stroke lands (ground: it touches down) */
+    hit: number;
 };
 
 export type LightningLook = {

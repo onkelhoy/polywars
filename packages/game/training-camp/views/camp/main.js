@@ -790,7 +790,8 @@ demo.tick = dt => {
     if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : nearCar.spec.kind === 'tank' || nearCar.spec.kind === 'plane' ? 'E  climb in' : 'E  drive';
 };
 // ---- weather (camp/weather.js): sky, day / night, rain / snow, lightning, sound ----
-const weather = campWeather({ layer, renderer, mixer: player.feel.mixer, ground: (x, z) => range.ground(x, z) });
+const weather = campWeather({ layer, renderer, mixer: player.feel.mixer, ground: (x, z) => range.ground(x, z),
+    blast: at => nades.explosion.explode(at, { power: 4, tag: 'lightning' }) });
 window.weather = weather;
 let lastFrame = performance.now();
 demo.draw = camera => {

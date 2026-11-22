@@ -11,6 +11,7 @@ import { Precipitation } from '@polywar/precipitation';
 import { Lightning } from '@polywar/lightning';
 import { AudioMixer } from '@papit/audio';
 import { WeatherAudio } from '@polywar/weather-audio';
+import { ExplosionAudio } from '@polywar/explosion-audio';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -37,16 +38,19 @@ const weather = new Weather({ climate: (x, z) => terrain.climateAt(x, z) });
 const sky = new Sky(layer), rain = new Precipitation(layer, { ground: (x, z) => terrain.groundAt(x, z) }), bolts = new Lightning(layer, { ground: (x, z) => terrain.groundAt(x, z) });
 const clearLight = { ...renderer.light };
 const mixer = new AudioMixer();
-let sound, eye = [0, 0, 0], right = [1, 0, 0], ws;
-$('#weather-sound').onclick = () => { mixer.unlock(); sound ??= new WeatherAudio({ mixer }); };
+let sound, blastAudio, eye = [0, 0, 0], right = [1, 0, 0], ws;
+$('#weather-sound').onclick = () => { mixer.unlock(); sound ??= new WeatherAudio({ mixer }); blastAudio ??= new ExplosionAudio({ mixer }); };
 bolts.onstrike = b => {
     const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
     sound?.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1));
+    // close: hits like a shell (sound; the look needs smoke here, later)
+    if (b.kind === 'ground' && d < 350) setTimeout(() => blastAudio?.play(b.position, 6, { deep: true }), b.hit * 1000);
 };
 Object.assign(window, { weather, sky, rain, bolts });
 const stepWeather = (camera, dt) => {
     const on = $('#weather').checked, e = camera.worldPosition ?? { x: 0, y: 0, z: 0 }, v = camera.viewMatrix;
     eye = [e.x, e.y, e.z]; right = [v[0], v[4], v[8]];
+    blastAudio?.setListener(eye, [-v[2], -v[6], -v[10]]);
     const hour = $('#hour'), run = +$('#day-speed').value;
     if (run) hour.value = (+hour.value + run * dt) % 24;
     sky.setTime(+hour.value);

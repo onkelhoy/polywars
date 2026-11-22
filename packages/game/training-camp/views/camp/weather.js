@@ -8,7 +8,7 @@ import { WeatherAudio } from '@polywar/weather-audio';
  * The camp's weather: sky (day / night), rain / snow, lightning + thunder, weather sound. One mild climate.
  * URL `?hour=22`, `?weather=rain|storm|clear|snow`. Console: `weather.set({ hour, wetness, storm, speed, day })`.
  */
-export function campWeather({ layer, renderer, mixer, ground }) {
+export function campWeather({ layer, renderer, mixer, ground, blast }) {
     const q = new URLSearchParams(location.search);
     const mode = q.get('weather');
     const climate = { temperature: mode === 'snow' ? .15 : .55, moisture: .5 };
@@ -21,6 +21,8 @@ export function campWeather({ layer, renderer, mixer, ground }) {
     bolts.onstrike = b => {
         const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
         sound.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1));
+        // close: it lands like a shell (`blast(at)`: the camp's explosion + its sound)
+        if (b.kind === 'ground' && d < 350) setTimeout(() => blast?.(b.position), b.hit * 1000);
     };
     return {
         weather, sky, rain, bolts, sound,
