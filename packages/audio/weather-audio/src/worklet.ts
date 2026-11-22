@@ -58,8 +58,9 @@ class Rain extends AudioWorkletProcessor {
         this.queue = []; // delayed drips [samplesLeft, surface, level]
         this.carry = { near: 0, far: 0, over: 0 };
         // distant layer: two soft bands + a slow swell
-        this.far = { lo: lp(700), hi: lp(4200), sw: 1, swT: 0, goal: 1 };
+        this.far = { lo: lp(250), hi: lp(2200), sw: 1, swT: 0, goal: 1 };
         this.hp = [lp(90), lp(90)];
+        this.top = [lp(5000), lp(6500)];
     }
     voice(out, kind, a, d, f, df, b, pan) {
         for (const v of this.v) if (!v.on) {
@@ -73,24 +74,24 @@ class Rain extends AudioWorkletProcessor {
         const pan = Math.random(), R = Math.random, out = OVER[s] ? 1 : 0;
         const big = Math.pow(R(), 2.2) * level;
         if (s === "water") {
-            this.voice(0, 0, big * .25, .0006, 0, 1, .5, pan);
+            this.voice(0, 0, big * .2, .0008, 0, 1, .2, pan);
             // Minnaert bubble: small drops ring high, bends up as it dies
-            if (R() < .8) { const f = 900 + Math.pow(R(), 1.5) * 4200, t = .004 + R() * .012; this.voice(0, 1, big * .6, t, f, Math.pow(1.5, 1 / (t * SR * 3)), 0, pan); }
+            if (R() < .8) { const f = 600 + Math.pow(R(), 2) * 2600, t = .004 + R() * .012; this.voice(0, 1, big * .6, t, f, Math.pow(1.5, 1 / (t * SR * 3)), 0, pan); }
         } else if (s === "leaves") {
-            this.voice(0, 0, big * .7, .0005 + R() * .0006, 0, 1, .55 + R() * .4, pan);
-            this.voice(0, 1, big * .3, .002 + R() * .006, 500 + R() * 2600, 1, 0, pan);
+            this.voice(0, 0, big * .45, .0006 + R() * .0008, 0, 1, .2 + R() * .25, pan);
+            this.voice(0, 1, big * .25, .002 + R() * .005, 350 + R() * 1400, 1, 0, pan);
             // the leaf lets go of it again, a bit later and lower
             if (R() < .25) this.queue.push([Math.floor((.05 + R() * .4) * SR), "ground", level * .6]);
         } else if (s === "ground") {
-            this.voice(0, 0, big * .6, .0012 + R() * .0015, 0, 1, .12 + R() * .2, pan);
-            this.banks.ground.kick(big * .15, pan);
+            this.voice(0, 0, big * .4, .0015 + R() * .002, 0, 1, .05 + R() * .1, pan);
+            this.banks.ground.kick(big * .5, pan);
             // a little puddle now and then
             if (R() < .15) { const f = 700 + R() * 2000, t = .005 + R() * .008; this.voice(0, 1, big * .25, t, f, Math.pow(1.4, 1 / (t * SR * 3)), 0, pan); }
         } else if (s === "roof") {
-            this.voice(1, 0, big * .5, .0004, 0, 1, .7, pan);
+            this.voice(1, 0, big * .3, .0005, 0, 1, .3, pan);
             this.banks.roof.kick(big * (.8 + R()), pan);
         } else if (s === "vehicle") {
-            this.voice(1, 0, big * .6, .0003, 0, 1, .85, pan);
+            this.voice(1, 0, big * .3, .0005, 0, 1, .35, pan);
             this.banks.vehicle.kick(big * (.8 + R()), pan);
         } else if (s === "tent") {
             this.voice(1, 1, big * .35, .008 + R() * .008, 150 + R() * 160, .99995, 0, pan);
@@ -129,7 +130,7 @@ class Rain extends AudioWorkletProcessor {
             far.hi.l += (imp - far.hi.l) * far.hi.a; far.hi.r += (impR - far.hi.r) * far.hi.a;
             // band = hi - lo (roughly 0.7 - 4 kHz), plus some of the low for body
             const g = (.9 + .6 * k) * far.sw;
-            L0 += ((far.hi.l - far.lo.l) * 1.3 + far.lo.l * .5) * g; R0 += ((far.hi.r - far.lo.r) * 1.3 + far.lo.r * .5) * g;
+            L0 += ((far.hi.l - far.lo.l) * 1.6 + far.lo.l * .9) * g; R0 += ((far.hi.r - far.lo.r) * 1.6 + far.lo.r * .9) * g;
             // voices
             for (const v of this.v) {
                 if (!v.on) continue;
@@ -146,8 +147,11 @@ class Rain extends AudioWorkletProcessor {
             if (this.queue.length && (i & 31) === 0) for (let q = this.queue.length - 1; q >= 0; q--) { if ((this.queue[q][0] -= 32) <= 0) { this.drop(this.queue[q][1], this.queue[q][2]); this.queue.splice(q, 1); } }
             // no rumble below ~90 Hz on the outside
             const h = this.hp[0]; h.l += (L0 - h.l) * h.a; h.r += (R0 - h.r) * h.a;
-            o0[0][i] = Math.tanh((L0 - h.l) * .8); o0[1][i] = Math.tanh((R0 - h.r) * .8);
-            if (o1) { o1[0][i] = Math.tanh(L1 * .8); o1[1][i] = Math.tanh(R1 * .8); }
+            const t0 = this.top[0], t1 = this.top[1];
+            t0.l += (L0 - h.l - t0.l) * t0.a; t0.r += (R0 - h.r - t0.r) * t0.a;
+            t1.l += (L1 - t1.l) * t1.a; t1.r += (R1 - t1.r) * t1.a;
+            o0[0][i] = Math.tanh(t0.l * 1.1); o0[1][i] = Math.tanh(t0.r * 1.1);
+            if (o1) { o1[0][i] = Math.tanh(t1.l); o1[1][i] = Math.tanh(t1.r); }
         }
         return true;
     }
