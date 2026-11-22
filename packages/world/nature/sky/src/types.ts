@@ -16,6 +16,10 @@ export type SkyState = {
     drift: [number, number];
     /** cloud base height, m */
     base: number;
+    /** 0..~1.5 lightning flash now (`@polywar/lightning`'s `flash`) */
+    flash: number;
+    /** unit, towards it */
+    flashAt: Vec3;
 };
 
 /** the look, linear colours (live) */

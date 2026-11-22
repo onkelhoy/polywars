@@ -4,12 +4,12 @@ import type { SkyLight, SkyLook, SkyState, Vec3 } from "./types";
 export const SKY_LOOK: SkyLook = {
     zenith: [.16, .34, .78],
     horizon: [.62, .76, .92],
-    overcastZenith: [.36, .39, .43],
-    overcastHorizon: [.52, .55, .58],
+    overcastZenith: [.24, .26, .29],
+    overcastHorizon: [.42, .44, .47],
     sunColour: [1, .92, .75],
     cloudLit: [1, .98, .94],
     cloudShade: [.55, .6, .78],
-    cloudDark: [.2, .22, .26],
+    cloudDark: [.1, .11, .13],
     cloudScale: 2600,
     bands: 3,
     cirrus: .6,
@@ -32,7 +32,8 @@ in vec2 vNdc;
 out vec4 outColor;
 uniform mat4 view, projection;
 uniform vec3 eye, sun, moon, nZenith, nHorizon, zenith, horizon, oZenith, oHorizon, sunColour, cLit, cShade, cDark;
-uniform float time, phase, cover, grey, base, scale, bands, cirrus, reach;
+uniform vec3 flashDir;
+uniform float flash, time, phase, cover, grey, base, scale, bands, cirrus, reach;
 uniform vec2 drift;
 
 float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -99,6 +100,7 @@ void main() {
     }
     col += vec3(.5, .6, .8) * pow(max(m, 0.0), 300.0) * .12 * mUp * (1.0 - day);
     if (dir.y < 0.0) col = mix(hor, hor * .85, smoothstep(0.0, -.2, dir.y));
+    col += vec3(.5, .55, .75) * flash * .15 * (.3 + pow(max(dot(dir, flashDir), 0.0), 3.0));
 
     // what lights the clouds: the sun, the moon at night, a little sky glow
     vec3 key = day > .02 ? sun : moon;
@@ -119,15 +121,20 @@ void main() {
         float d = cloud(p);
         if (d > 0.001) {
             // light: how much less cloud lies towards the key light (cheap thickness)
+            // under full cover the coverage saturates: shade from the raw noise so heavy skies stay lumpy
             vec2 ts = normalize(key.xz + 1e-4) * scale * .18;
+            float raw = fbm(p / scale), rawT = fbm((p + ts) / scale);
             float l = clamp(.55 + (d - cloud(p + ts)) * 1.6 - (d - .5) * .3, 0.0, 1.0);
+            l = mix(l, clamp(.45 + (raw - rawT) * 5.0 + (raw - .5) * .8, 0.0, 1.0), smoothstep(.6, 1.0, cover));
             if (bands > 0.0) l = mix(l, floor(l * bands + .5) / bands, .75);
             vec3 shade = mix(cShade, cDark, grey);
-            vec3 lit = mix(cLit, cLit * .75 + oHorizon * .25, grey);
+            vec3 lit = mix(cLit, vec3(.42, .44, .48), grey * .85);
             vec3 c = mix(shade, lit * mix(vec3(1), keyCol, .25 + dusk * .5), l) * keyLight;
             // warm rim on the sun side, cold on the moon side
             float k = max(dot(dir, key), 0.0);
             c += keyCol * pow(k, 8.0) * (1.0 - d) * .5 * keyLight;
+            // lightning lights the cloud from inside, brightest round the bolt
+            c += vec3(.75, .8, 1.0) * flash * (.25 + 2.0 * pow(max(dot(dir, flashDir), 0.0), 5.0)) * (.4 + d);
             c = mix(hor, c, fade);
             col = mix(col, c, smoothstep(0.0, .35, d) * mix(.85, 1.0, cover));
         }
@@ -135,7 +142,7 @@ void main() {
     outColor = vec4(pow(col, vec3(1.0 / 2.2)), 1.0);
 }`;
 
-const U = ["view", "projection", "eye", "sun", "moon", "nZenith", "nHorizon", "time", "phase", "zenith", "horizon", "oZenith", "oHorizon", "sunColour", "cLit", "cShade", "cDark",
+const U = ["view", "projection", "eye", "flash", "flashDir", "sun", "moon", "nZenith", "nHorizon", "time", "phase", "zenith", "horizon", "oZenith", "oHorizon", "sunColour", "cLit", "cShade", "cDark",
     "cover", "grey", "base", "scale", "bands", "cirrus", "reach", "drift"] as const;
 
 type View = { viewMatrix: ArrayLike<number>; projectionMatrix: ArrayLike<number>; worldPosition?: { x: number; y: number; z: number } };
@@ -146,7 +153,7 @@ type View = { viewMatrix: ArrayLike<number>; projectionMatrix: ArrayLike<number>
  */
 export class Sky {
     readonly look: SkyLook;
-    readonly state: SkyState = { sun: [.5, .8, .35], moon: [-.5, -.8, -.35], phase: .5, cover: .35, grey: 0, drift: [0, 0], base: 1500 };
+    readonly state: SkyState = { sun: [.5, .8, .35], moon: [-.5, -.8, -.35], phase: .5, cover: .35, grey: 0, drift: [0, 0], base: 1500, flash: 0, flashAt: [0, 1, 0] };
     private clock = 0;
     private gl: WebGL2RenderingContext;
     private program?: WebGLProgram;
@@ -207,6 +214,7 @@ export class Sky {
         out.sky = mix([.03, .04, .08], mix(clear.sky, this.horizon(), o * .8), day);
         out.ground = mix([.02, .02, .025], clear.ground, day);
         out.ambient = clear.ambient * (1 + o * .35) * (.12 + .88 * day);
+        out.ambient += s.flash * .8;
         out.fogColor = this.horizon();
         out.fogDensity = clear.fogDensity + o * .0006;
     }
@@ -223,6 +231,7 @@ export class Sky {
         gl.uniform3f(u.eye!, e.x, e.y, e.z);
         const sl = Math.hypot(...s.sun) || 1;
         gl.uniform3f(u.sun!, s.sun[0] / sl, s.sun[1] / sl, s.sun[2] / sl);
+        gl.uniform1f(u.flash!, s.flash); gl.uniform3fv(u.flashDir!, s.flashAt);
         const ml = Math.hypot(...s.moon) || 1;
         gl.uniform3f(u.moon!, s.moon[0] / ml, s.moon[1] / ml, s.moon[2] / ml);
         gl.uniform3fv(u.nZenith!, l.nightZenith); gl.uniform3fv(u.nHorizon!, l.nightHorizon);

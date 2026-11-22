@@ -5,6 +5,12 @@ import { MAPS } from '@polywar/terrain';
 import { BIOMES, linear } from '@polywar/terrain-material';
 import { WaterScreen } from '@polywar/water';
 import { World } from '@polywar/world';
+import { Weather } from '@polywar/weather';
+import { Sky } from '@polywar/sky';
+import { Precipitation } from '@polywar/precipitation';
+import { Lightning } from '@polywar/lightning';
+import { AudioMixer } from '@papit/audio';
+import { WeatherAudio } from '@polywar/weather-audio';
 
 const $ = s => document.querySelector(s);
 const demo = $('pw-viewport');
@@ -25,6 +31,50 @@ const world = new World(layer, renderer, nature, hash || {}, { quality: $('#qual
 window.world = world;
 world.profile(true);
 const { terrain, ecosystem: eco } = world;
+
+// ---- weather: the field over the terrain's climate drives sky, rain / snow, lightning and sound ----
+const weather = new Weather({ climate: (x, z) => terrain.climateAt(x, z) });
+const sky = new Sky(layer), rain = new Precipitation(layer, { ground: (x, z) => terrain.groundAt(x, z) }), bolts = new Lightning(layer, { ground: (x, z) => terrain.groundAt(x, z) });
+const clearLight = { ...renderer.light };
+const mixer = new AudioMixer();
+let sound, eye = [0, 0, 0], right = [1, 0, 0], ws;
+$('#weather-sound').onclick = () => { mixer.unlock(); sound ??= new WeatherAudio({ mixer }); };
+bolts.onstrike = b => {
+    const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
+    sound?.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1));
+};
+Object.assign(window, { weather, sky, rain, bolts });
+const stepWeather = (camera, dt) => {
+    const on = $('#weather').checked, e = camera.worldPosition ?? { x: 0, y: 0, z: 0 }, v = camera.viewMatrix;
+    eye = [e.x, e.y, e.z]; right = [v[0], v[4], v[8]];
+    const hour = $('#hour'), run = +$('#day-speed').value;
+    if (run) hour.value = (+hour.value + run * dt) % 24;
+    sky.setTime(+hour.value);
+    Object.assign(weather.o, { bias: +$('#wetness').value, speed: +$('#weather-speed').value });
+    weather.update(dt);
+    ws = weather.at(e.x, e.z);
+    const storm = $('#storm').value === 'auto' ? ws.storm : +$('#storm').value;
+    const cover = on ? ws.cover : .3, grey = on ? Math.max(ws.grey, storm * .8) : 0;
+    bolts.storm = on ? storm : 0;
+    bolts.base = ws.base;
+    bolts.update(dt);
+    Object.assign(sky.state, { cover: Math.max(cover, storm * .9), grey, drift: weather.drift, base: ws.base, flash: bolts.flash, flashAt: bolts.flashAt });
+    sky.light(clearLight, renderer.light);
+    const w = weather.o.wind;
+    Object.assign(rain.state, { intensity: on ? Math.max(ws.precipitation, storm * .7) : 0, snow: ws.snow, wind: [w[0] * .4, w[1] * .4] });
+    rain.update(dt);
+    if (sound)
+    {
+        const biome = terrain.biomeAt(e.x, e.z) ?? '', wet = ['ocean', 'lake', 'river'].includes(biome);
+        Object.assign(sound.state, {
+            rain: ws.snow ? 0 : rain.state.intensity, snow: ws.snow ? rain.state.intensity : 0, wind: Math.min(1, .15 + ws.cover * .4 + storm * .4),
+            surfaces: { ground: 1, leaves: biome === 'forest' ? 1.5 : .2, water: wet ? 1.5 : 0 },
+        });
+        sound.update(dt);
+    }
+    $('#weather-info').value = `${(+hour.value).toFixed(1)} h · ${ws.kind} · humidity ${ws.humidity.toFixed(2)}${rain.state.intensity > 0 ? ` · ${ws.snow ? 'snow' : 'rain'} ${rain.state.intensity.toFixed(2)}` : ''}${storm ? ` · storm ${storm.toFixed(2)}` : ''}`;
+};
+let lastDraw = performance.now();
 
 // ---- nature sliders: [path, min, max, step] into the ecosystem options ----
 const sliders = [
@@ -174,8 +224,14 @@ demo.tick = dt => {
 };
 demo.draw = camera => {
     const under = camera.worldPosition && terrain.underwater(camera.worldPosition);
+    const now = performance.now(), dt = Math.min(.1, (now - lastDraw) / 1000); lastDraw = now;
+    stepWeather(camera, dt);
     renderer.begin(camera, under ? [...linear(terrain.water.look.under.shallow).map(c => Math.pow(c, 1 / 2.2)), 1] : [...renderer.light.fogColor.map(c => Math.pow(c, 1 / 2.2)), 1]);
+    if (!under) sky.draw(camera);
+    renderer.reset();
     world.draw(camera, renderer.light, demo.time);
+    if (!under) { bolts.draw(camera); rain.draw(camera); }
+    renderer.reset();
     waterScreen.draw(!!under, demo.time, terrain.water.look.under.shallow);
 };
 refresh();
