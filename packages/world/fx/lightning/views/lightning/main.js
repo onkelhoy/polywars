@@ -28,7 +28,7 @@ $('#sound').onclick = () => { mixer.unlock(); sound ??= new WeatherAudio({ mixer
 bolts.onstrike = b => {
     const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
     const delay = sound ? sound.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1)) : d / 343;
-    if (b.kind === 'ground' && d < 350) setTimeout(() => { explosion.explode(b.position, { power: 4 }); blastAudio?.play(b.position, 6, { deep: true }); }, b.hit * 1000);
+    if (b.kind === 'ground' && d < 350) setTimeout(() => { explosion.explode(b.position, { power: 8 }); blastAudio?.play(b.position, 20, { deep: true }); }, b.hit * 1000);
     $('#values').value = `${b.kind} ${Math.round(d)} m · thunder in ${delay.toFixed(1)} s`;
 };
 for (const b of document.querySelectorAll('[data-k]')) b.onclick = () => {

@@ -1,4 +1,5 @@
-// node tools/weather-sounds.mjs: fetch the CC0 weather recordings (bigsoundbank.com, Joseph Sardin), cut each rain /
+// node tools/weather-sounds.mjs: fetch the CC0 weather recordings (bigsoundbank.com, Joseph Sardin; close strikes from
+// freesound.org CC0 uploads, HQ previews), cut each rain /
 // wind bed to its steadiest 30 s as a seamless loop, keep thunder whole, encode mono AAC (macOS afconvert) into
 // assets/audio/weather/ + sounds.json (the set @polywar/weather-audio reads).
 import fs from "node:fs";
@@ -22,6 +23,14 @@ const SET = {
     "thunder-near-4": ["3179", "near", ""], "thunder-near-5": ["3180", "near", ""],
     "thunder-far-1": ["2718", "far", ""], "thunder-far-2": ["3116", "far", ""], "thunder-far-3": ["3181", "far", ""],
     "thunder-far-4": ["3182", "far", ""], "thunder-far-5": ["3183", "far", ""], "thunder-far-6": ["3184", "far", ""],
+    // close strikes (crack + bang), freesound CC0: "fs:id_user"
+    "strike-1": ["fs:434359_197070", "strike", "csengeri: close lightning strike"],
+    "strike-2": ["fs:483684_7588344", "strike", "danielmcadams: super close lightning strike"],
+    "strike-3": ["fs:840628_16682330", "strike", "loganzsound: closeup thunder strike"],
+    "strike-4": ["fs:264826_1540977", "strike", "Martineerok: thunder (close up)"],
+    "strike-5": ["fs:437243_213249", "strike", "Simon Spiers: very close lightning strike"],
+    "strike-6": ["fs:336314_2660518", "strike", "supercell10: close lightning strike"],
+    "strike-8": ["fs:534023_9395330", "strike", "Fission9: thunderclap"],
 };
 const LOOP = 30, FADE = 1.5;
 
@@ -68,16 +77,22 @@ const normalise = (x, to) => { let s = 0; for (const v of x) s += v * v; const g
 const sounds = {};
 for (const [name, [id, kind, note]] of Object.entries(SET))
 {
-    const mp3 = `${TMP}/${id}.mp3`, wav = `${TMP}/${id}.wav`, cut = `${TMP}/${name}.wav`;
-    if (!fs.existsSync(mp3)) execFileSync("curl", ["-sfL", "-o", mp3, `https://bigsoundbank.com/UPLOAD/mp3/${id}.mp3`]);
+    const free = id.startsWith("fs:"), key = free ? id.slice(3) : id, num = key.split("_")[0];
+    const mp3 = `${TMP}/${key}.mp3`, wav = `${TMP}/${key}.wav`, cut = `${TMP}/${name}.wav`;
+    const url = free ? `https://cdn.freesound.org/previews/${Math.floor(+num / 1000)}/${key}-hq.mp3` : `https://bigsoundbank.com/UPLOAD/mp3/${id}.mp3`;
+    if (!fs.existsSync(mp3)) execFileSync("curl", ["-sfL", "-o", mp3, url]);
     execFileSync("afconvert", ["-f", "WAVE", "-d", `LEI16@${SR}`, "-c", "1", mp3, wav]);
     let x = readWav(wav);
     // beds even in level (the mixer sets loudness), thunder keeps its own dynamics, peak normalised
     if (kind === "bed") x = normalise(loop(x), .12);
-    else { let p = 0; for (const v of x) p = Math.max(p, Math.abs(v)); for (let i = 0; i < x.length; i++) x[i] *= .95 / p; }
+    else
+    {
+        // strikes: from just before the crack (the loudest moment), at most 25 s
+        if (kind === "strike") { let at = 0, p = 0; for (let i = 0; i < x.length; i++) if (Math.abs(x[i]) > p) { p = Math.abs(x[i]); at = i; } let s = at; const win = SR * .6; while (s > Math.max(0, at - win) && Math.abs(x[s]) > p * .02) s--; s = Math.max(0, s - Math.floor(SR * .05)); x = x.slice(s, s + SR * 25); for (let i = 0; i < SR * .02 && i < x.length; i++) x[i] *= i / (SR * .02); const f = SR * 2; for (let i = 0; i < f && i < x.length; i++) x[x.length - 1 - i] *= i / f; }
+        let p = 0; for (const v of x) p = Math.max(p, Math.abs(v)); for (let i = 0; i < x.length; i++) x[i] *= .95 / p; }
     writeWav(cut, x);
     execFileSync("afconvert", ["-f", "m4af", "-d", "aac", "-b", kind === "bed" ? "48000" : "64000", cut, `${OUT}/${name}.m4a`]);
-    sounds[name] = { kind, seconds: +(x.length / SR).toFixed(2), source: `https://bigsoundbank.com/sound-${id}.html`, note };
+    sounds[name] = { kind, seconds: +(x.length / SR).toFixed(2), source: free ? `https://freesound.org/s/${num}/` : `https://bigsoundbank.com/sound-${id}.html`, note };
     console.log(name, sounds[name].seconds + "s");
 }
-fs.writeFileSync(`${OUT}/sounds.json`, JSON.stringify({ license: "CC0 (bigsoundbank.com, Joseph Sardin)", sounds }, null, 2) + "\n");
+fs.writeFileSync(`${OUT}/sounds.json`, JSON.stringify({ license: "CC0 (bigsoundbank.com, Joseph Sardin; freesound.org uploads listed per sound)", sounds }, null, 2) + "\n");

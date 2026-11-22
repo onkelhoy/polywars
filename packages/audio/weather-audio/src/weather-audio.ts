@@ -24,6 +24,7 @@ export class WeatherAudio {
     private buffers: Record<string, AudioBuffer> = {};
     private near: string[] = [];
     private far: string[] = [];
+    private strikes: string[] = [];
     private node?: AudioWorkletNode;
     private detail: GainNode;
     private nextStrike = 5;
@@ -48,6 +49,7 @@ export class WeatherAudio {
                 this.buffers[name] = await ctx.decodeAudioData(data);
                 if (s.kind === "near") this.near.push(name);
                 if (s.kind === "far") this.far.push(name);
+                if (s.kind === "strike") this.strikes.push(name);
             }));
             for (const name of [...OUTSIDE, ...UNDER])
             {
@@ -63,59 +65,28 @@ export class WeatherAudio {
         });
     }
 
-    /** thunder `distance` m away, `pan` -1 left .. 1 right; returns the delay s until it's heard */
+    /**
+     * Thunder `distance` m away, `pan` -1 left .. 1 right; returns the delay s until it's heard. Under ~800 m: a
+     * recorded close strike (the crack + bang, the air round the channel bursting); to 1.5 km a near clap;
+     * further a low roll. Late by the speed of sound, duller and quieter with distance; the rain ducks under it.
+     */
     thunder(distance: number, pan = 0) {
         const ctx = this.ctx, d = Math.max(0, distance), delay = d / (this.options.sound ?? 343);
-        const list = d < 1500 && this.near.length ? this.near : this.far.length ? this.far : this.near;
+        const list = d < 800 && this.strikes.length ? this.strikes : d < 1500 && this.near.length ? this.near : this.far.length ? this.far : this.near;
         if (!list.length) return delay;
         const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g = ctx.createGain(), p = ctx.createStereoPanner();
         src.buffer = this.buffers[list[Math.floor(Math.random() * list.length)]];
         // air eats the highs: a crack overhead, a low roll from kilometres away
         lp.type = "lowpass";
-        lp.frequency.value = Math.max(220, 16000 * Math.exp(-d / 1800));
+        lp.frequency.value = Math.max(220, 18000 * Math.exp(-d / 1800));
         src.playbackRate.value = d > 6000 ? .85 + Math.random() * .1 : .95 + Math.random() * .1;
-        g.gain.value = Math.min(2.5, 2.5 / (1 + d / 1200));
+        g.gain.value = list === this.strikes ? 2.6 / (1 + d / 400) + .6 : Math.min(2.5, 2.5 / (1 + d / 1200));
         p.pan.value = Math.max(-1, Math.min(1, pan)) * (d < 3000 ? .7 : .4);
         src.connect(lp).connect(g).connect(p).connect(this.outside);
-        // the crack comes first, the roll a beat after it (the far end of the channel is further away)
-        src.start(ctx.currentTime + delay + (d < 1500 ? .12 + d / 4000 : 0));
-        if (d < 1500) this.crack(d, pan, delay);
+        src.start(ctx.currentTime + delay);
         // close: the rain ducks under it
         if (d < 3000) { const r = this.outside.gain, k = .35 + .65 * d / 3000, t = ctx.currentTime + delay; r.cancelScheduledValues(t); r.setTargetAtTime(r.value * k, t, .02); r.setTargetAtTime(1 - this.state.inside * .45, t + .6, 1.2); }
         return delay;
-    }
-
-    /**
-     * The strike itself: a ripping crackle that speeds up into a whip crack (the channel heating air in steps),
-     * bright up close, gone past ~1.5 km. Played by `thunder` for near strikes.
-     */
-    crack(distance: number, pan = 0, delay = distance / (this.options.sound ?? 343)) {
-        const ctx = this.ctx, sr = ctx.sampleRate, len = Math.floor(sr * .7), b = ctx.createBuffer(2, len, sr);
-        for (let c = 0; c < 2; c++)
-        {
-            const x = b.getChannelData(c);
-            // tearing: impulses that pile up faster towards the crack at ~.25 s, then a short ring of crackles
-            let t = 0;
-            while (t < len)
-            {
-                const u = t / len, rate = u < .35 ? 300 + 5000 * Math.pow(u / .35, 3) : 3000 * Math.exp(-(u - .35) * 9);
-                t += Math.max(1, Math.floor(sr / rate * (.3 + Math.random() * 1.4)));
-                if (t >= len) break;
-                const a = (Math.random() * 2 - 1) * (u < .35 ? .25 + .75 * u / .35 : Math.exp(-(u - .35) * 6));
-                for (let i = 0; i < 24 && t + i < len; i++) x[t + i] += a * Math.exp(-i / 4) * (i % 2 ? -1 : 1);
-            }
-            // the whip crack
-            const at = Math.floor(len * .35);
-            for (let i = 0; i < sr * .03 && at + i < len; i++) x[at + i] += (Math.random() * 2 - 1) * 1.6 * Math.exp(-i / (sr * .006));
-        }
-        const src = ctx.createBufferSource(), hp = ctx.createBiquadFilter(), lp = ctx.createBiquadFilter(), g = ctx.createGain(), p = ctx.createStereoPanner();
-        src.buffer = b;
-        hp.type = "highpass"; hp.frequency.value = 600;
-        lp.type = "lowpass"; lp.frequency.value = Math.max(1200, 16000 * Math.exp(-distance / 500));
-        g.gain.value = 2.2 / (1 + distance / 150);
-        p.pan.value = Math.max(-1, Math.min(1, pan)) * .7;
-        src.connect(hp).connect(lp).connect(g).connect(p).connect(this.outside);
-        src.start(ctx.currentTime + delay);
     }
 
     update(dt: number) {

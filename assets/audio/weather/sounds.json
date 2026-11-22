@@ -1,5 +1,5 @@
 {
-  "license": "CC0 (bigsoundbank.com, Joseph Sardin)",
+  "license": "CC0 (bigsoundbank.com, Joseph Sardin; freesound.org uploads listed per sound)",
   "sounds": {
     "ground-light": {
       "kind": "bed",
@@ -132,6 +132,48 @@
       "seconds": 35.26,
       "source": "https://bigsoundbank.com/sound-3184.html",
       "note": ""
+    },
+    "strike-1": {
+      "kind": "strike",
+      "seconds": 25,
+      "source": "https://freesound.org/s/434359/",
+      "note": "csengeri: close lightning strike"
+    },
+    "strike-2": {
+      "kind": "strike",
+      "seconds": 25,
+      "source": "https://freesound.org/s/483684/",
+      "note": "danielmcadams: super close lightning strike"
+    },
+    "strike-3": {
+      "kind": "strike",
+      "seconds": 13.16,
+      "source": "https://freesound.org/s/840628/",
+      "note": "loganzsound: closeup thunder strike"
+    },
+    "strike-4": {
+      "kind": "strike",
+      "seconds": 16.57,
+      "source": "https://freesound.org/s/264826/",
+      "note": "Martineerok: thunder (close up)"
+    },
+    "strike-5": {
+      "kind": "strike",
+      "seconds": 25,
+      "source": "https://freesound.org/s/437243/",
+      "note": "Simon Spiers: very close lightning strike"
+    },
+    "strike-6": {
+      "kind": "strike",
+      "seconds": 11.84,
+      "source": "https://freesound.org/s/336314/",
+      "note": "supercell10: close lightning strike"
+    },
+    "strike-8": {
+      "kind": "strike",
+      "seconds": 11.36,
+      "source": "https://freesound.org/s/534023/",
+      "note": "Fission9: thunderclap"
     }
   }
 }
