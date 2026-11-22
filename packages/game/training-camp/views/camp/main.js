@@ -1,3 +1,4 @@
+import { campWeather } from './weather.js';
 import '@polywar/viewport';
 import { Camera } from '@papit/game-engine';
 import { Renderer, Model } from '@polywar/renderer';
@@ -66,11 +67,7 @@ const drawWorld = view => {
 renderer.lights = new Lights();
 const glow = new Glow(layer);
 for (const l of range.data.lights ?? []) renderer.lights.add({ ...l });
-if (new URLSearchParams(location.search).has('night'))
-{
-    Object.assign(renderer.light, { sunStrength: .05, ambient: .08, fogColor: [.03, .04, .07] });
-    SKY.splice(0, 3, .03, .04, .07);
-}
+// ?night = hour 23 in the weather (camp/weather.js)
 
 // ---- grass (@polywar/grass) by range.json zones: none wins over short over tall; planted round the camera ----
 const zones = range.data.grass ?? [];
@@ -792,10 +789,17 @@ demo.tick = dt => {
     nearCar = cars.find(({ car, spec }) => { const d = car.toWorld(spec.exit); return Math.hypot(d[0] - f[0], d[2] - f[2]) < 1.6; });
     if (nearCar && document.body.classList.contains('playing') && !$('#prompt').value) $('#prompt').value = nearCar.car.fallen ? 'E  lift the bike' : nearCar.spec.kind === 'bike' ? 'E  ride' : nearCar.spec.kind === 'tank' || nearCar.spec.kind === 'plane' ? 'E  climb in' : 'E  drive';
 };
+// ---- weather (camp/weather.js): sky, day / night, rain / snow, lightning, sound ----
+const weather = campWeather({ layer, renderer, mixer: player.feel.mixer, ground: (x, z) => range.ground(x, z) });
+window.weather = weather;
+let lastFrame = performance.now();
 demo.draw = camera => {
+    const now = performance.now(), frame = Math.min(.1, (now - lastFrame) / 1000); lastFrame = now;
+    weather.step(camera, frame, driving ? { vehicle: 1 } : {}, driving && driving.spec.kind !== 'bike' ? .8 : 0);
     // the casters into the shadow map first (range, gun stands, cars; grass doesn't cast)
     shadows.cast(camera, renderer.light.sunDirection, view => { renderer.begin(view, null); drawWorld(view); drawStands(); drawCars(); renderer.reset(); });
     renderer.begin(camera, SKY);
+    weather.drawSky(camera);
     drawWorld(camera);
     drawStands();
     drawGrass(camera);
@@ -808,6 +812,7 @@ demo.draw = camera => {
     if (!document.body.classList.contains('playing')) { demo.endOcclusion(); drawTufts(camera); drawGlass(); player.impacts.draw(camera); renderer.reset(); drawAir(camera); }
     else if (driving) { drawDriver(camera); demo.endOcclusion(); drawTufts(camera); drawGlass(); drawAir(camera); }
     else player.draw(camera);
+    weather.drawAfter(camera);
     // face against something / lying: dark from the centre (first person only)
     const cam = layer.camera;
     if (cam && document.body.classList.contains('playing') && !third && (!driving || seatCam))

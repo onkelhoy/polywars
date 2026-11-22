@@ -62,7 +62,7 @@ Clouds = the sky shader layer only (puff clouds removed), weather changes over m
 - `@polywar/weather-audio` (packages/audio): CC0 recordings (bigsoundbank.com, `tools/weather-sounds.mjs` fetches, cuts steadiest 30 s loops, AAC -> `assets/audio/weather/`, 3.8 MB): beds ground light / heavy, water, leaves, tent (tarp), roof (tin), vehicle light / heavy, wind light / strong / inside. `state.surfaces` (outside, muffled by `inside`), `state.under` (close). Thunder `thunder(distance, pan)`: near cracks < 1.5 km / far rolls, late by 343 m/s, duller with distance; `state.storm` = random strikes + `onstrike` (for the flash). Live synth worklet kept as `state.detail` (default 0). View `weather-audio` (presets + thunder buttons).
 
 ## Weather next
-- Camp hook-up (task 7 second half): not done yet.
+- Camp: `views/camp/weather.js` (`campWeather`): sky first, rain + lightning after the world, sound on the player's mixer, in a car = under vehicle + inside .8. `?hour=22`, `?night`, `?weather=rain|storm|clear|snow`; console `weather.set({ hour, day, wetness, storm, speed })`. Old `?night` sun dimming replaced.
 
 ## Open tasks
 1. Arms-grip 5 (backlog): papit math cleanup, drop box arms, mag / bullet grab, pockets, first shot flyer. Grab animation: owner designs.
