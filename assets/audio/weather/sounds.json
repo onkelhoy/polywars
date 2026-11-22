@@ -1,0 +1,137 @@
+{
+  "license": "CC0 (bigsoundbank.com, Joseph Sardin)",
+  "sounds": {
+    "ground-light": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1289.html",
+      "note": "rain on concrete"
+    },
+    "ground-heavy": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1019.html",
+      "note": "summer rain on a terrace"
+    },
+    "water": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1290.html",
+      "note": "rain on a puddle"
+    },
+    "leaves": {
+      "kind": "bed",
+      "seconds": 27,
+      "source": "https://bigsoundbank.com/sound-0555.html",
+      "note": "forest dripping after rain"
+    },
+    "tent": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1292.html",
+      "note": "rain on a plastic tarpaulin"
+    },
+    "roof": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1291.html",
+      "note": "rain on a wheelbarrow (tin)"
+    },
+    "vehicle-light": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1293.html",
+      "note": "rain on a car roof"
+    },
+    "vehicle-heavy": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1294.html",
+      "note": "big rain on a car roof"
+    },
+    "wind-light": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-0659.html",
+      "note": "wind in a tree"
+    },
+    "wind-strong": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1450.html",
+      "note": "strong wind and trees"
+    },
+    "wind-inside": {
+      "kind": "bed",
+      "seconds": 30,
+      "source": "https://bigsoundbank.com/sound-1714.html",
+      "note": "wind from inside"
+    },
+    "thunder-near-1": {
+      "kind": "near",
+      "seconds": 5.09,
+      "source": "https://bigsoundbank.com/sound-3113.html",
+      "note": ""
+    },
+    "thunder-near-2": {
+      "kind": "near",
+      "seconds": 11.26,
+      "source": "https://bigsoundbank.com/sound-3114.html",
+      "note": ""
+    },
+    "thunder-near-3": {
+      "kind": "near",
+      "seconds": 17.26,
+      "source": "https://bigsoundbank.com/sound-3115.html",
+      "note": ""
+    },
+    "thunder-near-4": {
+      "kind": "near",
+      "seconds": 13.82,
+      "source": "https://bigsoundbank.com/sound-3179.html",
+      "note": ""
+    },
+    "thunder-near-5": {
+      "kind": "near",
+      "seconds": 12.98,
+      "source": "https://bigsoundbank.com/sound-3180.html",
+      "note": ""
+    },
+    "thunder-far-1": {
+      "kind": "far",
+      "seconds": 22.99,
+      "source": "https://bigsoundbank.com/sound-2718.html",
+      "note": ""
+    },
+    "thunder-far-2": {
+      "kind": "far",
+      "seconds": 21.94,
+      "source": "https://bigsoundbank.com/sound-3116.html",
+      "note": ""
+    },
+    "thunder-far-3": {
+      "kind": "far",
+      "seconds": 41.71,
+      "source": "https://bigsoundbank.com/sound-3181.html",
+      "note": ""
+    },
+    "thunder-far-4": {
+      "kind": "far",
+      "seconds": 29.5,
+      "source": "https://bigsoundbank.com/sound-3182.html",
+      "note": ""
+    },
+    "thunder-far-5": {
+      "kind": "far",
+      "seconds": 30.79,
+      "source": "https://bigsoundbank.com/sound-3183.html",
+      "note": ""
+    },
+    "thunder-far-6": {
+      "kind": "far",
+      "seconds": 35.26,
+      "source": "https://bigsoundbank.com/sound-3184.html",
+      "note": ""
+    }
+  }
+}
