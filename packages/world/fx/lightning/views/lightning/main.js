@@ -25,10 +25,12 @@ const smoke = new Smoke(demo.layer, { puffs: 6000 }), explosion = new Explosion(
 let blastAudio;
 let sound, eye = [0, 0, 0], right = [1, 0, 0];
 $('#sound').onclick = () => { mixer.unlock(); sound ??= new WeatherAudio({ mixer }); blastAudio ??= new ExplosionAudio({ mixer }); Object.assign(sound.state, { rain: .7, wind: .5 }); };
+// close strikes as explosions: off for now (owner checks the thunder alone)
+const EXPLODE = false;
 bolts.onstrike = b => {
     const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
     const delay = sound ? sound.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1)) : d / 343;
-    if (b.kind === 'ground' && d < 350) setTimeout(() => { explosion.explode(b.position, { power: 8 }); }, b.hit * 1000); setTimeout(() => blastAudio?.play(b.position, 8, { deep: true }), b.hit * 1000 + 80);
+    if (EXPLODE && b.kind === 'ground' && d < 350) setTimeout(() => { explosion.explode(b.position, { power: 8 }); }, b.hit * 1000); setTimeout(() => blastAudio?.play(b.position, 8, { deep: true }), b.hit * 1000 + 80);
     $('#values').value = `${b.kind} ${Math.round(d)} m · thunder in ${delay.toFixed(1)} s`;
 };
 for (const b of document.querySelectorAll('[data-k]')) b.onclick = () => {

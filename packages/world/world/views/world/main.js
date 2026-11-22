@@ -40,11 +40,13 @@ const clearLight = { ...renderer.light };
 const mixer = new AudioMixer();
 let sound, blastAudio, eye = [0, 0, 0], right = [1, 0, 0], ws;
 $('#weather-sound').onclick = () => { mixer.unlock(); sound ??= new WeatherAudio({ mixer }); blastAudio ??= new ExplosionAudio({ mixer }); };
+// close strikes as explosions: off for now (owner checks the thunder alone)
+const EXPLODE = false;
 bolts.onstrike = b => {
     const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
     sound?.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1));
     // close: hits like a shell (sound; the look needs smoke here, later)
-    if (b.kind === 'ground' && d < 350) setTimeout(() => blastAudio?.play(b.position, 8, { deep: true }), b.hit * 1000 + 80);
+    if (EXPLODE && b.kind === 'ground' && d < 350) setTimeout(() => blastAudio?.play(b.position, 8, { deep: true }), b.hit * 1000 + 80);
 };
 Object.assign(window, { weather, sky, rain, bolts });
 const stepWeather = (camera, dt) => {

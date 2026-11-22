@@ -1,4 +1,6 @@
 import { Weather } from '@polywar/weather';
+// close strikes as explosions: off for now (owner checks the thunder alone)
+const EXPLODE = false;
 import { Sky } from '@polywar/sky';
 import { Precipitation } from '@polywar/precipitation';
 import { Lightning } from '@polywar/lightning';
@@ -22,7 +24,7 @@ export function campWeather({ layer, renderer, mixer, ground, blast }) {
         const dx = b.position[0] - eye[0], dz = b.position[2] - eye[2], d = Math.hypot(dx, b.position[1] - eye[1], dz);
         sound.thunder(d, (dx * right[0] + dz * right[2]) / (Math.hypot(dx, dz) || 1));
         // close: it lands like a shell (`blast(at)`: the camp's explosion + its sound)
-        if (b.kind === 'ground' && d < 350) setTimeout(() => blast?.(b.position), b.hit * 1000 + 80);
+        if (EXPLODE && b.kind === 'ground' && d < 350) setTimeout(() => blast?.(b.position), b.hit * 1000 + 80);
     };
     return {
         weather, sky, rain, bolts, sound,
