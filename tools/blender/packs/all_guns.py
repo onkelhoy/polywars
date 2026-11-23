@@ -9,6 +9,27 @@ LEN = {"beretta-m1951": .2, "beretta-model-57": .2, "beretta_model_57": .2, "bor
        "thompson": .81, "madsen": 1.15, "lahti": 2.2, "ruger": .94, "gewehr_88": 1.25, "husqvarna": .25, "ithaca": 1.0}
 bpy.ops.wm.read_homefile(use_empty=True)
 scene = bpy.context.scene
+# guns the store ships without colours: biggest material = wood stock (rifles), the rest dark metal shades
+WOOD = ("carcano", "k31", "lebel", "m1-garand", "ross", "vetterli", "madsen", "mp-28")
+def colour(gun, name):
+    mats = [m for m in gun.data.materials if m]
+    def base(m):
+        n = next((n for n in m.node_tree.nodes if n.type in ("BSDF_PRINCIPLED", "BSDF_DIFFUSE")), None) if m.node_tree else None
+        return n
+    if any(tuple(round(x, 2) for x in base(m).inputs[0].default_value[:3]) != (.8, .8, .8) for m in mats if base(m)):
+        if sum(1 for m in mats if base(m) and tuple(round(x, 2) for x in base(m).inputs[0].default_value[:3]) == (.8, .8, .8)) < len(mats) - 1:
+            return
+    area = {}
+    for f in gun.data.polygons: area[f.material_index] = area.get(f.material_index, 0) + f.area
+    order = sorted(area, key=area.get, reverse=True)
+    shades = [(.06, .06, .065), (.1, .1, .1), (.04, .04, .04), (.14, .14, .15), (.08, .08, .085)]
+    for k, i in enumerate(order):
+        m = gun.data.materials[i]
+        if not m or not base(m): continue
+        c = (.24, .11, .05) if (k == 0 and any(w in name for w in WOOD)) else shades[k % len(shades)]
+        base(m).inputs[0].default_value = c + (1,)
+    print("COLOURED", name)
+
 def pick(d):
     for pat in ("**/*.blend", "**/*.gltf", "**/*.glb", "**/*.fbx"):
         f = sorted(glob.glob(os.path.join(d, pat), recursive=True))
@@ -58,6 +79,14 @@ for d in sorted(p for p in glob.glob(os.path.join(root, "*")) if os.path.isdir(p
             m = o.evaluated_get(dg).to_mesh(); ps += [o.matrix_world @ v.co for v in m.vertices]; o.evaluated_get(dg).to_mesh_clear()
     s = next((v for k, v in LEN.items() if k in name), 1.15) / max(max(p[k] for p in ps) - min(p[k] for p in ps) for k in range(3))
     for o in new: o.data.transform(Matrix.Scale(s, 4))
+    # one mesh per gun
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in new: o.select_set(True)
+    bpy.context.view_layer.objects.active = new[0]
+    if len(new) > 1: bpy.ops.object.join()
+    gun = bpy.context.view_layer.objects.active; gun.name = gun.data.name = name
+    colour(gun, name)
+    new = [gun]
     print("OK", name, len(new), "mats:", len({m for o in new if o.type == "MESH" for m in o.data.materials if m}))
 for a in list(bpy.data.armatures): bpy.data.armatures.remove(a)
 for a in list(bpy.data.actions): bpy.data.actions.remove(a)
