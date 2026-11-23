@@ -8,6 +8,7 @@ const RIGS = {
     biped: '/assets/models/characters/bird/model.glb',
     'ww2-us': '/assets/models/characters/ww2-soldier-us/model.glb',
     'ww2-german': '/assets/models/characters/ww2-soldier-german/model.glb',
+    'ww2-wehrmacht': '/assets/models/characters/ww2-wehrmacht/model.glb',
 };
 const preview = document.querySelector('pw-3d-asset-preview');
 preview.skin = Skeleton.skin;

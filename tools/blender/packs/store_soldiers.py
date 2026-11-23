@@ -25,6 +25,8 @@ FITS = {
                              "shoulder": (.10, .79), "elbow": (.165, .62), "wrist": (.18, .5), "tip": (.17, .40), "leg": (.066, .078)},
     "soldier-low-poly": {"fbx": "LowPolySoldier.fbx", "name": "Low poly soldier", "drop": ("ACR",),
                          "shoulder": (.10, .80), "elbow": (.22, .69), "wrist": (.31, .61), "tip": (.35, .555), "leg": (.07, .087)},
+    "ww2-wehrmacht": {"fbx": "soldier_sketch.fbx", "name": "WW2 Wehrmacht soldier",
+                      "shoulder": (.12, .79), "elbow": (.27, .785), "wrist": (.42, .78), "tip": (.48, .78), "leg": (.055, .055)},
 }
 
 

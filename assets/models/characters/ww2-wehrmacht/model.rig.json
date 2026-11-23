@@ -1,0 +1,170 @@
+{
+ "bones": {
+  "root": {
+   "length": 0.25,
+   "deform": false
+  },
+  "hips": {
+   "length": 0.1,
+   "deform": true
+  },
+  "spine": {
+   "length": 0.12,
+   "deform": true
+  },
+  "spine.1": {
+   "length": 0.12,
+   "deform": true
+  },
+  "chest": {
+   "length": 0.18,
+   "deform": true
+  },
+  "neck": {
+   "length": 0.1005,
+   "deform": true
+  },
+  "head": {
+   "length": 0.22,
+   "deform": true
+  },
+  "shoulder.L": {
+   "length": 0.186,
+   "deform": true
+  },
+  "upper_arm.L": {
+   "length": 0.27073,
+   "deform": true
+  },
+  "forearm.L": {
+   "length": 0.27015,
+   "deform": true
+  },
+  "hand.L": {
+   "length": 0.0486,
+   "deform": true
+  },
+  "thumb.1.L": {
+   "length": 0.01296,
+   "deform": true
+  },
+  "thumb.2.L": {
+   "length": 0.0108,
+   "deform": true
+  },
+  "thumb.3.L": {
+   "length": 0.00864,
+   "deform": true
+  },
+  "index.1.L": {
+   "length": 0.0216,
+   "deform": true
+  },
+  "index.2.L": {
+   "length": 0.01944,
+   "deform": true
+  },
+  "index.3.L": {
+   "length": 0.01836,
+   "deform": true
+  },
+  "fingers.1.L": {
+   "length": 0.0216,
+   "deform": true
+  },
+  "fingers.2.L": {
+   "length": 0.01944,
+   "deform": true
+  },
+  "fingers.3.L": {
+   "length": 0.01836,
+   "deform": true
+  },
+  "shoulder.R": {
+   "length": 0.186,
+   "deform": true
+  },
+  "upper_arm.R": {
+   "length": 0.27073,
+   "deform": true
+  },
+  "forearm.R": {
+   "length": 0.27015,
+   "deform": true
+  },
+  "hand.R": {
+   "length": 0.0486,
+   "deform": true
+  },
+  "thumb.1.R": {
+   "length": 0.01296,
+   "deform": true
+  },
+  "thumb.2.R": {
+   "length": 0.0108,
+   "deform": true
+  },
+  "thumb.3.R": {
+   "length": 0.00864,
+   "deform": true
+  },
+  "index.1.R": {
+   "length": 0.0216,
+   "deform": true
+  },
+  "index.2.R": {
+   "length": 0.01944,
+   "deform": true
+  },
+  "index.3.R": {
+   "length": 0.01836,
+   "deform": true
+  },
+  "fingers.1.R": {
+   "length": 0.0216,
+   "deform": true
+  },
+  "fingers.2.R": {
+   "length": 0.01944,
+   "deform": true
+  },
+  "fingers.3.R": {
+   "length": 0.01836,
+   "deform": true
+  },
+  "thigh.L": {
+   "length": 0.43047,
+   "deform": true
+  },
+  "shin.L": {
+   "length": 0.43046,
+   "deform": true
+  },
+  "foot.L": {
+   "length": 0.13416,
+   "deform": true
+  },
+  "toe.L": {
+   "length": 0.07001,
+   "deform": true
+  },
+  "thigh.R": {
+   "length": 0.43047,
+   "deform": true
+  },
+  "shin.R": {
+   "length": 0.43046,
+   "deform": true
+  },
+  "foot.R": {
+   "length": 0.13416,
+   "deform": true
+  },
+  "toe.R": {
+   "length": 0.07001,
+   "deform": true
+  }
+ },
+ "ik": [],
+ "copyRotation": []
+}
